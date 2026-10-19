@@ -40,13 +40,57 @@
 <body>
 <main>
   <h1>Frostbite2: visual direction</h1>
-  <p class="lede">Three identity concepts in the same scene, plus a hybrid of the two strongest. Each concept has a character lineup (also redesigns), a gameplay frame at the real camera angle, and the furnace as a Tripo-ready hero object. All images are ChatGPT mock-ups (Codex bridge), 2026-10-20. They're for choosing a direction only; models still come from Tripo.</p>
+  <p class="lede">Visual direction mock-ups for Frostbite2. Each concept has a character lineup (also redesigns), a gameplay frame at the real camera angle, and the furnace as a Tripo-ready hero object. All images are ChatGPT mock-ups (Codex bridge), 2026-10-20. They're for choosing a direction only; models still come from Tripo.</p>
 
   <section>
-    <div class="card pick hero">
+    <h2>Round 2: more realistic (2026-10-20)</h2>
+    <p class="lede">Round 1 read as "made by AI". These use realistic adult proportions, real winter clothing, architecture from real Arctic villages, natural light and worn, lived-in materials. Prompts ruled out big cute eyes, toy proportions, gloss, bloom and sparkle. All three share one character design (lineups below) and the town motifs you picked: mittens, a crooked sun and a furnace-mouth mark on doors and signs.</p>
+    <div class="grid">
+      <div class="card pick">
+        <span class="tag">Recommended</span>
+        <h2>A. Nordic village</h2>
+        <p class="sub">Grounded stylised realism. A Svalbard / Norwegian fishing-village settlement in blue-hour light.</p>
+        <img src="round2/nordic/gameplay.png" alt="Nordic village gameplay frame">
+        <div class="pair"><img src="round2/nordic/lineup.png" alt="Nordic lineup"></div>
+        <div class="swatches"><span style="background:#B2412E"></span><span style="background:#C9973F"></span><span style="background:#5E8A87"></span><span style="background:#E9EEF0"></span><span style="background:#6E7B86"></span><span style="background:#3B3A38"></span><span style="background:#F2B266"></span></div>
+        <h3>Why</h3>
+        <ul><li>A real place gives it identity: Falu-red, ochre and teal houses, a harbour, sleds and fishing gear.</li><li>The most colourful of the three, so it stays warm rather than grim.</li><li>The town motifs read naturally as painted door signs.</li><li>The furnace is a fieldstone-and-iron village oven, not a sci-fi generator tower.</li></ul>
+        <h3>Risks</h3>
+        <ul><li>The people are tiny; Meagan needs her red coat and lantern to stay findable.</li><li>The image's detail is far beyond a phone game. The real game keeps the colours, light and shapes, not every rope and crate.</li></ul>
+      </div>
+      <div class="card">
+        <h2>B. Miniature diorama</h2>
+        <p class="sub">A real hobbyist model village, photographed with a macro lens: cotton snow, painted wood, clay figures.</p>
+        <img src="round2/miniature/gameplay.png" alt="Miniature diorama gameplay frame">
+        <div class="pair"><img src="round2/miniature/lineup.png" alt="Miniature lineup"></div>
+        <div class="swatches"><span style="background:#E8E6E1"></span><span style="background:#9C4A36"></span><span style="background:#7A6A52"></span><span style="background:#4F6B73"></span><span style="background:#D7B36A"></span><span style="background:#F0A85A"></span></div>
+        <h3>Why</h3>
+        <ul><li>Real-looking materials with a handmade, cosy charm.</li><li>The tilt-shift "toy world" feel is easy to recreate in Godot (depth of field at the screen edges).</li></ul>
+        <h3>Risks</h3>
+        <ul><li>Muted and brownish; the warmth contrast is weaker.</li><li>The lineup came out as real people, not clay figures, so the characters need their own pass.</li></ul>
+      </div>
+      <div class="card">
+        <h2>C. Painterly realism</h2>
+        <p class="sub">Realistic shapes with hand-painted textures and long low-sun shadows.</p>
+        <img src="round2/painterly/gameplay.png" alt="Painterly realism gameplay frame">
+        <div class="pair"><img src="round2/painterly/lineup.png" alt="Painterly lineup"></div>
+        <div class="swatches"><span style="background:#DCE3E6"></span><span style="background:#8FA3B5"></span><span style="background:#3E4C5E"></span><span style="background:#A5553D"></span><span style="background:#C8A065"></span><span style="background:#5C4A3C"></span><span style="background:#EFB46A"></span></div>
+        <h3>Why</h3>
+        <ul><li>The most atmospheric, with the strongest warm ring around the furnace.</li></ul>
+        <h3>Risks</h3>
+        <ul><li>The tower furnace and the grim, smoky tone look a lot like Frostpunk and Whiteout Survival, which the brief says not to copy.</li><li>The darkest mood, against the brief's "warm, silly, never grim".</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Round 1: stylised (rejected as too "AI")</h2>
+  </section>
+
+  <section>
+    <div class="card hero">
       <img src="hybrid/gameplay.png" alt="Toy Town by Lamplight gameplay frame">
       <div>
-        <span class="tag">Recommended</span>
         <h2>Toy Town by Lamplight (hybrid of 2 + 3)</h2>
         <p class="sub">Painted wooden toy characters and buildings, in a blue twilight lit only by the furnace and lanterns.</p>
         <ul>
