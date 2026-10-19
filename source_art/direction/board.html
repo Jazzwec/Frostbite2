@@ -43,11 +43,47 @@
   <p class="lede">Visual direction mock-ups for Frostbite2. Each concept has a character lineup (also redesigns), a gameplay frame at the real camera angle, and the furnace as a Tripo-ready hero object. All images are ChatGPT mock-ups (Codex bridge), 2026-10-20. They're for choosing a direction only; models still come from Tripo.</p>
 
   <section>
-    <h2>Round 2: more realistic (2026-10-20)</h2>
-    <p class="lede">Round 1 read as "made by AI". These use realistic adult proportions, real winter clothing, architecture from real Arctic villages, natural light and worn, lived-in materials. Prompts ruled out big cute eyes, toy proportions, gloss, bloom and sparkle. All three share one character design (lineups below) and the town motifs you picked: mittens, a crooked sun and a furnace-mouth mark on doors and signs.</p>
-    <div class="grid">
+    <h2>Round 3: cartoon with its own identity (2026-10-20)</h2>
+    <p class="lede">You wanted a unique cartoon identity, and less grime. Round 1 read as AI because it was over-rendered: glow, a texture on every surface, animated-movie faces. Round 3 keeps the grounded Nordic village from round 2 (real Svalbard colours, the harbour, the town motifs) and draws it in three restrained cartoon styles: few materials, large clean colour areas, simple faces with small eyes, moderate proportions. The characters are the round-2 designs, cleaned up and friendlier.</p>
+    <div class="swatches"><span style="background:#B2412E"></span><span style="background:#C9973F"></span><span style="background:#5E8A87"></span><span style="background:#EEF2F2"></span><span style="background:#7F93A6"></span><span style="background:#2C3440"></span><span style="background:#F2B266"></span></div>
+    <div class="hexes">Falu red #B2412E · ochre #C9973F · faded teal #5E8A87 · snow #EEF2F2 · blue shadow #7F93A6 · deep ink #2C3440 · firelight #F2B266</div>
+    <div class="grid" style="margin-top:16px">
       <div class="card pick">
         <span class="tag">Recommended</span>
+        <h2>A. Faceted low-poly</h2>
+        <p class="sub">Chunky flat-shaded facets with gentle painted gradients and no textures.</p>
+        <img src="round3/faceted/gameplay.png" alt="A. Faceted low-poly gameplay frame">
+        <div class="pair"><img src="round3/faceted/lineup.png" alt="A. Faceted low-poly lineup"></div>
+        <h3>Why</h3><ul><li>The closest to what Tripo's low-poly models and Godot's mobile renderer actually produce, so the game can look like this frame.</li><li>Crisp silhouettes, and the warm ring around the furnace reads well.</li><li>Crafted and geometric rather than "AI soft".</li></ul>
+        <h3>Risks</h3><ul><li>Facets can look cheap if they're uneven; models need a consistent facet size.</li><li>Meagan's red is close to the Jans' rust-orange (true of all three).</li></ul>
+      </div>
+      <div class="card">
+        
+        <h2>B. Flat graphic</h2>
+        <p class="sub">Unlit flat colours and simple geometric shapes, like a well-designed poster.</p>
+        <img src="round3/flat/gameplay.png" alt="B. Flat graphic gameplay frame">
+        <div class="pair"><img src="round3/flat/lineup.png" alt="B. Flat graphic lineup"></div>
+        <h3>Why</h3><ul><li>The most readable on a phone, and the cleanest identity.</li><li>The cheapest to render: flat colours and simple shadow shapes.</li></ul>
+        <h3>Risks</h3><ul><li>Needs very disciplined models; Tripo's textures would have to be flattened into colour areas.</li><li>Can feel sparse once the town fills with UI.</li></ul>
+      </div>
+      <div class="card">
+        
+        <h2>C. Ink &amp; watercolour picture book</h2>
+        <p class="sub">Hand-inked wobbly outlines over watercolour washes, like a Nordic children's book.</p>
+        <img src="round3/inked/gameplay.png" alt="C. Ink &amp; watercolour picture book gameplay frame">
+        <div class="pair"><img src="round3/inked/lineup.png" alt="C. Ink &amp; watercolour picture book lineup"></div>
+        <h3>Why</h3><ul><li>The most charming and personal: it fits "a love letter disguised as a game".</li><li>Outlines help small characters stand out against the snow.</li></ul>
+        <h3>Risks</h3><ul><li>The hardest to reproduce in real-time 3D; it needs toon shading, an outline pass and a paper-texture overlay, and moving characters break the illusion fastest.</li><li>The busiest of the three at phone size.</li></ul>
+      </div>
+    </div>
+    <p class="verdict" style="margin-top:12px">Fix for any choice: give Meagan a colour no Jan wears. Keep her deep red, and move the Jans off rust-orange (for example ochre or faded teal parkas), or give her a cream coat with the red scarf.</p>
+  </section>
+
+  <section>
+    <h2>Round 2: more realistic (rejected: wanted cartoon)</h2>
+    <p class="lede">Round 1 read as "made by AI". These use realistic adult proportions, real winter clothing, architecture from real Arctic villages, natural light and worn, lived-in materials. Prompts ruled out big cute eyes, toy proportions, gloss, bloom and sparkle. All three share one character design (lineups below) and the town motifs you picked: mittens, a crooked sun and a furnace-mouth mark on doors and signs.</p>
+    <div class="grid">
+      <div class="card">
         <h2>A. Nordic village</h2>
         <p class="sub">Grounded stylised realism. A Svalbard / Norwegian fishing-village settlement in blue-hour light.</p>
         <img src="round2/nordic/gameplay.png" alt="Nordic village gameplay frame">
