@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frostbite2 Visual Direction</title>
+<style>
+  :root {
+    --bg: #f3f1ec; --card: #ffffff; --ink: #1d2433; --muted: #5d6576; --line: #e2ded5; --accent: #b94e43;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #14181f; --card: #1d232d; --ink: #e9ecf1; --muted: #a2aab8; --line: #2c3442; --accent: #ea705a; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1240px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 28px; margin: 0 0 4px; }
+  h2 { font-size: 21px; margin: 0 0 4px; }
+  h3 { font-size: 15px; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  p, li { color: var(--ink); }
+  .lede { color: var(--muted); max-width: 760px; margin: 0 0 28px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .card.pick { border: 2px solid var(--accent); }
+  .tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--accent); color: #fff; margin-bottom: 8px; }
+  .sub { color: var(--muted); margin: 0 0 12px; font-size: 14px; }
+  img { width: 100%; height: auto; display: block; border-radius: 8px; background: #ccc; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .swatches { display: flex; gap: 4px; margin: 8px 0 4px; }
+  .swatches span { flex: 1; height: 26px; border-radius: 4px; border: 1px solid rgba(0,0,0,.12); }
+  .hexes { font: 11px/1.3 ui-monospace, Consolas, monospace; color: var(--muted); }
+  ul { padding-left: 20px; margin: 6px 0; }
+  li { margin: 3px 0; font-size: 14px; }
+  .verdict { font-size: 14px; border-left: 3px solid var(--line); padding-left: 10px; color: var(--muted); }
+  section { margin-top: 36px; }
+  .hero { display: grid; grid-template-columns: minmax(240px, 360px) 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 720px) { .hero { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Frostbite2: visual direction</h1>
+  <p class="lede">Three identity concepts in the same scene, plus a hybrid of the two strongest. Each concept has a character lineup (also redesigns), a gameplay frame at the real camera angle, and the furnace as a Tripo-ready hero object. All images are ChatGPT mock-ups (Codex bridge), 2026-10-20. They're for choosing a direction only; models still come from Tripo.</p>
+
+  <section>
+    <div class="card pick hero">
+      <img src="hybrid/gameplay.png" alt="Toy Town by Lamplight gameplay frame">
+      <div>
+        <span class="tag">Recommended</span>
+        <h2>Toy Town by Lamplight (hybrid of 2 + 3)</h2>
+        <p class="sub">Painted wooden toy characters and buildings, in a blue twilight lit only by the furnace and lanterns.</p>
+        <ul>
+          <li><b>Ownable:</b> the wooden peg-doll Meagan and Jans are unlike any other survival game. The two ChatGPT passes rated this identity the most ownable.</li>
+          <li><b>The mechanic is the picture:</b> one amber disc of warm snow around the furnace is the safe zone. Outside it everything is cold blue. As the heat falls, the disc shrinks and frost creeps in at the edges. The readability review ranked Ember &amp; Ink's lighting first for exactly this.</li>
+          <li><b>Readable:</b> red Meagan with a lantern and a mustard scarf is the brightest thing on screen; the Jans are blue and bearded with bead noses.</li>
+          <li><b>Buildable:</b> carved toys are simple solids, the best case for Tripo's low-poly output. Bake broad shading into textures, use one real light (the furnace) plus an emissive ground disc, and fit the lantern glow to the mobile renderer.</li>
+          <li><b>Rules against drift:</b> nothing smaller than about 4 px at game zoom (no fine wood grain or chips); keep Meagan distinct in colour and silhouette, about 15% taller than a Jan; give each workstation a clear ring of snow.</li>
+        </ul>
+        <div class="swatches"><span style="background:#192C4B"></span><span style="background:#34566B"></span><span style="background:#E8EFE9"></span><span style="background:#F6DDB0"></span><span style="background:#CB9965"></span><span style="background:#B94E43"></span><span style="background:#D6AC48"></span><span style="background:#FFCA70"></span></div>
+        <div class="hexes">twilight #192C4B · pine blue #34566B · snow #E8EFE9 · warm snow #F6DDB0 · wood #CB9965 · red #B94E43 · mustard #D6AC48 · fire #FFCA70</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="grid">
+      <div class="card">
+        <h2>1. Knitted Winter</h2>
+        <p class="sub">Tea-cosy town. Warm things are wool and felt, cold things are glassy ice.</p>
+        <img src="knitted/gameplay.png" alt="Knitted Winter gameplay frame">
+        <div class="pair"><img src="knitted/lineup.png" alt="Knitted Winter lineup"><img src="knitted/furnace.png" alt="Knitted Winter furnace"></div>
+        <div class="swatches"><span style="background:#E5EFF2"></span><span style="background:#83BFCE"></span><span style="background:#344F68"></span><span style="background:#F1D9AE"></span><span style="background:#D76D59"></span><span style="background:#FFAD42"></span></div>
+        <h3>Strengths</h3>
+        <ul><li>A memorable material idea: the town is literally bundled up.</li><li>The grumpy tea-cosy furnace has the most personality.</li><li>The most charming characters of the three.</li></ul>
+        <h3>Risks</h3>
+        <ul><li>Meagan, the Jans, the roofs and the furnace share cream and orange stripes, so nothing stands out.</li><li>Yarn texture turns into noise at phone size and is hard to get out of Tripo.</li><li>Everything looks warm, so the danger of the cold doesn't read.</li></ul>
+        <p class="verdict">ChatGPT review: ranked 3rd. "Recognizable material identity, weakest gameplay hierarchy."</p>
+      </div>
+
+      <div class="card">
+        <h2>2. Painted Wooden Toy Town</h2>
+        <p class="sub">Carved peg-doll people and toy-block buildings with folk-art painted motifs.</p>
+        <img src="toytown/gameplay.png" alt="Wooden Toy Town gameplay frame">
+        <div class="pair"><img src="toytown/lineup.png" alt="Wooden Toy Town lineup"><img src="toytown/furnace.png" alt="Wooden Toy Town furnace"></div>
+        <div class="swatches"><span style="background:#E8EFE9"></span><span style="background:#34566B"></span><span style="background:#CB9965"></span><span style="background:#B94E43"></span><span style="background:#D6AC48"></span><span style="background:#FFCA70"></span></div>
+        <h3>Strengths</h3>
+        <ul><li>The most ownable. The town's own motifs (paired mittens, crooked suns, a furnace-mouth mark) can repeat across doors, coats and sleds.</li><li>Red Meagan stands clearly apart from the blue Jans.</li><li>Simple carved solids suit Tripo and low poly.</li></ul>
+        <h3>Risks</h3>
+        <ul><li>Wood grain, chipped paint and emblems compete at phone size.</li><li>In daylight the cold boundary is weak.</li><li>It could drift into a Nordic souvenir set, so keep the wonky repairs and soot.</li></ul>
+        <p class="verdict">ChatGPT brainstorm: its pick. "A coherent shape language that should survive a distant camera." Review: ranked 2nd.</p>
+      </div>
+
+      <div class="card">
+        <h2>3. Ember &amp; Ink</h2>
+        <p class="sub">Blue twilight lit only by the furnace and lanterns. The light radius is the heat.</p>
+        <img src="ember/gameplay.png" alt="Ember and Ink gameplay frame">
+        <div class="pair"><img src="ember/lineup.png" alt="Ember and Ink lineup"><img src="ember/furnace.png" alt="Ember and Ink furnace"></div>
+        <div class="swatches"><span style="background:#C5D9E7"></span><span style="background:#192C4B"></span><span style="background:#527CAB"></span><span style="background:#101B30"></span><span style="background:#EA705A"></span><span style="background:#FFD18A"></span></div>
+        <h3>Strengths</h3>
+        <ul><li>The best match for the mechanic: the furnace is the destination and the cold edges mean danger.</li><li>The happy-face furnace is easy to animate with three mouth shapes.</li><li>Rounded geometry is the easiest to build.</li></ul>
+        <h3>Risks</h3>
+        <ul><li>The characters themselves look the most generic. The first attempt came out as Santa-like gnomes and had to be redone.</li><li>Blue coats sink into the blue shadows.</li><li>Darkness and bloom can hurt readability.</li></ul>
+        <p class="verdict">ChatGPT review: ranked 1st for gameplay. The brainstorm said it "works better as a lighting treatment than a complete identity", which led to the hybrid above.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="card">
+      <h2>Design ideas that work with any direction</h2>
+      <ul>
+        <li><b>Heat on screen:</b> the warm disc around the furnace grows and shrinks with heat, and frost creeps in from the screen edges below 25%.</li>
+        <li><b>Jans feel the cold:</b> noses go from red to blue outside the warmth, and snow settles on idle Jans and buildings.</li>
+        <li><b>A furnace with a personality:</b> a face that changes mood (content, hungry, roaring when fed), and maybe a name ("Old Toasty").</li>
+        <li><b>Meagan reads from above:</b> a trailing comma-shaped scarf and a lantern that is her own small light in the cold.</li>
+        <li><b>Jans read as a crowd:</b> one egg-shaped silhouette, beard and bead nose; variants change only one big prop (apron, blanket, headphones).</li>
+        <li><b>A town motif vocabulary:</b> paired mittens, crooked suns and a furnace-mouth mark on doors, coats, sleds and UI, so the game has its own visual language.</li>
+        <li><b>A fourth idea from ChatGPT</b> (not mocked up): "Enamel Hot-Water Town": squat enamel-warmer buildings, a kettle-bellied furnace, Jans in padded hot-water-bottle coats.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+</body>
+</html>
