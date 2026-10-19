@@ -16,6 +16,24 @@ Add, reorder or delete items freely; Claude only reads this file at the start of
     - In the game, quitting and relaunching continues where it left off.
     - Game over shows the card again, not a frozen world.
 
+- [ ] **1a. Concept sheets for Tripo (safe, ChatGPT).**
+  - **What:** model sheets in one consistent chunky cartoon style, made with the `chatgpt` skill: Meagan (pink parka, white bobble hat, gold scarf), a Jan (orange parka, blue hat, red nose), a wolf, the Furnace and the Lumber Yard.
+  - **Style:** generate Meagan first, then use her as `--ref` for the rest.
+  - **Where:** `source_art/concept/`, with a `README.md` on how to upload each one to Tripo Studio (image to 3D, auto-rig for the characters).
+  - **Done when:** 5 sheets are checked by eye and committed with their prompts. Budget: up to 7 images, counting retries.
+
+- [ ] **1b. Resource and HUD icons (safe, ChatGPT).**
+  - **What:** icons for Wood, Food (fish), Materials, Heat (flame), Jans and Bag, made with the `chatgpt` skill, with the white keyed out to transparency.
+  - **Where:** `assets/ui/icons/`, shown at 48–64 px next to the numbers in the HUD's top bar, the Stockpile label and Meagan's counter (Label3D can't show images, so use a Sprite3D or a small icon row).
+  - **Done when:**
+    - Screenshots show the icons.
+    - A ChatGPT review says they read at phone size.
+    - The text still says what each number is the first time it's seen.
+
+- [ ] **1c. Snow ground texture (safe, ChatGPT).**
+  - **What:** a seamless, tileable snow texture made with the `chatgpt` skill, at 1k with mipmaps, replacing the flat snow colour on the ground plane. Keep it subtle, so the characters and pads still pop.
+  - **Done when:** a screenshot shows no visible seams and a ChatGPT review finds it doesn't hurt readability. Check the FPS too.
+
 - [ ] **2. First-minute hints (safe).**
   - **What:** a new player learns the loop with no text wall.
   - **How:** a short chain of hints, each shown until it's done:

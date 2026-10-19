@@ -61,6 +61,7 @@ Frostbite2 is a fresh rebuild in Godot of Frostbite 1 (a finished Vite + Phaser 
 ## Assets
 - `assets/models/tripo/`: GLB files the user generates by hand in Tripo Studio (the web app) and drops in. The Tripo API has no credits, so do not call `tripo_make` unless the user says they bought API credits.
 - `assets/models/blender/`: GLBs exported after cleanup in Blender (scale, pivot, decimation, rigging), via the `blender` MCP server, which needs Blender open. Keep the `.blend` working files in `source_art/blender/` (`.gdignore`d so Godot doesn't import them).
+- **ChatGPT, through the user's Codex CLI** (ChatGPT plan, not API credits): `tools/chatgpt/chatgpt.py` does `review` (art-director feedback on screenshots), `ask` (a second opinion) and `image` (2D assets). The `chatgpt` skill (`.claude/skills/chatgpt/`) says when to use it, and it's used after every visible change, including in workflows and AFK runs. Generated assets go in `assets/ui/icons/`, `assets/textures/` and `source_art/concept/` (Tripo references), each with a `.prompt.txt`.
 - Free models, textures and HDRIs: Poly Haven via the Blender MCP (`search_assets`/`import_asset`), CC0.
 - Art style: chunky, readable at phone size, never copying Whiteout Survival's assets. Meagan and the Jans are the assets that genuinely have to be good.
 - `assets/audio/music/` and `assets/audio/sfx/`: synthesized placeholders made by `tools/audio/make_audio.py` (numpy + scipy, fixed seeds), until the planned ElevenLabs audio. Change a sound in the script and re-run it rather than editing the .wav files. `winter_town.wav` and `wind_loop.wav` are imported with looping on.
@@ -72,6 +73,7 @@ Frostbite2 is a fresh rebuild in Godot of Frostbite 1 (a finished Vite + Phaser 
 - `godot --path .` runs the game. Add `-- --keep-running` to stop it pausing when the window loses focus.
 - `godot --headless --path . -s res://tests/run_tests.gd` runs the engine tests.
 - `python tools/audio/make_audio.py` regenerates the music and sound effects (needs numpy and scipy).
+- `python tools/chatgpt/chatgpt.py review|ask|image ...`: ChatGPT via the Codex CLI (see the `chatgpt` skill). A review or ask takes about 30 s, an image about 40 s.
 - **In the game (debug builds):** the DEV button or F1 opens the dev panel: skip 60 s, fill resources, add a Jan, Furnace +1, blizzard, wolves.
 - **Driving the running game from Swallowtail:**
   - Use the Bash tool: PowerShell 5.1 strips the double quotes inside `--code` strings.

@@ -1,4 +1,4 @@
-﻿# Godot
+# Godot
 .godot/
 /android/
 *.tmp
@@ -17,3 +17,6 @@ export_credentials.cfg
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# ChatGPT bridge call log (local budget tracking)
+tools/chatgpt/calls.log

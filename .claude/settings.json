@@ -19,7 +19,11 @@
       "PowerShell(git diff *)",
       "PowerShell(git add *)",
       "PowerShell(git commit *)",
-      "PowerShell(git push origin main)"
+      "PowerShell(git push origin main)",
+      "Bash(codex exec *)",
+      "Bash(python tools/chatgpt/*)",
+      "PowerShell(codex exec *)",
+      "PowerShell(python tools/chatgpt/*)"
     ],
     "deny": [
       "Bash(git push --force *)",

@@ -20,8 +20,10 @@ These rules override the "plan first, show the plan, ask before guessing" rules 
    - Play it through Swallowtail (`scene play`, `runtime eval`, `runtime screenshot`): the feature visibly works, and `runtime errors` is empty.
    - After adding a `class_name` or an autoload, run `swallowtail editor reload`.
    - Remove any test values written to `user://` (best time, saves).
+   - **ChatGPT review (the `chatgpt` skill):** for any visible change, screenshot before and after, then run `python tools/chatgpt/chatgpt.py review before.png after.png --focus "<the item>"`. Apply the points that are in scope, and list the rest in the report under "ChatGPT feedback".
 5. **Commit and push.** One commit per item (or per clear step of a big item), with a clear message and the Co-Authored-By line. Push with `git push origin main`.
 6. **Record it:**
+   - Generated assets are committed with their `<name>.prompt.txt`, and only after you've looked at them with the Read tool.
    - Tick the item in `BACKLOG.md`.
    - Add an entry to `AFK_REPORT.md`: the item, the commits, what to check in the game, any `[proto]` numbers, and anything that felt wrong.
    - Update the CLAUDE.md "Current state" section and the NOTES.md checklist where the item changes them.
@@ -40,6 +42,7 @@ These rules override the "plan first, show the plan, ask before guessing" rules 
 - Work on items marked **needs you**, or change brief rules beyond what an item says.
 - Delete files you didn't create in this run.
 - Add addons, plugins or Python packages.
-- Spend credits: Tripo API, ElevenLabs, or anything paid.
+- Spend credits: Tripo API, ElevenLabs, the OpenAI API key, or anything paid.
+- Go over the ChatGPT budget: **8 images and 25 reviews or asks per run**, counted in `tools/chatgpt/calls.log` from the run's start time. ChatGPT through the Codex bridge uses the user's ChatGPT plan, which is allowed within this budget.
 - Touch anything outside `C:\Claude Code\Frostbite2`. The Blender MCP may only change the Frostbite2 source `.blend` files.
 - Change `.claude/settings.json`, permissions or the user's global settings.
