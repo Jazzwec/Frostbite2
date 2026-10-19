@@ -18,6 +18,10 @@ var _banner: PanelContainer
 var _banner_label: Label
 var _banner_timer := 0.0
 var _dev_button: Button
+var _game_over: GameOverCard
+## Whether the low-heat warning has fired; it re-arms once heat recovers.
+var _low_warned := false
+var _time := 0.0
 var _music_button: Button
 var _sound_button: Button
 var _dev_panel: PanelContainer
@@ -102,12 +106,15 @@ func show_banner(text: String, seconds := 4.0, color := Color(0.55, 0.12, 0.1, 0
 
 func _process(delta: float) -> void:
 	var s := Game.engine.state
+	_time += delta
 	var cap := Economy.heat_cap(s)
+	var frac := s.heat / maxf(cap, 1.0)
 	_heat_bar.max_value = cap
 	_heat_bar.value = s.heat
-	_heat_fill.bg_color = UiTheme.COLD.lerp(UiTheme.ACCENT, clampf(s.heat / maxf(cap, 1.0) / Balance.COLD_THRESHOLD, 0.0, 1.0))
+	_heat_fill.bg_color = UiTheme.COLD.lerp(UiTheme.ACCENT, clampf(frac / Balance.COLD_THRESHOLD, 0.0, 1.0))
 	var drain := Economy.heat_drain(s)
 	_heat_label.text = "Heat %s / %s   (−%.1f/s)" % [Fmt.num(s.heat), Fmt.num(cap), drain]
+	_warn_low_heat(s, frac)
 	var caps := Economy.caps(s)
 	_stats.text = "Jans %d/%d    Wood %s/%s    Food %s    Mat %s" % [
 		s.jans.size(), Economy.jan_cap(s), Fmt.num(s.piles.wood), Fmt.num(caps.wood), Fmt.num(s.piles.food), Fmt.num(s.piles.materials)]
@@ -119,6 +126,35 @@ func _process(delta: float) -> void:
 		_banner_timer -= delta
 		if _banner_timer <= 0.0:
 			_banner.visible = false
+
+
+## Keeping the fire alive is the goal, so a dying fire is loud: the bar pulses red, a banner
+## and horn fire once (again after it recovers), and near the end the bar counts down.
+func _warn_low_heat(s: GameState, frac: float) -> void:
+	if s.game_over:
+		return
+	if frac < Balance.LOW_HEAT_WARNING:
+		_heat_fill.bg_color = Color(0.85, 0.15, 0.12).lerp(Color(1.0, 0.55, 0.3), 0.5 + 0.5 * sin(_time * 9.0))
+		if not _low_warned:
+			_low_warned = true
+			show_banner("The fire is dying! Bring Wood to the furnace.", 4.0)
+			Audio.play("warning")
+	elif frac > Balance.LOW_HEAT_CLEAR:
+		_low_warned = false
+	var left := Economy.seconds_until_cold(s)
+	if frac < Balance.FIRE_OUT_COUNTDOWN and left < INF:
+		_heat_label.text = "Fire out in %s!" % Fmt.clock(left)
+
+
+## The fire went out: the end-of-winter card over everything.
+func show_game_over(time_survived: float, best: float, new_best: bool) -> void:
+	sheet.close()
+	_banner.visible = false
+	_game_over = GameOverCard.new()
+	_game_over.time_survived = time_survived
+	_game_over.best = best
+	_game_over.new_best = new_best
+	_root.add_child(_game_over)
 
 
 func _forecast_text(s: GameState) -> String:
@@ -138,7 +174,7 @@ func _forecast_text(s: GameState) -> String:
 
 ## True when a screen point is over UI, so the world shouldn't get the touch.
 func blocks(pos: Vector2) -> bool:
-	for c in [_top, sheet, _dev_button, _dev_panel, _music_button, _sound_button]:
+	for c in [_top, sheet, _dev_button, _dev_panel, _music_button, _sound_button, _game_over]:
 		if c and c.is_visible_in_tree() and c.get_global_rect().has_point(pos):
 			return true
 	return false

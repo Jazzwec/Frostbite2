@@ -9,6 +9,8 @@ var rescue_lines: Dictionary = {}
 var chatter: Array = []
 var messages: Dictionary = {}
 var buildings_text: Dictionary = {}
+const SETTINGS_PATH := "user://settings.cfg"
+
 ## Pause when the window loses focus, as on a phone. Run with `-- --keep-running` to turn it off for automated testing.
 var pause_on_focus_loss := true
 
@@ -39,6 +41,30 @@ func _notification(what: int) -> void:
 				engine.pause()
 		NOTIFICATION_APPLICATION_RESUMED, NOTIFICATION_APPLICATION_FOCUS_IN:
 			engine.resume()
+
+
+## A fresh winter: a new engine, and the main scene rebuilt from it.
+func new_game() -> void:
+	engine = GameEngine.new()
+	get_tree().reload_current_scene()
+
+
+## The longest the village has been kept warm, in seconds (0 before the first game ends).
+func best_time() -> float:
+	var cfg := ConfigFile.new()
+	cfg.load(SETTINGS_PATH)
+	return cfg.get_value("score", "best", 0.0)
+
+
+## Records a finished winter's time; true when it's a new best.
+func record_time(seconds: float) -> bool:
+	var cfg := ConfigFile.new()
+	cfg.load(SETTINGS_PATH)
+	if seconds <= float(cfg.get_value("score", "best", 0.0)):
+		return false
+	cfg.set_value("score", "best", seconds)
+	cfg.save(SETTINGS_PATH)
+	return true
 
 
 func _load_json(path: String, fallback: Variant) -> Variant:

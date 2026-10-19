@@ -408,6 +408,10 @@ func _on_meagan_worked(clip: String) -> void:
 func _on_event(ev: Dictionary) -> void:
 	_people.on_event(ev)
 	match ev.type:
+		"game_over":
+			var new_best := Game.record_time(ev.time)
+			_hud.show_game_over(ev.time, Game.best_time(), new_best)
+			Audio.play("crash")
 		"thawed":
 			_meagan.play_once("warm", _v3(ev.pos))
 		"built", "levelled":

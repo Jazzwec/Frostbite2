@@ -69,7 +69,7 @@ func play(name: String, at := Vector3.INF, pitch := 1.0, volume_db := 0.0) -> vo
 	if now - float(_last_played.get(name, -10.0)) < spec[2]:
 		return
 	var db: float = spec[0] + volume_db
-	if at != Vector3.INF and listener:
+	if at != Vector3.INF and is_instance_valid(listener):
 		var d := listener.global_position.distance_to(at)
 		if d >= FAR:
 			return
@@ -97,8 +97,9 @@ func toggle_sfx() -> void:
 
 
 func _process(delta: float) -> void:
-	# Blizzards muffle the music and bring in the wind.
-	_storm = move_toward(_storm, 1.0 if Game.engine.state.blizzard_active else 0.0, delta * 0.4)
+	# Blizzards, and the fire going out, muffle the music and bring in the wind.
+	var s := Game.engine.state
+	_storm = move_toward(_storm, 1.0 if s.blizzard_active or s.game_over else 0.0, delta * 0.4)
 	_lowpass.cutoff_hz = lerpf(20000.0, STORM_CUTOFF_HZ, sqrt(_storm))
 	_wind.volume_db = WIND_DB + linear_to_db(_storm) if _storm > 0.001 else -80.0
 	# Silence while the game is paused (the app is in the background).
