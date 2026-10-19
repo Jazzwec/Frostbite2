@@ -21,16 +21,11 @@ What felt wrong while playing, and what's still open. This file is the prompt fo
 - **ChatGPT through the Codex CLI:** `tools/chatgpt/chatgpt.py` does `review`, `ask` and `image`; the `chatgpt` skill explains its use. The Tripo reference images and prompts are in `source_art/concept/`.
 - **Unattended runs:** `AFK.md`, `BACKLOG.md`, `AFK_REPORT.md` and `.claude/settings.json`. Start one with `/loop Work through BACKLOG.md for Frostbite2 until HH:MM. Follow AFK.md.`
 
-**Waiting:** the user dropped `assets/models/tripo/wolf.glb` in at the end of the session. It isn't processed or committed yet.
+**Done since (2026-10-19, later):** the wolf. `source_art/blender/wolf.blend` (scene `FB2_Wolf`, saved on its own) → `assets/models/blender/wolf.glb`: 3.6k tris, 1024 texture, 1.3 m long, drawn ×1.25. It has Tripo's quadruped auto-rig, and `WolfView` poses it in code: a trot, and an attack loop of crouch, thrust and recover, with a white flash when hit.
 
 **Next, in order:**
-1. **The wolf model.** Use the same pipeline as `meagan.blend` and `jan.blend`:
-   - Import into its own scene `FB2_Wolf`, decimate to about 3–4k triangles, use a 1024 texture and keep it about 1.3 m long.
-   - Export with `use_active_scene` and `use_active_collection`.
-   - Check whether it's rigged. `ModelRig` is built for humanoids, so for wolves either write a small quadruped variant (leg swing, body bob, a lunge when attacking) or keep `WolfView`'s simple motion and only swap the mesh.
-   - Then use it in `scripts/game/wolf_view.gd`, keeping the hit flash and the HP bar.
-2. **The Furnace and Lumber Yard models,** when the user makes them in Tripo. Buildings need no rig; they replace the greybox parts in `SiteView`, keeping the fire light, embers and pad.
-3. **`BACKLOG.md` items 1b onwards:** HUD icons, the snow texture, save and continue, first-minute hints, zoom… These can also run as an AFK `/loop`.
+1. **The Furnace and Lumber Yard models,** when the user makes them in Tripo. Buildings need no rig; they replace the greybox parts in `SiteView`, keeping the fire light, embers and pad.
+2. **`BACKLOG.md` items 1b onwards:** HUD icons, the snow texture, save and continue, first-minute hints, zoom… These can also run as an AFK `/loop`.
 
 **Gotchas learned this session:**
 - **The Godot editor** must be restarted once so it recognises the `Audio` autoload. Until then, `script validate` and the editor show "Identifier not found: Audio", but the game itself runs fine.
@@ -88,6 +83,11 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - [ ] Her stack sits on her back (at most 8 pieces), below her head.
 - [ ] Jans are the Tripo Jan model. They chop, fish and hammer either side of their building's pad, which stays clear for Meagan. Frozen Jans hug themselves inside a taller ice block. With 20 Jans and 3 wolves it ran at 165 FPS on desktop (155k triangles).
 
+**The wolf model (2026-10-19)** (DEV → Wolves)
+- [ ] Wolves are the Tripo wolf, about Meagan's length. They trot with diagonal leg pairs and a wagging tail, facing where they run.
+- [ ] Fighting: tail up, a crouch, a lunge forward with the front paws out, then back, about once a second. When hit, the whole wolf flashes white for a moment and hops back a little.
+- [ ] The health bar sits above the head and doesn't hide the ears.
+
 **Objective: keep the fire burning**
 - [ ] A winter starts at 100/100 heat. With no Wood it lasts about 2½ minutes.
 - [ ] Below 25%: the bar pulses red, banner and horn. Below 10%: "Fire out in 0:12" on the bar.
@@ -108,6 +108,10 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
   - Move Music and Sound into a settings button.
   - Fade tree canopies that hide her while she works.
   - Zoom (backlog item 3) will help most.
+- **ChatGPT feedback on the wolf (not done yet):**
+  - From the game camera they're narrow; a model pass could widen the torso and head by about 20%, enlarge the ears and thicken the tail, and simplify the neck's jagged plates into two or three fur masses.
+  - Wolves pile onto Meagan and each other; give attackers separate slots around their target (engine, `combat.gd`).
+  - Land the damage on the lunge's contact moment rather than as steady damage per second.
 - **Score:** the game-over card scores minutes:seconds survived. Would "days survived" (e.g. one day = 2 minutes) feel better?
 - **Art direction:** the Poly Haven props are photoreal, while the brief wants chunky cartoon. Decide whether to keep them as placeholders or go straight to Tripo models.
 
