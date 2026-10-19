@@ -10,6 +10,7 @@ budgets can be checked. Standard library only; needs `codex` on PATH.
 
 import argparse
 import datetime
+import json
 import shutil
 import subprocess
 import sys
@@ -62,13 +63,13 @@ def log(kind, seconds, out, summary):
 
 
 def codex(prompt, images=(), out_file=None, timeout=180, sandbox="read-only"):
-    """Runs one non-interactive Codex turn; returns its final message."""
+    """Runs one non-interactive Codex turn; returns (final message, thread id)."""
     exe = shutil.which("codex")
     if not exe:
         sys.exit("codex CLI not found on PATH")
     with tempfile.TemporaryDirectory() as work:
         last = Path(work) / "last.md"
-        cmd = [exe, "exec", "-s", sandbox, "--skip-git-repo-check", "--ephemeral", "-C", work, "-o", str(last)]
+        cmd = [exe, "exec", "-s", sandbox, "--skip-git-repo-check", "--ephemeral", "--json", "-C", work, "-o", str(last)]
         for img in images:
             cmd += ["-i", str(Path(img).resolve())]
         cmd.append("-")
@@ -79,11 +80,21 @@ def codex(prompt, images=(), out_file=None, timeout=180, sandbox="read-only"):
             sys.exit(f"codex timed out after {timeout}s")
         if run.returncode != 0:
             sys.exit(f"codex failed ({run.returncode}):\n{run.stderr[-2000:]}")
-        text = last.read_text(encoding="utf-8") if last.exists() else run.stdout
+        text = last.read_text(encoding="utf-8") if last.exists() else ""
+    # The JSON event stream names this run's thread; its generated images live in a folder of that name.
+    thread = ""
+    for line in run.stdout.splitlines():
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        if event.get("type") == "thread.started":
+            thread = event.get("thread_id", "")
+            break
     if out_file:
         Path(out_file).parent.mkdir(parents=True, exist_ok=True)
         Path(out_file).write_text(text, encoding="utf-8")
-    return text
+    return text, thread
 
 
 def cmd_review(args):
@@ -91,23 +102,24 @@ def cmd_review(args):
     for img in args.images:
         if not Path(img).exists():
             sys.exit(f"no such image: {img}")
-    text = codex(REVIEW_PROMPT.format(style=STYLE, focus=args.focus), args.images, args.out)
+    text, _ = codex(REVIEW_PROMPT.format(style=STYLE, focus=args.focus), args.images, args.out)
     log("review", time.time() - start, args.out or "-", args.focus)
     print(text)
 
 
 def cmd_ask(args):
     start = time.time()
-    text = codex(ASK_PROMPT.format(style=STYLE, question=args.question), args.image or (), args.out)
+    text, _ = codex(ASK_PROMPT.format(style=STYLE, question=args.question), args.image or (), args.out)
     log("ask", time.time() - start, args.out or "-", args.question)
     print(text)
 
 
-def _new_images(since):
-    if not GENERATED.exists():
+def _thread_images(thread):
+    """The images one Codex run made, oldest first. Safe when several runs happen at once."""
+    folder = GENERATED / thread
+    if not thread or not folder.exists():
         return []
-    found = [p for p in GENERATED.rglob("*.png") if p.stat().st_mtime >= since]
-    return sorted(found, key=lambda p: p.stat().st_mtime)
+    return sorted(folder.glob("*.png"), key=lambda p: p.stat().st_mtime)
 
 
 def cmd_image(args):
@@ -117,8 +129,8 @@ def cmd_image(args):
     prompt = IMAGE_PROMPT.format(style=STYLE, prompt=args.prompt)
     if refs:
         prompt += "\nMatch the style of the attached reference image."
-    reply = codex(prompt, refs, timeout=args.timeout)
-    made = _new_images(start - 1)
+    reply, thread = codex(prompt, refs, timeout=args.timeout)
+    made = _thread_images(thread)
     if not made:
         sys.exit(f"no image was generated. Codex said:\n{reply[-1500:]}")
     out.parent.mkdir(parents=True, exist_ok=True)

@@ -16,7 +16,7 @@ Add, reorder or delete items freely; Claude only reads this file at the start of
     - In the game, quitting and relaunching continues where it left off.
     - Game over shows the card again, not a frozen world.
 
-- [ ] **1a. Concept sheets for Tripo (safe, ChatGPT).**
+- [x] **1a. Concept sheets for Tripo (safe, ChatGPT).** Done 2026-10-19: see `source_art/concept/README.md`.
   - **What:** model sheets in one consistent chunky cartoon style, made with the `chatgpt` skill: Meagan (pink parka, white bobble hat, gold scarf), a Jan (orange parka, blue hat, red nose), a wolf, the Furnace and the Lumber Yard.
   - **Style:** generate Meagan first, then use her as `--ref` for the rest.
   - **Where:** `source_art/concept/`, with a `README.md` on how to upload each one to Tripo Studio (image to 3D, auto-rig for the characters).
