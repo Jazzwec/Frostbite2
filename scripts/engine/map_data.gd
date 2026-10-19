@@ -50,6 +50,12 @@ const WOLF_SPAWNS := [Vector2(0, -40), Vector2(-24, -20), Vector2(24, 18), Vecto
 
 
 ## The site a job's building stands on, or -1.
+## The build pad in front of a plot, where she stands to pay for construction and upgrades.
+static func pad_pos(i: int) -> Vector2:
+	var half := FURNACE_RADIUS if i == 0 else SITE_HALF_SIZE
+	return SITES[i].pos + Vector2(0, half + 0.9)
+
+
 static func site_of_building(sites: Array, building: String) -> int:
 	for i in sites.size():
 		if sites[i].building == building:

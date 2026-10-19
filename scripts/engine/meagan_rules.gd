@@ -68,7 +68,7 @@ static func magnet(s: GameState, dt: float, events: Array) -> void:
 				s.fuel += into_fuel
 				budget -= into_fuel
 				set_activity(s, "fuel", i, MapData.SITES[i].pos)
-		if site.upgrading:
+		if site.upgrading and s.meagan_pos.distance_to(MapData.pad_pos(i)) <= Balance.PAD_RADIUS:
 			budget = _deliver_to_site(s, i, budget, events)
 		var caps := Economy.caps(s)
 		if Economy.pile_site(s, "food") == i:

@@ -64,7 +64,7 @@ const JOB_SHARES := {"chop": 3.0, "hunt": 2.0, "build": 2.0}
 
 # ---------- Meagan ----------
 
-const MEAGAN_WALK_SPEED := 4.0  # [proto] about a phone screen width in 4 s
+const MEAGAN_WALK_SPEED := 6.0  # [proto] brisk, hypercasual
 ## She gathers automatically while within this distance of a resource node. [proto]
 const GATHER_RANGE := 3.0
 ## Hand-gathering per second by resource. [brief]
@@ -75,6 +75,8 @@ const BAG_PER_SLED_SHED_LEVEL := 10.0
 ## Resources move between her bag and a building she stands near. [f1] 20 units/s shared
 const SITE_REACH := 4.5
 const MAGNET_PER_SECOND := 20.0
+## Construction and upgrades are paid only while she stands on the plot's pad. [proto]
+const PAD_RADIUS := 1.4
 ## She thaws a frozen Jan when this close. [proto]
 const RESCUE_RANGE := 2.0
 ## Combat. [brief]

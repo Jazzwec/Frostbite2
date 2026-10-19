@@ -137,3 +137,15 @@ func test_activity_for_piles_and_stores() -> void:
 	put_meagan(e, site_pos(2) + Vector2(0, 3))
 	e.skip(0.1)
 	check_eq(e.state.meagan_activity, "store", "food into the store")
+
+
+func test_construction_is_paid_only_on_the_pad() -> void:
+	var e := engine()
+	e.choose_building(3, "sled_shed")
+	e.state.bag.wood = 20.0
+	put_meagan(e, site_pos(3) + Vector2(3.5, 0))
+	e.skip(1.0)
+	check_eq(e.state.sites[3].progress.get("wood", 0.0), 0.0, "beside the site, off the pad")
+	put_meagan(e, MapData.pad_pos(3))
+	e.skip(1.0)
+	check_near(e.state.sites[3].progress.get("wood", 0.0), 20.0, 0.01, "on the pad")
