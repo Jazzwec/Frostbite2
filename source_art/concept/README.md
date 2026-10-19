@@ -19,14 +19,14 @@ The PNGs here are reference images, made with ChatGPT (`tools/chatgpt/chatgpt.py
 3. **Characters:** click **Rig**: humanoid for Meagan and the Jan, quadruped for the wolf. Skip Tripo's preset animations; the game makes its own work animations.
 4. **Export as GLB** to `C:\Claude Code\Frostbite2\assets\models\tripo\<file name>`. Claude takes care of the scale, the pivot, the decimation and wiring it into the game.
 
-**Priority:**
-1. Meagan
-2. Jan
-3. Furnace
-4. Wolf
-5. Pine tree and stump
-6. The other buildings
-7. Props and tools
+**Status (2026-10-19):** Meagan, Jan and the wolf are made and in the game. Still to make, in this order:
+1. `furnace.glb` (image: `furnace.png`)
+2. `lumber_yard.glb` (image: `lumber_yard.png`)
+3. `hunting_lodge.glb`, `stockpile.glb`, `construction.glb`
+4. `sled_shed.glb`, `storehouse.glb`, `workshop.glb`, `barracks.glb`, `bunkhouse.glb`
+5. `scrap_heap.glb`, `ice_hole.glb`, `stump.glb`; `pine_tree.glb` only if the Blender-made trees (BACKLOG item 14) don't look good enough
+6. Tools: `axe.glb`, `pickaxe.glb`, `hammer.glb`, `fishing_rod.glb`, `spear.glb`
+7. Optional: a wolf remake (`wolf.glb`) with the wider shapes ChatGPT asked for (see the wolf prompt)
 
 ## Text prompts (Text to Model)
 **Negative prompt,** where Tripo has a field for it: `realistic, photorealistic, gritty, horror, text, logo, watermark, base, pedestal, ground plane, multiple objects, extra limbs`
@@ -35,6 +35,7 @@ The PNGs here are reference images, made with ChatGPT (`tools/chatgpt/chatgpt.py
 - **meagan.glb:** Stylized chunky cartoon 3D game character, young woman named Meagan, cheerful friendly face, rosy cheeks, pink-magenta puffy winter parka, white knitted bobble hat, mustard-yellow scarf, white mittens, brown snow boots, small brown backpack, rounded simple shapes, big readable silhouette, slightly oversized head, hand-painted soft colours, T-pose, full body, mobile game asset, low poly
 - **jan.glb:** Stylized chunky cartoon 3D game character, friendly bearded man named Jan, round red nose, orange-brown puffy winter parka, blue knitted beanie, blue mittens, dark snow boots, stocky rounded body, slightly oversized head, warm smile, hand-painted soft colours, T-pose, full body, mobile game asset, low poly
 - **wolf.glb:** Stylized chunky cartoon 3D game wolf, grey and white fur in simple chunky shapes, glowing yellow eyes, slightly mischievous but not scary, rounded body, short sturdy legs, standing on all fours in a neutral pose, side-readable silhouette, hand-painted colours, mobile game asset, low poly
+  - **Remake, optional:** add "wide chunky torso and broad head, big upright ears, thick bushy tail, smooth simple neck ruff with no jagged plates, dark charcoal back, blue-grey sides, pale muzzle and paws, readable from above". The current wolf reads narrow from the game camera.
 
 ### Buildings
 Each one has its entrance and details on the front, about a 3.4 × 3 m footprint.
