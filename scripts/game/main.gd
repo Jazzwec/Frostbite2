@@ -6,6 +6,9 @@ const BLIZZARD_BLUE := Color(0.15, 0.3, 0.55, 0.92)
 const GOOD_GREEN := Color(0.15, 0.45, 0.25, 0.92)
 
 var _env: Environment
+var _sun: DirectionalLight3D
+## The ink-and-watercolour look under test (DEV → Ink look, or run with `-- --ink`).
+var _ink: InkLook
 var _nav: NavigationRegion3D
 var _nav_dirty := false
 var _baking := false
@@ -74,11 +77,16 @@ func _ready() -> void:
 	_rig.joystick = _hud.joystick
 	Audio.listener = _meagan
 	Game.engine_event.connect(_on_event)
+	_ink = InkLook.new(_env, _sun)
+	add_child(_ink)
+	_hud.ink_toggled.connect(_ink.toggle)
 
 	# Draw everything once so the first navmesh bake sees every building.
 	_refresh_views(0.0)
 	_nav.bake_navigation_mesh(false)
 	_nav_dirty = false
+	if OS.get_cmdline_user_args().has("--ink"):
+		_ink.set_enabled(true)
 
 
 func _process(delta: float) -> void:
@@ -124,12 +132,12 @@ func _build_environment() -> void:
 	var we := WorldEnvironment.new()
 	we.environment = _env
 	add_child(we)
-	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-55, -35, 0)
-	sun.light_color = Color(1.0, 0.96, 0.9)
-	sun.light_energy = 0.8
-	sun.shadow_enabled = true
-	add_child(sun)
+	_sun = DirectionalLight3D.new()
+	_sun.rotation_degrees = Vector3(-55, -35, 0)
+	_sun.light_color = Color(1.0, 0.96, 0.9)
+	_sun.light_energy = 0.8
+	_sun.shadow_enabled = true
+	add_child(_sun)
 
 
 func _build_ground() -> void:

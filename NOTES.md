@@ -112,6 +112,13 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
   - From the game camera they're narrow; a model pass could widen the torso and head by about 20%, enlarge the ears and thicken the tail, and simplify the neck's jagged plates into two or three fur masses.
   - Wolves pile onto Meagan and each other; give attackers separate slots around their target (engine, `combat.gd`).
   - Land the damage on the lunge's contact moment rather than as steady damage per second.
+- **Art direction (2026-10-20):** three rounds of mock-ups are in `source_art/direction/board.html`.
+  - The user prefers round 3's **ink and watercolour** picture-book style, with the Jans moved off rust-orange so Meagan's red stands out. The town motifs (mittens, crooked sun, furnace-mouth mark) are in.
+  - An in-engine test (DEV → Ink look) shows the shader stack works and is cheap. On today's assets it reads as "filtered 3D", so the look mostly depends on new assets:
+    - watercolour-painted Tripo textures
+    - redesigned characters
+    - a painted ground
+  - Not decided yet: whether to commit to it, and then the art direction doc and the new references.
 - **Score:** the game-over card scores minutes:seconds survived. Would "days survived" (e.g. one day = 2 minutes) feel better?
 - **Art direction:** the Poly Haven props are photoreal, while the brief wants chunky cartoon. Decide whether to keep them as placeholders or go straight to Tripo models.
 

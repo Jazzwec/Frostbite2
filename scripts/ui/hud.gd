@@ -3,6 +3,9 @@ extends CanvasLayer
 ## The always-on UI: heat and resources up top, the blizzard forecast, warning banners,
 ## the bottom sheet, and (in debug builds) the dev panel.
 
+## DEV → Ink look: switch the ink-and-watercolour art test on or off.
+signal ink_toggled
+
 var sheet: Sheet
 var joystick: Joystick
 
@@ -245,6 +248,7 @@ func _build_dev() -> void:
 	v.add_child(UiTheme.button("Furnace +1", func(): e.dev_level_up(0)))
 	v.add_child(UiTheme.button("Blizzard", e.force_blizzard))
 	v.add_child(UiTheme.button("Wolves", func(): e.spawn_wolves()))
+	v.add_child(UiTheme.button("Ink look", ink_toggled.emit))
 
 
 func _toggle_dev() -> void:

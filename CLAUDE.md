@@ -78,7 +78,8 @@ Frostbite2 is a fresh rebuild in Godot of Frostbite 1 (a finished Vite + Phaser 
 - `godot --headless --path . -s res://tests/run_tests.gd` runs the engine tests.
 - `python tools/audio/make_audio.py` regenerates the music and sound effects (needs numpy and scipy).
 - `python tools/chatgpt/chatgpt.py review|ask|image ...`: ChatGPT via the Codex CLI (see the `chatgpt` skill). A review or ask takes about 30 s, an image about 40 s.
-- **In the game (debug builds):** the DEV button or F1 opens the dev panel: skip 60 s, fill resources, add a Jan, Furnace +1, blizzard, wolves.
+- **In the game (debug builds):** the DEV button or F1 opens the dev panel: skip 60 s, fill resources, add a Jan, Furnace +1, blizzard, wolves, and Ink look.
+- **Ink look (art test):** `InkLook` (`scripts/game/ink/`) switches the ink-and-watercolour direction on at runtime: toon-banded washes (`ink_toon`), a screen-space ink line on depth and colour edges (`ink_lines`) and a paper pass under the HUD (`ink_paper`). Off by default; DEV → Ink look, or run with `-- --ink`. Results and screenshots are in `source_art/direction/ink_test/`.
 - **Driving the running game from Swallowtail:**
   - Use the Bash tool: PowerShell 5.1 strips the double quotes inside `--code` strings.
   - `swallowtail input click` takes viewport coordinates (1080×1920), not window pixels.
