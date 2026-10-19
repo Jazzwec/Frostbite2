@@ -69,15 +69,15 @@ Storehouse multiplies every Wood, Food and Materials cap by 1.25 per level (comp
 
 **Start of a winter.** The city starts empty: 0 Jans, 0 of every resource and a cold furnace (heat 0). Furnace, Lumber Yard and Hunting Lodge are at Lv 1. Meagan rescues the first Jan herself and gathers the first resources by hand. Like the ads, she works automatically whenever she stands at a forest (5 Wood/s), a hunting ground (3 Food/s) or a scrap heap (1 Materials/s, enough to reach the first Workshop). Cold and hunger don't slow her.
 
-**The map** is about three phone screens of snowfield with the town in the middle; the camera follows Meagan and a one-finger drag looks around. Resource spots are scattered around the outskirts: 4 forests, 3 hunting grounds and 3 scrap heaps. Each holds a stock (forest 60 Wood, hunting ground 40 Food, scrap heap 15 Materials) that runs down as she gathers and grows back steadily, full again about 3 minutes after being emptied (scrap heaps 4), so she roams between them. Frozen Jans, caravans and animals arrive from the far edges; animals walk faster to keep their roughly 10-second approach.
+**The map** is about three phone screens of snowfield with the town in the middle; the camera follows Meagan closely, and a one-finger drag anywhere steers her like a joystick (Frostbite2, agreed 2026-10-19). Resource spots are scattered around the outskirts: 4 forests, 3 hunting grounds and 3 scrap heaps. Each holds a stock (forest 60 Wood, hunting ground 40 Food, scrap heap 15 Materials) that runs down as she gathers and grows back steadily, full again about 3 minutes after being emptied (scrap heaps 4), so she roams between them. Frozen Jans, caravans and animals arrive from the far edges; animals walk faster to keep their roughly 10-second approach.
 
-**Carrying and building (decided in Phase 3 planning).** Resources are physical, as in the ads:
+**Carrying and building (decided in Phase 3 planning; the Stockpile and build pads agreed for Frostbite2 on 2026-10-19).** Resources are physical, as in the ads:
 
 - Meagan carries a bag (20 units, all types together, +10 per Sled Shed level). Her hand-gathering goes into the bag.
-- Jans' output piles up at the producer: Wood at the Lumber Yard, Food in the food storage at the Hunting Lodge, Materials at the Workshop (at the furnace before there is a Workshop). Meagan picks Wood and Materials up by walking past. Jans eat from the food storage automatically, at a steady rate.
-- The furnace burns only Wood that Meagan delivers into it (it holds 30 Wood per Furnace level). Walking past the furnace tops it up first.
-- The map has empty plots. Tapping one walks her there and offers the building types; the chosen one becomes a construction site. Tapping a built building walks her there and starts its next upgrade. Walking near a site that is under construction or upgrading magnetically pulls what it needs out of her bag into its progress bar; when the bar is full it is built or levels up.
-- Tapping the ground walks her there, routing around buildings.
+- The **Stockpile** next to the furnace is the town's store (Wood, Food and Materials, up to the caps above). Standing on its pad drops off everything in her bag; anything over a cap stays in the bag. Jans' output goes straight into the Stockpile, and Jans eat from its Food automatically, at a steady rate.
+- The furnace holds 30 Wood of fuel per Furnace level. Walking past it tops it up from her bag first, and it also feeds itself from the Stockpile's Wood at 5 Wood/s [proto].
+- The map has plots, each with a **build pad** in front. Stopping on the pad of an empty plot offers the building types; the chosen one becomes a construction site. Stopping on a building's pad opens its panel, where its next upgrade starts. While she stands on the pad of a site under construction or upgrading, it pulls what it needs out of her bag first, then out of the Stockpile, into its progress ring; when the ring is full it is built or levels up.
+- Tapping a building, resource spot or frozen Jan walks her there, routing around buildings.
 - Frozen Jans wait at fixed spots on the map edge (caravans line up along the top edge). Tapping one walks her out to thaw him; if the city is full he stays frozen and a "No room" message suggests the Furnace or a Bunkhouse.
 
 ## Jobs
