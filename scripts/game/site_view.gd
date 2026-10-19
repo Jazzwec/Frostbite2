@@ -15,6 +15,13 @@ const LOOKS := {
 	"bunkhouse": {"wall": Color(0.85, 0.7, 0.4), "roof": Color(0.5, 0.25, 0.15)},
 }
 const SNOW := Color(0.94, 0.96, 1.0)
+## The build pad's look: its disc colour by state, and the progress ring.
+const PAD_RADIUS_SHOWN := 1.1
+const PAD_COLORS := {
+	"plot": Color(1, 1, 1, 0.45), "idle": Color(0.35, 0.6, 0.95, 0.5),
+	"paying": Color(1.0, 0.78, 0.3, 0.55), "maxed": Color(0.6, 0.6, 0.65, 0.35),
+}
+const RING_COLOR := Color(1.0, 0.92, 0.5)
 
 var index := 0
 var _signature := ""
@@ -26,6 +33,10 @@ var _fire: MeshInstance3D
 var _light: OmniLight3D
 var _embers: GPUParticles3D
 var _flare := 0.0
+var _pad: MeshInstance3D
+var _pad_label: Label3D
+var _ring: MeshInstance3D
+var _ring_frac := -1.0
 
 
 func setup(site_index: int) -> void:
@@ -39,6 +50,30 @@ func setup(site_index: int) -> void:
 	add_child(_info)
 	var size := Vector3(MapData.SITE_HALF_SIZE * 2.0, 3.0, MapData.SITE_HALF_SIZE * 2.0)
 	add_child(Shapes.tap_area(size, "site", index))
+	_build_pad()
+
+
+## The pad in front of the plot: where she stands to pay, and where its panel opens.
+func _build_pad() -> void:
+	var at: Vector2 = MapData.pad_pos(index) - MapData.SITES[index].pos
+	var root := Node3D.new()
+	root.position = Vector3(at.x, 0, at.y)
+	add_child(root)
+	_pad = Shapes.cylinder(PAD_RADIUS_SHOWN, 0.03, PAD_COLORS.plot, Vector3(0, 0.02, 0))
+	root.add_child(_pad)
+	_ring = MeshInstance3D.new()
+	_ring.position = Vector3(0, 0.05, 0)
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.albedo_color = RING_COLOR
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	_ring.material_override = m
+	root.add_child(_ring)
+	# Lying flat on the pad, so it reads as part of the ground.
+	_pad_label = Shapes.label("", Vector3(0, 0.08, 0), 46)
+	_pad_label.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+	_pad_label.rotation_degrees.x = -90.0
+	root.add_child(_pad_label)
 
 
 func refresh(s: GameState) -> void:
@@ -83,7 +118,6 @@ func _rebuild(site: Dictionary) -> void:
 	if b == "":
 		var plot := Shapes.box(Vector3(3.6, 0.04, 3.6), Color(1, 1, 1, 0.35), Vector3(0, 0.02, 0))
 		_shapes.add_child(plot)
-		_shapes.add_child(Shapes.label("+", Vector3(0, 0.6, 0), 140, Color(1, 1, 1, 0.8)))
 		return
 	if b == "furnace":
 		_build_furnace(site.level)
@@ -194,6 +228,7 @@ func _add_body(half: float) -> void:
 
 func _update_labels(s: GameState, site: Dictionary) -> void:
 	var b: String = site.building
+	_update_pad(s, site)
 	if b == "":
 		_title.text = ""
 		_info.text = ""
@@ -201,18 +236,62 @@ func _update_labels(s: GameState, site: Dictionary) -> void:
 	var name: String = Balance.BUILDINGS[b].name
 	_title.text = name if site.level == 0 else "%s  Lv %d" % [name, site.level]
 	var lines := []
-	if site.upgrading:
-		var need := Economy.site_cost(s, index)
-		var parts := []
-		for res in need:
-			parts.append("%s %s/%s" % [str(res).capitalize(), Fmt.num(site.progress.get(res, 0.0)), Fmt.num(need[res])])
-		lines.append(("Build: " if site.level == 0 else "Upgrade: ") + "  ".join(parts))
 	if index == 0:
 		lines.append("Fuel %s/%s" % [Fmt.num(s.fuel), Fmt.num(Economy.fuel_cap(s))])
 	for res in ["wood", "food", "materials"]:
 		if Economy.pile_site(s, res) == index and (s.piles[res] >= 1.0 or res == "food"):
 			lines.append("%s %s" % [res.capitalize(), Fmt.num(s.piles[res])])
 	_info.text = "\n".join(lines)
+
+
+func _update_pad(s: GameState, site: Dictionary) -> void:
+	var state := "plot"
+	var frac := 0.0
+	if site.building == "":
+		_pad_label.text = "+ Build"
+	elif site.upgrading:
+		state = "paying"
+		var need := Economy.site_cost(s, index)
+		var have := 0.0
+		var total := 0.0
+		var lines := []
+		for res in need:
+			var got: float = site.progress.get(res, 0.0)
+			have += got
+			total += need[res]
+			lines.append("%s %s/%s" % [{"wood": "Wood", "food": "Food", "materials": "Mat"}[res], Fmt.num(got), Fmt.num(need[res])])
+		_pad_label.text = "\n".join(lines)
+		frac = have / maxf(total, 1.0)
+	elif Economy.is_maxed(s, index):
+		state = "maxed"
+		_pad_label.text = "Max"
+	else:
+		state = "idle"
+		_pad_label.text = "Lv %d\nUpgrade" % site.level
+	_pad.material_override = Shapes.material(PAD_COLORS[state])
+	_pad_label.font_size = 34 if state == "paying" else 46
+	if absf(frac - _ring_frac) > 0.004:
+		_ring_frac = frac
+		_ring.mesh = _ring_mesh(frac)
+		_ring.visible = frac > 0.0
+
+
+## A flat ring round the pad's rim, filled clockwise from the top to `frac`.
+static func _ring_mesh(frac: float) -> ImmediateMesh:
+	var m := ImmediateMesh.new()
+	if frac <= 0.0:
+		return m
+	var inner := PAD_RADIUS_SHOWN - 0.16
+	var outer := PAD_RADIUS_SHOWN + 0.02
+	var steps := maxi(2, int(56 * frac))
+	m.surface_begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
+	for k in steps + 1:
+		var a := -PI / 2.0 + TAU * frac * k / steps
+		var d := Vector3(cos(a), 0, sin(a))
+		m.surface_add_vertex(d * inner)
+		m.surface_add_vertex(d * outer)
+	m.surface_end()
+	return m
 
 
 func _update_fire(s: GameState) -> void:

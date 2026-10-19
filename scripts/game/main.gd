@@ -21,6 +21,11 @@ var _storm := 0.0
 ## What Meagan last worked at: {activity, target}. Hit moments use it after the tick has moved on.
 var _work := {}
 var _work_age := 0.0
+## The build pad she's standing on (-1 for none), how long she's been still on it, and which
+## pad's sheet we opened.
+var _pad_site := -1
+var _pad_still := 0.0
+var _pad_opened := -1
 
 
 func _ready() -> void:
@@ -70,6 +75,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_refresh_views(delta)
 	_update_meagan_activity(delta)
+	_update_pad_stop(delta)
 	if _nav_dirty and not _baking:
 		_nav_dirty = false
 		_baking = true
@@ -207,9 +213,7 @@ func _on_tap(screen_pos: Vector2) -> void:
 	match hit.kind:
 		"site":
 			var i: int = hit.index
-			var p: Vector2 = MapData.SITES[i].pos
-			var reach := (MapData.FURNACE_RADIUS if i == 0 else MapData.SITE_HALF_SIZE) + 0.9
-			_walk(Vector3(p.x, 0, p.y + reach))
+			_walk(_v3(MapData.pad_pos(i)))
 			_hud.sheet.open_site(i)
 		"node":
 			_walk(_nodes[hit.index].work_spot(_meagan.global_position))
@@ -237,6 +241,34 @@ func _walk(target: Vector3) -> void:
 	var t := create_tween()
 	t.tween_property(ring, "scale", Vector3(0.2, 1, 0.2), 0.4)
 	t.tween_callback(ring.queue_free)
+
+
+# ---------- Build pads ----------
+
+## How long she must stand still on a pad before its sheet opens.
+const PAD_STOP_TIME := 0.25
+
+
+## Stopping on a plot's pad opens its sheet (build list or upgrade panel); leaving closes it.
+func _update_pad_stop(delta: float) -> void:
+	var me := Vector2(_meagan.global_position.x, _meagan.global_position.z)
+	var on := -1
+	for i in MapData.SITES.size():
+		if me.distance_to(MapData.pad_pos(i)) <= Balance.PAD_RADIUS:
+			on = i
+			break
+	if on != _pad_site:
+		_pad_site = on
+		_pad_still = 0.0
+		if _pad_opened >= 0 and on != _pad_opened:
+			_hud.sheet.close()
+			_pad_opened = -1
+	if on < 0 or _pad_opened == on:
+		return
+	_pad_still = 0.0 if _meagan.moving else _pad_still + delta
+	if _pad_still >= PAD_STOP_TIME:
+		_hud.sheet.open_site(on)
+		_pad_opened = on
 
 
 # ---------- Meagan at work ----------

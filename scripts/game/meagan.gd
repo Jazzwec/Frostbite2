@@ -19,6 +19,8 @@ var _clip := ""
 var _face := Vector3.INF
 var _linger := 0.0
 var _steer := Vector2.ZERO
+## Whether she moved this physics frame.
+var moving := false
 var _source := Vector3.INF
 var _dest := Vector3.INF
 var _landed := Callable()
@@ -124,7 +126,7 @@ func forward() -> Vector3:
 
 func _physics_process(delta: float) -> void:
 	var s := Game.engine.state
-	var moving := false
+	moving = false
 	var can_move := Game.engine.can_meagan_move() and not Game.engine.paused
 	if can_move and _steer != Vector2.ZERO:
 		var dir := Vector3(_steer.x, 0, _steer.y)
