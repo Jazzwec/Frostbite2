@@ -4,6 +4,7 @@ extends CanvasLayer
 ## the bottom sheet, and (in debug builds) the dev panel.
 
 var sheet: Sheet
+var joystick: Joystick
 
 var _root: Control
 var _top: PanelContainer
@@ -28,6 +29,8 @@ func _ready() -> void:
 	add_child(_root)
 	_build_top()
 	_build_banner()
+	joystick = Joystick.new()
+	_root.add_child(joystick)
 	sheet = Sheet.new()
 	_root.add_child(sheet)
 	if OS.is_debug_build():

@@ -49,7 +49,7 @@ func _ready() -> void:
 	_rig.follow_target = _meagan
 	_rig.global_position = _meagan.global_position
 	_rig.tapped.connect(_on_tap)
-	_meagan.started_walking.connect(func(): _rig.following = true)
+	_rig.steered.connect(_meagan.steer)
 	_meagan.worked.connect(_on_meagan_worked)
 	add_child(Fx.new())
 	_build_snow()
@@ -57,6 +57,7 @@ func _ready() -> void:
 	_hud = Hud.new()
 	add_child(_hud)
 	_rig.ui_blocker = _hud.blocks
+	_rig.joystick = _hud.joystick
 	Game.engine_event.connect(_on_event)
 
 	# Draw everything once so the first navmesh bake sees every building.
@@ -221,7 +222,7 @@ func _on_tap(screen_pos: Vector2) -> void:
 					_walk(Vector3(p.x, 0, p.y + 0.8))
 			_hud.sheet.close()
 		"ground":
-			_walk(hit.pos)
+			# The joystick moves her; a tap on open snow just closes the sheet.
 			_hud.sheet.close()
 
 

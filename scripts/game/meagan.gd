@@ -3,7 +3,6 @@ extends CharacterBody3D
 ## The player character: walks where she's sent along the navmesh and tells the engine where she is.
 ## Main tells her what she's working at each frame; her rig plays the matching clip.
 
-signal started_walking
 ## At each clip's hit moment (the axe biting, a fish landing), for main's effects.
 signal worked(clip: String)
 
@@ -18,6 +17,7 @@ var _hp_bar: HpBar
 var _clip := ""
 var _face := Vector3.INF
 var _linger := 0.0
+var _steer := Vector2.ZERO
 
 
 func _ready() -> void:
@@ -58,11 +58,15 @@ func _ready() -> void:
 	_agent.target_position = global_position
 
 
+## The joystick: 0..1 in screen directions. The camera looks north, so screen up is world -Z.
+func steer(dir: Vector2) -> void:
+	_steer = dir
+
+
 func walk_to(target: Vector3) -> void:
 	if not Game.engine.can_meagan_move():
 		return
 	_agent.target_position = target
-	started_walking.emit()
 
 
 ## What she's working at: a clip from `Clips` ("" for nothing), the point to face and where a
@@ -105,7 +109,16 @@ func forward() -> Vector3:
 func _physics_process(delta: float) -> void:
 	var s := Game.engine.state
 	var moving := false
-	if Game.engine.can_meagan_move() and not Game.engine.paused and not _agent.is_navigation_finished():
+	var can_move := Game.engine.can_meagan_move() and not Game.engine.paused
+	if can_move and _steer != Vector2.ZERO:
+		var dir := Vector3(_steer.x, 0, _steer.y)
+		velocity = dir.normalized() * Balance.MEAGAN_WALK_SPEED * _steer.length()
+		move_and_slide()
+		moving = true
+		_turn_towards(dir, delta)
+		# Steering replaces any tap-walk in progress.
+		_agent.target_position = global_position
+	elif can_move and not _agent.is_navigation_finished():
 		var next := _agent.get_next_path_position()
 		var dir := next - global_position
 		dir.y = 0.0
@@ -116,7 +129,9 @@ func _physics_process(delta: float) -> void:
 			_turn_towards(dir, delta)
 	if not moving:
 		velocity = Vector3.ZERO
-	global_position.y = 0.0
+	# The snowbanks round the town are her edge.
+	var b := MapData.BOUNDS.grow(-1.5)
+	global_position = Vector3(clampf(global_position.x, b.position.x, b.end.x), 0.0, clampf(global_position.z, b.position.y, b.end.y))
 	Game.engine.set_meagan_position(Vector2(global_position.x, global_position.z))
 
 	_linger -= delta
