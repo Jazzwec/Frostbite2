@@ -2,6 +2,45 @@
 
 What felt wrong while playing, and what's still open. This file is the prompt for the next session.
 
+## Handover (end of session, 2026-10-19)
+
+**Where things stand.** Frostbite2 is a playable hypercasual prototype, with everything committed and pushed to `Jazzwec/Frostbite2` and 38 tests passing. `CLAUDE.md` describes the architecture.
+- **Controls:** a drag-anywhere joystick and a close follow camera; Meagan walks at 6 m/s.
+- **Carrying:** her carry stack with a "12/20" or "MAX" counter and "+N" pops; pieces fly in and out one by one.
+- **Stockpile** by the furnace, the town bank:
+  - she drops everything off there
+  - build pads pay from her bag first, then from the Stockpile
+  - the furnace feeds itself from the Stockpile's Wood
+  - Jans' output goes into it
+- **Build pads:** stop on one to open its panel, stand on it to pay.
+- **The objective:** the furnace starts full; heat 0 ends the game, with a game-over card showing time survived and the best time. Low-heat warnings come first.
+- **Pressure:** blizzards; wolves from Furnace Lv 2, fought by guards and Meagan.
+- **Animations:** chop, fish (the Fishing Lodge and fishing ponds), scavenge, fuel, build, carry, warm, fight, down.
+- **Audio:** synthesized music and sound effects (`tools/audio/make_audio.py`, the `Audio` autoload), with Music and Sound toggles.
+- **Models:** Meagan and the Jan are Tripo models with Mixamo-style rigs. They're prepared in Blender (`source_art/blender/*.blend` → `assets/models/blender/*.glb`) and animated by `ModelRig`, which drives bones from the same clips as the greybox.
+- **ChatGPT through the Codex CLI:** `tools/chatgpt/chatgpt.py` does `review`, `ask` and `image`; the `chatgpt` skill explains its use. The Tripo reference images and prompts are in `source_art/concept/`.
+- **Unattended runs:** `AFK.md`, `BACKLOG.md`, `AFK_REPORT.md` and `.claude/settings.json`. Start one with `/loop Work through BACKLOG.md for Frostbite2 until HH:MM. Follow AFK.md.`
+
+**Waiting:** the user dropped `assets/models/tripo/wolf.glb` in at the end of the session. It isn't processed or committed yet.
+
+**Next, in order:**
+1. **The wolf model.** Use the same pipeline as `meagan.blend` and `jan.blend`:
+   - Import into its own scene `FB2_Wolf`, decimate to about 3–4k triangles, use a 1024 texture and keep it about 1.3 m long.
+   - Export with `use_active_scene` and `use_active_collection`.
+   - Check whether it's rigged. `ModelRig` is built for humanoids, so for wolves either write a small quadruped variant (leg swing, body bob, a lunge when attacking) or keep `WolfView`'s simple motion and only swap the mesh.
+   - Then use it in `scripts/game/wolf_view.gd`, keeping the hit flash and the HP bar.
+2. **The Furnace and Lumber Yard models,** when the user makes them in Tripo. Buildings need no rig; they replace the greybox parts in `SiteView`, keeping the fire light, embers and pad.
+3. **`BACKLOG.md` items 1b onwards:** HUD icons, the snow texture, save and continue, first-minute hints, zoom… These can also run as an AFK `/loop`.
+
+**Gotchas learned this session:**
+- **The Godot editor** must be restarted once so it recognises the `Audio` autoload. Until then, `script validate` and the editor show "Identifier not found: Audio", but the game itself runs fine.
+- **Swallowtail input coordinates differ.** Touch events injected in `runtime eval` with `Input.parse_input_event` use window coordinates (540×960), while `swallowtail input click` uses viewport coordinates (1080×1920).
+- **Blender's glTF exporter** exports every scene in the open file unless you pass `use_active_scene=True` and `use_active_collection=True`. Keep each model in its own scene and collection, and switch the window back to the user's "Scene" afterwards.
+- **Tripo exports** come with 4k textures and about 50k triangles: always decimate and shrink them. Raw files live in `assets/models/tripo/`, which is `.gdignore`d. Mixamo bone names arrive in Godot as `mixamorig_*`.
+- **Writing files from Python on Windows:** use `newline='\n'`, because text mode writes CRLF.
+- **Screenshot helpers** used this session lived in the session scratchpad (`shots.sh`, `pose.sh`) and are gone. They're easy to rebuild: one recentres the camera with `m._rig.set_process(false)` and sets `get_viewport().get_camera_3d().size`; the other adds a temporary `Camera3D` side view.
+- **`user://settings.cfg`** holds the Music and Sound toggles, the best time and (later) hint progress. Remove any test values written there.
+
 ## Felt wrong while playing
 
 _(nothing logged yet)_
