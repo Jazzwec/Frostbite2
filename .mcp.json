@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "swallowtail": {
+      "type": "stdio",
+      "command": "swallowtail",
+      "args": [
+        "serve",
+        "--project",
+        "."
+      ],
+      "env": {}
+    }
+  }
+}
