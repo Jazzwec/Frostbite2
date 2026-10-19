@@ -65,6 +65,7 @@ func _tick(dt: float) -> void:
 	MeaganRules.gather(s, dt)
 	MeaganRules.magnet(s, dt, _events)
 	MeaganRules.rescue(s, _events)
+	_feed_furnace(dt)
 	_burn(dt)
 	WorldEvents.heat_zero(s, dt, _events)
 	WorldEvents.arrivals(s, dt, rng, _events)
@@ -72,7 +73,7 @@ func _tick(dt: float) -> void:
 	Combat.update(s, dt, rng, _events)
 
 
-## Jans' output piles up at their building. [brief]
+## Jans' output goes into the Stockpile. [agreed 2026-10-19]
 func _produce(dt: float) -> void:
 	var caps := Economy.caps(state)
 	for job in ["chop", "hunt", "build"]:
@@ -80,6 +81,15 @@ func _produce(dt: float) -> void:
 		var rate := Economy.job_rate(state, job)
 		if rate > 0.0:
 			state.piles[res] = minf(caps[res], state.piles[res] + rate * dt)
+
+
+## The furnace tops itself up from the Stockpile's Wood. [agreed 2026-10-19]
+func _feed_furnace(dt: float) -> void:
+	var s := state
+	var feed := minf(minf(s.piles.wood, Economy.fuel_cap(s) - s.fuel), Balance.FURNACE_FEED_PER_SECOND * dt)
+	if feed > 0.0:
+		s.piles.wood -= feed
+		s.fuel += feed
 
 
 ## The furnace burns whatever delivered fuel it needs to stay full, then drains. [f1]

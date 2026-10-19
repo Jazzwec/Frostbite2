@@ -43,11 +43,12 @@ func test_jans_eat_and_go_hungry() -> void:
 func test_a_jan_leaves_each_minute_at_zero_heat() -> void:
 	var e := engine()
 	put_meagan(e, Vector2(0, 30))
-	add_jan(e, "chop")
+	# A hunter, not a chopper: chopped Wood would feed the furnace from the Stockpile.
+	add_jan(e, "hunt")
 	add_jan(e, "")
 	e.skip(60.05)
 	check_eq(e.state.jans.size(), 1, "one left")
-	check_eq(e.state.jans[0].job, "chop", "the idle one went first")
+	check_eq(e.state.jans[0].job, "hunt", "the idle one went first")
 	check(_has_event(e.drain_events(), "jan_left"), "event")
 
 

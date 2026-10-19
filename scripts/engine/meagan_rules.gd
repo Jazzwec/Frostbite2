@@ -1,9 +1,10 @@
 class_name MeaganRules
 extends RefCounted
-## What happens around Meagan: hand-gathering, the bag ↔ building magnet, and thawing Jans.
+## What happens around Meagan: hand-gathering, the bag magnet (furnace, build pads, Stockpile),
+## and thawing Jans.
 
 ## Which of her activities shows when several happen in one tick.
-const ACTIVITY_PRIORITY := {"": -1, "full": 0, "gather": 1, "load": 2, "store": 2, "fuel": 3, "build": 3, "fight": 4}
+const ACTIVITY_PRIORITY := {"": -1, "full": 0, "gather": 1, "store": 2, "fuel": 3, "build": 3, "fight": 4}
 
 
 ## Records what she's doing this tick, unless something more important already happened.
@@ -47,61 +48,50 @@ static func regrow(s: GameState, dt: float) -> void:
 		s.nodes[i] = minf(def.stock, s.nodes[i] + def.stock / def.regrow * dt)
 
 
-## Resources jump between her bag and every building she stands near. Deliveries go first
-## (furnace fuel, then construction, then food into the store), pick-ups after. [brief]
+## Resources jump out of her bag where she stands: Wood into the furnace when she's near it,
+## whatever a build pad needs (topped up from the Stockpile), and everything into the Stockpile
+## on its pad. [brief, Stockpile agreed 2026-10-19]
 static func magnet(s: GameState, dt: float, events: Array) -> void:
 	if s.meagan_injured:
 		return
 	var budget := Balance.MAGNET_PER_SECOND * dt
+	if s.meagan_pos.distance_to(MapData.SITES[0].pos) <= Balance.SITE_REACH:
+		var into_fuel := minf(minf(s.bag.wood, Economy.fuel_cap(s) - s.fuel), budget)
+		if into_fuel > 0.0:
+			s.bag.wood -= into_fuel
+			s.fuel += into_fuel
+			budget -= into_fuel
+			set_activity(s, "fuel", 0, MapData.SITES[0].pos)
 	for i in s.sites.size():
 		if budget <= 0.0:
 			return
-		var site: Dictionary = s.sites[i]
-		if site.building == "":
-			continue
-		if s.meagan_pos.distance_to(MapData.SITES[i].pos) > Balance.SITE_REACH:
-			continue
-		if i == 0:
-			var into_fuel := minf(minf(s.bag.wood, Economy.fuel_cap(s) - s.fuel), budget)
-			if into_fuel > 0.0:
-				s.bag.wood -= into_fuel
-				s.fuel += into_fuel
-				budget -= into_fuel
-				set_activity(s, "fuel", i, MapData.SITES[i].pos)
-		if site.upgrading and s.meagan_pos.distance_to(MapData.pad_pos(i)) <= Balance.PAD_RADIUS:
+		if s.sites[i].upgrading and s.meagan_pos.distance_to(MapData.pad_pos(i)) <= Balance.PAD_RADIUS:
 			budget = _deliver_to_site(s, i, budget, events)
+	if s.meagan_pos.distance_to(MapData.stockpile_pad()) <= Balance.PAD_RADIUS:
 		var caps := Economy.caps(s)
-		if Economy.pile_site(s, "food") == i:
-			var into_store := minf(minf(s.bag.food, caps.food - s.piles.food), budget)
+		for res in ["wood", "food", "materials"]:
+			var into_store := minf(minf(s.bag[res], caps[res] - s.piles[res]), budget)
 			if into_store > 0.0:
-				s.bag.food -= into_store
-				s.piles.food += into_store
+				s.bag[res] -= into_store
+				s.piles[res] += into_store
 				budget -= into_store
-				set_activity(s, "store", i, MapData.SITES[i].pos)
-		for res in ["wood", "materials"]:
-			if Economy.pile_site(s, res) != i:
-				continue
-			var room := Economy.bag_cap(s) - Economy.bag_total(s)
-			var take := minf(minf(s.piles[res], room), budget)
-			if take > 0.0:
-				s.piles[res] -= take
-				s.bag[res] += take
-				budget -= take
-				set_activity(s, "load", i, MapData.SITES[i].pos)
+				set_activity(s, "store", -1, MapData.STOCKPILE_POS)
 
 
+## Pays a site from her bag first, then from the Stockpile.
 static func _deliver_to_site(s: GameState, i: int, budget: float, events: Array) -> float:
 	var site: Dictionary = s.sites[i]
 	var need := Economy.site_cost(s, i)
 	var done := true
 	for res in need:
-		var have: float = site.progress.get(res, 0.0)
-		var give := minf(minf(need[res] - have, s.bag[res]), budget)
-		if give > 0.0:
-			s.bag[res] -= give
-			site.progress[res] = have + give
-			budget -= give
-			set_activity(s, "build", i, MapData.SITES[i].pos)
+		for source in [s.bag, s.piles]:
+			var have: float = site.progress.get(res, 0.0)
+			var give := minf(minf(need[res] - have, source[res]), budget)
+			if give > 0.0:
+				source[res] -= give
+				site.progress[res] = have + give
+				budget -= give
+				set_activity(s, "build", i, MapData.SITES[i].pos)
 		if site.progress.get(res, 0.0) < need[res] - 0.0001:
 			done = false
 	if done:

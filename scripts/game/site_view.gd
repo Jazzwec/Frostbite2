@@ -238,9 +238,6 @@ func _update_labels(s: GameState, site: Dictionary) -> void:
 	var lines := []
 	if index == 0:
 		lines.append("Fuel %s/%s" % [Fmt.num(s.fuel), Fmt.num(Economy.fuel_cap(s))])
-	for res in ["wood", "food", "materials"]:
-		if Economy.pile_site(s, res) == index and (s.piles[res] >= 1.0 or res == "food"):
-			lines.append("%s %s" % [res.capitalize(), Fmt.num(s.piles[res])])
 	_info.text = "\n".join(lines)
 
 

@@ -50,6 +50,15 @@ const WOLF_SPAWNS := [Vector2(0, -40), Vector2(-24, -20), Vector2(24, 18), Vecto
 
 
 ## The site a job's building stands on, or -1.
+## The Stockpile, the town's store, just right of the furnace. [agreed 2026-10-19]
+const STOCKPILE_POS := Vector2(5, 1.5)
+
+
+## The Stockpile's pad, where she stands to drop off everything she carries.
+static func stockpile_pad() -> Vector2:
+	return STOCKPILE_POS + Vector2(0, 1.8)
+
+
 ## The build pad in front of a plot, where she stands to pay for construction and upgrades.
 static func pad_pos(i: int) -> Vector2:
 	var half := FURNACE_RADIUS if i == 0 else SITE_HALF_SIZE

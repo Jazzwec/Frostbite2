@@ -77,6 +77,8 @@ const SITE_REACH := 4.5
 const MAGNET_PER_SECOND := 20.0
 ## Construction and upgrades are paid only while she stands on the plot's pad. [proto]
 const PAD_RADIUS := 1.4
+## The furnace feeds itself from the Stockpile's Wood this fast, up to its fuel cap. [proto]
+const FURNACE_FEED_PER_SECOND := 5.0
 ## She thaws a frozen Jan when this close. [proto]
 const RESCUE_RANGE := 2.0
 ## Combat. [brief]

@@ -175,18 +175,6 @@ static func neediest_job(s: GameState) -> String:
 	return best
 
 
-## Where a building's pile sits: materials go to the furnace until there is a Workshop.
-static func pile_site(s: GameState, resource: String) -> int:
-	match resource:
-		"wood":
-			return MapData.site_of_building(s.sites, "lumber_yard")
-		"food":
-			return MapData.site_of_building(s.sites, "hunting_lodge")
-		"materials":
-			var w := MapData.site_of_building(s.sites, "workshop")
-			return w if w >= 0 and s.sites[w].level >= 1 else 0
-	return -1
-
 
 static func guard_damage(s: GameState) -> float:
 	var lv := maxi(level(s, "barracks"), 1)

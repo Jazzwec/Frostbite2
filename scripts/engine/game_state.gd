@@ -11,8 +11,8 @@ var fuel := 0.0
 ## Wood burned per second last tick, for the fire's look.
 var burn_rate := 0.0
 
-## The piles at the producers: wood at the Lumber Yard, food at the Hunting Lodge,
-## materials at the Workshop (at the furnace before there is one).
+## The Stockpile by the furnace, the town's store: Jans' output and whatever Meagan drops off.
+## Build pads and the furnace draw from it.
 var piles := {"wood": 0.0, "food": 0.0, "materials": 0.0}
 
 ## Meagan. Her position comes from the scene every frame.
