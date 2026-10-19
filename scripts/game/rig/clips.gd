@@ -20,10 +20,12 @@ extends RefCounted
 ## - `lean` (forward), `roll` (sideways), `turn` (twist): degrees for the whole body, about the feet.
 ## - `rise`: metres the body moves up; below zero crouches.
 ## - `head`: degrees of nod, forward.
+## - `leg_l`, `leg_r`: degrees a leg swings forward. Only rigged models have legs; the greybox
+##   ignores them.
 
 const REST := {
 	"arm_r": Vector3(-6, 0, 8), "arm_l": Vector3(-6, 0, 8), "tool": Vector3.ZERO,
-	"lean": 0.0, "roll": 0.0, "turn": 0.0, "rise": 0.0, "head": 0.0,
+	"lean": 0.0, "roll": 0.0, "turn": 0.0, "rise": 0.0, "head": 0.0, "leg_l": 0.0, "leg_r": 0.0,
 }
 
 ## Seconds to blend from one clip into the next.
@@ -40,9 +42,9 @@ const CLIPS := {
 	"walk": {
 		"length": 0.63, "loop": true, "tool": "", "impact": -1.0,
 		"keys": [
-			{"t": 0.0, "arm_r": Vector3(-32, 0, 8), "arm_l": Vector3(26, 0, 8), "lean": 6.0},
+			{"t": 0.0, "arm_r": Vector3(-32, 0, 8), "arm_l": Vector3(26, 0, 8), "lean": 6.0, "leg_l": 28.0, "leg_r": -28.0},
 			{"t": 0.25, "arm_r": Vector3(-3, 0, 8), "arm_l": Vector3(-3, 0, 8), "rise": 0.12, "lean": 6.0},
-			{"t": 0.5, "arm_r": Vector3(26, 0, 8), "arm_l": Vector3(-32, 0, 8), "lean": 6.0},
+			{"t": 0.5, "arm_r": Vector3(26, 0, 8), "arm_l": Vector3(-32, 0, 8), "lean": 6.0, "leg_l": -28.0, "leg_r": 28.0},
 			{"t": 0.75, "arm_r": Vector3(-3, 0, 8), "arm_l": Vector3(-3, 0, 8), "rise": 0.12, "lean": 6.0},
 		],
 	},

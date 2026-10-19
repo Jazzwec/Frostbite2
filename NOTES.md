@@ -44,6 +44,10 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - [ ] Wolves: banner, wolves with health bars head for the furnace, detour to working Jans, guards (Barracks job) and Meagan fight them, kills drop loot.
 - [ ] Meagan injured: she lies down and can't move until the attack ends.
 
+**Meagan's model (2026-10-19)**
+- [ ] She's the textured Tripo model, 20% larger than life. She walks with swinging arms and legs, chops with the axe in her hands, crouches to fish, hammers, hugs a crate, swings at wolves and lies down when hurt.
+- [ ] Her stack sits on her back (at most 8 pieces), below her head.
+
 **Objective: keep the fire burning**
 - [ ] A winter starts at 100/100 heat. With no Wood it lasts about 2½ minutes.
 - [ ] Below 25%: the bar pulses red, banner and horn. Below 10%: "Fire out in 0:12" on the bar.
@@ -55,6 +59,12 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - **Guards are weak:** by the brief, without kits they deal half damage (1.5/s), so 2 guards struggle against 3 wolves. Kits and gear aren't in the prototype yet.
 - **Trees:** Poly Haven's trees are far too heavy for phones, so forests are greybox cones. Real trees will need Tripo or Blender low-poly models.
 - **Hunting or fishing?** The hunting grounds now look like ice fishing (your choice), but the rules and text still say Hunting. Rename the job and spots to Fishing in the brief?
+- **ChatGPT feedback on Meagan (not done yet):**
+  - Merge the stacked labels above her (node stock, "12/20", "12 Wood") into one readout.
+  - Make the HUD panel about 25% shorter, with the bag second after heat.
+  - Move Music and Sound into a settings button.
+  - Fade tree canopies that hide her while she works.
+  - Zoom (backlog item 3) will help most.
 - **Score:** the game-over card scores minutes:seconds survived. Would "days survived" (e.g. one day = 2 minutes) feel better?
 - **Art direction:** the Poly Haven props are photoreal, while the brief wants chunky cartoon. Decide whether to keep them as placeholders or go straight to Tripo models.
 

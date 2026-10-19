@@ -4,13 +4,16 @@ extends Node3D
 ## Pieces fly in from where they came from and fly off to where they're going, one at a time,
 ## each with a "+N" pop.
 
-const MAX_PIECES := 12
+## At most this many pieces, so a full stack stays below her head.
+const MAX_PIECES := 8
 ## Seconds between pieces joining or leaving, for the one-by-one feel.
 const STEP_TIME := 0.07
 const ORDER := ["wood", "food", "materials"]
 const ITEMS := {"wood": "log", "food": "fish", "materials": "materials"}
-## How much stack height each item takes.
-const HEIGHTS := {"wood": 0.22, "food": 0.16, "materials": 0.24}
+## Pieces are drawn at this size, so a full stack doesn't hide the chibi model behind it.
+const PIECE_SCALE := 0.8
+## How much stack height each item takes, at that size.
+const HEIGHTS := {"wood": 0.18, "food": 0.13, "materials": 0.19}
 const COLORS := {"wood": Color(1.0, 0.85, 0.6), "food": Color(1.0, 0.7, 0.65), "materials": Color(0.8, 0.85, 0.95)}
 
 var _pieces: Array = []  # {res, node}, bottom first
@@ -83,8 +86,8 @@ func _place(res: String, unit: float, pop: bool) -> void:
 			at += 1
 	_pieces.insert(at, {"res": res, "node": node})
 	node.position = Vector3(0, _offset(at), 0)
-	node.scale = Vector3.ONE * 1.4
-	create_tween().tween_property(node, "scale", Vector3.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	node.scale = Vector3.ONE * PIECE_SCALE * 1.4
+	create_tween().tween_property(node, "scale", Vector3.ONE * PIECE_SCALE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	if pop:
 		# The pop climbs in pitch as the stack grows, which feels great to fill up.
 		Audio.play("pop", top_position(), 0.85 + 0.04 * _pieces.size())

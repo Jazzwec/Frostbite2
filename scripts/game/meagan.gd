@@ -9,9 +9,13 @@ signal worked(clip: String)
 ## After an activity stops, its clip plays on for one more cycle at least this long, so quick
 ## deliveries still show their throw or carry.
 const LINGER := 0.35
+## Her rigged model (Tripo, prepared in Blender); the greybox stands in if it's missing.
+const MODEL_PATH := "res://assets/models/blender/meagan.glb"
+## Drawn a little larger than life, so she reads at phone size.
+const MODEL_SCALE := 1.2
 
 var _agent: NavigationAgent3D
-var _rig: GreyboxRig
+var _rig: CharacterRig
 var _stack: CarryStack
 var _count: Label3D
 var _hp_bar: HpBar
@@ -38,18 +42,24 @@ func _ready() -> void:
 	cs.position = Vector3(0, 0.8, 0)
 	add_child(cs)
 
-	var white := Color(0.95, 0.95, 0.98)
-	_rig = GreyboxRig.new({
-		"coat": Color(0.62, 0.2, 0.4), "radius": 0.38, "height": 1.25,
-		"skin": Color(0.96, 0.8, 0.68), "head_radius": 0.3, "mitten": white,
-	})
-	add_child(_rig)
-	_rig.head.add_child(Shapes.cylinder(0.32, 0.25, white, Vector3(0, 0.42, 0), 0.22))
-	_rig.head.add_child(Shapes.sphere(0.12, white, Vector3(0, 0.62, 0)))
-	_rig.body.add_child(Shapes.box(Vector3(0.7, 0.12, 0.12), Color(0.9, 0.75, 0.2), Vector3(0, 1.12, 0.2)))
+	if ResourceLoader.exists(MODEL_PATH):
+		_rig = ModelRig.new(MODEL_PATH)
+		_rig.scale = Vector3.ONE * MODEL_SCALE
+		add_child(_rig)
+	else:
+		# Greybox stand-in until her model is there.
+		var white := Color(0.95, 0.95, 0.98)
+		_rig = GreyboxRig.new({
+			"coat": Color(0.62, 0.2, 0.4), "radius": 0.38, "height": 1.25,
+			"skin": Color(0.96, 0.8, 0.68), "head_radius": 0.3, "mitten": white,
+		})
+		add_child(_rig)
+		_rig.head.add_child(Shapes.cylinder(0.32, 0.25, white, Vector3(0, 0.42, 0), 0.22))
+		_rig.head.add_child(Shapes.sphere(0.12, white, Vector3(0, 0.62, 0)))
+		_rig.body.add_child(Shapes.box(Vector3(0.7, 0.12, 0.12), Color(0.9, 0.75, 0.2), Vector3(0, 1.12, 0.2)))
 	# Her load stacks up on her back, with a counter above it.
 	_stack = CarryStack.new()
-	_stack.position = Vector3(0, 0.45, -0.5)
+	_stack.position = Vector3(0, 0.45, -0.5) if _rig is GreyboxRig else Vector3(0, 0.55, -0.5)
 	_rig.body.add_child(_stack)
 	_count = Shapes.label("", Vector3(0, 2.6, 0), 44)
 	_count.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
