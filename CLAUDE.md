@@ -62,13 +62,15 @@ Frostbite2 is a fresh rebuild in Godot of Frostbite 1 (a finished Vite + Phaser 
 - `assets/models/blender/`: GLBs exported after cleanup in Blender (scale, pivot, decimation, rigging), via the `blender` MCP server, which needs Blender open. Keep the `.blend` working files in `source_art/blender/` (`.gdignore`d so Godot doesn't import them).
 - Free models, textures and HDRIs: Poly Haven via the Blender MCP (`search_assets`/`import_asset`), CC0.
 - Art style: chunky, readable at phone size, never copying Whiteout Survival's assets. Meagan and the Jans are the assets that genuinely have to be good.
-- `assets/audio/music/`: music, planned from ElevenLabs (no integration yet). `assets/audio/sfx/`: effects.
+- `assets/audio/music/` and `assets/audio/sfx/`: synthesized placeholders made by `tools/audio/make_audio.py` (numpy + scipy, fixed seeds), until the planned ElevenLabs audio. Change a sound in the script and re-run it rather than editing the .wav files. `winter_town.wav` and `wind_loop.wav` are imported with looping on.
+- **`Audio` autoload** (`scripts/game/audio.gd`): Music and SFX buses, the music loop, blizzard muffling plus wind, and `Audio.play(name, at, pitch, volume_db)` for effects named after their files; the `SOUNDS` table sets each one's volume, pitch spread and minimum gap. Effects with a position fade with distance from Meagan. The Music/Sound toggles are saved in `user://settings.cfg`.
 - Models arrive at arbitrary scale: normalise to 1 unit = 1 metre with the ground at y = 0.
 
 ## Commands
 - `godot --path . --editor` or `swallowtail launch` opens the editor. Swallowtail's typed tools only appear once the editor is running, and `swallowtail doctor` diagnoses the MCP connection.
 - `godot --path .` runs the game. Add `-- --keep-running` to stop it pausing when the window loses focus.
 - `godot --headless --path . -s res://tests/run_tests.gd` runs the engine tests.
+- `python tools/audio/make_audio.py` regenerates the music and sound effects (needs numpy and scipy).
 - **In the game (debug builds):** the DEV button or F1 opens the dev panel: skip 60 s, fill resources, add a Jan, Furnace +1, blizzard, wolves.
 - **Driving the running game from Swallowtail:**
   - Use the Bash tool: PowerShell 5.1 strips the double quotes inside `--code` strings.

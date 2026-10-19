@@ -65,6 +65,7 @@ func thaw(new_jan_id: int, line: String) -> void:
 	frozen = false
 	jan_id = new_jan_id
 	Fx.burst("shards", global_position + Vector3(0, 1.0, 0))
+	Audio.play("thaw", global_position)
 	for n in [_ice, _hint, _tap]:
 		if n:
 			n.queue_free()
@@ -82,6 +83,8 @@ func thaw(new_jan_id: int, line: String) -> void:
 func say(text: String, seconds := 3.0) -> void:
 	_bubble.text = text
 	_bubble_timer = seconds
+	if text != "":
+		Audio.play("blip", global_position)
 
 
 ## Walks along a navmesh path to `target` unless already heading there.
@@ -210,7 +213,13 @@ func _place_station(job: String) -> void:
 	_station.position = Vector3(0, 0, STATION_GAP[job])
 
 
+## Jans' work sounds, a little quieter than Meagan's.
+const WORK_SOUNDS := {"chop": "chop", "fish": "splash", "build": "hammer", "guard_attack": "swing_hit"}
+
+
 func _on_impact(clip: String) -> void:
+	if WORK_SOUNDS.has(clip):
+		Audio.play(WORK_SOUNDS[clip], global_position, 1.0, -5.0)
 	if _station == null and clip != "guard_attack":
 		return
 	match clip:

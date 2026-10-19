@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 Game="*res://scripts/game/game.gd"
 MCPGameInspector="*res://addons/swallowtail/services/game_inspector.gd"
 MCPGameInput="*res://addons/swallowtail/services/game_input.gd"
+Audio="*res://scripts/game/audio.gd"
 
 [display]
 

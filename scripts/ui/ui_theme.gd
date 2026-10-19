@@ -60,6 +60,7 @@ static func button(text: String, on_press: Callable) -> Button:
 	var b := Button.new()
 	b.text = text
 	b.custom_minimum_size = Vector2(0, BUTTON_HEIGHT)
+	b.pressed.connect(func(): Audio.play("tap"))
 	b.pressed.connect(on_press)
 	return b
 

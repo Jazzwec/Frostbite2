@@ -33,6 +33,12 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - [ ] A frozen Jan: she rubs her hands and blows warm breath; the ice shatters. Bag full: a shrug and "Bag full!".
 - [ ] Jans chop at stumps, fish at ice holes and hammer at anvils in front of their building, shiver and slow down when it's cold, and warm their hands when the Stockpile is full of what they make. Guards thrust spears; wolves flash white when hit.
 
+**Sound** (2026-10-19)
+- [ ] Music loops without a gap; Music and Sound buttons (top right) mute each and stay muted after a restart.
+- [ ] Chop, pickaxe, splash, hammer and axe-on-wolf sounds land on the hit; pops climb in pitch as her stack grows; whoosh and thud as pieces fly into the Stockpile or a pad; fire whoomph at the furnace; footsteps crunch.
+- [ ] Build complete jingle, thaw sparkle, wolves howl, raid crash, blizzard horn; in a blizzard the music muffles and wind rises.
+- [ ] Jans' work sounds are quieter and fade with distance.
+
 **Pressure** (use the DEV panel: Furnace +1, Wolves, Blizzard)
 - [ ] Blizzard: warning banner, forecast countdown, heavier snow and fog, drain ×3, then an all-clear banner.
 - [ ] Wolves: banner, wolves with health bars head for the furnace, detour to working Jans, guards (Barracks job) and Meagan fight them, kills drop loot.
@@ -51,7 +57,7 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - Rewrite the brief's Tech & build plan and Art & assets sections for Godot, plus a new phase list.
 - Saving (local file, export/import code), then the Build/Jans/Collection screens.
 - Remaining buildings, Research, caravans, Jan variants, milestones, prestige.
-- Tripo models for Meagan, Jans, wolves and buildings; ElevenLabs music and sound.
+- Tripo models for Meagan, Jans, wolves and buildings; ElevenLabs music and sound to replace the synthesized placeholders (needs an API key).
 - Test framework: GUT or gdUnit4.
 - Git hosting: create `Jazzwec/Frostbite2` on GitHub when there's something to share; Git LFS if model and audio files get large.
 

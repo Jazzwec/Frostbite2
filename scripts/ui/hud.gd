@@ -18,6 +18,8 @@ var _banner: PanelContainer
 var _banner_label: Label
 var _banner_timer := 0.0
 var _dev_button: Button
+var _music_button: Button
+var _sound_button: Button
 var _dev_panel: PanelContainer
 
 
@@ -33,6 +35,7 @@ func _ready() -> void:
 	_root.add_child(joystick)
 	sheet = Sheet.new()
 	_root.add_child(sheet)
+	_build_sound_toggles()
 	if OS.is_debug_build():
 		_build_dev()
 
@@ -135,10 +138,48 @@ func _forecast_text(s: GameState) -> String:
 
 ## True when a screen point is over UI, so the world shouldn't get the touch.
 func blocks(pos: Vector2) -> bool:
-	for c in [_top, sheet, _dev_button, _dev_panel]:
+	for c in [_top, sheet, _dev_button, _dev_panel, _music_button, _sound_button]:
 		if c and c.is_visible_in_tree() and c.get_global_rect().has_point(pos):
 			return true
 	return false
+
+
+# ---------- Sound ----------
+
+func _build_sound_toggles() -> void:
+	_music_button = _corner_button(-520, _toggle_music)
+	_sound_button = _corner_button(-345, _toggle_sound)
+	_label_sound_toggles()
+
+
+func _toggle_music() -> void:
+	Audio.toggle_music()
+	_label_sound_toggles()
+
+
+func _toggle_sound() -> void:
+	Audio.toggle_sfx()
+	_label_sound_toggles()
+
+
+## A small button in the row under the top bar, `left` pixels in from the right edge.
+func _corner_button(left: int, on_press: Callable) -> Button:
+	var b := UiTheme.button("", on_press)
+	b.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	b.offset_left = left
+	b.offset_right = left + 160
+	b.offset_top = 360
+	b.offset_bottom = 360 + 90
+	b.add_theme_font_size_override("font_size", 30)
+	_root.add_child(b)
+	return b
+
+
+func _label_sound_toggles() -> void:
+	_music_button.text = "Music" if Audio.music_on else "Music off"
+	_sound_button.text = "Sound" if Audio.sfx_on else "Sound off"
+	_music_button.modulate = Color.WHITE if Audio.music_on else Color(1, 1, 1, 0.55)
+	_sound_button.modulate = Color.WHITE if Audio.sfx_on else Color(1, 1, 1, 0.55)
 
 
 # ---------- Dev panel (debug builds) ----------

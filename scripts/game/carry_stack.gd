@@ -86,6 +86,8 @@ func _place(res: String, unit: float, pop: bool) -> void:
 	node.scale = Vector3.ONE * 1.4
 	create_tween().tween_property(node, "scale", Vector3.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	if pop:
+		# The pop climbs in pitch as the stack grows, which feels great to fill up.
+		Audio.play("pop", top_position(), 0.85 + 0.04 * _pieces.size())
 		# Off to the side, clear of the counter above her.
 		Fx.pop("+%d" % unit, top_position() + Vector3(0.9, 0.0, 0.3), COLORS[res])
 
@@ -99,7 +101,9 @@ func _remove(res: String, unit: float, dest: Vector3, landed: Callable) -> void:
 		var from := node.global_position
 		node.queue_free()
 		if dest != Vector3.INF:
+			Audio.play("whoosh", from)
 			var arrive := func() -> void:
+				Audio.play("drop", dest)
 				Fx.pop("+%d" % unit, dest + Vector3(0, 0.4, 0), COLORS[res])
 				if landed.is_valid():
 					landed.call()

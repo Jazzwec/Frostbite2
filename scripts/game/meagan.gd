@@ -24,6 +24,7 @@ var moving := false
 var _source := Vector3.INF
 var _dest := Vector3.INF
 var _landed := Callable()
+var _step_in := 0.0
 
 
 func _ready() -> void:
@@ -152,6 +153,11 @@ func _physics_process(delta: float) -> void:
 	global_position = Vector3(clampf(global_position.x, b.position.x, b.end.x), 0.0, clampf(global_position.z, b.position.y, b.end.y))
 	Game.engine.set_meagan_position(Vector2(global_position.x, global_position.z))
 
+	# Footsteps crunching in the snow.
+	_step_in -= delta
+	if moving and _step_in <= 0.0:
+		Audio.play("step", global_position)
+		_step_in = 0.3
 	_linger -= delta
 	if s.meagan_injured:
 		_rig.cancel_once()

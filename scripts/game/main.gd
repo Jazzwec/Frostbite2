@@ -72,6 +72,7 @@ func _ready() -> void:
 	add_child(_hud)
 	_rig.ui_blocker = _hud.blocks
 	_rig.joystick = _hud.joystick
+	Audio.listener = _meagan
 	Game.engine_event.connect(_on_event)
 
 	# Draw everything once so the first navmesh bake sees every building.
@@ -281,6 +282,7 @@ func _update_pad_stop(delta: float) -> void:
 	_pad_still = 0.0 if _meagan.moving else _pad_still + delta
 	if _pad_still >= PAD_STOP_TIME:
 		_hud.sheet.open_site(on)
+		Audio.play("tap")
 		_pad_opened = on
 
 
@@ -296,6 +298,7 @@ func _update_bank_payments(delta: float) -> void:
 			if progress[res] > before.get(res, progress[res]) + 0.001 and bag >= _last_bag - 0.001 and _bank_throw_in <= 0.0:
 				var item: String = {"wood": "log", "food": "fish", "materials": "crate"}[res]
 				Fx.throw(item, _stockpile.drop_point(), _v3(MapData.SITES[i].pos) + Vector3(0, 1.0, 0), 0.45, 1.6)
+				Audio.play("whoosh", _stockpile.drop_point())
 				_bank_throw_in = 0.15
 		_last_progress[i] = progress.duplicate()
 	_last_bag = bag
@@ -314,6 +317,8 @@ const ACTIVITY_CLIPS := {"full": "full", "store": "carry", "fuel": "fuel", "buil
 func _update_meagan_activity(delta: float) -> void:
 	var s := Game.engine.state
 	var activity := s.meagan_activity
+	if activity == "full" and _work.get("activity", "") != "full":
+		Audio.play("full")
 	_work_age += delta
 	_update_carry()
 	if activity == "":
@@ -356,6 +361,7 @@ func _update_carry() -> void:
 			var landed := func() -> void:
 				_sites[0].flare()
 				Fx.burst("flame", mouth)
+				Audio.play("fire", mouth)
 			_meagan.carry(Vector3.INF, mouth, landed)
 		_:
 			_meagan.carry(Vector3.INF, Vector3.INF)
@@ -365,6 +371,7 @@ func _update_carry() -> void:
 func _on_meagan_worked(clip: String) -> void:
 	if clip == "warm":
 		Fx.burst("steam", _meagan.head_position(), _meagan.forward() + Vector3.UP * 0.2)
+		Audio.play("breath")
 		return
 	if _work.is_empty():
 		return
@@ -376,19 +383,24 @@ func _on_meagan_worked(clip: String) -> void:
 			var tree := _nodes[target].hit(me)
 			Fx.burst("chips", tree + Vector3(0, 0.6, 0), (me - tree).normalized() + Vector3.UP)
 			Fx.burst("snow", tree + Vector3(0, 2.2, 0), Vector3.DOWN)
+			Audio.play("chop", tree)
 		"scavenge":
 			var heap := _nodes[target].hit(me)
 			Fx.burst("sparks", tip, Vector3.UP)
 			Fx.burst("dust", heap + Vector3(0, 0.3, 0))
+			Audio.play("pick", heap)
 		"fish":
 			Fx.burst("splash", _nodes[target].focus_point(me) + Vector3(0, 0.05, 0))
+			Audio.play("splash", me)
 		"build":
 			_sites[target].knock()
 			Fx.burst("dust", tip)
 			Fx.burst("sparks", tip, Vector3.UP)
+			Audio.play("hammer", tip)
 		"fight":
 			_people.wolf_hit(target)
 			Fx.burst("snow", tip, Vector3.UP)
+			Audio.play("swing_hit", tip)
 
 
 # ---------- Engine events ----------
@@ -400,28 +412,37 @@ func _on_event(ev: Dictionary) -> void:
 			_meagan.play_once("warm", _v3(ev.pos))
 		"built", "levelled":
 			_sites[ev.site].bounce()
+			Audio.play("build_done")
 			var p: Vector2 = MapData.SITES[ev.site].pos
 			var name: String = Balance.BUILDINGS[ev.building].name
 			_float_text(Vector3(p.x, 3, p.y), ("%s built!" % name) if ev.type == "built" else ("%s Lv %d!" % [name, ev.level]), UiTheme.ACCENT)
 		"no_room":
+			Audio.play("error")
 			_float_text(_v3(ev.pos) + Vector3(0, 2.5, 0), "No room! Upgrade the Furnace\nor build a Bunkhouse", Color(1, 0.8, 0.5))
 		"blizzard_warning":
+			Audio.play("warning")
 			_hud.show_banner(Game.random_message("blizzardWarnings"), 6.0, BLIZZARD_BLUE)
 		"blizzard_start":
 			_hud.show_banner(Game.random_message("blizzardStart"), 5.0, BLIZZARD_BLUE)
 		"blizzard_end":
 			_hud.show_banner(Game.random_message("blizzardEnd"), 4.0, GOOD_GREEN)
 		"wolves_arrived":
+			Audio.play("howl")
 			_hud.show_banner("Wolves! %d of them, heading for the furnace." % ev.count, 4.0)
 		"breakthrough":
+			Audio.play("crash")
 			_float_text(Vector3(0, 3.5, 0), "Wolves raided the furnace!", Color(1, 0.5, 0.4))
 		"wolf_killed":
+			Audio.play("yelp", _v3(ev.pos))
+			Audio.play("coin")
 			_float_text(_v3(ev.pos) + Vector3(0, 1.5, 0), "+%s Food  +%s Mat" % [Fmt.num(ev.food), Fmt.num(ev.materials)], Color(0.7, 1, 0.7))
 		"meagan_injured":
+			Audio.play("yelp", Vector3.INF, 1.6)
 			_hud.show_banner("Meagan is hurt! She'll be back up when the wolves are gone.", 4.0)
 		"attack_over":
 			_hud.show_banner("The wolves are gone.", 3.0, GOOD_GREEN)
 		"jan_left":
+			Audio.play("error")
 			_float_text(Vector3(0, 3.5, 0), "Too cold! A Jan wandered off.", UiTheme.COLD)
 
 
