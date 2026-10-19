@@ -97,3 +97,43 @@ func test_no_room_leaves_him_frozen() -> void:
 	check_eq(e.state.jans.size(), 4, "still 4")
 	check_eq(e.state.arrivals.size(), 1, "still frozen")
 	check(_has_event(e.drain_events(), "no_room"), "no room event")
+
+
+func test_activity_follows_what_she_does() -> void:
+	var e := engine()
+	var forest := node_index("forest")
+	put_meagan(e, MapData.RESOURCE_NODES[forest].pos)
+	e.skip(0.1)
+	check_eq(e.state.meagan_activity, "gather", "gathering at the forest")
+	check_eq(e.state.meagan_target, forest, "targets the forest")
+	e.state.bag.wood = Economy.bag_cap(e.state)
+	e.skip(0.1)
+	check_eq(e.state.meagan_activity, "full", "bag full")
+
+	put_meagan(e, Vector2(20, 35))
+	e.skip(0.1)
+	check_eq(e.state.meagan_activity, "", "nothing to do out in the snow")
+
+	e.state.bag.wood = 10.0
+	put_meagan(e, site_pos(0) + Vector2(0, 3))
+	e.skip(0.1)
+	check_eq(e.state.meagan_activity, "fuel", "fuelling the furnace")
+
+	e.choose_building(3, "sled_shed")
+	e.state.bag.wood = 10.0
+	put_meagan(e, site_pos(3) + Vector2(0, 3))
+	e.skip(0.1)
+	check_eq(e.state.meagan_activity, "build", "building")
+	check_eq(e.state.meagan_target, 3, "at plot 3")
+
+
+func test_activity_for_piles_and_stores() -> void:
+	var e := engine()
+	e.state.piles.wood = 15.0
+	put_meagan(e, site_pos(1) + Vector2(0, 3))
+	e.skip(0.1)
+	check_eq(e.state.meagan_activity, "load", "picking up Wood")
+	e.state.bag = {"wood": 0.0, "food": 10.0, "materials": 0.0}
+	put_meagan(e, site_pos(2) + Vector2(0, 3))
+	e.skip(0.1)
+	check_eq(e.state.meagan_activity, "store", "food into the store")

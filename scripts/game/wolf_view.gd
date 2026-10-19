@@ -5,6 +5,8 @@ extends Node3D
 var _model: Node3D
 var _hp_bar: HpBar
 var _t := 0.0
+var _flash: MeshInstance3D
+var _knock := 0.0
 
 
 func _init() -> void:
@@ -22,9 +24,20 @@ func _init() -> void:
 	for x in [-0.15, 0.15]:
 		for z in [-0.35, 0.35]:
 			_model.add_child(Shapes.cylinder(0.06, 0.35, fur.darkened(0.2), Vector3(x, 0.17, z)))
+	# A white shell over the body, shown for a moment when it's hit.
+	_flash = Shapes.capsule(0.32, 1.3, Color(1, 1, 1, 0.8), Vector3(0, 0.55, 0))
+	_flash.rotation_degrees.x = 90.0
+	_flash.visible = false
+	_model.add_child(_flash)
 	_hp_bar = HpBar.new(Color(0.95, 0.25, 0.2))
 	_hp_bar.position = Vector3(0, 1.5, 0)
 	add_child(_hp_bar)
+
+
+## Struck: a white flash and a small hop back.
+func hit() -> void:
+	_knock = 1.0
+	Fx.burst("snow", global_position + Vector3(0, 0.6, 0))
 
 
 func sync(wolf: Dictionary, delta: float) -> void:
@@ -34,5 +47,8 @@ func sync(wolf: Dictionary, delta: float) -> void:
 		_model.rotation.y = lerp_angle(_model.rotation.y, atan2(step.x, step.z), 10.0 * delta)
 	global_position = global_position.lerp(target, minf(1.0, 12.0 * delta))
 	_t += delta * (14.0 if wolf.mode == "fight" else 9.0)
+	_knock = move_toward(_knock, 0.0, delta * 5.0)
+	_flash.visible = _knock > 0.6
+	_model.position = -_model.basis.z * 0.25 * _knock
 	_model.position.y = absf(sin(_t)) * (0.05 if wolf.mode == "fight" else 0.12)
 	_hp_bar.set_value(wolf.hp / wolf.max_hp)

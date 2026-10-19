@@ -23,6 +23,13 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - [ ] At the Jan cap, "No room!" shows and he stays frozen.
 - [ ] Idle chatter bubbles every 20–30 s.
 
+**Animations** (2026-10-19)
+- [ ] Forest: she walks beside a tree and swings the axe flat into it; chips and snow fly, the tree shakes, and when the stock drops a step a tree topples, leaving a stump.
+- [ ] Hunting ground: a frozen pond. She crouches at a hole with a rod and bobber; every few seconds a fish splashes out into her bag.
+- [ ] Scrap heap: pickaxe strikes with sparks. Furnace: she tosses logs in and the fire flares. Construction: hammering with dust. Piles: she hugs a box and items fly to or from her bag.
+- [ ] A frozen Jan: she rubs her hands and blows warm breath; the ice shatters. Bag full: a shrug and "Bag full!".
+- [ ] Jans chop at stumps, fish at ice holes and hammer at anvils in front of their building, shiver and slow down when it's cold, and warm their hands when their pile is full. Guards thrust spears; wolves flash white when hit.
+
 **Pressure** (use the DEV panel: Furnace +1, Wolves, Blizzard)
 - [ ] Blizzard: warning banner, forecast countdown, heavier snow and fog, drain ×3, then an all-clear banner.
 - [ ] Wolves: banner, wolves with health bars head for the furnace, detour to working Jans, guards (Barracks job) and Meagan fight them, kills drop loot.
@@ -33,6 +40,8 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - **Numbers marked `[proto]` in `scripts/engine/balance.gd`** need your sign-off: walk 4 m/s, gather range 3 m, building reach 4.5 m, rescue range 2 m, first Jan after 5 s, wolf detour 7 m, guard ring 4 m.
 - **Guards are weak:** by the brief, without kits they deal half damage (1.5/s), so 2 guards struggle against 3 wolves. Kits and gear aren't in the prototype yet.
 - **Trees:** Poly Haven's trees are far too heavy for phones, so forests are greybox cones. Real trees will need Tripo or Blender low-poly models.
+- **Hunting or fishing?** The hunting grounds now look like ice fishing (your choice), but the rules and text still say Hunting. Rename the job and spots to Fishing in the brief?
+- **Zoom:** at the default camera height Meagan is about 40 px tall, so the animations are small. Consider pinch-to-zoom, or a closer default view.
 - **Art direction:** the Poly Haven props are photoreal, while the brief wants chunky cartoon. Decide whether to keep them as placeholders or go straight to Tripo models.
 
 ## Next steps (pick with the user)

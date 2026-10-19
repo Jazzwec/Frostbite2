@@ -14,6 +14,7 @@ Frostbite2 is a fresh rebuild in Godot of Frostbite 1 (a finished Vite + Phaser 
   - **Pressure:** blizzards with forecast and banners; wolf packs from Furnace Lv 2, fought by guards and Meagan.
   - **Buildings:** Furnace, Lumber Yard, Hunting Lodge, Sled Shed, Storehouse, Workshop, Barracks, Bunkhouse. **Jobs:** chop, hunt, build, guard.
 - Not built yet: Research, Kitchen, Watchtower, Hot Springs, Expedition Post, Signal Beacon, caravans, gear and guard kits, bears, Jan variants, the Build/Jans/Collection screens, milestones, prestige, saving, sound and music.
+- Characters animate: Meagan chops, ice-fishes (the hunting grounds are frozen ponds), scavenges, fuels the furnace, hammers, carries, warms frozen Jans and fights wolves; Jans chop, fish and hammer at their stations, and guards thrust spears. All greybox, in code.
 - Art: the Poly Haven props (boulder, crate, log) are in `assets/models/polyhaven/`, decimated in Blender; their source is `source_art/blender/polyhaven_props.blend`. Poly Haven trees are ~7M triangles and unusable on mobile, so trees, buildings and characters are greybox shapes in code (`scripts/game/shapes.gd`). `Props.make()` falls back to greybox when a model is missing.
 - `NOTES.md` has the play checklist and the open design questions.
 
@@ -46,6 +47,8 @@ Frostbite2 is a fresh rebuild in Godot of Frostbite 1 (a finished Vite + Phaser 
   - **`Game` autoload** (`scripts/game/game.gd`): ticks the engine, pauses when the window loses focus, emits `engine_event`, and loads the text from `data/`.
   - **`scripts/game/main.gd`:** builds the world in code from `MapData` (the scene file is just a root node), turns taps into walks and sheets, and engine events into banners and floating text.
   - **Views:** `SiteView` (plots and buildings, including the furnace), `NodeView` (resource spots), `PeopleLayer` with `JanView`/`WolfView`, and `Meagan` (a `CharacterBody3D` with a `NavigationAgent3D`; the navmesh is re-baked when a plot gets a building).
+  - **Animation:** every character is a `GreyboxRig` (`scripts/game/rig/`) playing keyframed clips from `Clips`, holding tools from `Tools`. The engine records what Meagan did each tick (`meagan_activity`: gather, full, load, store, fuel, build, fight, plus a target); `main.gd` maps that to a clip (`chop`/`fish`/`scavenge` by node kind, `carry`, `fuel`, `build`, `fight`, `full`) and reacts to the rig's `impact` signal with `Fx` bursts, thrown items, tree shakes and furnace flares. Jans work at a station in front of their building (stump, ice hole, anvil), slower when cold or hungry, and rest when their pile is full.
+  - **Rig contract**, to keep when a rigged Tripo model replaces the greybox: `play(clip, speed)`, `play_once(clip)`, `cancel_once()`, the `impact(clip)` signal (a method track on a real AnimationPlayer), `tip_position()`, `line_target`, and the clip names in `Clips`.
   - **Camera and UI:** `CameraRig` (orthographic camera; touch-only input, so drag pans and a short press taps), and `Hud`/`Sheet` in `scripts/ui/`.
 - **Text:** player-facing writing lives in `data/` (JSON copied from Frostbite 1, still placeholder drafts), not in code.
 - **Randomness:** an injected, seeded RNG, so tests are deterministic.

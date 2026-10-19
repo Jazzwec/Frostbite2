@@ -1,14 +1,23 @@
 class_name Meagan
 extends CharacterBody3D
 ## The player character: walks where she's sent along the navmesh and tells the engine where she is.
+## Main tells her what she's working at each frame; her rig plays the matching clip.
 
 signal started_walking
+## At each clip's hit moment (the axe biting, a fish landing), for main's effects.
+signal worked(clip: String)
+
+## After an activity stops, its clip plays on for one more cycle at least this long, so quick
+## deliveries still show their throw or carry.
+const LINGER := 0.35
 
 var _agent: NavigationAgent3D
-var _model: Node3D
+var _rig: GreyboxRig
 var _bag: MeshInstance3D
 var _hp_bar: HpBar
-var _walk_time := 0.0
+var _clip := ""
+var _face := Vector3.INF
+var _linger := 0.0
 
 
 func _ready() -> void:
@@ -22,15 +31,18 @@ func _ready() -> void:
 	cs.position = Vector3(0, 0.8, 0)
 	add_child(cs)
 
-	_model = Node3D.new()
-	add_child(_model)
-	_model.add_child(Shapes.capsule(0.38, 1.25, Color(0.62, 0.2, 0.4), Vector3(0, 0.65, 0)))
-	_model.add_child(Shapes.sphere(0.3, Color(0.96, 0.8, 0.68), Vector3(0, 1.45, 0)))
-	_model.add_child(Shapes.cylinder(0.32, 0.25, Color(0.95, 0.95, 0.98), Vector3(0, 1.68, 0), 0.22))
-	_model.add_child(Shapes.sphere(0.12, Color(0.95, 0.95, 0.98), Vector3(0, 1.88, 0)))
-	_model.add_child(Shapes.box(Vector3(0.7, 0.12, 0.12), Color(0.9, 0.75, 0.2), Vector3(0, 1.15, 0.2)))
+	var white := Color(0.95, 0.95, 0.98)
+	_rig = GreyboxRig.new({
+		"coat": Color(0.62, 0.2, 0.4), "radius": 0.38, "height": 1.25,
+		"skin": Color(0.96, 0.8, 0.68), "head_radius": 0.3, "mitten": white,
+	})
+	add_child(_rig)
+	_rig.head.add_child(Shapes.cylinder(0.32, 0.25, white, Vector3(0, 0.42, 0), 0.22))
+	_rig.head.add_child(Shapes.sphere(0.12, white, Vector3(0, 0.62, 0)))
+	_rig.body.add_child(Shapes.box(Vector3(0.7, 0.12, 0.12), Color(0.9, 0.75, 0.2), Vector3(0, 1.12, 0.2)))
 	_bag = Shapes.box(Vector3(0.6, 0.6, 0.35), Color(0.55, 0.4, 0.25), Vector3(0, 0.95, -0.42))
-	_model.add_child(_bag)
+	_rig.body.add_child(_bag)
+	_rig.impact.connect(func(clip: String): worked.emit(clip))
 	add_child(Shapes.label("Meagan", Vector3(0, 2.4, 0), 40, Color(1, 0.85, 0.95)))
 	_hp_bar = HpBar.new(Color(0.95, 0.3, 0.5))
 	_hp_bar.position = Vector3(0, 2.15, 0)
@@ -53,6 +65,43 @@ func walk_to(target: Vector3) -> void:
 	started_walking.emit()
 
 
+## What she's working at: a clip from `Clips` ("" for nothing), the point to face and where a
+## fishing line goes (Vector3.INF for none).
+func set_activity(clip: String, face: Vector3, line := Vector3.INF) -> void:
+	if clip != "":
+		_clip = clip
+		_face = face
+		_linger = maxf(LINGER, Clips.CLIPS[clip].length)
+	_rig.line_target = line
+
+
+## One-off clips, like warming a Jan she's just reached.
+func play_once(clip: String, face := Vector3.INF) -> void:
+	_clip = ""
+	_agent.target_position = global_position
+	if face != Vector3.INF:
+		_face = face
+		_linger = Clips.CLIPS[clip].length
+	_rig.play_once(clip)
+
+
+func tip_position() -> Vector3:
+	return _rig.tip_position()
+
+
+func bag_position() -> Vector3:
+	return _bag.global_position
+
+
+func head_position() -> Vector3:
+	return _rig.head.global_position + Vector3(0, 0.2, 0)
+
+
+## Which way she's facing, flat on the ground.
+func forward() -> Vector3:
+	return _rig.global_basis.z
+
+
 func _physics_process(delta: float) -> void:
 	var s := Game.engine.state
 	var moving := false
@@ -64,21 +113,37 @@ func _physics_process(delta: float) -> void:
 			velocity = dir.normalized() * Balance.MEAGAN_WALK_SPEED
 			move_and_slide()
 			moving = true
-			_model.rotation.y = lerp_angle(_model.rotation.y, atan2(dir.x, dir.z), 12.0 * delta)
+			_turn_towards(dir, delta)
 	if not moving:
 		velocity = Vector3.ZERO
 	global_position.y = 0.0
 	Game.engine.set_meagan_position(Vector2(global_position.x, global_position.z))
 
-	# A little walking bob, a bag that swells with what she carries, and a tumble when she's hurt.
-	_walk_time = _walk_time + delta * 10.0 if moving else 0.0
-	_model.position.y = absf(sin(_walk_time)) * 0.12
+	_linger -= delta
+	if s.meagan_injured:
+		_rig.cancel_once()
+		_rig.play("down")
+	elif moving:
+		_rig.cancel_once()
+		_linger = 0.0
+		_rig.play("walk")
+	else:
+		_rig.play(_clip if _linger > 0.0 and _clip != "" else "idle")
+		if _linger > 0.0 and _face != Vector3.INF:
+			_turn_towards(_face - global_position, delta)
+
+	# A bag that swells with what she carries.
 	var fill := Economy.bag_total(s) / Economy.bag_cap(s)
 	_bag.visible = fill > 0.01
-	_bag.scale = Vector3.ONE * (0.5 + 0.9 * fill)
+	_bag.scale = Vector3.ONE * (0.45 + 0.6 * fill)
 	_bag.material_override = Shapes.material(_bag_color(s))
-	_model.rotation.z = lerpf(_model.rotation.z, 1.4 if s.meagan_injured else 0.0, 6.0 * delta)
 	_hp_bar.set_value(s.meagan_hp / Balance.MEAGAN_HP)
+
+
+func _turn_towards(dir: Vector3, delta: float) -> void:
+	dir.y = 0.0
+	if dir.length() > 0.05:
+		_rig.rotation.y = lerp_angle(_rig.rotation.y, atan2(dir.x, dir.z), 12.0 * delta)
 
 
 func _bag_color(s: GameState) -> Color:

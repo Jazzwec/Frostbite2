@@ -58,6 +58,7 @@ func drain_events() -> Array:
 func _tick(dt: float) -> void:
 	var s := state
 	s.time += dt
+	s.meagan_activity = ""
 	_produce(dt)
 	WorldEvents.eat(s, dt)
 	MeaganRules.regrow(s, dt)

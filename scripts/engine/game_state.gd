@@ -22,6 +22,11 @@ var meagan_hp := Balance.MEAGAN_HP
 var meagan_injured := false
 ## The frozen Jan she was sent to, or -1.
 var rescue_target := -1
+## What she did this tick, for her animation: "" | full | gather | load | store | fuel | build | fight.
+## The target is a node index, site index or wolf id; the position is where to face.
+var meagan_activity := ""
+var meagan_target := -1
+var meagan_target_pos := Vector2.ZERO
 
 ## One entry per plot in MapData.SITES:
 ## {building: String ("" = empty plot), level: int, upgrading: bool, progress: {resource: amount}}

@@ -25,6 +25,7 @@ var _body: StaticBody3D
 var _fire: MeshInstance3D
 var _light: OmniLight3D
 var _embers: GPUParticles3D
+var _flare := 0.0
 
 
 func setup(site_index: int) -> void:
@@ -58,6 +59,18 @@ func bounce() -> void:
 	var t := create_tween()
 	_shapes.scale = Vector3(1.15, 0.8, 1.15)
 	t.tween_property(_shapes, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+
+
+## A small knock, for each hammer blow on a construction site.
+func knock() -> void:
+	var t := create_tween()
+	_shapes.scale = Vector3(1.03, 0.96, 1.03)
+	t.tween_property(_shapes, "scale", Vector3.ONE, 0.15).set_ease(Tween.EASE_OUT)
+
+
+## A log landed in the furnace: the fire flares for a moment.
+func flare() -> void:
+	_flare = 1.0
 
 
 func _rebuild(site: Dictionary) -> void:
@@ -207,8 +220,9 @@ func _update_fire(s: GameState) -> void:
 		return
 	var frac := s.heat / maxf(Economy.heat_cap(s), 1.0)
 	var size := 0.15 + 0.85 * frac
-	_fire.scale = Vector3.ONE * size
-	_fire.visible = frac > 0.01
-	_light.light_energy = 0.3 + 4.0 * frac
+	_flare = move_toward(_flare, 0.0, get_process_delta_time() * 2.5)
+	_fire.scale = Vector3.ONE * size * (1.0 + 0.5 * _flare)
+	_fire.visible = frac > 0.01 or _flare > 0.0
+	_light.light_energy = 0.3 + 4.0 * frac + 3.0 * _flare
 	_embers.emitting = frac > 0.05
 	_embers.amount_ratio = clampf(frac, 0.1, 1.0)

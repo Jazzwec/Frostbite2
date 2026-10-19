@@ -7,6 +7,7 @@ var _frozen := {}  # arrival id -> JanView
 var _jans := {}  # jan id -> JanView
 var _wolves := {}  # wolf id -> WolfView
 var _chatter_in := 20.0
+var _guard_foes := {}  # JanView -> id of the wolf he's fighting
 
 
 func on_event(ev: Dictionary) -> void:
@@ -38,7 +39,21 @@ func _new_jan(pos: Vector3, frozen: bool, arrival_id := -1) -> JanView:
 	add_child(view)
 	view.global_position = pos
 	view.setup(frozen, arrival_id)
+	view.worked.connect(_on_jan_worked)
 	return view
+
+
+## A guard's spear lands on the wolf he's fighting.
+func _on_jan_worked(view: JanView, clip: String) -> void:
+	if clip == "guard_attack" and _guard_foes.has(view):
+		wolf_hit(_guard_foes[view])
+
+
+## A blow lands on a wolf: it flinches.
+func wolf_hit(wolf_id: int) -> void:
+	var view: WolfView = _wolves.get(wolf_id)
+	if view:
+		view.hit()
 
 
 func _sync_frozen(s: GameState) -> void:
@@ -58,6 +73,10 @@ func _sync_jans(s: GameState, delta: float) -> void:
 	var nav := get_world_3d().navigation_map
 	var slots := {}
 	var guards := 0
+	var caps := Economy.caps(s)
+	var speed := Economy.output_mult(s)
+	var cold := Economy.is_cold(s)
+	_guard_foes.clear()
 	for jan in s.jans:
 		var view: JanView = _jans.get(jan.id)
 		if view == null:
@@ -65,15 +84,24 @@ func _sync_jans(s: GameState, delta: float) -> void:
 			view.jan_id = jan.id
 			_jans[jan.id] = view
 		var job: String = jan.job
+		view.set_cold(cold)
 		if job == "guard":
 			guards += 1
 			view.follow(Vector3(jan.pos.x, 0, jan.pos.y), delta)
-			view.set_guard(true, jan.hp / Balance.GUARD_HP, jan.ko)
+			var foe := _wolf_in_reach(s, jan.pos)
+			if not foe.is_empty() and not jan.ko:
+				_guard_foes[view] = foe.id
+			view.guard(jan.hp / Balance.GUARD_HP, jan.ko, Vector3(foe.pos.x, 0, foe.pos.y) if not foe.is_empty() else Vector3.INF)
 			continue
-		view.set_guard(false, 1.0, false)
 		var slot: int = slots.get(job, 0)
 		slots[job] = slot + 1
 		view.go_to(_post(s, job, slot), nav)
+		# He works while his job produces and its pile has room; otherwise he warms his hands.
+		var working := job != "" and Economy.job_rate(s, job) > 0.0
+		if working:
+			var res: String = Balance.JOBS[job].resource
+			working = s.piles[res] < caps[res] - 0.01
+		view.work(job if working else "", speed)
 	var alive := {}
 	for jan in s.jans:
 		alive[jan.id] = true
@@ -81,6 +109,14 @@ func _sync_jans(s: GameState, delta: float) -> void:
 		if not alive.has(id):
 			_jans[id].flee()
 			_jans.erase(id)
+
+
+## The living wolf a guard at `pos` can strike, or {}.
+func _wolf_in_reach(s: GameState, pos: Vector2) -> Dictionary:
+	for wolf in s.wolves:
+		if wolf.mode != "leave" and wolf.hp > 0.0 and pos.distance_to(wolf.pos) <= Balance.GUARD_RANGE + 0.1:
+			return wolf
+	return {}
 
 
 ## Where Jan number `slot` on `job` stands: rows in front of the building, or round the furnace if idle.
@@ -95,7 +131,7 @@ func _post(s: GameState, job: String, slot: int) -> Vector3:
 	var base: Vector2 = MapData.SITES[site].pos
 	var col := slot % 4
 	var row := slot / 4
-	return Vector3(base.x - 1.5 + col * 1.0, 0, base.y + 2.9 + row * 0.9)
+	return Vector3(base.x - 1.95 + col * 1.3, 0, base.y + 2.9 + row * 1.0)
 
 
 func _sync_wolves(s: GameState, delta: float) -> void:

@@ -197,6 +197,7 @@ static func _meagan_fights(s: GameState, dt: float) -> void:
 	var target := _nearest_wolf(s, s.meagan_pos)
 	if not target.is_empty() and s.meagan_pos.distance_to(target.pos) <= Balance.MEAGAN_ATTACK_RANGE:
 		target.hp -= Balance.MEAGAN_DAMAGE_PER_SECOND * dt
+		MeaganRules.set_activity(s, "fight", target.id, target.pos)
 
 
 static func _nearest_wolf(s: GameState, pos: Vector2) -> Dictionary:

@@ -90,3 +90,15 @@ func test_meagan_can_be_injured() -> void:
 	e.skip(1.0)
 	check(e.state.meagan_injured, "injured")
 	check(not e.can_meagan_move(), "can't move")
+
+
+func test_fighting_shows_over_gathering() -> void:
+	var e := engine()
+	var forest := node_index("forest")
+	var pos: Vector2 = MapData.RESOURCE_NODES[forest].pos
+	put_meagan(e, pos)
+	e.spawn_wolves(1)
+	e.state.wolves[0].pos = pos + Vector2(1, 0)
+	e.skip(0.1)
+	check_eq(e.state.meagan_activity, "fight", "fighting wins")
+	check_eq(e.state.meagan_target, e.state.wolves[0].id, "targets the wolf")

@@ -2,6 +2,18 @@ class_name MeaganRules
 extends RefCounted
 ## What happens around Meagan: hand-gathering, the bag ↔ building magnet, and thawing Jans.
 
+## Which of her activities shows when several happen in one tick.
+const ACTIVITY_PRIORITY := {"": -1, "full": 0, "gather": 1, "load": 2, "store": 2, "fuel": 3, "build": 3, "fight": 4}
+
+
+## Records what she's doing this tick, unless something more important already happened.
+static func set_activity(s: GameState, activity: String, target: int, pos: Vector2) -> void:
+	if ACTIVITY_PRIORITY[activity] < ACTIVITY_PRIORITY[s.meagan_activity]:
+		return
+	s.meagan_activity = activity
+	s.meagan_target = target
+	s.meagan_target_pos = pos
+
 
 ## She gathers automatically at the nearest resource node in range, into her bag. [brief]
 static func gather(s: GameState, dt: float) -> void:
@@ -19,10 +31,13 @@ static func gather(s: GameState, dt: float) -> void:
 	var def: Dictionary = Balance.NODES[MapData.RESOURCE_NODES[nearest].kind]
 	var room := Economy.bag_cap(s) - Economy.bag_total(s)
 	var amount := minf(minf(Balance.GATHER_RATE[def.resource] * dt, s.nodes[nearest]), room)
+	var pos: Vector2 = MapData.RESOURCE_NODES[nearest].pos
 	if amount <= 0.0:
+		set_activity(s, "full", nearest, pos)
 		return
 	s.bag[def.resource] += amount
 	s.nodes[nearest] -= amount
+	set_activity(s, "gather", nearest, pos)
 
 
 ## Every node grows back steadily, full again `regrow` seconds after being emptied. [brief]
@@ -52,6 +67,7 @@ static func magnet(s: GameState, dt: float, events: Array) -> void:
 				s.bag.wood -= into_fuel
 				s.fuel += into_fuel
 				budget -= into_fuel
+				set_activity(s, "fuel", i, MapData.SITES[i].pos)
 		if site.upgrading:
 			budget = _deliver_to_site(s, i, budget, events)
 		var caps := Economy.caps(s)
@@ -61,6 +77,7 @@ static func magnet(s: GameState, dt: float, events: Array) -> void:
 				s.bag.food -= into_store
 				s.piles.food += into_store
 				budget -= into_store
+				set_activity(s, "store", i, MapData.SITES[i].pos)
 		for res in ["wood", "materials"]:
 			if Economy.pile_site(s, res) != i:
 				continue
@@ -70,6 +87,7 @@ static func magnet(s: GameState, dt: float, events: Array) -> void:
 				s.piles[res] -= take
 				s.bag[res] += take
 				budget -= take
+				set_activity(s, "load", i, MapData.SITES[i].pos)
 
 
 static func _deliver_to_site(s: GameState, i: int, budget: float, events: Array) -> float:
@@ -83,6 +101,7 @@ static func _deliver_to_site(s: GameState, i: int, budget: float, events: Array)
 			s.bag[res] -= give
 			site.progress[res] = have + give
 			budget -= give
+			set_activity(s, "build", i, MapData.SITES[i].pos)
 		if site.progress.get(res, 0.0) < need[res] - 0.0001:
 			done = false
 	if done:
