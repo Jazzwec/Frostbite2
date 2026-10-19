@@ -85,6 +85,7 @@ Frostbite2 is a fresh rebuild in Godot of Frostbite 1 (a finished Vite + Phaser 
 - Big numbers formatted as 1.2K, 3.4M, 5.6B.
 - Ask before adding any dependency or addon.
 - Log what felt wrong while playing in `NOTES.md`; it becomes the prompt for the next session.
+- Unattended runs (`/loop ... Follow AFK.md.`) follow `AFK.md`, work only on **safe** items in `BACKLOG.md` and log to `AFK_REPORT.md`.
 - Commit and push after every change, so everything is trackable:
   - Commit once the tests pass and the game runs, then push to `origin main`.
   - Make one commit per feature or fix, with a clear message and nothing unrelated mixed in.
