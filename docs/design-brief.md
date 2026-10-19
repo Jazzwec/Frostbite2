@@ -57,7 +57,7 @@ Five resources, and only Heat can run out with consequences. Everything else jus
 
 | Resource | Produced by | Spent on | Cap | Notes |
 | --- | --- | --- | --- | --- |
-| Heat | Burning Wood at the Furnace | Drains automatically; each Jan and each building level adds to drain | Furnace level × 100 | Below 30%: jobs at half speed. At 0: one Jan leaves per minute until heat returns |
+| Heat | Burning Wood at the Furnace | Drains automatically; each Jan and each building level adds to drain | Furnace level × 100 | Below 30%: jobs at half speed. At 0: the fire goes out and the winter is over |
 | Wood | Chopping; Meagan in the forest | Furnace burn, most buildings, gear | 300 + 50 per Lumber Yard level, × Storehouse | The pacing resource; wood income vs burn rate is the core tension |
 | Food | Hunting; Meagan at the hunting grounds; animal kills | Each Jan eats 1/min | 150 × Storehouse | Short food = Jans work 25% slower. Never kills |
 | Materials | Building job; Meagan at the scrap heap; Scavenging after Tier 2; animal kills | Higher-tier buildings, furnace upgrades, gear | 100 × Storehouse | The slow resource that gates each tier |
@@ -67,7 +67,7 @@ A sixth resource, Warmth Tokens, is earned only at prestige and spent on permane
 
 Storehouse multiplies every Wood, Food and Materials cap by 1.25 per level (compounding).
 
-**Start of a winter.** The city starts empty: 0 Jans, 0 of every resource and a cold furnace (heat 0). Furnace, Lumber Yard and Hunting Lodge are at Lv 1. Meagan rescues the first Jan herself and gathers the first resources by hand. Like the ads, she works automatically whenever she stands at a forest (5 Wood/s), a hunting ground (3 Food/s) or a scrap heap (1 Materials/s, enough to reach the first Workshop). Cold and hunger don't slow her.
+**Start of a winter.** The city starts empty: 0 Jans and 0 of every resource, but the furnace starts full (heat 100, agreed for Frostbite2 on 2026-10-19), and the clock is running. Furnace, Lumber Yard and Hunting Lodge are at Lv 1. Meagan rescues the first Jan herself and gathers the first resources by hand. Like the ads, she works automatically whenever she stands at a forest (5 Wood/s), a hunting ground (3 Food/s) or a scrap heap (1 Materials/s, enough to reach the first Workshop). Cold and hunger don't slow her.
 
 **The map** is about three phone screens of snowfield with the town in the middle; the camera follows Meagan closely, and a one-finger drag anywhere steers her like a joystick (Frostbite2, agreed 2026-10-19). Resource spots are scattered around the outskirts: 4 forests, 3 hunting grounds and 3 scrap heaps. Each holds a stock (forest 60 Wood, hunting ground 40 Food, scrap heap 15 Materials) that runs down as she gathers and grows back steadily, full again about 3 minutes after being emptied (scrap heaps 4), so she roams between them. Frozen Jans, caravans and animals arrive from the far edges; animals walk faster to keep their roughly 10-second approach.
 
@@ -180,7 +180,7 @@ Blizzards are always announced and are about preparing, not reacting. Animal att
 | Animal attack | Every 8 to 15 minutes from Furnace Lv 2, never during a blizzard; warned only with a Watchtower | See below | Guards, gear, Meagan, Watchtower |
 | Lost-His-Keys Jan finds something | On rescue of that variant | Small random bonus | None needed |
 
-If Heat reaches zero, one Jan wanders off into the snow each minute. They return at the next caravan, so nothing is permanently lost. The loss should sting a little and never ruin a run.
+**Keeping the fire burning is the objective (agreed for Frostbite2 on 2026-10-19).** If Heat reaches zero the fire goes out and the winter is over: a card shows how long the village was kept warm (the score; the best time is remembered), a few numbers from the winter, and Play again. It must never feel unfair, so the game warns loudly first: below 25% heat the bar pulses red and a banner and horn fire, and below 10% the bar counts down to the fire going out [proto thresholds]. With no Wood at all, the starting town's fire lasts about 2½ minutes.
 
 ### Animal attacks
 

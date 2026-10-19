@@ -10,6 +10,7 @@ Frostbite2 is a fresh rebuild in Godot of Frostbite 1 (a finished Vite + Phaser 
 
 ## Current state
 - First playable prototype (2026-10-19), greybox 3D. It covers the core loop, blizzards and wolves:
+  - **Objective:** the furnace starts full; when heat reaches 0 the game is over (engine `game_over`, a `GameOverCard` with time survived and best time, `Game.new_game()` to play again). Low-heat warnings below 25%, a countdown below 10%.
   - **Hypercasual feel:** a drag-anywhere joystick steers Meagan (6 m/s) and a close camera stays on her. What she carries stacks on her back with a "12/20" counter ("MAX" when full), and pieces fly in and out one at a time with "+N" pops. Each plot has a build pad: stop on it to open its sheet, stand on it to pay. A Stockpile by the furnace is the town bank: drop everything off on its pad; build pads pay from her bag and then the Stockpile; the furnace feeds itself from its Wood; Jans' output goes into it.
   - **Core loop:** hand-gathering into Meagan's bag, fuelling the furnace, rescuing frozen Jans, jobs that fill the Stockpile, building and upgrading on plots.
   - **Pressure:** blizzards with forecast and banners; wolf packs from Furnace Lv 2, fought by guards and Meagan.
