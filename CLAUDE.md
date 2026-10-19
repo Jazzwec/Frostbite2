@@ -10,7 +10,8 @@ Frostbite2 is a fresh rebuild in Godot of Frostbite 1 (a finished Vite + Phaser 
 
 ## Current state
 - First playable prototype (2026-10-19), greybox 3D. It covers the core loop, blizzards and wolves:
-  - **Core loop:** tap to walk, hand-gathering into Meagan's bag, fuelling the furnace, rescuing frozen Jans, jobs that pile up output, building and upgrading on plots by carrying.
+  - **Hypercasual feel:** a drag-anywhere joystick steers Meagan (6 m/s) and a close camera stays on her. What she carries stacks on her back with a "12/20" counter ("MAX" when full), and pieces fly in and out one at a time with "+N" pops. Each plot has a build pad: stop on it to open its sheet, stand on it to pay.
+  - **Core loop:** hand-gathering into Meagan's bag, fuelling the furnace, rescuing frozen Jans, jobs that pile up output, building and upgrading on plots by carrying.
   - **Pressure:** blizzards with forecast and banners; wolf packs from Furnace Lv 2, fought by guards and Meagan.
   - **Buildings:** Furnace, Lumber Yard, Hunting Lodge, Sled Shed, Storehouse, Workshop, Barracks, Bunkhouse. **Jobs:** chop, hunt, build, guard.
 - Not built yet: Research, Kitchen, Watchtower, Hot Springs, Expedition Post, Signal Beacon, caravans, gear and guard kits, bears, Jan variants, the Build/Jans/Collection screens, milestones, prestige, saving, sound and music.
@@ -49,7 +50,8 @@ Frostbite2 is a fresh rebuild in Godot of Frostbite 1 (a finished Vite + Phaser 
   - **Views:** `SiteView` (plots and buildings, including the furnace), `NodeView` (resource spots), `PeopleLayer` with `JanView`/`WolfView`, and `Meagan` (a `CharacterBody3D` with a `NavigationAgent3D`; the navmesh is re-baked when a plot gets a building).
   - **Animation:** every character is a `GreyboxRig` (`scripts/game/rig/`) playing keyframed clips from `Clips`, holding tools from `Tools`. The engine records what Meagan did each tick (`meagan_activity`: gather, full, load, store, fuel, build, fight, plus a target); `main.gd` maps that to a clip (`chop`/`fish`/`scavenge` by node kind, `carry`, `fuel`, `build`, `fight`, `full`) and reacts to the rig's `impact` signal with `Fx` bursts, thrown items, tree shakes and furnace flares. Jans work at a station in front of their building (stump, ice hole, anvil), slower when cold or hungry, and rest when their pile is full.
   - **Rig contract**, to keep when a rigged Tripo model replaces the greybox: `play(clip, speed)`, `play_once(clip)`, `cancel_once()`, the `impact(clip)` signal (a method track on a real AnimationPlayer), `tip_position()`, `line_target`, and the clip names in `Clips`.
-  - **Camera and UI:** `CameraRig` (orthographic camera; touch-only input, so drag pans and a short press taps), and `Hud`/`Sheet` in `scripts/ui/`.
+  - **Camera and UI:** `CameraRig` (orthographic camera, always on Meagan; touch-only input: a drag is a floating joystick, emitted as `steered`, and drawn by `Joystick`; a short press is a tap), and `Hud`/`Sheet` in `scripts/ui/`.
+  - **Carrying and pads:** `CarryStack` on Meagan's back mirrors the engine's bag, given where pieces come from and go to by `main.gd` from her activity. `Fx.pop` shows the "+N" numbers. `SiteView` draws each plot's pad (`MapData.pad_pos`); construction and upgrades are paid only on the pad (`PAD_RADIUS`), and `main.gd` opens a pad's sheet when she stops on it.
 - **Text:** player-facing writing lives in `data/` (JSON copied from Frostbite 1, still placeholder drafts), not in code.
 - **Randomness:** an injected, seeded RNG, so tests are deterministic.
 - **Physics layers** are in `scripts/game/layers.gd`: ground, obstacle, tappable.

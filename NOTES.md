@@ -11,8 +11,10 @@ _(nothing logged yet)_
 Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, and the mouse stands in for a finger.
 
 **Map and walking**
-- [ ] Drag to pan the view; a short click walks Meagan there (around buildings); the camera recentres when she walks.
-- [ ] Forest → bag fills (5 Wood/s); furnace → fuel goes in, the heat bar and fire glow rise.
+- [ ] Drag anywhere: a joystick ring appears and Meagan runs that way; let go and she stops. The camera stays on her. She can't leave the snowfield.
+- [ ] A short click on a building, resource spot or frozen Jan sends her there.
+- [ ] Forest: logs stack on her back with "+2" pops; the counter reads 12/20, then a red MAX. Furnace: logs fly off her stack one by one into the fire, which flares.
+- [ ] Stop on a plot's pad: its sheet opens; run off and it closes. While building, the pad's ring fills as she stands on it, and nothing is paid off the pad.
 - [ ] The scrap heap behind the furnace gives Materials; the Sled Shed (30 Wood) raises the bag limit.
 - [ ] Tap a "+" plot → build sheet → pick one → construction site → walk near it with the resources → built (bounce).
 - [ ] Tap a building → Upgrade, and −/+ for its Jans.
@@ -37,11 +39,10 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 
 ## Open questions
 
-- **Numbers marked `[proto]` in `scripts/engine/balance.gd`** need your sign-off: walk 4 m/s, gather range 3 m, building reach 4.5 m, rescue range 2 m, first Jan after 5 s, wolf detour 7 m, guard ring 4 m.
+- **Numbers marked `[proto]` in `scripts/engine/balance.gd`** need your sign-off: walk 6 m/s, build pad 1.4 m, gather range 3 m, building reach 4.5 m, rescue range 2 m, first Jan after 5 s, wolf detour 7 m, guard ring 4 m.
 - **Guards are weak:** by the brief, without kits they deal half damage (1.5/s), so 2 guards struggle against 3 wolves. Kits and gear aren't in the prototype yet.
 - **Trees:** Poly Haven's trees are far too heavy for phones, so forests are greybox cones. Real trees will need Tripo or Blender low-poly models.
 - **Hunting or fishing?** The hunting grounds now look like ice fishing (your choice), but the rules and text still say Hunting. Rename the job and spots to Fishing in the brief?
-- **Zoom:** at the default camera height Meagan is about 40 px tall, so the animations are small. Consider pinch-to-zoom, or a closer default view.
 - **Art direction:** the Poly Haven props are photoreal, while the brief wants chunky cartoon. Decide whether to keep them as placeholders or go straight to Tripo models.
 
 ## Next steps (pick with the user)
