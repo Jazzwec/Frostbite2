@@ -1,6 +1,6 @@
 class_name NodeView
 extends Node3D
-## A resource spot: a forest, a hunting ground (a frozen pond for ice fishing) or a scrap heap.
+## A resource spot: a forest, a fishing pond (kind "hunting", for ice fishing) or a scrap heap.
 ## Its pieces thin out as the stock runs down: trees topple, the rest sink into the snow.
 
 const PIECES := 6

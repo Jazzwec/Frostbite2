@@ -107,7 +107,6 @@ Add, reorder or delete items freely; Claude only reads this file at the start of
 ## Needs you (Claude won't touch these unattended)
 
 - The `[proto]` numbers in `balance.gd`: walk speed, pad size, furnace feed, warning thresholds, ranges.
-- Hunting or Fishing: renaming the job and the spots.
 - Score as minutes or as "days survived".
 - Art direction: photoreal Poly Haven props or chunky cartoon Tripo models.
 - Research Hut, Knowledge and the Research tree: big, and its place in the hypercasual loop needs a call.

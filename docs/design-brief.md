@@ -24,7 +24,7 @@ Meagan is the only leader; the Jans are the only survivors. There are no other n
 | Variant | Visible tell | Job bonus | Unlock |
 | --- | --- | --- | --- |
 | Plain Jan | Parka, red nose | None | Start |
-| Chef Jan | Apron, ladle | +25% food from Hunting | Kitchen built |
+| Chef Jan | Apron, ladle | +25% food from Fishing | Kitchen built |
 | Sleepy Jan | Blanket, half-shut eyes | Works 20% slower, eats 50% less | Tier 2 |
 | Spreadsheet Jan | Clipboard | +25% Research | Research Hut built |
 | Lost-His-Keys Jan | Patting pockets | Finds random bonus resources on rescue | Tier 2 |
@@ -45,7 +45,7 @@ Heat decays constantly. Jans burn wood to keep it up, but each Jan also adds to 
 A session plays like this:
 
 1. Open the app. The city is exactly as it was left; a short welcome-back card recaps heat, population and the next blizzard.
-2. Tap arriving Jans. Meagan walks over, the Jan thaws, a line of dialogue plays, and the Jan walks to the job that needs him most (Lumber Yard first, then Hunting if eating outruns hunting, then by job share).
+2. Tap arriving Jans. Meagan walks over, the Jan thaws, a line of dialogue plays, and the Jan walks to the job that needs him most (Lumber Yard first, then Fishing if eating outruns fishing, then by job share).
 3. Drag or tap idle Jans onto jobs. Spare Jans can be left idle at no cost beyond their food.
 4. Spend resources on the cheapest useful upgrade. The game should always surface one affordable or nearly affordable thing to buy.
 5. Check the forecast. If a blizzard is coming, stockpile wood or pull Jans off research onto chopping.
@@ -59,7 +59,7 @@ Five resources, and only Heat can run out with consequences. Everything else jus
 | --- | --- | --- | --- | --- |
 | Heat | Burning Wood at the Furnace | Drains automatically; each Jan and each building level adds to drain | Furnace level × 100 | Below 30%: jobs at half speed. At 0: the fire goes out and the winter is over |
 | Wood | Chopping; Meagan in the forest | Furnace burn, most buildings, gear | 300 + 50 per Lumber Yard level, × Storehouse | The pacing resource; wood income vs burn rate is the core tension |
-| Food | Hunting; Meagan at the hunting grounds; animal kills | Each Jan eats 1/min | 150 × Storehouse | Short food = Jans work 25% slower. Never kills |
+| Food | Fishing; Meagan at the fishing ponds; animal kills | Each Jan eats 1/min | 150 × Storehouse | Short food = Jans work 25% slower. Never kills |
 | Materials | Building job; Meagan at the scrap heap; Scavenging after Tier 2; animal kills | Higher-tier buildings, furnace upgrades, gear | 100 × Storehouse | The slow resource that gates each tier |
 | Knowledge | Research | Permanent multipliers in the Research tree | None | Only resource that is never wasted; always a good sink for spare Jans |
 
@@ -67,9 +67,9 @@ A sixth resource, Warmth Tokens, is earned only at prestige and spent on permane
 
 Storehouse multiplies every Wood, Food and Materials cap by 1.25 per level (compounding).
 
-**Start of a winter.** The city starts empty: 0 Jans and 0 of every resource, but the furnace starts full (heat 100, agreed for Frostbite2 on 2026-10-19), and the clock is running. Furnace, Lumber Yard and Hunting Lodge are at Lv 1. Meagan rescues the first Jan herself and gathers the first resources by hand. Like the ads, she works automatically whenever she stands at a forest (5 Wood/s), a hunting ground (3 Food/s) or a scrap heap (1 Materials/s, enough to reach the first Workshop). Cold and hunger don't slow her.
+**Start of a winter.** The city starts empty: 0 Jans and 0 of every resource, but the furnace starts full (heat 100, agreed for Frostbite2 on 2026-10-19), and the clock is running. Furnace, Lumber Yard and Fishing Lodge are at Lv 1. Meagan rescues the first Jan herself and gathers the first resources by hand. Like the ads, she works automatically whenever she stands at a forest (5 Wood/s), a fishing pond (3 Food/s) or a scrap heap (1 Materials/s, enough to reach the first Workshop). Cold and hunger don't slow her.
 
-**The map** is about three phone screens of snowfield with the town in the middle; the camera follows Meagan closely, and a one-finger drag anywhere steers her like a joystick (Frostbite2, agreed 2026-10-19). Resource spots are scattered around the outskirts: 4 forests, 3 hunting grounds and 3 scrap heaps. Each holds a stock (forest 60 Wood, hunting ground 40 Food, scrap heap 15 Materials) that runs down as she gathers and grows back steadily, full again about 3 minutes after being emptied (scrap heaps 4), so she roams between them. Frozen Jans, caravans and animals arrive from the far edges; animals walk faster to keep their roughly 10-second approach.
+**The map** is about three phone screens of snowfield with the town in the middle; the camera follows Meagan closely, and a one-finger drag anywhere steers her like a joystick (Frostbite2, agreed 2026-10-19). Resource spots are scattered around the outskirts: 4 forests, 3 fishing ponds and 3 scrap heaps. Each holds a stock (forest 60 Wood, fishing pond 40 Food, scrap heap 15 Materials) that runs down as she gathers and grows back steadily, full again about 3 minutes after being emptied (scrap heaps 4), so she roams between them. Frozen Jans, caravans and animals arrive from the far edges; animals walk faster to keep their roughly 10-second approach.
 
 **Carrying and building (decided in Phase 3 planning; the Stockpile and build pads agreed for Frostbite2 on 2026-10-19).** Resources are physical, as in the ads:
 
@@ -87,7 +87,7 @@ Five jobs, each tied to one building that sets its rate. Output per Jan is the b
 | Job | Building | Produces | Base rate per Jan | Unlocks at | Upgrade effect per level |
 | --- | --- | --- | --- | --- | --- |
 | Chopping | Lumber Yard | Wood | 1.0 / s | Start | +15% rate, +50 Wood cap |
-| Hunting | Hunting Lodge | Food | 0.6 / s | Start | +15% rate |
+| Fishing | Fishing Lodge | Food | 0.6 / s | Start | +15% rate |
 | Building | Workshop | Materials | 0.1 / s | Furnace Lv 2 | +20% rate |
 | Research | Research Hut | Knowledge | 0.05 / s | Furnace Lv 3 | +20% rate |
 | Scavenging | Expedition Post | Random Wood, Food or Materials in bursts (40 / 25 / 8, Wood twice as likely) | 1 burst / 90 s | Tier 2 | Interval ×0.92, bursts ×1.2 |
@@ -95,7 +95,7 @@ Five jobs, each tied to one building that sets its rate. Output per Jan is the b
 
 Rate upgrades compound: a job's rate per Jan is base × growth^(level − 1).
 
-Idle Jans still eat and still add to heat drain, so the game nudges players to assign everyone. A one-tap "auto-assign" that fills jobs by current need unlocks at Furnace Lv 4 so the late game does not become micromanagement. It uses the same rule as a newly thawed Jan (Lumber Yard first, then Hunting while eating outruns hunting, then job shares Chopping 3 : Hunting 2 : Building 2 : Research 1), rebalances every 5 seconds moving as few Jans as possible, never touches guards or scavengers, and switches off when the player moves a Jan by hand.
+Idle Jans still eat and still add to heat drain, so the game nudges players to assign everyone. A one-tap "auto-assign" that fills jobs by current need unlocks at Furnace Lv 4 so the late game does not become micromanagement. It uses the same rule as a newly thawed Jan (Lumber Yard first, then Fishing while eating outruns fishing, then job shares Chopping 3 : Fishing 2 : Building 2 : Research 1), rebalances every 5 seconds moving as few Jans as possible, never touches guards or scavengers, and switches off when the player moves a Jan by hand.
 
 ## Buildings & upgrades
 
@@ -105,7 +105,7 @@ The Furnace is the tier gate: each Furnace level raises the Jan cap and unlocks 
 | --- | --- | --- | --- | --- |
 | Furnace | Heat cap; +5% heat per Wood per level; draws stronger animal attacks | 10 | +4 Jans per level | Each level opens new buildings and Jan variants |
 | Lumber Yard | Chopping rate and Wood cap | 25 | — | — |
-| Hunting Lodge | Hunting rate | 25 | — | — |
+| Fishing Lodge | Fishing rate | 25 | — | — |
 | Storehouse | Food and Materials cap | 15 | — | — |
 | Workshop | Building rate; Materials | 20 | — | Furnace Lv 2 |
 | Kitchen | Food consumed per Jan, down 5% per level | 10 | — | Furnace Lv 2; unlocks Chef Jan |
@@ -124,7 +124,7 @@ Tiers are just Furnace level bands: Tier 1 is Furnace 1 to 3, Tier 2 is 4 to 6, 
 
 The Research tree is a separate list of 15 to 20 one-off purchases bought with Knowledge: percentage multipliers to each job, cheaper Furnace levels, Jan arrival rate, blizzard resistance. It is the long-tail sink once buildings cap out.
 
-The 16 nodes (any order, each costing 10 × 1.5^(nodes bought) Knowledge; names in `research.json`): Chopping, Hunting, Building and Research +15% each; every job +10%; Meagan walks 20% faster; Meagan carries 10 more; 10% more heat per Wood; Furnace upgrades 10% cheaper; blizzard drain −20%; heat drain −10%; Jans arrive 15% more often; Jans eat 10% less; scavenging 15% sooner; guards +20% damage; caravan Jans wait 50% longer. Research resets at each thaw.
+The 16 nodes (any order, each costing 10 × 1.5^(nodes bought) Knowledge; names in `research.json`): Chopping, Fishing, Building and Research +15% each; every job +10%; Meagan walks 20% faster; Meagan carries 10 more; 10% more heat per Wood; Furnace upgrades 10% cheaper; blizzard drain −20%; heat drain −10%; Jans arrive 15% more often; Jans eat 10% less; scavenging 15% sooner; guards +20% damage; caravan Jans wait 50% longer. Research resets at each thaw.
 
 Weapons, Armour and guard kits are crafted at the Barracks straight from the piles (no carrying), from its row on the Build screen.
 
@@ -140,7 +140,7 @@ where n is the number of upgrades already bought (level minus the starting level
 
 | Item | Base cost | Growth | Currency |
 | --- | --- | --- | --- |
-| Lumber Yard, Hunting Lodge | 15 Wood | 1.12 | Wood |
+| Lumber Yard, Fishing Lodge | 15 Wood | 1.12 | Wood |
 | Storehouse, Kitchen | 40 Wood + 5 Materials | 1.15 | Wood, Materials |
 | Workshop, Research Hut, Barracks | 60 Wood + 10 Materials | 1.15 | Wood, Materials |
 | Bunkhouse, Watchtower, Hot Springs, Expedition Post, Signal Beacon | 120 Wood + 30 Materials | 1.25 | Wood, Materials |

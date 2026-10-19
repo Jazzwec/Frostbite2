@@ -28,7 +28,7 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 
 **Animations** (2026-10-19)
 - [ ] Forest: she walks beside a tree and swings the axe flat into it; chips and snow fly, the tree shakes, and when the stock drops a step a tree topples, leaving a stump.
-- [ ] Hunting ground: a frozen pond. She crouches at a hole with a rod and bobber; every few seconds a fish splashes out into her bag.
+- [ ] Fishing pond: She crouches at a hole with a rod and bobber; every few seconds a fish splashes out into her bag.
 - [ ] Scrap heap: pickaxe strikes with sparks. Furnace: she tosses logs in and the fire flares. Construction: hammering with dust. Piles: she hugs a box and items fly to or from her bag.
 - [ ] A frozen Jan: she rubs her hands and blows warm breath; the ice shatters. Bag full: a shrug and "Bag full!".
 - [ ] Jans chop at stumps, fish at ice holes and hammer at anvils in front of their building, shiver and slow down when it's cold, and warm their hands when the Stockpile is full of what they make. Guards thrust spears; wolves flash white when hit.
@@ -59,7 +59,6 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - **Numbers marked `[proto]` in `scripts/engine/balance.gd`** need your sign-off: walk 6 m/s, build pad 1.4 m, low-heat warning 25% (clears at 40%) and countdown 10%, furnace feed from the Stockpile 5 Wood/s, gather range 3 m, building reach 4.5 m, rescue range 2 m, first Jan after 5 s, wolf detour 7 m, guard ring 4 m.
 - **Guards are weak:** by the brief, without kits they deal half damage (1.5/s), so 2 guards struggle against 3 wolves. Kits and gear aren't in the prototype yet.
 - **Trees:** Poly Haven's trees are far too heavy for phones, so forests are greybox cones. Real trees will need Tripo or Blender low-poly models.
-- **Hunting or fishing?** The hunting grounds now look like ice fishing (your choice), but the rules and text still say Hunting. Rename the job and spots to Fishing in the brief?
 - **ChatGPT feedback on the Jans (not done yet):**
   - World labels are wider than the buildings: use smaller nameplates, with level and upgrade in the tap panel.
   - Simplify the Jan texture into three colour blocks for phone size; this needs a Tripo or texture pass.

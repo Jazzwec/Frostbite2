@@ -62,7 +62,7 @@ const ARRIVAL_FILL_SLOWDOWN := 2.0
 const ARRIVAL_MAX_WAITING := 3
 ## The first frozen Jan appears this soon after a new game, so Meagan can rescue him herself. [proto]
 const FIRST_ARRIVAL_DELAY := 5.0
-## Job shares used to place a new Jan once Chopping and Hunting are covered. [brief] 3 : 2 : 2
+## Job shares used to place a new Jan once Chopping and Fishing are covered. [brief] 3 : 2 : 2
 const JOB_SHARES := {"chop": 3.0, "hunt": 2.0, "build": 2.0}
 
 # ---------- Meagan ----------
@@ -103,7 +103,7 @@ const NODES := {
 ## Rate per Jan = base × growth^(building level − 1). [brief]
 const JOBS := {
 	"chop": {"name": "Chopping", "building": "lumber_yard", "resource": "wood", "base": 1.0, "growth": 1.15},
-	"hunt": {"name": "Hunting", "building": "hunting_lodge", "resource": "food", "base": 0.6, "growth": 1.15},
+	"hunt": {"name": "Fishing", "building": "hunting_lodge", "resource": "food", "base": 0.6, "growth": 1.15},
 	"build": {"name": "Building", "building": "workshop", "resource": "materials", "base": 0.1, "growth": 1.2},
 	"guard": {"name": "Guarding", "building": "barracks", "resource": "", "base": 0.0, "growth": 1.15},
 }
@@ -115,7 +115,7 @@ const JOBS := {
 const BUILDINGS := {
 	"furnace": {"name": "Furnace", "max": 10, "unlock": 1, "start": 1, "cost": {"wood": 100.0, "materials": 20.0}, "growth": 1.8},
 	"lumber_yard": {"name": "Lumber Yard", "max": 25, "unlock": 1, "start": 1, "cost": {"wood": 15.0}, "growth": 1.12},
-	"hunting_lodge": {"name": "Hunting Lodge", "max": 25, "unlock": 1, "start": 1, "cost": {"wood": 15.0}, "growth": 1.12},
+	"hunting_lodge": {"name": "Fishing Lodge", "max": 25, "unlock": 1, "start": 1, "cost": {"wood": 15.0}, "growth": 1.12},
 	"sled_shed": {"name": "Sled Shed", "max": 10, "unlock": 1, "start": 0, "cost": {"wood": 30.0}, "growth": 1.3},
 	"storehouse": {"name": "Storehouse", "max": 15, "unlock": 1, "start": 0, "cost": {"wood": 40.0, "materials": 5.0}, "growth": 1.15},
 	"workshop": {"name": "Workshop", "max": 20, "unlock": 2, "start": 0, "cost": {"wood": 60.0, "materials": 10.0}, "growth": 1.15},

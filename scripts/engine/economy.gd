@@ -163,7 +163,7 @@ static func arrival_interval(s: GameState) -> float:
 	return Balance.ARRIVAL_BASE_INTERVAL * (1.0 + Balance.ARRIVAL_FILL_SLOWDOWN * fill * fill)
 
 
-## The job a newly thawed Jan takes. [brief] Lumber Yard first, then Hunting while eating
+## The job a newly thawed Jan takes. [brief] Lumber Yard first, then Fishing while eating
 ## outruns hunting, then the job furthest below its share.
 static func neediest_job(s: GameState) -> String:
 	if job_open(s, "chop") and job_count(s, "chop") == 0:

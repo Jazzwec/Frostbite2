@@ -19,7 +19,7 @@ func _init(seed_value := 0) -> void:
 	state = new_winter()
 
 
-## The start of a winter. [brief] Empty city, cold furnace; Furnace, Lumber Yard and Hunting Lodge at Lv 1.
+## The start of a winter. [brief] Empty city, cold furnace; Furnace, Lumber Yard and Fishing Lodge at Lv 1.
 static func new_winter() -> GameState:
 	var s := GameState.new()
 	for def in MapData.SITES:

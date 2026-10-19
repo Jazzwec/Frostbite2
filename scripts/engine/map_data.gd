@@ -24,7 +24,7 @@ const SITES := [
 const SITE_HALF_SIZE := 2.0
 const FURNACE_RADIUS := 1.8
 
-## Resource spots on the outskirts. [brief] 4 forests, 3 hunting grounds, 3 scrap heaps.
+## Resource spots on the outskirts. [brief] 4 forests, 3 fishing ponds (kind "hunting"), 3 scrap heaps.
 ## One scrap heap sits right behind the furnace so the first Materials are close.
 const RESOURCE_NODES := [
 	{"kind": "forest", "pos": Vector2(-17, -26)},
