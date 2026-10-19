@@ -47,6 +47,7 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 **Meagan's model (2026-10-19)**
 - [ ] She's the textured Tripo model, 20% larger than life. She walks with swinging arms and legs, chops with the axe in her hands, crouches to fish, hammers, hugs a crate, swings at wolves and lies down when hurt.
 - [ ] Her stack sits on her back (at most 8 pieces), below her head.
+- [ ] Jans are the Tripo Jan model. They chop, fish and hammer either side of their building's pad, which stays clear for Meagan. Frozen Jans hug themselves inside a taller ice block. With 20 Jans and 3 wolves it ran at 165 FPS on desktop (155k triangles).
 
 **Objective: keep the fire burning**
 - [ ] A winter starts at 100/100 heat. With no Wood it lasts about 2½ minutes.
@@ -59,6 +60,10 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - **Guards are weak:** by the brief, without kits they deal half damage (1.5/s), so 2 guards struggle against 3 wolves. Kits and gear aren't in the prototype yet.
 - **Trees:** Poly Haven's trees are far too heavy for phones, so forests are greybox cones. Real trees will need Tripo or Blender low-poly models.
 - **Hunting or fishing?** The hunting grounds now look like ice fishing (your choice), but the rules and text still say Hunting. Rename the job and spots to Fishing in the brief?
+- **ChatGPT feedback on the Jans (not done yet):**
+  - World labels are wider than the buildings: use smaller nameplates, with level and upgrade in the tap panel.
+  - Simplify the Jan texture into three colour blocks for phone size; this needs a Tripo or texture pass.
+  - Lighter roofs and softer building shadows.
 - **ChatGPT feedback on Meagan (not done yet):**
   - Merge the stacked labels above her (node stock, "12/20", "12 Wood") into one readout.
   - Make the HUD panel about 25% shorter, with the bag second after heat.

@@ -119,7 +119,7 @@ func _wolf_in_reach(s: GameState, pos: Vector2) -> Dictionary:
 	return {}
 
 
-## Where Jan number `slot` on `job` stands: rows in front of the building, or round the furnace if idle.
+## Where Jan number `slot` on `job` stands: beside the building's pad, or round the furnace if idle.
 func _post(s: GameState, job: String, slot: int) -> Vector3:
 	var site := -1
 	if job != "":
@@ -128,10 +128,12 @@ func _post(s: GameState, job: String, slot: int) -> Vector3:
 		var angle := 0.7 + slot * 0.9
 		var r := 4.5 + (slot / 7) * 1.2
 		return Vector3(cos(angle) * r, 0, sin(angle) * r)
+	# Either side of the building's pad, leaving the pad itself clear for Meagan.
 	var base: Vector2 = MapData.SITES[site].pos
-	var col := slot % 4
+	var side := -1.0 if slot % 2 == 0 else 1.0
+	var col := (slot / 2) % 2
 	var row := slot / 4
-	return Vector3(base.x - 1.95 + col * 1.3, 0, base.y + 2.9 + row * 1.0)
+	return Vector3(base.x + side * (2.2 + col * 1.3), 0, base.y + 2.4 + row * 1.1)
 
 
 func _sync_wolves(s: GameState, delta: float) -> void:
