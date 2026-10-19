@@ -9,6 +9,24 @@ The PNGs here are reference images, made with ChatGPT (`tools/chatgpt/chatgpt.py
 | `wolf.png` | `wolf.glb` | Quadruped |
 | `furnace.png` | `furnace.glb` | — |
 | `lumber_yard.png` | `lumber_yard.glb` | — |
+| `hunting_lodge.png` | `hunting_lodge.glb` | — |
+| `stockpile.png` | `stockpile.glb` | — |
+| `construction.png` | `construction.glb` | — |
+| `sled_shed.png` | `sled_shed.glb` | — |
+| `storehouse.png` | `storehouse.glb` | — |
+| `workshop.png` | `workshop.glb` | — |
+| `barracks.png` | `barracks.glb` | — |
+| `bunkhouse.png` | `bunkhouse.glb` | — |
+| `scrap_heap.png` | `scrap_heap.glb` | — |
+| `ice_hole.png` | `ice_hole.glb` | — |
+| `stump.png` | `stump.glb` | — |
+| `pine_tree.png` | `pine_tree.glb` | — |
+| `axe.png` | `axe.glb` | — |
+| `pickaxe.png` | `pickaxe.glb` | — |
+| `hammer.png` | `hammer.glb` | — |
+| `fishing_rod.png` | `fishing_rod.glb` | — |
+| `spear.png` | `spear.glb` | — |
+| `wolf_v2.png` | `wolf.glb` | Quadruped (optional remake) |
 
 ## How to make a model
 1. In Tripo Studio, choose **Image to Model** and upload the PNG. For assets without a reference, use **Text to Model** with the prompts below.
@@ -19,14 +37,13 @@ The PNGs here are reference images, made with ChatGPT (`tools/chatgpt/chatgpt.py
 3. **Characters:** click **Rig**: humanoid for Meagan and the Jan, quadruped for the wolf. Skip Tripo's preset animations; the game makes its own work animations.
 4. **Export as GLB** to `C:\Claude Code\Frostbite2\assets\models\tripo\<file name>`. Claude takes care of the scale, the pivot, the decimation and wiring it into the game.
 
-**Status (2026-10-19):** Meagan, Jan and the wolf are made and in the game. Still to make, in this order:
-1. `furnace.glb` (image: `furnace.png`)
-2. `lumber_yard.glb` (image: `lumber_yard.png`)
-3. `hunting_lodge.glb`, `stockpile.glb`, `construction.glb`
-4. `sled_shed.glb`, `storehouse.glb`, `workshop.glb`, `barracks.glb`, `bunkhouse.glb`
-5. `scrap_heap.glb`, `ice_hole.glb`, `stump.glb`; `pine_tree.glb` only if the Blender-made trees (BACKLOG item 14) don't look good enough
-6. Tools: `axe.glb`, `pickaxe.glb`, `hammer.glb`, `fishing_rod.glb`, `spear.glb`
-7. Optional: a wolf remake (`wolf.glb`) with the wider shapes ChatGPT asked for (see the wolf prompt)
+**Status (2026-10-19):** Meagan, Jan and the wolf are made and in the game. Every asset below now has a reference image, so use **Image to Model** with the PNG of the same name. Still to make, in this order:
+1. `furnace.glb`, `lumber_yard.glb`
+2. `hunting_lodge.glb`, `stockpile.glb`, `construction.glb`
+3. `sled_shed.glb`, `storehouse.glb`, `workshop.glb`, `barracks.glb`, `bunkhouse.glb`
+4. `scrap_heap.glb`, `ice_hole.glb`, `stump.glb`; `pine_tree.glb` only if the Blender-made trees (BACKLOG item 14) don't look good enough
+5. Tools: `axe.glb`, `pickaxe.glb`, `hammer.glb`, `fishing_rod.glb` (the bobber floats apart in the image; if Tripo leaves it as a separate piece, that's fine), `spear.glb`
+6. Optional: a wolf remake from `wolf_v2.png`, exported as `wolf.glb` over the current one. It's softer and fluffier than the first wolf and reads better from above.
 
 ## Text prompts (Text to Model)
 **Negative prompt,** where Tripo has a field for it: `realistic, photorealistic, gritty, horror, text, logo, watermark, base, pedestal, ground plane, multiple objects, extra limbs`
