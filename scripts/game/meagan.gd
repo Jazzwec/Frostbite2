@@ -12,12 +12,16 @@ const LINGER := 0.35
 
 var _agent: NavigationAgent3D
 var _rig: GreyboxRig
-var _bag: MeshInstance3D
+var _stack: CarryStack
+var _count: Label3D
 var _hp_bar: HpBar
 var _clip := ""
 var _face := Vector3.INF
 var _linger := 0.0
 var _steer := Vector2.ZERO
+var _source := Vector3.INF
+var _dest := Vector3.INF
+var _landed := Callable()
 
 
 func _ready() -> void:
@@ -40,12 +44,16 @@ func _ready() -> void:
 	_rig.head.add_child(Shapes.cylinder(0.32, 0.25, white, Vector3(0, 0.42, 0), 0.22))
 	_rig.head.add_child(Shapes.sphere(0.12, white, Vector3(0, 0.62, 0)))
 	_rig.body.add_child(Shapes.box(Vector3(0.7, 0.12, 0.12), Color(0.9, 0.75, 0.2), Vector3(0, 1.12, 0.2)))
-	_bag = Shapes.box(Vector3(0.6, 0.6, 0.35), Color(0.55, 0.4, 0.25), Vector3(0, 0.95, -0.42))
-	_rig.body.add_child(_bag)
+	# Her load stacks up on her back, with a counter above it.
+	_stack = CarryStack.new()
+	_stack.position = Vector3(0, 0.45, -0.5)
+	_rig.body.add_child(_stack)
+	_count = Shapes.label("", Vector3(0, 2.6, 0), 44)
+	_count.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	add_child(_count)
 	_rig.impact.connect(func(clip: String): worked.emit(clip))
-	add_child(Shapes.label("Meagan", Vector3(0, 2.4, 0), 40, Color(1, 0.85, 0.95)))
 	_hp_bar = HpBar.new(Color(0.95, 0.3, 0.5))
-	_hp_bar.position = Vector3(0, 2.15, 0)
+	_hp_bar.position = Vector3(0, 1.85, 0)
 	add_child(_hp_bar)
 
 	_agent = NavigationAgent3D.new()
@@ -93,8 +101,16 @@ func tip_position() -> Vector3:
 	return _rig.tip_position()
 
 
+## Where her load is going and coming from this frame (Vector3.INF for nowhere). `landed` runs as
+## each delivered piece arrives.
+func carry(source: Vector3, dest: Vector3, landed := Callable()) -> void:
+	_source = source
+	_dest = dest
+	_landed = landed
+
+
 func bag_position() -> Vector3:
-	return _bag.global_position
+	return _stack.top_position()
 
 
 func head_position() -> Vector3:
@@ -147,24 +163,30 @@ func _physics_process(delta: float) -> void:
 		if _linger > 0.0 and _face != Vector3.INF:
 			_turn_towards(_face - global_position, delta)
 
-	# A bag that swells with what she carries.
-	var fill := Economy.bag_total(s) / Economy.bag_cap(s)
-	_bag.visible = fill > 0.01
-	_bag.scale = Vector3.ONE * (0.45 + 0.6 * fill)
-	_bag.material_override = Shapes.material(_bag_color(s))
+	var cap := Economy.bag_cap(s)
+	_stack.sync(s.bag, cap, _source, _dest, _landed, 1.0 if moving else 0.0, delta)
+	_update_counter(s, cap)
+	# Health only matters in a fight.
+	_hp_bar.visible = not s.wolves.is_empty() or s.meagan_hp < Balance.MEAGAN_HP
 	_hp_bar.set_value(s.meagan_hp / Balance.MEAGAN_HP)
+
+
+## "12/20" above her load, "MAX" in red when the bag is full, and what's in it underneath.
+func _update_counter(s: GameState, cap: float) -> void:
+	var total := Economy.bag_total(s)
+	_count.position.y = maxf(2.3, _stack.top_position().y - global_position.y + 0.3)
+	_count.visible = total > 0.01
+	var full := total >= cap - 0.01
+	var parts := []
+	for res in CarryStack.ORDER:
+		if s.bag[res] >= 1.0:
+			parts.append("%s %s" % [Fmt.num(floorf(s.bag[res])), {"wood": "Wood", "food": "Food", "materials": "Mat"}[res]])
+	var head := "MAX" if full else "%s/%s" % [Fmt.num(floorf(total)), Fmt.num(cap)]
+	_count.text = "%s\n%s" % [head, " · ".join(parts)]
+	_count.modulate = Color(1.0, 0.45, 0.4) if full else Color.WHITE
 
 
 func _turn_towards(dir: Vector3, delta: float) -> void:
 	dir.y = 0.0
 	if dir.length() > 0.05:
 		_rig.rotation.y = lerp_angle(_rig.rotation.y, atan2(dir.x, dir.z), 12.0 * delta)
-
-
-func _bag_color(s: GameState) -> Color:
-	var b: Dictionary = s.bag
-	if b.materials >= b.wood and b.materials >= b.food:
-		return Color(0.55, 0.55, 0.6)
-	if b.food >= b.wood:
-		return Color(0.75, 0.35, 0.3)
-	return Color(0.6, 0.42, 0.25)

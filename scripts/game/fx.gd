@@ -1,9 +1,12 @@
 class_name Fx
 extends Node3D
-## One-shot particle bursts and thrown items, shared by everyone. Each kind keeps a few emitters
-## and reuses them in turn, so a hit allocates nothing.
+## One-shot particle bursts, thrown items and "+N" pop numbers, shared by everyone. Bursts and
+## pops come from small pools reused in turn, so a hit allocates nothing.
 
 const POOL := 4
+const POP_POOL := 16
+const POP_RISE := 1.2
+const POP_TIME := 0.7
 const KINDS := {
 	"chips": {"color": Color(0.78, 0.58, 0.32), "amount": 10, "size": 0.09, "speed": Vector2(2.0, 4.0), "spread": 55.0, "gravity": -9.0, "life": 0.6},
 	"snow": {"color": Color(0.95, 0.97, 1.0), "amount": 12, "size": 0.12, "speed": Vector2(1.0, 2.5), "spread": 70.0, "gravity": -3.0, "life": 0.7},
@@ -19,6 +22,9 @@ static var instance: Fx
 
 var _pools := {}  # kind -> Array of CPUParticles3D
 var _next := {}  # kind -> int
+var _pops: Array[Label3D] = []
+var _pop_tweens := {}  # Label3D -> its running Tween
+var _next_pop := 0
 
 
 func _enter_tree() -> void:
@@ -54,6 +60,36 @@ static func throw(item: String, from: Vector3, to: Vector3, seconds := 0.45, hei
 	var t := instance.create_tween()
 	t.tween_method(fly, 0.0, 1.0, seconds)
 	t.tween_callback(land)
+
+
+## A number (or short word) that pops up at `pos`, rises and fades.
+static func pop(text: String, pos: Vector3, color := Color.WHITE) -> void:
+	if instance:
+		instance._pop(text, pos, color)
+
+
+func _pop(text: String, pos: Vector3, color: Color) -> void:
+	if _pops.is_empty():
+		for i in POP_POOL:
+			var l := Shapes.label("", Vector3.ZERO, 54)
+			l.visible = false
+			add_child(l)
+			_pops.append(l)
+	var l := _pops[_next_pop]
+	_next_pop = (_next_pop + 1) % POP_POOL
+	l.text = text
+	l.modulate = color
+	l.global_position = pos
+	l.scale = Vector3.ONE * 0.6
+	l.visible = true
+	if _pop_tweens.has(l) and _pop_tweens[l].is_valid():
+		_pop_tweens[l].kill()
+	var t := l.create_tween().set_parallel(true)
+	_pop_tweens[l] = t
+	t.tween_property(l, "global_position:y", pos.y + POP_RISE, POP_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	t.tween_property(l, "scale", Vector3.ONE, 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.tween_property(l, "modulate:a", 0.0, 0.3).set_delay(POP_TIME - 0.3)
+	t.chain().tween_callback(func(): l.visible = false)
 
 
 func _burst(kind: String, pos: Vector3, dir: Vector3) -> void:

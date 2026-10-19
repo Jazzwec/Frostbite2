@@ -20,6 +20,7 @@ var _snow_mat: ParticleProcessMaterial
 var _storm := 0.0
 ## What Meagan last worked at: {activity, target}. Hit moments use it after the tick has moved on.
 var _work := {}
+var _work_age := 0.0
 
 
 func _ready() -> void:
@@ -68,7 +69,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_refresh_views(delta)
-	_update_meagan_activity()
+	_update_meagan_activity(delta)
 	if _nav_dirty and not _baking:
 		_nav_dirty = false
 		_baking = true
@@ -241,19 +242,23 @@ func _walk(target: Vector3) -> void:
 # ---------- Meagan at work ----------
 
 const GATHER_CLIPS := {"forest": "chop", "hunting": "fish", "scrap": "scavenge"}
+## How long after an activity stops its pieces still fly to or from the same place.
+const CARRY_GRACE := 0.8
 const ACTIVITY_CLIPS := {"full": "full", "load": "carry", "store": "carry", "fuel": "fuel", "build": "build", "fight": "fight"}
 
 
-## Turns what the engine says she did this tick into a clip and a point to face.
-func _update_meagan_activity() -> void:
+## Turns what the engine says she did this tick into a clip, a point to face, and where her
+## stack's pieces come from or go to.
+func _update_meagan_activity(delta: float) -> void:
 	var s := Game.engine.state
 	var activity := s.meagan_activity
-	if activity == "full" and _work.get("activity", "") != "full":
-		_float_text(_meagan.global_position + Vector3(0, 2.6, 0), "Bag full!", Color(1, 0.9, 0.6))
+	_work_age += delta
+	_update_carry()
 	if activity == "":
 		_meagan.set_activity("", Vector3.INF)
 		return
 	_work = {"activity": activity, "target": s.meagan_target}
+	_work_age = 0.0
 	var face := _v3(s.meagan_target_pos)
 	if activity == "gather":
 		var view := _nodes[s.meagan_target]
@@ -268,6 +273,32 @@ func _update_meagan_activity() -> void:
 		_meagan.set_activity(ACTIVITY_CLIPS[activity], face)
 
 
+## Where pieces fly from (gathering, pickups) or to (fuel, construction, the store). It keeps the
+## last activity's ends for a moment, since the stack catches up one piece at a time.
+func _update_carry() -> void:
+	if _work.is_empty() or _work_age > CARRY_GRACE:
+		_meagan.carry(Vector3.INF, Vector3.INF)
+		return
+	var target: int = _work.target
+	var me := _meagan.global_position
+	var site_top := _v3(MapData.SITES[target].pos) + Vector3(0, 1.0, 0) if _work.activity in ["load", "store", "fuel", "build"] else Vector3.ZERO
+	match _work.activity:
+		"gather":
+			_meagan.carry(_nodes[target].focus_point(me) + Vector3(0, 0.6, 0), Vector3.INF)
+		"load":
+			_meagan.carry(site_top, Vector3.INF)
+		"store", "build":
+			_meagan.carry(Vector3.INF, site_top)
+		"fuel":
+			var mouth := site_top + Vector3(0, 0.4, 0)
+			var landed := func() -> void:
+				_sites[0].flare()
+				Fx.burst("flame", mouth)
+			_meagan.carry(Vector3.INF, mouth, landed)
+		_:
+			_meagan.carry(Vector3.INF, Vector3.INF)
+
+
 ## A hit moment in her clip: effects, and the world reacts.
 func _on_meagan_worked(clip: String) -> void:
 	if clip == "warm":
@@ -275,7 +306,6 @@ func _on_meagan_worked(clip: String) -> void:
 		return
 	if _work.is_empty():
 		return
-	var s := Game.engine.state
 	var target: int = _work.target
 	var me := _meagan.global_position
 	var tip := _meagan.tip_position()
@@ -289,26 +319,11 @@ func _on_meagan_worked(clip: String) -> void:
 			Fx.burst("sparks", tip, Vector3.UP)
 			Fx.burst("dust", heap + Vector3(0, 0.3, 0))
 		"fish":
-			var hole := _nodes[target].focus_point(me)
-			Fx.burst("splash", hole + Vector3(0, 0.05, 0))
-			Fx.throw("fish", hole + Vector3(0, 0.1, 0), _meagan.bag_position(), 0.5, 1.6)
-		"fuel":
-			var mouth := _v3(MapData.SITES[0].pos) + Vector3(0, 1.4, 0)
-			var landed := func() -> void:
-				_sites[0].flare()
-				Fx.burst("flame", mouth)
-			Fx.throw("log", tip, mouth, 0.45, 1.4, landed)
+			Fx.burst("splash", _nodes[target].focus_point(me) + Vector3(0, 0.05, 0))
 		"build":
 			_sites[target].knock()
 			Fx.burst("dust", tip)
 			Fx.burst("sparks", tip, Vector3.UP)
-		"carry":
-			var pile := _v3(MapData.SITES[target].pos) + Vector3(0, 0.6, 0)
-			if _work.activity == "store":
-				Fx.throw("fish", _meagan.bag_position(), pile, 0.4, 1.0)
-			else:
-				var item := "log" if Economy.pile_site(s, "wood") == target else "materials"
-				Fx.throw(item, pile, _meagan.bag_position(), 0.4, 1.0)
 		"fight":
 			_people.wolf_hit(target)
 			Fx.burst("snow", tip, Vector3.UP)
