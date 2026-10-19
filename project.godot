@@ -1,13 +1,25 @@
 ; Engine configuration file.
-; It's actually a "ProjectSettings" file in INI text format.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
 
 config_version=5
 
 [application]
 
 config/name="Frostbite2"
+run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.7")
 config/icon="res://icon.svg"
+
+[autoload]
+
+Game="*res://scripts/game/game.gd"
+MCPGameInspector="*res://addons/swallowtail/services/game_inspector.gd"
+MCPGameInput="*res://addons/swallowtail/services/game_input.gd"
 
 [display]
 
@@ -23,10 +35,9 @@ window/handheld/orientation=1
 
 enabled=PackedStringArray("res://addons/swallowtail/plugin.cfg")
 
-[autoload]
+[input_devices]
 
-MCPGameInspector="*res://addons/swallowtail/services/game_inspector.gd"
-MCPGameInput="*res://addons/swallowtail/services/game_input.gd"
+pointing/emulate_touch_from_mouse=true
 
 [rendering]
 

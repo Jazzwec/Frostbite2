@@ -1,0 +1,79 @@
+extends TestCase
+
+
+func test_new_winter_starts_empty_and_cold() -> void:
+	var e := engine()
+	check_eq(e.state.heat, 0.0, "heat")
+	check_eq(e.state.jans.size(), 0, "jans")
+	check_eq(Economy.furnace_level(e.state), 1, "furnace")
+	check_eq(Economy.level(e.state, "lumber_yard"), 1, "lumber yard")
+	check_eq(Economy.level(e.state, "hunting_lodge"), 1, "hunting lodge")
+	check_eq(Economy.level(e.state, "workshop"), 0, "workshop")
+
+
+func test_costs_follow_base_times_growth() -> void:
+	check_eq(Economy.cost("lumber_yard", 1), {"wood": 15.0}, "lumber 1→2")
+	check_eq(Economy.cost("lumber_yard", 2), {"wood": 17.0}, "lumber 2→3")
+	check_eq(Economy.cost("furnace", 1), {"wood": 100.0}, "furnace 1→2 is Wood only")
+	check_eq(Economy.cost("furnace", 2), {"wood": 180.0, "materials": 36.0}, "furnace 2→3")
+	check_eq(Economy.cost("sled_shed", 0), {"wood": 30.0}, "sled shed build")
+	check_eq(Economy.cost("workshop", 0), {"wood": 60.0, "materials": 10.0}, "workshop build")
+
+
+func test_caps() -> void:
+	var e := engine()
+	check_eq(Economy.caps(e.state), {"wood": 300.0, "food": 150.0, "materials": 100.0}, "start")
+	give_building(e, "lumber_yard", 3)
+	give_building(e, "storehouse", 1)
+	var caps := Economy.caps(e.state)
+	check_near(caps.wood, 500.0, 0.01, "wood")
+	check_near(caps.food, 187.5, 0.01, "food")
+
+
+func test_jan_cap() -> void:
+	var e := engine()
+	check_eq(Economy.jan_cap(e.state), 4, "furnace 1")
+	give_building(e, "bunkhouse", 2)
+	e.state.sites[0].level = 2
+	check_eq(Economy.jan_cap(e.state), 12, "furnace 2 + bunkhouse 2")
+
+
+func test_heat_drain() -> void:
+	var e := engine()
+	add_jan(e, "chop")
+	add_jan(e, "")
+	check_near(Economy.heat_drain(e.state), 0.5 + 0.2 + 0.1, 0.0001, "two Jans, two building levels")
+	e.state.blizzard_active = true
+	check_near(Economy.heat_drain(e.state), 0.8 * 3.0, 0.0001, "blizzard")
+
+
+func test_arrival_interval_slows_as_the_city_fills() -> void:
+	var e := engine()
+	check_near(Economy.arrival_interval(e.state), 60.0, 0.001, "empty")
+	for i in 4:
+		add_jan(e, "")
+	check_near(Economy.arrival_interval(e.state), 180.0, 0.001, "at cap")
+
+
+func test_cold_and_hunger_slow_jobs() -> void:
+	var e := engine()
+	add_jan(e, "chop")
+	e.state.heat = 100.0
+	check_near(Economy.job_rate(e.state, "chop"), 1.0, 0.0001, "warm")
+	e.state.heat = 10.0
+	check_near(Economy.job_rate(e.state, "chop"), 0.5, 0.0001, "cold")
+	e.state.hungry = true
+	check_near(Economy.job_rate(e.state, "chop"), 0.375, 0.0001, "cold and hungry")
+
+
+func test_neediest_job() -> void:
+	var e := engine()
+	check_eq(Economy.neediest_job(e.state), "chop", "first Jan chops")
+	add_jan(e, "chop")
+	check_eq(Economy.neediest_job(e.state), "hunt", "then hunting while eating outruns it")
+	add_jan(e, "hunt")
+	add_jan(e, "chop")
+	add_jan(e, "chop")
+	check_eq(Economy.neediest_job(e.state), "hunt", "by share")
+	check_eq(Economy.buildable(e.state).has("workshop"), true, "workshop is a buildable type")
+	check_eq(Economy.is_unlocked(e.state, "workshop"), false, "but locked until Furnace Lv 2")
