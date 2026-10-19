@@ -12,6 +12,11 @@ var _baking := false
 var _sites: Array[SiteView] = []
 var _nodes: Array[NodeView] = []
 var _people: PeopleLayer
+var _stockpile: StockpileView
+## For showing the Stockpile paying a build pad: each site's progress and her bag last frame.
+var _last_progress := {}
+var _last_bag := 0.0
+var _bank_throw_in := 0.0
 var _meagan: Meagan
 var _rig: CameraRig
 var _hud: Hud
@@ -42,6 +47,9 @@ func _ready() -> void:
 		add_child(view)
 		view.setup(i)
 		_nodes.append(view)
+	_stockpile = StockpileView.new()
+	add_child(_stockpile)
+	_stockpile.setup()
 	_people = PeopleLayer.new()
 	add_child(_people)
 
@@ -76,6 +84,7 @@ func _process(delta: float) -> void:
 	_refresh_views(delta)
 	_update_meagan_activity(delta)
 	_update_pad_stop(delta)
+	_update_bank_payments(delta)
 	if _nav_dirty and not _baking:
 		_nav_dirty = false
 		_baking = true
@@ -94,6 +103,7 @@ func _refresh_views(delta: float) -> void:
 		v.refresh(s)
 	for v in _nodes:
 		v.refresh(s)
+	_stockpile.refresh(s)
 	_people.refresh(s, delta)
 
 
@@ -218,6 +228,9 @@ func _on_tap(screen_pos: Vector2) -> void:
 		"node":
 			_walk(_nodes[hit.index].work_spot(_meagan.global_position))
 			_hud.sheet.close()
+		"stockpile":
+			_walk(_v3(MapData.stockpile_pad()))
+			_hud.sheet.close()
 		"arrival":
 			var arrival_id: int = hit.index
 			for a in s.arrivals:
@@ -271,12 +284,29 @@ func _update_pad_stop(delta: float) -> void:
 		_pad_opened = on
 
 
+## When a build pad is paid from the Stockpile rather than her bag, pieces fly over from the pile.
+func _update_bank_payments(delta: float) -> void:
+	var s := Game.engine.state
+	var bag := Economy.bag_total(s)
+	_bank_throw_in -= delta
+	for i in s.sites.size():
+		var progress: Dictionary = s.sites[i].progress
+		var before: Dictionary = _last_progress.get(i, {})
+		for res in progress:
+			if progress[res] > before.get(res, progress[res]) + 0.001 and bag >= _last_bag - 0.001 and _bank_throw_in <= 0.0:
+				var item: String = {"wood": "log", "food": "fish", "materials": "crate"}[res]
+				Fx.throw(item, _stockpile.drop_point(), _v3(MapData.SITES[i].pos) + Vector3(0, 1.0, 0), 0.45, 1.6)
+				_bank_throw_in = 0.15
+		_last_progress[i] = progress.duplicate()
+	_last_bag = bag
+
+
 # ---------- Meagan at work ----------
 
 const GATHER_CLIPS := {"forest": "chop", "hunting": "fish", "scrap": "scavenge"}
 ## How long after an activity stops its pieces still fly to or from the same place.
 const CARRY_GRACE := 0.8
-const ACTIVITY_CLIPS := {"full": "full", "load": "carry", "store": "carry", "fuel": "fuel", "build": "build", "fight": "fight"}
+const ACTIVITY_CLIPS := {"full": "full", "store": "carry", "fuel": "fuel", "build": "build", "fight": "fight"}
 
 
 ## Turns what the engine says she did this tick into a clip, a point to face, and where her
@@ -298,14 +328,14 @@ func _update_meagan_activity(delta: float) -> void:
 		face = view.focus_point(_meagan.global_position)
 		_meagan.set_activity(clip, face, face + Vector3(0, 0.05, 0) if clip == "fish" else Vector3.INF)
 	else:
-		if activity in ["build", "load", "store"]:
+		if activity == "build":
 			# Work at the building's nearest front corner, so the camera sees her side-on.
 			var side := signf(_meagan.global_position.x - face.x)
 			face += Vector3((side if side != 0.0 else 1.0) * MapData.SITE_HALF_SIZE * 0.8, 0, MapData.SITE_HALF_SIZE * 0.8)
 		_meagan.set_activity(ACTIVITY_CLIPS[activity], face)
 
 
-## Where pieces fly from (gathering, pickups) or to (fuel, construction, the store). It keeps the
+## Where pieces fly from (gathering) or to (fuel, construction, the Stockpile). It keeps the
 ## last activity's ends for a moment, since the stack catches up one piece at a time.
 func _update_carry() -> void:
 	if _work.is_empty() or _work_age > CARRY_GRACE:
@@ -313,13 +343,13 @@ func _update_carry() -> void:
 		return
 	var target: int = _work.target
 	var me := _meagan.global_position
-	var site_top := _v3(MapData.SITES[target].pos) + Vector3(0, 1.0, 0) if _work.activity in ["load", "store", "fuel", "build"] else Vector3.ZERO
+	var site_top := _v3(MapData.SITES[target].pos) + Vector3(0, 1.0, 0) if _work.activity in ["fuel", "build"] else Vector3.ZERO
 	match _work.activity:
 		"gather":
 			_meagan.carry(_nodes[target].focus_point(me) + Vector3(0, 0.6, 0), Vector3.INF)
-		"load":
-			_meagan.carry(site_top, Vector3.INF)
-		"store", "build":
+		"store":
+			_meagan.carry(Vector3.INF, _stockpile.drop_point())
+		"build":
 			_meagan.carry(Vector3.INF, site_top)
 		"fuel":
 			var mouth := site_top + Vector3(0, 0.4, 0)

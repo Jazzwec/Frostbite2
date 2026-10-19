@@ -60,7 +60,7 @@ func open_site(index: int) -> void:
 
 func _open_plot() -> void:
 	_title.text = "Empty plot"
-	_body.add_child(UiTheme.label("Pick a building. Meagan brings what it needs in her bag.", 34, Color(0.8, 0.85, 0.95)))
+	_body.add_child(UiTheme.label("Pick a building, then stand on its pad: her bag pays first, then the Stockpile.", 34, Color(0.8, 0.85, 0.95)))
 	for b in Balance.BUILDINGS:
 		if Balance.BUILDINGS[b].start > 0:
 			continue
@@ -139,7 +139,7 @@ func _refresh() -> void:
 		var parts := []
 		for res in need:
 			parts.append("%s %s/%s" % [str(res).capitalize(), Fmt.num(site.progress.get(res, 0.0)), Fmt.num(need[res])])
-		_status.text = ("Being built: " if site.level == 0 else "Upgrading: ") + ", ".join(parts) + "\nWalk Meagan here with them in her bag."
+		_status.text = ("Being built: " if site.level == 0 else "Upgrading: ") + ", ".join(parts) + "\nStand on the pad: her bag pays first, then the Stockpile."
 		_upgrade.visible = false
 	elif Economy.is_maxed(s, site_index):
 		_status.text = "Fully upgraded."
