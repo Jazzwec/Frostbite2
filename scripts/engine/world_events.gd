@@ -1,6 +1,6 @@
 class_name WorldEvents
 extends RefCounted
-## Things that happen to the city on their own: arrivals, eating, the cold, blizzards.
+## Things that happen to the city on their own: arrivals, eating, blizzards.
 
 
 ## A frozen Jan turns up at a free spot on the edge every arrival_interval seconds. None come in a blizzard. [brief]
@@ -25,7 +25,7 @@ static func arrivals(s: GameState, dt: float, rng: RandomNumberGenerator, events
 	events.append({"type": "arrival", "arrival": arrival.id, "pos": MapData.ARRIVAL_SPOTS[spot]})
 
 
-## Jans eat from the store at the Hunting Lodge. With none left they're hungry and slower. [brief]
+## Jans eat from the Stockpile. With none left they're hungry and slower. [brief]
 static func eat(s: GameState, dt: float) -> void:
 	var eaten := Economy.food_eaten_per_second(s) * dt
 	if s.piles.food >= eaten:
@@ -36,19 +36,6 @@ static func eat(s: GameState, dt: float) -> void:
 		s.hungry = not s.jans.is_empty()
 
 
-## At zero heat one Jan wanders off each minute, idle ones first. [brief]
-static func heat_zero(s: GameState, dt: float, events: Array) -> void:
-	if s.heat > 0.0 or s.jans.is_empty():
-		s.heat_zero_timer = 0.0
-		return
-	s.heat_zero_timer += dt
-	if s.heat_zero_timer < Balance.HEAT_ZERO_LEAVE_INTERVAL:
-		return
-	s.heat_zero_timer -= Balance.HEAT_ZERO_LEAVE_INTERVAL
-	var jan := pick_jan_to_lose(s)
-	s.jans.erase(jan)
-	s.lost_total += 1
-	events.append({"type": "jan_left", "jan": jan.id, "job": jan.job})
 
 
 ## Idle Jans go first, then workers, guards last.

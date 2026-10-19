@@ -441,9 +441,6 @@ func _on_event(ev: Dictionary) -> void:
 			_hud.show_banner("Meagan is hurt! She'll be back up when the wolves are gone.", 4.0)
 		"attack_over":
 			_hud.show_banner("The wolves are gone.", 3.0, GOOD_GREEN)
-		"jan_left":
-			Audio.play("error")
-			_float_text(Vector3(0, 3.5, 0), "Too cold! A Jan wandered off.", UiTheme.COLD)
 
 
 func _v3(p: Vector2) -> Vector3:

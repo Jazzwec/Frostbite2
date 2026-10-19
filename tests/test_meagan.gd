@@ -54,6 +54,7 @@ func test_building_on_a_plot() -> void:
 func test_upgrading_the_furnace() -> void:
 	var e := engine()
 	check(e.start_upgrade(0), "upgrade started")
+	e.state.heat = 0.0
 	e.state.bag.wood = 20.0
 	put_meagan(e, site_pos(0) + Vector2(0, 3))
 	e.skip(2.0)

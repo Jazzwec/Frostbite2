@@ -27,12 +27,14 @@ static func new_winter() -> GameState:
 		s.sites.append({"building": b, "level": Balance.BUILDINGS[b].start if b != "" else 0, "upgrading": false, "progress": {}})
 	for node in MapData.RESOURCE_NODES:
 		s.nodes.append(Balance.NODES[node.kind].stock)
+	# The furnace starts full; keeping it burning is the goal. [agreed 2026-10-19]
+	s.heat = Economy.heat_cap(s)
 	return s
 
 
 ## Runs whole ticks for `delta` seconds of real time. Long frames are capped, never caught up.
 func advance(delta: float) -> void:
-	if paused:
+	if paused or state.game_over:
 		return
 	_accumulator += minf(delta, Balance.MAX_ADVANCE)
 	while _accumulator >= Balance.TICK:
@@ -67,7 +69,11 @@ func _tick(dt: float) -> void:
 	MeaganRules.rescue(s, _events)
 	_feed_furnace(dt)
 	_burn(dt)
-	WorldEvents.heat_zero(s, dt, _events)
+	if s.heat <= 0.0:
+		# The fire is out: the winter is over. [agreed 2026-10-19]
+		s.game_over = true
+		_events.append({"type": "game_over", "time": s.time})
+		return
 	WorldEvents.arrivals(s, dt, rng, _events)
 	WorldEvents.blizzard(s, rng, _events)
 	Combat.update(s, dt, rng, _events)
@@ -112,7 +118,7 @@ func set_meagan_position(pos: Vector2) -> void:
 
 
 func can_meagan_move() -> bool:
-	return not state.meagan_injured
+	return not state.meagan_injured and not state.game_over
 
 
 ## She's been sent to thaw this frozen Jan.
@@ -193,6 +199,8 @@ func remove_from_job(job: String) -> bool:
 func skip(seconds: float) -> void:
 	var ticks := int(round(seconds / Balance.TICK))
 	for i in ticks:
+		if state.game_over:
+			return
 		_tick(Balance.TICK)
 
 

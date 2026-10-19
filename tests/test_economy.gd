@@ -1,9 +1,9 @@
 extends TestCase
 
 
-func test_new_winter_starts_empty_and_cold() -> void:
+func test_new_winter_starts_empty_with_a_full_furnace() -> void:
 	var e := engine()
-	check_eq(e.state.heat, 0.0, "heat")
+	check_eq(e.state.heat, Economy.heat_cap(e.state), "heat")
 	check_eq(e.state.jans.size(), 0, "jans")
 	check_eq(Economy.furnace_level(e.state), 1, "furnace")
 	check_eq(Economy.level(e.state, "lumber_yard"), 1, "lumber yard")

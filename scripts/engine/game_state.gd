@@ -6,6 +6,8 @@ extends RefCounted
 var time := 0.0
 
 var heat := 0.0
+## Set when the fire goes out; the winter is over and nothing ticks any more.
+var game_over := false
 ## Wood delivered into the furnace, waiting to burn.
 var fuel := 0.0
 ## Wood burned per second last tick, for the fire's look.
@@ -44,7 +46,6 @@ var next_arrival_in := Balance.FIRST_ARRIVAL_DELAY
 var rescued_total := 0
 ## Jans lost to the cold or to wolves.
 var lost_total := 0
-var heat_zero_timer := 0.0
 var hungry := false
 
 ## Blizzards: the next one starts at blizzard_at; it is active until blizzard_ends_at.

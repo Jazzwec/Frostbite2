@@ -40,16 +40,35 @@ func test_jans_eat_and_go_hungry() -> void:
 	check(e.state.hungry, "hungry when the store is empty")
 
 
-func test_a_jan_leaves_each_minute_at_zero_heat() -> void:
+func test_a_winter_starts_with_a_full_furnace() -> void:
+	var e := engine()
+	check_near(e.state.heat, Economy.heat_cap(e.state), 0.001, "full heat")
+	check(not e.state.game_over, "not over")
+
+
+func test_the_game_ends_when_the_fire_goes_out() -> void:
 	var e := engine()
 	put_meagan(e, Vector2(0, 30))
-	# A hunter, not a chopper: chopped Wood would feed the furnace from the Stockpile.
-	add_jan(e, "hunt")
-	add_jan(e, "")
-	e.skip(60.05)
-	check_eq(e.state.jans.size(), 1, "one left")
-	check_eq(e.state.jans[0].job, "hunt", "the idle one went first")
-	check(_has_event(e.drain_events(), "jan_left"), "event")
+	e.state.next_arrival_in = 9999.0
+	e.skip(10.0 * 60.0)
+	check(e.state.game_over, "the fire went out")
+	var overs := e.drain_events().filter(func(ev): return ev.type == "game_over")
+	check_eq(overs.size(), 1, "one game_over event")
+	var t := e.state.time
+	check(t > 100.0 and t < 200.0, "about 2.5 minutes at 0.65 heat/s, got %.0f s" % t)
+	e.advance(1.0)
+	check_eq(e.state.time, t, "time has stopped")
+	check(not e.can_meagan_move(), "she can't move")
+
+
+func test_wood_keeps_the_fire_alive() -> void:
+	var e := engine()
+	put_meagan(e, Vector2(0, 30))
+	e.state.next_arrival_in = 9999.0
+	e.state.piles.wood = 300.0
+	e.skip(5.0 * 60.0)
+	check(not e.state.game_over, "the Stockpile's Wood kept it burning")
+
 
 
 func test_pause_stops_time_without_catch_up() -> void:
@@ -79,6 +98,7 @@ func test_add_and_remove_jobs() -> void:
 func test_blizzard_is_warned_then_hits() -> void:
 	var e := engine()
 	put_meagan(e, Vector2(0, 30))
+	_keep_warm(e)
 	e.skip(Balance.BLIZZARD_FIRST_AT - Balance.BLIZZARD_WARNING + 0.1)
 	check(_has_event(e.drain_events(), "blizzard_warning"), "warned 3 minutes ahead")
 	check(not e.state.blizzard_active, "not yet")

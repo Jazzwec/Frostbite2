@@ -28,8 +28,11 @@ const COLD_THRESHOLD := 0.3
 const COLD_OUTPUT_MULT := 0.5
 ## Wood the furnace holds per Furnace level. [f1]
 const FUEL_CAP_PER_FURNACE_LEVEL := 30.0
-## At zero heat one Jan wanders off this often. [brief]
-const HEAT_ZERO_LEAVE_INTERVAL := 60.0
+## Low-heat warnings, as fractions of the heat cap: the warning shows below WARNING, clears
+## above CLEAR, and a countdown to the fire going out shows below COUNTDOWN. [proto]
+const LOW_HEAT_WARNING := 0.25
+const LOW_HEAT_CLEAR := 0.4
+const FIRE_OUT_COUNTDOWN := 0.10
 
 # ---------- Food ----------
 

@@ -19,11 +19,11 @@ func on_event(ev: Dictionary) -> void:
 				view = _new_jan(Vector3(ev.pos.x, 0, ev.pos.y), false)
 			view.thaw(ev.jan, Game.random_rescue_line())
 			_jans[ev.jan] = view
-		"jan_left", "jan_scared":
+		"jan_scared":
 			var view: JanView = _jans.get(ev.jan)
 			_jans.erase(ev.jan)
 			if view:
-				view.say("Brrr, I'm off!" if ev.type == "jan_left" else "Wolf!!", 2.0)
+				view.say("Wolf!!", 2.0)
 				view.flee()
 
 

@@ -105,6 +105,13 @@ static func heat_drain(s: GameState) -> float:
 	return drain
 
 
+## Seconds until the fire goes out at the current drain, or INF while there's fuel to burn.
+static func seconds_until_cold(s: GameState) -> float:
+	if s.fuel > 0.01:
+		return INF
+	return s.heat / maxf(heat_drain(s), 0.001)
+
+
 static func is_cold(s: GameState) -> bool:
 	return s.heat < Balance.COLD_THRESHOLD * heat_cap(s)
 
