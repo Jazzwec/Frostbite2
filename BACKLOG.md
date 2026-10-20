@@ -205,6 +205,25 @@ Make the game and its animations match the agreed visual, `source_art/direction/
   - **What:** while the bag is full, the readout adds "Take it to a Stockpile" and an edge-clamped arrow points at the nearest stockpile, reusing the `Hints` arrow code.
   - **Done when:** a screenshot shows both.
 
+## Animation polish (AFK 2026-10-20, late)
+
+Asked by the user on 2026-10-20: Astra's review of the animations (`source_art/direction/anim_v1/review.md`, frame strips of every clip at quarter speed), best practices from the web, then polish. **Best practices used:**
+- Player actions respond within 1-2 frames and spend their frames on follow-through, not wind-up.
+- Anticipation goes on enemy attacks, as a readable window.
+- Secondary parts (loads, tails) lag and overshoot.
+- Impacts get a 2-5 frame hit-stop and a little squash and stretch that keeps volume.
+- Easing sets weight.
+- Walks have contact, recoil, passing and high-point, with bounce.
+- Silhouettes read at phone size.
+
+- [ ] **N1. Wolves that read (safe).** Wolves at the furnace keep separate slots 0.65-0.85 m apart instead of piling into one dark mass. Their trot phases are offset per wolf. An attack is 0.25 s of anticipation (a 12° lean back), then a 0.3 m lunge over 0.1 s, a 3-frame hold at the hit and a 0.22 s recovery.
+- [ ] **N2. Jans don't merge (safe).** Haulers drop their load at their own spot round the stockpile's front, 0.75 m apart, instead of all on the pad's centre.
+- [ ] **N3. Impacts with weight (safe).** Every work impact (chop, scavenge, hammer, spear) gets a 3-frame hit-stop on the rig and a quick 0.96 / 1.04 squash for 0.06 s. Chips fly at the contact point.
+- [ ] **N4. A walk with weight (safe).** More bounce and lean in the walk, a heavier, slower walk while her bag is nearly full, and her carried stack lags and sways a few degrees behind her body.
+- [ ] **N5. Fishing that reads (safe).** The float bobs while waiting and dips at the bite, the rod lifts and she leans back, and there's one "+N" per catch instead of one per piece.
+- [ ] **N6. Unloading and paying that read (safe).** A 5° dip of her body as each piece leaves her stack, and a 6% pulse of the building or stockpile as one lands.
+- [ ] **N7. Clear overlays (safe).** The bag readout is 25% smaller and sits above her highest head position. Gather pops sit to the side, not over her. The raid text over wolves is smaller and higher.
+
 ## Needs you (Claude won't touch these unattended)
 
 - Meagan carrying her load in her arms (like the visual) instead of stacked on her back.
