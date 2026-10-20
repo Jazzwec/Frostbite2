@@ -244,12 +244,21 @@ const CLIPS := {
 			{"t": 0.8, "arm_r": Vector3(18, 0, 6), "arm_l": Vector3(18, 0, 6), "turn": -30.0, "head": -6.0},
 		],
 	},
-	# Meagan in a fight, between attacks: stick in hand, a little crouched (agreed 2026-10-20).
+	# Meagan in a fight, between attacks, her stance saying which weapon is next (fight_v2 review
+	# 1): up close the stick raised across her shoulder, a little crouched...
 	"ready": {
 		"length": 1.2, "loop": true, "tool": "stick", "impact": -1.0,
 		"keys": [
-			{"t": 0.0, "arm_r": Vector3(-38, 0, 10), "arm_l": Vector3(-30, 0, -14), "lean": 6.0, "rise": -0.05, "tool": Vector3(-30, 0, 0)},
-			{"t": 0.5, "arm_r": Vector3(-42, 0, 10), "arm_l": Vector3(-32, 0, -14), "lean": 7.0, "rise": -0.07, "tool": Vector3(-30, 0, 0)},
+			{"t": 0.0, "arm_r": Vector3(-95, 0, 18), "arm_l": Vector3(-60, 0, -20), "lean": 6.0, "rise": -0.06, "tool": Vector3(-60, 0, 0)},
+			{"t": 0.5, "arm_r": Vector3(-100, 0, 18), "arm_l": Vector3(-62, 0, -20), "lean": 7.0, "rise": -0.08, "tool": Vector3(-60, 0, 0)},
+		],
+	},
+	# ...at range a snowball held up by her ear, ready to throw.
+	"ready_throw": {
+		"length": 1.2, "loop": true, "tool": "snowball", "impact": -1.0,
+		"keys": [
+			{"t": 0.0, "arm_r": Vector3(-140, 0, 22), "arm_l": Vector3(-45, 0, -14), "lean": 2.0, "turn": 12.0},
+			{"t": 0.5, "arm_r": Vector3(-146, 0, 22), "arm_l": Vector3(-47, 0, -14), "lean": 3.0, "turn": 12.0},
 		],
 	},
 	# Her stick sweep: a 0.1 s wind-up, a 0.06 s sweep to the hit at 0.16 s (fight_v2 review 1), 0.28 s

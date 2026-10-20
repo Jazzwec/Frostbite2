@@ -14,6 +14,10 @@ const MODEL_PATH := "res://assets/models/blender/meagan.glb"
 ## Drawn a little larger than life, so she reads at phone size.
 const MODEL_SCALE := 1.45
 const SILHOUETTE := preload("res://scripts/game/ink/silhouette.gdshader")
+## Hit: a short red rim flash round her (fight_v2 review 1: "I was hit" reads apart from "my hit
+## landed", which is the enemies' warm rim).
+const HURT_FLASH := 0.14
+const HURT_RIM := Color(0.95, 0.25, 0.2)
 
 var _agent: NavigationAgent3D
 var _rig: CharacterRig
@@ -24,6 +28,8 @@ var _landed := Callable()
 var _hp_bar: HpBar
 var _silhouette: ShaderMaterial
 var _silhouette_on := false
+var _hurt_mat: ShaderMaterial
+var _hurt := 0.0
 var _clip := ""
 var _face := Vector3.INF
 var _linger := 0.0
@@ -101,8 +107,13 @@ func show_silhouette(on: bool) -> void:
 	if on == _silhouette_on:
 		return
 	_silhouette_on = on
+	if _hurt <= 0.0:
+		_set_overlay(_silhouette if on else null)
+
+
+func _set_overlay(m: Material) -> void:
 	for mi in _rig.find_children("*", "MeshInstance3D", true, false):
-		(mi as MeshInstance3D).material_overlay = _silhouette if on else null
+		(mi as MeshInstance3D).material_overlay = m
 
 
 ## The joystick: 0..1 in screen directions. The camera looks north, so screen up is world -Z.
@@ -152,9 +163,24 @@ func throw_point() -> Vector3:
 	return global_position + Vector3(0, 1.7, 0) + forward() * 0.3
 
 
-## A bite landed on her.
+## A bite landed on her: a flinch and a red rim flash.
 func hurt() -> void:
 	_rig.flinch()
+	if _hurt_mat == null:
+		_hurt_mat = ShaderMaterial.new()
+		_hurt_mat.shader = WolfView.RIM_FLASH
+		_hurt_mat.set_shader_parameter("rim_color", HURT_RIM)
+	_hurt = HURT_FLASH
+	_set_overlay(_hurt_mat)
+
+
+func _fade_hurt(delta: float) -> void:
+	if _hurt <= 0.0:
+		return
+	_hurt -= delta
+	_hurt_mat.set_shader_parameter("strength", maxf(0.0, _hurt / HURT_FLASH))
+	if _hurt <= 0.0:
+		_set_overlay(_silhouette if _silhouette_on else null)
 
 
 ## Where her load is going and coming from this frame (Vector3.INF for nowhere). `landed(res)`
@@ -192,6 +218,7 @@ func forward() -> Vector3:
 
 
 func _physics_process(delta: float) -> void:
+	_fade_hurt(delta)
 	var s := Game.engine.state
 	var before := global_position
 	moving = false

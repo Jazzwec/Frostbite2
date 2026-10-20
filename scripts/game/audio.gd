@@ -27,6 +27,7 @@ const SOUNDS := {
 	"warning": [-6.0, 0.0, 1.0], "step": [-20.0, 0.15, 0.1], "tap": [-10.0, 0.05, 0.05],
 	"error": [-8.0, 0.0, 0.3], "full": [-8.0, 0.0, 0.5], "coin": [-6.0, 0.05, 0.1],
 	"blip": [-14.0, 0.15, 0.3], "milestone": [-5.0, 0.0, 1.0],
+	"hurt": [-5.0, 0.06, 0.15], "snap": [-7.0, 0.1, 0.06],
 }
 
 ## What positional effects are heard from: Meagan, set by main.

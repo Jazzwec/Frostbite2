@@ -63,14 +63,14 @@ func _new_jan(pos: Vector3, frozen: bool, arrival_id := -1) -> JanView:
 ## A guard's spear lands on the wolf he's fighting.
 func _on_jan_worked(view: JanView, clip: String) -> void:
 	if clip == "guard_attack" and _guard_foes.has(view):
-		wolf_hit(_guard_foes[view])
+		wolf_hit(_guard_foes[view], view.global_position)
 
 
-## A blow lands on a wolf: it flinches.
-func wolf_hit(wolf_id: int) -> void:
+## A blow from `from` lands on a wolf: it flinches.
+func wolf_hit(wolf_id: int, from := Vector3.INF) -> void:
 	var view: WolfView = _wolves.get(wolf_id)
 	if view:
-		view.hit()
+		view.hit(from)
 
 
 func _sync_frozen(s: GameState) -> void:

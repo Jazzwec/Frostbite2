@@ -831,7 +831,11 @@ func _update_meagan_activity(delta: float) -> void:
 			# Work at the building's nearest front corner, so the camera sees her side-on.
 			var side := signf(_meagan.global_position.x - face.x)
 			face += Vector3((side if side != 0.0 else 1.0) * MapData.SITE_HALF_SIZE * 0.8, 0, MapData.SITE_HALF_SIZE * 0.8)
-		_meagan.set_activity(ACTIVITY_CLIPS[activity], face)
+		var clip: String = ACTIVITY_CLIPS[activity]
+		if activity == "fight" and s.meagan_mode == "ranged":
+			# Her stance says which weapon is next (fight_v2 review 1).
+			clip = "ready_throw"
+		_meagan.set_activity(clip, face)
 
 
 ## A hit moment in her clip: effects, and the world reacts.
@@ -867,8 +871,7 @@ func _on_meagan_worked(clip: String) -> void:
 			Fx.burst("sparks", tip, Vector3.UP)
 			Audio.play("hammer", tip)
 		"fight":
-			_people.wolf_hit(target)
-			Fx.burst("snow", tip, Vector3.UP)
+			_people.wolf_hit(target, me)
 			Audio.play("swing_hit", tip)
 
 
@@ -982,9 +985,7 @@ func _on_event(ev: Dictionary) -> void:
 		"shard_landed":
 			Fx.burst("shards", _v3(ev.pos) + Vector3(0, 0.2, 0))
 			if ev.victim == -1:
-				_meagan.hurt()
-				_rig.shake(0.04)
-				Audio.play("yelp", _meagan.global_position, 1.5, -6.0)
+				_meagan_hurt(0.04)
 		"theft":
 			Audio.play("pick", _v3(ev.pos), 0.6)
 			Fx.pop(_amounts(ev.carry, "−"), _v3(ev.pos) + Vector3(0, 1.6, 0), Color(1.0, 0.55, 0.45), 40)
@@ -1006,32 +1007,32 @@ func _on_event(ev: Dictionary) -> void:
 				_throw_snowball(ev.wolf, ev.flight)
 			else:
 				Audio.play("whoosh", _meagan.global_position, 1.2, -4.0)
+				_show_sweep(_v3(ev.pos))
 		"wolf_hit":
 			var wolf := _people.wolf_view(ev.wolf)
 			if wolf:
-				wolf.hit()
-				Fx.burst("snow", wolf.global_position + Vector3(0, 0.6, 0), (wolf.global_position - _v3(ev.from)).normalized() + Vector3.UP)
+				var from := _v3(ev.from)
+				wolf.hit(from)
+				# One secondary flourish: ink flecks flung away from the blow (fight_v2 review 1).
+				var away := (wolf.global_position - from)
+				away.y = 0.0
+				Fx.burst("ink", wolf.global_position + Vector3(0, 0.6, 0), away.normalized() + Vector3.UP * 0.4)
 				Audio.play("swing_hit", wolf.global_position, 1.0 if ev.kind == "melee" else 1.3, 0.0 if ev.kind == "melee" else -6.0)
 		"wolf_bite":
+			# Every strike has its own sound, hit or miss; her being hit has another.
+			Audio.play("snap", _v3(ev.pos), STRIKE_PITCH.get(ev.kind, 1.0))
 			if ev.get("slam", false):
 				Audio.play("crash", _v3(ev.pos), 0.55, -2.0)
 				Fx.burst("snow_big", _v3(ev.pos) + Vector3(0, 0.2, 0))
 				_rig.shake(0.06)
 				if -1 in ev.victims:
-					_meagan.hurt()
+					_meagan_hurt(0.0)
 			elif ev.victim < 0 and ev.hit:
-				_meagan.hurt()
-				_rig.shake(0.05 if ev.kind == "bear" else 0.03)
-				Audio.play("yelp", _meagan.global_position, 1.5, -6.0)
+				_meagan_hurt(0.05 if ev.kind == "bear" else 0.0)
 		"wolf_killed":
 			Audio.play("yelp", _v3(ev.pos), KILL_PITCH.get(ev.kind, 1.0))
 			Audio.play("coin")
-			# A small pop, not a banner over the fight (Astra's steer: medium juice, readable); what
-			# it stole comes back with it.
-			var got := {"materials": ev.materials}
-			for res in ev.carry:
-				got[res] = got.get(res, 0.0) + ev.carry[res]
-			Fx.pop(_amounts(got, "+"), _v3(ev.pos) + Vector3(0, 1.4, 0), Color(0.75, 1.0, 0.75), 34)
+			_gather_loot(ev)
 		"meagan_injured":
 			Audio.play("yelp", Vector3.INF, 1.6)
 			_hud.show_banner("Meagan is hurt! She'll be back up when the raid is over.", 4.0)
@@ -1045,6 +1046,52 @@ const WINDUP_SOUNDS := {
 	"troll": ["crash", 0.4, -8.0], "raider": ["whoosh", 0.6, -8.0],
 }
 const KILL_PITCH := {"fox": 1.5, "wolf": 1.0, "bear": 0.6, "troll": 0.45, "raider": 1.2}
+const STRIKE_PITCH := {"fox": 1.3, "wolf": 1.0, "bear": 0.7, "troll": 0.5, "raider": 1.1}
+## Loot from kills close together is added up for this long, then shown once, above the fight's
+## health bars, and flown to the top bar (fight_v2 review 1: "+1 Mat" mustn't drown the hit).
+const LOOT_GATHER := 0.5
+const LOOT_HEIGHT := 2.6
+
+var _loot := {}
+var _loot_at := Vector3.ZERO
+var _loot_n := 0
+
+
+## She's hit: her red flash and her own sound; shake only for heavy blows.
+func _meagan_hurt(shake: float) -> void:
+	_meagan.hurt()
+	Audio.play("hurt", _meagan.global_position)
+	if shake > 0.0:
+		_rig.shake(shake)
+
+
+## Her sweep's arc on the snow when it lands, exactly where it hits (Combat._land_shots).
+func _show_sweep(at: Vector3) -> void:
+	var reach: float = Economy.meagan_weapon(Game.engine.state).reach
+	await get_tree().create_timer(Balance.MEAGAN_MELEE_IMPACT).timeout
+	var me := _meagan.global_position
+	Fx.sweep(me, at - me, reach, Balance.STICK_ARC)
+
+
+## A kill's loot (and anything it stole) joins the pile being gathered; the first one starts
+## the clock.
+func _gather_loot(ev: Dictionary) -> void:
+	var got := {"materials": ev.materials}
+	for res in ev.carry:
+		got[res] = got.get(res, 0.0) + ev.carry[res]
+	for res in got:
+		_loot[res] = _loot.get(res, 0.0) + got[res]
+	_loot_at = (_loot_at * _loot_n + _v3(ev.pos)) / (_loot_n + 1)
+	_loot_n += 1
+	if _loot_n == 1:
+		await get_tree().create_timer(LOOT_GATHER).timeout
+		var at := _loot_at + Vector3(0, LOOT_HEIGHT, 0)
+		Fx.pop(_amounts(_loot, "+"), at, Color(0.75, 1.0, 0.75), 38)
+		for res in _loot:
+			if _loot[res] >= 0.5:
+				_hud.fly_to_counter(res, func() -> Vector2: return _rig.camera.unproject_position(at))
+		_loot = {}
+		_loot_n = 0
 const ENEMY_NAMES := {"fox": ["a fox", "foxes"], "wolf": ["a wolf", "wolves"], "bear": ["a bear", "bears"],
 	"troll": ["an ice troll", "ice trolls"], "raider": ["a raider", "raiders"]}
 

@@ -24,12 +24,22 @@ const KINDS := {
 	"confetti": {"color": Color.WHITE, "amount": 44, "size": 0.32, "speed": Vector2(5.0, 9.0), "spread": 50.0, "gravity": -9.0, "life": 1.1,
 		"colors": [Color(1.0, 0.72, 0.1), Color(0.92, 0.2, 0.25), Color(0.15, 0.55, 1.0), Color(0.25, 0.8, 0.3), Color(0.95, 0.35, 0.8)]},
 	"snow_big": {"color": Color(0.95, 0.97, 1.0), "amount": 34, "size": 0.18, "speed": Vector2(2.0, 4.5), "spread": 85.0, "gravity": -3.0, "life": 0.9},
+	# A hit's secondary flourish (fight_v2 review 1): a few dark ink flecks flung away from the
+	# blow, small enough to leave the struck one's shape readable.
+	"ink": {"color": Color(0.17, 0.14, 0.17), "amount": 7, "size": 0.08, "speed": Vector2(2.5, 4.0), "spread": 28.0, "gravity": -7.0, "life": 0.32},
 }
+## Her stick's sweep on the snow (fight_v2 review 1): a cream-gold wash over exactly the arc it
+## hits, with a firmer edge at its reach, gone in SWEEP_TIME. Cream-gold is hers; rust is theirs.
+const SWEEP_FILL := Color(0.95, 0.72, 0.3, 0.38)
+const SWEEP_EDGE := Color(0.82, 0.55, 0.16, 0.95)
+const SWEEP_EDGE_WIDTH := 0.14
+const SWEEP_TIME := 0.2
 
 static var instance: Fx
 
 var _pools := {}  # kind -> Array of CPUParticles3D
 var _next := {}  # kind -> int
+var _sweeps := {}  # "reach,arc" -> [fill MeshInstance3D, edge MeshInstance3D]
 var _pops: Array[Label3D] = []
 var _pop_tweens := {}  # Label3D -> its running Tween
 var _next_pop := 0
@@ -68,6 +78,45 @@ static func throw(item: String, from: Vector3, to: Vector3, seconds := 0.45, hei
 	var t := instance.create_tween()
 	t.tween_method(fly, 0.0, 1.0, seconds)
 	t.tween_callback(land)
+
+
+## Her stick's sweep from `pos`, facing `dir` (on the ground), `reach` metres and `arc` degrees.
+static func sweep(pos: Vector3, dir: Vector3, reach: float, arc: float) -> void:
+	if instance:
+		instance._sweep(pos, dir, reach, arc)
+
+
+func _sweep(pos: Vector3, dir: Vector3, reach: float, arc: float) -> void:
+	var key := "%.2f,%.0f" % [reach, arc]
+	if not _sweeps.has(key):
+		var pair := []
+		for spec in [[WolfView.sector(0.0, reach, arc), SWEEP_FILL], [WolfView.sector(reach - SWEEP_EDGE_WIDTH, reach, arc), SWEEP_EDGE]]:
+			var mi := MeshInstance3D.new()
+			mi.mesh = spec[0]
+			var m := StandardMaterial3D.new()
+			m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			m.cull_mode = BaseMaterial3D.CULL_DISABLED
+			m.albedo_color = spec[1]
+			mi.material_override = m
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			mi.visible = false
+			add_child(mi)
+			pair.append(mi)
+		_sweeps[key] = pair
+	var flat := Vector3(dir.x, 0.0, dir.z)
+	for i in 2:
+		var mi: MeshInstance3D = _sweeps[key][i]
+		mi.global_position = Vector3(pos.x, 0.05 + 0.005 * i, pos.z)
+		if flat.length() > 0.01:
+			mi.rotation.y = atan2(flat.x, flat.z)
+		mi.visible = true
+		var m := mi.material_override as StandardMaterial3D
+		var base: Color = SWEEP_FILL if i == 0 else SWEEP_EDGE
+		m.albedo_color = base
+		var t := mi.create_tween()
+		t.tween_property(m, "albedo_color:a", 0.0, SWEEP_TIME).set_ease(Tween.EASE_IN)
+		t.tween_callback(mi.hide)
 
 
 ## A number (or short word) that pops up at `pos`, rises and fades.

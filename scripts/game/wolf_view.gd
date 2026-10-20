@@ -33,14 +33,26 @@ const TAIL_WAG := 18.0
 ## Trot cycle speed (radians per second): one full stride in about half a second.
 const TROT_SPEED := 13.0
 ## An attack follows the engine's (Combat._attack): its tell (a crouch or a wind-up, the time to
-## step away), a quick strike, a few frames held, then recover.
+## step away), a quick strike, a few frames held, then recover. Heavy hitters hold their strike
+## pose for most of their recovery, slumped, so the opening to step in reads (fight_v2 review 1).
 const ATTACK_HOLD := 0.05
+const HEAVY_HOLD := 0.6
 ## How far it leans back while crouching to strike, in degrees.
 const ATTACK_LEAN_BACK := 12.0
-## Tells: a 25% wash with a firm outline, in muted rust (the steer's readability rule 2).
-const TELL_FILL := Color(0.62, 0.3, 0.22, 0.25)
-const TELL_LINE := Color(0.55, 0.24, 0.16, 0.85)
-const TELL_LINE_WIDTH := 0.07
+## Tells (fight_v2 review 1): a light rust wash over the whole danger zone, a fill that advances
+## from the attacker to the edge as the strike comes, and a dark-rust boundary (about 3 px on a
+## 540-wide phone at the default zoom) that firms up once the aim locks. Rust is for tells only.
+const TELL_WASH := Color(0.66, 0.3, 0.2, 0.15)
+const TELL_FILL := Color(0.62, 0.24, 0.15, 0.32)
+const TELL_LINE := Color(0.38, 0.12, 0.07, 1.0)
+const TELL_LINE_SOFT := 0.6
+const TELL_LINE_WIDTH := 0.09
+## A struck enemy: a warm rim flash this long (no white-out, so its shape reads through the hit),
+## and a recoil away from the hit this far (about 5 px) over this long.
+const FLASH_TIME := 0.08
+const RECOIL := 0.12
+const RECOIL_TIME := 0.12
+const RIM_FLASH := preload("res://scripts/game/ink/rim_flash.gdshader")
 ## Where each kind's health bar and sack sit, and how far back it stands from whoever it fights
 ## (so its front, not its middle, is at the engine's fight distance; view only). [proto]
 const LOOK := {
@@ -60,19 +72,23 @@ var _t := 0.0
 ## reads as one dark mass; the engine's positions don't change (Astra animation review).
 var nudge := Vector3.ZERO
 var _attack := -1.0
-var _knock := 0.0
+var _flash := 0.0
+var _recoil := 0.0
+var _recoil_dir := Vector3.ZERO
 ## The posed wolf model (wolves and foxes), or null for a greybox body.
 var _pivot: Node3D
 var _skeleton: Skeleton3D
 var _bone := {}  # key -> bone index
 var _rest := {}  # bone index -> rest Basis in skeleton space
 var _skins: Array[MeshInstance3D] = []
-var _flash_mat: StandardMaterial3D
+var _flash_mat: ShaderMaterial
 ## Greybox bodies' moving parts, by name.
 var _parts := {}
 var _tail: Node3D
 var _tell: Node3D
+var _tell_wash: MeshInstance3D
 var _tell_fill: MeshInstance3D
+var _tell_line: MeshInstance3D
 var _shot_line: MeshInstance3D
 var _sack: Sprite3D
 var _sack_res := ""
@@ -83,10 +99,8 @@ func _init(enemy_kind := "wolf") -> void:
 	_def = Balance.ENEMIES[kind]
 	_model = Node3D.new()
 	add_child(_model)
-	_flash_mat = StandardMaterial3D.new()
-	_flash_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_flash_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_flash_mat.albedo_color = Color(1, 1, 1, 0.75)
+	_flash_mat = ShaderMaterial.new()
+	_flash_mat.shader = RIM_FLASH
 	match kind:
 		"wolf", "fox":
 			if ResourceLoader.exists(MODEL_PATH):
@@ -278,35 +292,40 @@ func _build_raider() -> void:
 # ---------- Tells ----------
 
 func _build_tell() -> void:
+	# Pinned to the snow where the engine judges the strike from (Combat._attack's tell_from and
+	# aim), not to the drawn body, so what it shows is exactly what it hits.
 	_tell = Node3D.new()
-	_tell.position.y = 0.03
+	_tell.top_level = true
 	_tell.visible = false
 	add_child(_tell)
+	var full: Mesh
+	var line: Mesh
 	match _def.shape:
 		"wedge":
-			_tell_fill = _ground_mesh(_sector(0.0, _def.reach, _def.arc), TELL_FILL)
-			_tell.add_child(_tell_fill)
-			_tell.add_child(_ground_mesh(_wedge_outline(_def.reach, _def.arc), TELL_LINE))
-		"ring":
-			_tell_fill = _ground_mesh(_sector(0.0, _def.reach, 360.0), TELL_FILL)
-			_tell.add_child(_tell_fill)
-			_tell.add_child(_ground_mesh(_sector(_def.reach - TELL_LINE_WIDTH, _def.reach, 360.0), TELL_LINE))
-		"shot":
-			# Where the shard will land, pinned to the snow there, and a faint line to it.
-			_tell.top_level = true
-			_tell_fill = _ground_mesh(_sector(0.0, _def.reach, 360.0), TELL_FILL)
-			_tell.add_child(_tell_fill)
-			_tell.add_child(_ground_mesh(_sector(_def.reach - TELL_LINE_WIDTH, _def.reach, 360.0), TELL_LINE))
-			var box := BoxMesh.new()
-			box.size = Vector3(0.05, 0.01, 1.0)
-			_shot_line = _ground_mesh(box, Color(TELL_LINE, 0.35))
-			_shot_line.top_level = true
-			_shot_line.visible = false
-			add_child(_shot_line)
+			full = sector(0.0, _def.reach, _def.arc)
+			line = _wedge_outline(_def.reach, _def.arc)
+		_:
+			# A slam's ring round it, or a shard's target where it will land.
+			full = sector(0.0, _def.reach, 360.0)
+			line = sector(_def.reach - TELL_LINE_WIDTH, _def.reach, 360.0)
+	_tell_wash = _ground_mesh(full, TELL_WASH)
+	_tell_fill = _ground_mesh(full, TELL_FILL)
+	_tell_line = _ground_mesh(line, TELL_LINE)
+	for mi in [_tell_wash, _tell_fill, _tell_line]:
+		_tell.add_child(mi)
+	_tell_fill.position.y = 0.005
+	_tell_line.position.y = 0.01
+	if _def.shape == "shot":
+		var box := BoxMesh.new()
+		box.size = Vector3(0.05, 0.01, 1.0)
+		_shot_line = _ground_mesh(box, Color(TELL_LINE, 0.3))
+		_shot_line.top_level = true
+		_shot_line.visible = false
+		add_child(_shot_line)
 
 
 ## A flat ring sector on the snow (radius `inner` to `outer`, `arc` degrees about +Z).
-func _sector(inner: float, outer: float, arc: float) -> ArrayMesh:
+static func sector(inner: float, outer: float, arc: float) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var steps := maxi(10, int(arc / 8.0))
@@ -361,43 +380,53 @@ func _ground_mesh(mesh: Mesh, color: Color) -> MeshInstance3D:
 	return mi
 
 
-## Shown while it winds up, fading in; a wedge points at whoever it's attacking, a ring's wash
-## fills out to its edge as the slam comes, a shard's target sits where it will land.
+## Shown while it winds up, fading in: the wash marks the whole zone, the fill advances from the
+## attacker to the edge as the strike comes, and the boundary firms up when the aim locks.
 func _update_tell(enemy: Dictionary) -> void:
 	var t: float = enemy.get("bite_t", -1.0)
-	var on: bool = t >= 0.0 and t < _def.tell + (Balance.ENEMY_LUNGE if _def.shape == "wedge" else 0.0) and enemy.has("aim")
+	var strike: float = _def.tell + (Balance.ENEMY_LUNGE if _def.shape == "wedge" else 0.0)
+	var on: bool = t >= 0.0 and t < strike and enemy.has("aim")
 	_tell.visible = on
 	if _shot_line:
 		_shot_line.visible = on
 	if not on:
 		return
-	var fade := clampf(t / 0.12, 0.0, 1.0)
-	for mi in _tell.get_children():
-		var m := (mi as MeshInstance3D).material_override as StandardMaterial3D
-		var base := TELL_FILL if mi == _tell_fill else TELL_LINE
-		m.albedo_color.a = base.a * fade
+	var fade := clampf(t / 0.1, 0.0, 1.0)
+	var locked := t >= strike - Balance.ENEMY_AIM_LOCK
+	(_tell_wash.material_override as StandardMaterial3D).albedo_color.a = TELL_WASH.a * fade
+	(_tell_fill.material_override as StandardMaterial3D).albedo_color.a = TELL_FILL.a * fade
+	(_tell_line.material_override as StandardMaterial3D).albedo_color.a = (1.0 if locked else TELL_LINE_SOFT) * fade
+	_tell_fill.scale = Vector3.ONE * maxf(0.04, clampf(t / strike, 0.0, 1.0))
+	var from: Vector2 = enemy.get("tell_from", enemy.pos)
+	var at := Vector3(from.x, 0.04, from.y)
+	var aim := Vector3(enemy.aim.x, 0.04, enemy.aim.y)
 	match _def.shape:
 		"wedge":
-			var to := Vector3(enemy.aim.x, 0, enemy.aim.y) - global_position
-			_tell.rotation.y = atan2(to.x, to.z)
-		"ring":
-			_tell_fill.scale = Vector3.ONE * lerpf(0.25, 1.0, clampf(t / _def.tell, 0.0, 1.0))
-		"shot":
-			var at := Vector3(enemy.aim.x, 0.03, enemy.aim.y)
 			_tell.global_position = at
-			var from := global_position + Vector3(0, 0.03, 0)
-			_shot_line.global_position = (from + at) / 2.0
-			_shot_line.scale = Vector3(1, 1, maxf(0.01, from.distance_to(at)))
-			if from.distance_to(at) > 0.05:
-				_shot_line.look_at(at, Vector3.UP)
+			var to := aim - at
+			if to.length() > 0.01:
+				_tell.rotation.y = atan2(to.x, to.z)
+		"ring":
+			_tell.global_position = at
+		"shot":
+			_tell.global_position = aim
+			var hand := global_position + Vector3(0, 0.04, 0)
+			_shot_line.global_position = (hand + aim) / 2.0
+			_shot_line.scale = Vector3(1, 1, maxf(0.01, hand.distance_to(aim)))
+			if hand.distance_to(aim) > 0.05:
+				_shot_line.look_at(aim, Vector3.UP)
 
 
 # ---------- Life ----------
 
-## Struck: a white flash and a small hop back.
-func hit() -> void:
-	_knock = 1.0
-	Fx.burst("snow", global_position + Vector3(0, 0.6, 0))
+## Struck from `from`: a short warm rim flash and a recoil away from the hit (fight_v2 review 1;
+## the ink flecks are main's).
+func hit(from := Vector3.INF) -> void:
+	_flash = FLASH_TIME
+	_recoil = RECOIL_TIME
+	var away := global_position - from if from != Vector3.INF else -_model.basis.z
+	away.y = 0.0
+	_recoil_dir = away.normalized() if away.length() > 0.01 else Vector3.BACK
 
 
 ## Beaten (agreed 2026-10-20): it tumbles, scrambles up and runs off, fading. No corpse.
@@ -436,20 +465,23 @@ func sync(enemy: Dictionary, delta: float) -> void:
 		# Each one's stride starts at its own point in the cycle, so a pack doesn't trot in unison.
 		_t = float(enemy.id) * 1.7
 	_attack = enemy.get("bite_t", -1.0)
-	_knock = move_toward(_knock, 0.0, delta * 5.0)
+	_flash = maxf(0.0, _flash - delta)
+	_recoil = maxf(0.0, _recoil - delta)
+	# Out and back: half a sine over the recoil's time.
+	var recoil := _recoil_dir * RECOIL * sin(PI * (1.0 - _recoil / RECOIL_TIME)) if _recoil > 0.0 else Vector3.ZERO
 	var asleep: bool = enemy.get("outpost", -1) >= 0 and not moving and not fighting
 	_t += delta * (0.0 if asleep else (14.0 if fighting else TROT_SPEED * _def.speed / 2.5))
 	var lunge := _lunge() if fighting else 0.0
+	_model.position = recoil
 	if _pivot:
-		_model.position = -_model.basis.z * 0.1 * _knock
 		_pose(fighting, lunge)
 	else:
-		_model.position = -_model.basis.z * 0.25 * _knock
 		_pose_greybox(fighting, lunge, moving)
 	if _tail:
 		_tail.rotation.y = deg_to_rad(16.0 * sin(_t)) if not fighting else deg_to_rad(5.0 * sin(_t))
 		_tail.rotation.x = deg_to_rad(-12.0 if fighting else 0.0)
-	var flashing := _knock > 0.6
+	var flashing := _flash > 0.0
+	_flash_mat.set_shader_parameter("strength", _flash / FLASH_TIME)
 	for mesh in _skins:
 		mesh.material_overlay = _flash_mat if flashing else null
 	_hp_bar.set_value(enemy.hp / enemy.max_hp)
@@ -549,10 +581,11 @@ func _lunge() -> float:
 	if t < thrust:
 		return lerpf(-0.4, 1.0, smoothstep(0.0, 1.0, t / thrust))
 	t -= thrust
-	if t < ATTACK_HOLD:
+	var hold: float = _def.recover * HEAVY_HOLD if kind == "bear" or kind == "troll" else ATTACK_HOLD
+	if t < hold:
 		return 1.0
-	t -= ATTACK_HOLD
-	var recover: float = _def.recover - ATTACK_HOLD
+	t -= hold
+	var recover: float = _def.recover - hold
 	if t < recover:
 		return 1.0 - smoothstep(0.0, 1.0, t / recover)
 	return 0.0

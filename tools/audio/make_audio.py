@@ -340,6 +340,23 @@ def sfx_milestone():
     return reverb(out, 0.35, 2.0, 0.45)
 
 
+def sfx_hurt():
+    """Meagan takes a hit (fight_v2 review 1: its own sound, not an animal's): a padded thump
+    and a short breathy "oof" falling in pitch."""
+    thump = osc(sweep(120, 50, 0.16), 0.16) * decay(0.16, 0.05)
+    dur = 0.22
+    oof = band(osc(sweep(330, 190, dur), dur, "saw"), 250, 1400) * adsr(dur, 0.01, 0.06, 0.5, 0.1)
+    air = band(noise(dur), 500, 2200) * adsr(dur, 0.01, 0.05, 0.4, 0.1)
+    return mix(thump * 1.1, delay(oof * 0.7, 0.02), delay(air * 0.35, 0.02))
+
+
+def sfx_snap():
+    """An enemy's strike landing: a hard jaw-snap click over a short low rasp."""
+    click = band(noise(0.02), 1500, 6000) * decay(0.02, 0.004)
+    rasp = band(osc(sweep(160, 90, 0.14), 0.14, "saw"), 120, 900) * decay(0.14, 0.05)
+    return mix(click * 1.3, rasp * 0.6)
+
+
 def sfx_blip():
     return osc(sweep(700, 900, 0.05), 0.06, "tri") * decay(0.06, 0.02) * 0.6
 
@@ -369,7 +386,7 @@ SFX = {
     "fire": sfx_fire, "build_done": sfx_build_done, "thaw": sfx_thaw, "breath": sfx_breath,
     "howl": sfx_howl, "yelp": sfx_yelp, "crash": sfx_crash, "warning": sfx_warning,
     "step": sfx_step, "tap": sfx_tap, "error": sfx_error, "full": sfx_full, "coin": sfx_coin,
-    "blip": sfx_blip, "milestone": sfx_milestone,
+    "blip": sfx_blip, "milestone": sfx_milestone, "hurt": sfx_hurt, "snap": sfx_snap,
 }
 
 
@@ -532,6 +549,13 @@ def make_music():
 
 
 def main():
+    import sys
+    only = sys.argv[1:]
+    if only:
+        for name in only:
+            save(SFX_DIR / f"{name}.wav", fade_out(normalize(SFX[name](), 0.85), 0.005))
+        print(f"wrote {', '.join(only)}")
+        return
     for name, fn in SFX.items():
         x = fade_out(normalize(fn(), 0.85), 0.005)
         save(SFX_DIR / f"{name}.wav", x)
