@@ -41,7 +41,7 @@ func _ready() -> void:
 	grid.add_theme_constant_override("v_separation", 20)
 	v.add_child(grid)
 	_add_stat(grid, "jans", s.rescued_total, "Jans rescued")
-	_add_stat(grid, "build", built, "Buildings")
+	_add_stat(grid, "house", built, "Buildings")
 	_add_stat(grid, "heat", Economy.furnace_level(s), "Furnace level")
 	_add_stat(grid, "wolves", s.attacks_repelled, "Wolf attacks\nfought off")
 	var again := UiTheme.button("Play again", Game.new_game)

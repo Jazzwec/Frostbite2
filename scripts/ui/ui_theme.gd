@@ -9,7 +9,7 @@ const PANEL := Color(0.08, 0.11, 0.2, 0.86)
 const ACCENT := Color(0.98, 0.62, 0.25)
 const COLD := Color(0.55, 0.78, 1.0)
 ## The watercolour icons (assets/ui/icons/, cut from source_art/icons/sheet.png): wood, food,
-## materials, heat, jans, bag, blizzard, wolves, cold, milestone, build, stockpile.
+## materials, heat, jans, bag, blizzard, wolves, cold, milestone, build, stockpile, house.
 const ICON_DIR := "res://assets/ui/icons/"
 
 static var _theme: Theme

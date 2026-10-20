@@ -11,6 +11,8 @@ const WALK_SPEED := 3.0
 const MODEL_PATH := "res://assets/models/blender/jan.glb"
 ## A little smaller than Meagan's 1.2, so she stands out.
 const MODEL_SCALE := 1.15
+## The Jan whose line is showing.
+static var _speaker: JanView
 ## How far a chatter bubble keeps from the screen's edge, in pixels.
 const BUBBLE_MARGIN := 24.0
 const PARKA := Color(0.21, 0.4, 0.42)  # deep teal (#35666B, docs/art-direction.md)
@@ -97,6 +99,11 @@ func thaw(new_jan_id: int, line: String) -> void:
 
 
 func say(text: String, seconds := 3.0) -> void:
+	# One Jan talks at a time: the newest line clears the one before, so lines never pile up.
+	if text != "" and is_instance_valid(_speaker) and _speaker != self:
+		_speaker.say("", 0.0)
+	if text != "":
+		_speaker = self
 	_bubble.text = text
 	_bubble_timer = seconds
 	_bubble.position.x = 0.0

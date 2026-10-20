@@ -66,8 +66,11 @@ func _ready() -> void:
 	_rig.impact.connect(func(clip: String): worked.emit(clip))
 	_silhouette = ShaderMaterial.new()
 	_silhouette.shader = SILHOUETTE
+	# After the faded cover (0), so the cover doesn't dim her; under the labels (10).
+	_silhouette.render_priority = 6
 	_hp_bar = HpBar.new(HpBar.MEAGAN_GREEN, 1.8, 0.22)
-	_hp_bar.position = Vector3(0, 1.85, 0)
+	# A little higher than a wolf's or guard's, so hers stays clear of theirs in a fight.
+	_hp_bar.position = Vector3(0, 2.05, 0)
 	add_child(_hp_bar)
 
 	_agent = NavigationAgent3D.new()
