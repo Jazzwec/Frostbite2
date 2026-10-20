@@ -140,7 +140,77 @@ The user committed to the ink & watercolour direction; the rules are in `docs/ar
   - Meagan, Jan, and the furnace, cabin and wood store kit.
   - In `source_art/concept/ink/`, for the user to remake in Tripo Studio.
 
+## Visual polish (AFK 2026-10-20 evening)
+
+Make the game and its animations match the agreed visual, `source_art/direction/round3/inked/gameplay.png`: a warm, cosy picture-book village. Scope agreed with the user on 2026-10-20 (plan: `~/.claude/plans/make-sure-there-is-ancient-avalanche.md`): a paper & ink HUD, cosier icons and softer snow and lines are allowed. **V3 may change InkLook** (the user approved it). No paid credits and no new 3D models. Each item gets before/after screenshots and a ChatGPT review.
+
+- [ ] **V1. Paper & ink HUD (safe).**
+  - **What:** the HUD's flat navy panels and bright blue buttons become part of the picture book:
+    - warm paper cards (snow-cream to parchment) with a soft watercolour edge and a thin deep-ink (#2C3440) border;
+    - ink-coloured text;
+    - buttons in the palette (faded teal, ochre, Falu red for warnings) with ink outlines and a pressed state;
+    - the heat bar as a watercolour wash: firelight to ochre, cold blue when low.
+  - **How:**
+    - Restyle in `scripts/ui/ui_theme.gd` (`PANEL`, `ACCENT`, `COLD`, `panel_style`, `button`, label colours).
+    - Then check every user: the top bar, buttons row and banner (`hud.gd`), `sheet.gd`, `bag_readout.gd`, `hints.gd`, `milestone_cards.gd`, `offer_card.gd`, `game_over.gd`, the DEV panel.
+    - Optional: one ChatGPT paper-card image as a 9-patch `StyleBoxTexture`, with `StyleBoxFlat` as the fallback.
+    - Tap targets stay ≥ 120 px and text ≥ 30 px (item 11).
+  - **Done when:** before and after screenshots of the top bar, a sheet, a banner and the game-over card read as one warm style, with no overlaps, and a ChatGPT review is applied.
+- [ ] **V2. Cosy watercolour icons (safe, ChatGPT).**
+  - **What:** the icon sheet (`source_art/icons/sheet.png`) is thick-outlined and sticker-like. Make one new sheet in the gameplay visual's softer ink & watercolour, with the same 12 subjects and layout.
+  - **How:**
+    - At most 2 images, with the lineup and gameplay pictures as `--ref`, plus the `.prompt.txt`.
+    - Cut it into the same 12 files in `assets/ui/icons/` at 128 px, so no code changes.
+    - Look at every icon before committing.
+  - **Done when:** the icons sit on the paper HUD without clashing, and a review is applied.
+- [ ] **V3. Softer snow and lines (safe, InkLook tweak approved by the user).**
+  - **What:**
+    - snow slightly blue-grey, with near-white only in highlights;
+    - thinner, softer outlines in deep blue-grey or brown;
+    - fewer dark inner marks.
+  - **How:** the uniforms and constants in `scripts/game/ink/`, with the old values noted in comments. The DEV toggle still compares.
+  - **Done when:** before and after screenshots at the default zoom and wide, FPS unchanged, and a review is applied.
+- [ ] **V4. Hauled loads that read (safe, animation).**
+  - **What:**
+    - A Jan's load is a distinct shape about a third of his height, held clear of his body: a log bundle, a fish basket or a crate.
+    - At the stockpile he pauses 0.3 s, the bundle goes into the store, and he walks back visibly empty-handed.
+  - **How:** the `haul_*` clips, `Tools`, and a view-only pause in `JanView`.
+  - **Done when:** a screenshot shows a hauler's load clearly at the default zoom.
+- [ ] **V5. Storing that reads as one action (safe, feedback).**
+  - **What:**
+    - 3–5 pieces fly from her bag to the stockpile in one short arc while her stack shrinks.
+    - Then one "Stored +20 Wood" by the stockpile, one icon to the top bar and a 200 ms pulse of that counter.
+    - No stacked "+N" numbers.
+  - **Done when:** a screenshot sequence shows it cleanly.
+- [ ] **V6. Footsteps in the snow (safe, animation).**
+  - **What:** a small snow puff on each step for Meagan and walking Jans, and short-lived footprint marks that fade, from a fixed pool.
+  - **Done when:** a screenshot shows the prints, and FPS is unchanged with 20 Jans.
+- [ ] **V7. Smoke and lantern glow (safe, effects).**
+  - **What:**
+    - a soft smoke column from the furnace chimney that grows with `burn_rate` and thins as the heat drops;
+    - a lighter column from small furnaces;
+    - a warm glow on the lantern posts as an emissive sprite, with no new lights.
+  - **Done when:** screenshots, FPS unchanged.
+- [ ] **V8. Stations and idle life like the visual (safe, animation).**
+  - **What:**
+    - Fishing Jans sit on a small stool at the ice hole (a `fish_sit` clip).
+    - Split logs lie scattered round the chopping stump.
+    - Resting or cold Jans vary their idle: stamp their feet, blow on their hands, look round.
+    - Meagan's breath puffs while it's cold.
+  - **Done when:** screenshots of each, and the rig contract (`impact`, `tip_position`) is kept.
+- [ ] **V9. Tile-opening flame trail (safe, effects).**
+  - **What:** when a tile opens, an ember trail runs from the main furnace to the new small furnace, which then flares alight.
+  - **Done when:** a screenshot sequence shows it.
+- [ ] **V10. Bag-full nudge (safe, feedback).**
+  - **What:** while the bag is full, the readout adds "Take it to a Stockpile" and an edge-clamped arrow points at the nearest stockpile, reusing the `Hints` arrow code.
+  - **Done when:** a screenshot shows both.
+
 ## Needs you (Claude won't touch these unattended)
+
+- Meagan carrying her load in her arms (like the visual) instead of stacked on her back.
+- Folding Music, Sound and DEV into one settings button.
+- The camera angle and character size from the reviews (a camera 8–12° lower, characters 10–15% bigger).
+- A hand-lettered font, which would be a new third-party asset.
 
 - The `[proto]` numbers in `balance.gd`: walk speed, pad size, furnace feed, warning thresholds, ranges.
 - Score as minutes or as "days survived".
