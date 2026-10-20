@@ -4,7 +4,7 @@ What felt wrong while playing, and what's still open. This file is the prompt fo
 
 ## Model pipeline: every model through GPT -> Meshy -> Blender (2026-10-20, evening)
 
-Plan: `~/.claude/plans/make-sure-there-is-ancient-avalanche.md`. The user approved a 1,200-credit Meshy cap; **780 spent** (`assets/models/meshy/ledger.json`, one `<name>.meshy.json` per model). References come from ChatGPT on **gpt-6-astra** (`tools/chatgpt/refs_buildings.py` holds every subject).
+Plan: `~/.claude/plans/make-sure-there-is-ancient-avalanche.md`. The user approved a 1,200-credit Meshy cap; **750 spent** (balance 2,985 -> 2,235) (`assets/models/meshy/ledger.json`, one `<name>.meshy.json` per model). References come from ChatGPT on **gpt-6-astra** (`tools/chatgpt/refs_buildings.py` holds every subject).
 
 **Done and in the game:**
 - all nine buildings;
