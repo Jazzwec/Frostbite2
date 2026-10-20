@@ -179,7 +179,23 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
     - watercolour-painted Tripo textures
     - redesigned characters
     - a painted ground
-  - **Decided (2026-10-20, after the AFK run):** the game commits to it. The rules are in `docs/art-direction.md`; the Jans' parkas go faded teal. The follow-up work is in `BACKLOG.md` (Art: ink & watercolour).
+  - **Decided (2026-10-20, after the AFK run):** the game commits to it. The rules are in `docs/art-direction.md`.
+  - **Done the same day:**
+    - The ink look is on by default.
+    - A painted ground.
+    - Jans in deep teal.
+    - Watercolour icons.
+    - Low-poly pines.
+    - Meagan's green bar and red silhouette.
+    - Bubbles on screen, game-over tiles and the milestone chime.
+    - New Tripo references in `source_art/concept/ink/`.
+    - The first picture against the latest: `source_art/direction/before_after.png`.
+  - **Still open from the reviews:**
+    - The buildings, furnace and empty plots are still greybox; they should be remade from the new references.
+    - The pale square empty plots read like UI.
+    - Bubbles can still sit under the top buttons.
+    - Small-size versions of the icons.
+    - "Make the warm disc a gameplay boundary": the disc is only a picture of the heat.
 - **Score:** the game-over card scores minutes:seconds survived. Would "days survived" (e.g. one day = 2 minutes) feel better?
 - **Art direction:** the Poly Haven props are photoreal, while the brief wants chunky cartoon. Decide whether to keep them as placeholders or go straight to Tripo models.
 
