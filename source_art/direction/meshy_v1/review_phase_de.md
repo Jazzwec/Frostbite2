@@ -1,0 +1,22 @@
+**Target match: 5.5/10.** The palette and subjects carry across, but image 1 reads as a softly painted, inhabited village; images 2–5 read as outlined models scattered over bright snow. The main gaps are camera angle, silhouette control and material consistency.
+
+**Characters: readability 6/10; charm 4.5/10 at gameplay size.** Meagan’s red and the Jans’ teal identify their roles. In image 2, however, Meagan is mostly dark hair, cream collar and boots; her braid and mustard scarf barely register. Image 3 reveals more detail but also jagged fur and overlapping Jans. They belong to the buildings’ colour palette, but their dense surface detail and harsh edges make them feel less cohesive. References 6–7 communicate substantially more personality than the gameplay views preserve.
+
+**Chests: 5/10. Pines: 4.5/10.** The open boon chest in image 4 reads as a dark, empty box; the closed supply crate in image 5 has a clearer silhouette, but little visual identity. The pines in image 4 become stacks of white scallops with dark borders. Individual trees are identifiable; clustered trees merge into a noisy snow mass.
+
+1. **Show more of the characters’ fronts. — In-game camera and scale**  
+   Compared with image 1, images 2–5 expose considerably more roof, crown and ground than faces or building fronts. On a phone, that hides the character identity you paid to model. Test lowering the camera elevation **8–12° toward the horizon**, retaining orthographic projection if used. Then test **10–15% larger characters** at the normal gameplay zoom. Judge the result at image 2’s size, not image 3’s close-up.
+
+2. **Simplify the characters around their identifying features. — Reference prompt, Meshy, Blender cleanup**  
+   Meagan’s hair reads as a pointed dark cap; the Jans’ fur produces a broken, busy perimeter. Small detail consumes pixels without adding expression. Specify **broad rounded hair masses, a thick readable braid, one prominent mustard scarf panel, smooth mitten shapes and continuous rounded fur bands** in the reference prompt. In Blender, remove fur spikes and simplify tiny folds; enlarge Meagan’s visible scarf and braid width by roughly **20–25%**. Give Jans a compact beard silhouette that separates clearly from the cream collar.
+
+3. **Unify outlines and painted surfaces. — Blender cleanup and shader**  
+   Image 3’s character edges and image 4’s trees look scratchier and higher contrast than the target. Snow also loses shape in bright white areas. On a phone, this makes edges compete with characters and interactables. Aim for an outer contour around **one screen pixel at normal zoom**, with fewer internal dark marks; use deep blue-grey or brown instead of black. Keep snow’s base slightly blue-grey, reserving near-white for highlights. Reduce fine texture contrast and retain broad watercolour patches—palette snapping alone cannot create that hierarchy.
+
+4. **Rebuild pine silhouettes for clusters. — Reference prompt and Blender cleanup**  
+   Image 4’s trees have too many similarly sized snow lobes and too little visible foliage. Groups become visual clutter rather than a readable forest boundary. Use **three broad, uneven branch tiers**, a distinct tapered top and wider lower skirt. Expose teal-green undersides across roughly **25–35% of the visible tree**. In game, vary scale by **±15%** and stagger trees so neighbouring crowns do not align into continuous white bands.
+
+5. **Give the two chest types distinct silhouettes and rewards. — Reference prompt, Blender, in-game animation**  
+   Images 4–5 show different states and categories, but rarity currently depends heavily on noticing a small dark box. Keep supply crates low, square and plainly timber; make boon chests roughly **20% taller**, with a rounded lid and one broad ochre metal band. For the open chest, test a lid angle of **100–110°** so its interior remains visible from the gameplay camera. Add a warm interior and a **0.3–0.5-second opening flash with a short upward reward burst** so collection reads immediately.
+
+Verdict: fix first — character identity disappears at normal phone scale, and pine silhouettes and harsh edges still pull the scene away from the agreed picture-book target.

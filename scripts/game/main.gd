@@ -745,6 +745,9 @@ func _on_event(ev: Dictionary) -> void:
 			_open_tile(ev)
 		"chest_opened":
 			Audio.play("build_done", _v3(ev.pos))
+			# A short reward burst out of the lid, so opening reads at a glance (review phase D/E).
+			Fx.burst("sparks", _v3(ev.pos) + Vector3(0, 0.6, 0))
+			Fx.burst("snow", _v3(ev.pos) + Vector3(0, 0.3, 0))
 		"camp_found":
 			_float_text(_v3(ev.pos) + Vector3(0, 2.5, 0), "%d frozen Jans!" % ev.count if ev.count > 1 else "A frozen Jan!", UiTheme.ACCENT, true)
 		"cache":

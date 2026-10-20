@@ -34,5 +34,7 @@
   "chest_boon": ["01a15a33-1b6c-75d0-b35b-f7637ed8d9b5", "meshy-6", 30, 2000],
   "chest_gear": ["01a15a33-20e0-77b2-bdcf-1d37ac93a15f", "meshy-6", 30, 2000],
   "meagan_v2": ["01a15a33-6143-7549-a5dd-9ff819db28e0", "meshy-6", 30, 10000, "source_art/concept/ink/meagan_v2_front.png (+ _side, _back; multi-image-to-3d, t-pose)"],
-  "jan_v2": ["01a15a33-6e90-75e1-a34f-5fa5e52b2dcf", "meshy-6", 30, 8000, "source_art/concept/ink/jan_v2_front.png (+ _side, _back; multi-image-to-3d, t-pose)"]
+  "jan_v2": ["01a15a33-6e90-75e1-a34f-5fa5e52b2dcf", "meshy-6", 30, 8000, "source_art/concept/ink/jan_v2_front.png (+ _side, _back; multi-image-to-3d, t-pose)"],
+  "meagan_v2_rig": ["01a15a37-7542-7714-984f-a46bfbb3c494", "rig", 5, 0, "meshy_rig of meagan_v2, height 1.7 m"],
+  "jan_v2_rig": ["01a15a37-82c6-75f2-a0a2-079b3c39bb92", "rig", 5, 0, "meshy_rig of jan_v2, height 1.6 m"]
 }

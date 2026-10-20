@@ -187,12 +187,12 @@ def _split_lid(obj, at):
     lid_bm.from_mesh(lid_mesh)
     bmesh.ops.delete(lid_bm, geom=[f for f in lid_bm.faces if f.calc_center_median().z <= at], context="FACES")
     bmesh.ops.delete(bm, geom=lid_faces, context="FACES")
-    # The filled cut faces are the chest's inside: a second, plain deep-ink material, since the
-    # texture has nothing painted there.
+    # The filled cut faces are the chest's inside: a second, plain warm-wood material, since the
+    # texture has nothing painted there (a dark inside read as an empty box, review phase D/E).
     inside = bpy.data.materials.get("chest_inside") or bpy.data.materials.new("chest_inside")
     inside.use_nodes = True
     bsdf = next(n for n in inside.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
-    bsdf.inputs["Base Color"].default_value = (0.025, 0.033, 0.05, 1.0)  # PALETTE deep ink #2C3440
+    bsdf.inputs["Base Color"].default_value = (0.25, 0.11, 0.045, 1.0)  # PALETTE wood #8A5E3C
     bsdf.inputs["Roughness"].default_value = 1.0
     if inside.name not in obj.data.materials:
         obj.data.materials.append(inside)
