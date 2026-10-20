@@ -206,7 +206,21 @@ Blizzards are always announced and are about preparing, not reacting. Animal att
 
 ### Animal attacks
 
-The furnace's warmth draws wild animals, and a bigger Furnace draws stronger ones: their HP, damage and loot grow ×1.6 per Furnace level above 2. Fights happen on the map in real time. Everyone autofights whatever is in range.
+The furnace's warmth draws wild animals, and a bigger Furnace draws stronger ones: their HP, damage and loot grow ×1.6 per Furnace level above 2. Fights happen on the map in real time.
+
+**Fighting is hypercasual (agreed 2026-10-20; numbers from ChatGPT's steer, all [proto]).** Nobody needs a button: everyone fights on their own, each going for the nearest opponent, in discrete attacks that each land with a flash, a little knockback and a hit-stop.
+- **Meagan** has two automatic modes:
+  - **Snowballs at range:** 7 m, 6 damage every 0.75 s; each flies to the wolf before it lands.
+  - **A walking-stick sweep up close:** 2.5 m, 10 damage every 0.8 s, knocking the wolf back.
+
+  She swaps to the stick as soon as a wolf is within reach, and back to snowballs once none has been within 3 m for 0.3 s, so it never flickers. She attacks while walking and turns to her target. While a wolf is within 7 m she stops gathering, building and storing, and goes back to work 1 s after.
+- **Wolves:**
+  - **Targets:** each goes for the nearest of Meagan and the guards within 5 m, otherwise on to the furnace.
+  - **The bite is telegraphed:** a 0.4 s crouch, with a rust wedge on the snow showing where it will land, then a short lunge. It lands only if its target is still within reach, so stepping away dodges it.
+  - **Bite size:** 3 damage every 1.5 s, which keeps the table's damage per second.
+  - **Pacing:** at most two wolves wind up at once, a quarter-second apart.
+- **Guards** strike the nearest wolf they can see (6 m, never more than 8 m from their post) once a second.
+- **A beaten wolf** tumbles, scrambles up and runs off; there are no corpses.
 
 - **Who comes.** Tier 1: wolf packs of 2 to 4. Tier 2: one attack in three adds a bear. Tier 3: a bear every time, and one in five is led by the Old Bear.
 
@@ -219,7 +233,7 @@ The furnace's warmth draws wild animals, and a bigger Furnace draws stronger one
 - **How they move.** Animals spawn at the map edge and walk to the furnace (about 10 s). An animal passing within reach of a working Jan detours to them; after 3 s beside them that Jan flees for good. Each animal scares at most one Jan. Animals stop to fight any guard or Meagan who comes close.
 - **Guards.** Jans on the Guarding job wait in a ring around the furnace and move out to engage animals anywhere in the city. A guard at 0 HP is knocked out until the attack ends, not lost.
 - **Gear.** Each guard needs a kit to fight at full strength; without one they deal half damage. Weapons (+20% damage per level) and Armour (−10% losses per level) are level tracks crafted at the Barracks and apply to guards and Meagan. The higher the gear levels, the dearer each kit.
-- **Meagan** can join any fight by walking into range: 100 HP, 10 damage/s. At 0 HP she's injured and can't move, gather or rescue until the attack ends, win or lose. She heals after every attack.
+- **Meagan** (100 HP) fights as above. At 0 HP she's injured and can't move, gather or rescue until the attack ends, win or lose. She heals after every attack.
 - **Watchtower.** Its levels give attack warning (15 s each). From Lv 5 it shoots arrows worth 2 guards, +1 guard per level after that.
 - **Breakthrough.** Each animal that reaches the furnace takes 15% of Wood and Food and 20% of heat, scares off Jans for good (see table), then leaves. Armour reduces all of this. Jans lost to animals are gone for good; new Jans keep arriving as usual.
 - **Reward.** Every kill drops Food and Materials.

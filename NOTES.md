@@ -2,6 +2,29 @@
 
 What felt wrong while playing, and what's still open. This file is the prompt for the next session.
 
+## Hypercasual fighting (2026-10-20, late)
+
+Asked by the user: fighting as hypercasual as the rest. Everyone attacks the nearest opponent, and Meagan has two automatic modes, ranged and melee, swapping to melee when a wolf is within reach.
+- **Sources:**
+  - web best practices (auto-aim at the nearest with one transparent rule; discrete hits with hit-stop, flash and knockback; telegraphed enemy attacks; medium juice);
+  - ChatGPT's steer (`source_art/direction/fight_v1/steer.md`), which gave the numbers;
+  - its review afterwards (`review.md`), whose cheap points are in.
+- **The rules** are in the brief's Animal attacks section, and the tests in `tests/test_fighting.gd`.
+
+**Check in the game:**
+- DEV → Wolves while Meagan stands in the open: she throws snowballs as they come, switches to her stick as they reach her, and goes back to snowballs as they back off.
+- Rust wedges warn of each bite; step away and it misses.
+- Beaten wolves tumble and run off. Guards strike once a second.
+
+**Open, for you:**
+- Every combat number is `[proto]`. The steer warns that wolf health (×1.6 per Furnace level) outgrows her damage: at Furnace Lv 7 a wolf needs about 21 stick hits. It suggests combat upgrades, or a softer curve.
+- From the review, not done:
+  - a short ochre streak along the stick's path;
+  - one reward pop for kills close together;
+  - thinner health bars;
+  - a snowball trail.
+- Workers still get scared off by a wolf that reaches them (the brief's rule). The steer suggested they flee and come back instead.
+
 ## Visual polish AFK run (2026-10-20, 19:27–20:14)
 
 All ten items of BACKLOG.md "Visual polish" are in; details and what to check are in `AFK_REPORT.md`:
