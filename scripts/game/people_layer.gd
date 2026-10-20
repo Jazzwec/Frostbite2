@@ -216,6 +216,11 @@ func _drop_spot(s: GameState, k: int, id: int) -> Vector2:
 ## and how quickly the nudge settles.
 const WOLF_VIEW_SPACING := 0.9
 const WOLF_NUDGE_EASE := 6.0
+## Health bars that would overlap on screen step up, one bar plus an 8 px gap each (review 2):
+## two enemies this close across (world X is screen X) and this close in depth.
+const BAR_CLEAR_X := 1.35
+const BAR_CLEAR_Z := 0.6
+const BAR_STEP := 0.36
 
 
 func _nudge_wolves(s: GameState, delta: float) -> void:
@@ -234,6 +239,11 @@ func _nudge_wolves(s: GameState, delta: float) -> void:
 				var dir := apart / d if d > 0.001 else Vector2.RIGHT.rotated(float(wolf.id * 7 - other.id * 3))
 				push += dir * (spacing - d) * 0.5
 		view.nudge = view.nudge.lerp(Vector3(push.x, 0, push.y), minf(1.0, WOLF_NUDGE_EASE * delta))
+		var below := 0
+		for other in s.wolves:
+			if other.id < wolf.id and absf(other.pos.x - wolf.pos.x) < BAR_CLEAR_X and absf(other.pos.y - wolf.pos.y) < BAR_CLEAR_Z:
+				below += 1
+		view.bar_lift = BAR_STEP * below
 
 
 ## Every 20 to 30 s while the city is calm, a working Jan says something. [brief]

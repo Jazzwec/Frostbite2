@@ -9,9 +9,15 @@ const MEAGAN_GREEN := Color(0.35, 0.82, 0.4)
 const GUARD_BLUE := Color(0.35, 0.62, 0.95)
 const WOLF_RED := Color(0.95, 0.25, 0.2)
 
+## The border's colour while it's accented (Meagan's chosen target, fight_v2 review 2).
+const ACCENT := Color(0.98, 0.8, 0.35, 1.0)
+const ACCENT_TIME := 0.3
+
 var width := WIDTH
 var height := HEIGHT
 var _fill: MeshInstance3D
+var _back: MeshInstance3D
+var _accent := 0.0
 
 
 func _init(fill_color := WOLF_RED, bar_width := WIDTH, bar_height := HEIGHT) -> void:
@@ -20,6 +26,7 @@ func _init(fill_color := WOLF_RED, bar_width := WIDTH, bar_height := HEIGHT) -> 
 	var back := _quad(Color(0.1, 0.1, 0.1, 0.8), 0)
 	back.mesh.size = Vector2(width + 0.06, height + 0.06)
 	add_child(back)
+	_back = back
 	_fill = _quad(fill_color, 1)
 	add_child(_fill)
 	visible = false
@@ -45,10 +52,27 @@ func _quad(color: Color, priority: int) -> MeshInstance3D:
 
 func set_value(fraction: float, show_when_full := false) -> void:
 	fraction = clampf(fraction, 0.0, 1.0)
-	visible = show_when_full or fraction < 0.999
+	visible = show_when_full or fraction < 0.999 or _accent > 0.0
 	_fill.scale.x = maxf(fraction, 0.001)
 	# The camera never turns around Y, so world X is screen X: keep the bar left-aligned.
 	_fill.position.x = -(1.0 - fraction) * width / 2.0
+
+
+## Lights the border up for a moment.
+func accent() -> void:
+	_accent = ACCENT_TIME
+	(_back.material_override as StandardMaterial3D).albedo_color = ACCENT
+	_back.scale = Vector3(1.0 + 0.1 / width, 1.0 + 0.1 / height, 1.0)
+	visible = true
+
+
+func _process(delta: float) -> void:
+	if _accent <= 0.0:
+		return
+	_accent -= delta
+	if _accent <= 0.0:
+		(_back.material_override as StandardMaterial3D).albedo_color = Color(0.1, 0.1, 0.1, 0.8)
+		_back.scale = Vector3.ONE
 
 
 ## The fill's left-aligned scale and offset, for tests.

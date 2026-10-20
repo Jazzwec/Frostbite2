@@ -142,7 +142,6 @@ func _process(delta: float) -> void:
 	_update_meagan_activity(delta)
 	_update_pad_stop(delta)
 	_update_pad_payments(delta)
-	_update_target_ring()
 	_update_ground_marks()
 	if _nav_dirty and not _baking:
 		_nav_dirty = false
@@ -1011,6 +1010,8 @@ func _on_event(ev: Dictionary) -> void:
 			var wolf := _people.wolf_view(ev.wolf)
 			var at := wolf.global_position if wolf else _v3(ev.pos)
 			_meagan.attack(ev.mode, at)
+			if wolf:
+				wolf.accent()
 			if ev.mode == "ranged":
 				_throw_snowball(ev.wolf, ev.flight)
 			else:
@@ -1161,30 +1162,6 @@ func _throw_snowball(wolf_id: int, flight: float) -> void:
 	var to := wolf.global_position + Vector3(0, 0.6, 0)
 	Fx.throw("snowball", _meagan.throw_point(), to, maxf(flight, 0.12), 0.6, func() -> void:
 		Fx.burst("snow", to))
-
-
-## Meagan's target in a fight gets a broken ink ring under it (Astra's steer: only hers).
-var _target_ring: MeshInstance3D
-
-
-func _update_target_ring() -> void:
-	var s := Game.engine.state
-	if _target_ring == null:
-		var torus := TorusMesh.new()
-		torus.inner_radius = 0.62
-		torus.outer_radius = 0.72
-		torus.rings = 24
-		_target_ring = MeshInstance3D.new()
-		_target_ring.mesh = torus
-		_target_ring.material_override = Shapes.material(Color(UiTheme.INK, 0.55))
-		_target_ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		_target_ring.scale = Vector3(1, 0.05, 1)
-		add_child(_target_ring)
-	var wolf: WolfView = _people.wolf_view(s.meagan_target) if s.meagan_activity == "fight" else null
-	_target_ring.visible = wolf != null
-	if wolf:
-		_target_ring.global_position = wolf.global_position + Vector3(0, 0.04, 0)
-		_target_ring.rotation.y += get_process_delta_time() * 0.6
 
 
 func _v3(p: Vector2) -> Vector3:

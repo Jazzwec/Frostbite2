@@ -364,27 +364,27 @@ const GEAR := {
 ## carries off from the store; `loot` its Materials when killed; `cost` its share of a wave's
 ## budget; `first` the first wave it can come in; `knocked` how much of a knockback it takes;
 ## `weight` how much of the wind-up limit it uses; `width` its body's width in metres (0.8 / 1 /
-## 1.5 / 1.8 of a wolf's, review 1), which spaces a pack. HP is about 25-35% over the steer's,
+## 1.5 / 1.8 of a wolf's, review 1), which spaces a pack. HP is about 35-45% over the steer's,
 ## because the longer wind-ups made every raid easier (tests/sim_waves.gd).
 const ENEMIES := {
-	"fox": {"name": "Frost fox", "hp": 13.0, "speed": 3.6, "shape": "wedge", "hold": 1.0, "reach": 1.5, "arc": 45.0,
+	"fox": {"name": "Frost fox", "hp": 14.0, "speed": 3.6, "shape": "wedge", "hold": 1.0, "reach": 1.5, "arc": 45.0,
 		"tell": 0.65, "recover": 0.28, "damage": 2.0, "cooldown": 1.4, "steal": 5.0, "loot": 1.0, "cost": 1, "first": 3, "knocked": 1.0, "weight": 1, "width": 0.56},
-	"wolf": {"name": "Wolf", "hp": 27.0, "speed": 2.5, "shape": "wedge", "hold": 1.3, "reach": 1.9, "arc": 60.0,
+	"wolf": {"name": "Wolf", "hp": 29.0, "speed": 2.5, "shape": "wedge", "hold": 1.3, "reach": 1.9, "arc": 60.0,
 		"tell": 0.65, "recover": 0.28, "damage": 3.0, "cooldown": 1.5, "steal": 8.0, "loot": 1.0, "cost": 2, "first": 1, "knocked": 1.0, "weight": 1, "width": 0.7},
-	"bear": {"name": "Bear", "hp": 125.0, "speed": 1.4, "shape": "wedge", "hold": 1.8, "reach": 2.8, "arc": 110.0,
+	"bear": {"name": "Bear", "hp": 135.0, "speed": 1.4, "shape": "wedge", "hold": 1.8, "reach": 2.8, "arc": 110.0,
 		"tell": 0.9, "recover": 0.45, "damage": 10.0, "cooldown": 2.6, "steal": 20.0, "loot": 5.0, "cost": 8, "first": 5, "knocked": 0.25, "weight": 1, "width": 1.05},
-	"raider": {"name": "Raider", "hp": 40.0, "speed": 2.1, "shape": "shot", "hold": 5.0, "reach": 0.7, "arc": 0.0,
+	"raider": {"name": "Raider", "hp": 43.0, "speed": 2.1, "shape": "shot", "hold": 5.0, "reach": 0.7, "arc": 0.0,
 		"tell": 1.0, "recover": 0.3, "damage": 4.0, "cooldown": 2.0, "steal": 15.0, "loot": 3.0, "cost": 4, "first": 4, "knocked": 1.0, "weight": 0, "width": 0.6},
-	"troll": {"name": "Ice troll", "hp": 300.0, "speed": 1.1, "shape": "ring", "hold": 2.0, "reach": 3.0, "arc": 360.0,
+	"troll": {"name": "Ice troll", "hp": 320.0, "speed": 1.1, "shape": "ring", "hold": 2.0, "reach": 3.0, "arc": 360.0,
 		"tell": 1.2, "recover": 0.7, "damage": 16.0, "cooldown": 4.5, "steal": 40.0, "loot": 15.0, "cost": 20, "first": 6, "knocked": 0.0, "weight": 2, "width": 1.26},
 }
 ## A wedge attack's short lunge before it lands.
 const ENEMY_LUNGE := 0.12
 ## A wind-up's aim follows its victim until this long before the strike, then locks, so the end
-## of the tell shows exactly where it lands (fight_v2 review 1).
-const ENEMY_AIM_LOCK := 0.3
-## Bodies in a pack keep this much of a body width apart (review 1: about 0.7).
-const ENEMY_GAP := 0.7
+## of the tell shows exactly where it lands (fight_v2 review 1; 0.4 s from review 2).
+const ENEMY_AIM_LOCK := 0.4
+## Bodies in a pack keep this much of a body width apart (review 1: about 0.7; review 2: 0.9).
+const ENEMY_GAP := 0.9
 ## A thrown shard's speed, and how long before release its aim locks.
 const ENEMY_SHOT_SPEED := 6.0
 ## Enemies head for the store; they fight the nearest defender within this distance, but give up

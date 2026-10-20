@@ -45,14 +45,15 @@ const ATTACK_HOLD := 0.05
 const HEAVY_HOLD := 0.6
 ## How far it leans back while crouching to strike, in degrees.
 const ATTACK_LEAN_BACK := 12.0
-## Tells (fight_v2 review 1): a light rust wash over the whole danger zone, a fill that advances
-## from the attacker to the edge as the strike comes, and a dark-rust boundary (about 3 px on a
-## 540-wide phone at the default zoom) that firms up once the aim locks. Rust is for tells only.
-const TELL_WASH := Color(0.66, 0.3, 0.2, 0.15)
-const TELL_FILL := Color(0.62, 0.24, 0.15, 0.32)
+## Tells (fight_v2 reviews 1 and 2): one muted terracotta treatment (ink/tell.gdshader), a light
+## wash over the whole danger zone with a soft-edged fill advancing from the attacker to the edge
+## as the strike comes (15-20% in all), and a dark-rust boundary, about 2 px on a 540-wide phone
+## while the aim follows and 3 px once it locks. Rust is for tells only.
+const TELL_SHADER := preload("res://scripts/game/ink/tell.gdshader")
+const TELL_COLOR := Color(0.66, 0.3, 0.2)
 const TELL_LINE := Color(0.38, 0.12, 0.07, 1.0)
-const TELL_LINE_SOFT := 0.6
-const TELL_LINE_WIDTH := 0.09
+const TELL_LINE_THIN := 0.05
+const TELL_LINE_WIDTH := 0.075
 ## A struck enemy: a warm rim flash this long (no white-out, so its shape reads through the hit),
 ## and a recoil away from the hit this far (about 5 px) over this long.
 const FLASH_TIME := 0.08
@@ -95,9 +96,13 @@ var _flash_mat: ShaderMaterial
 var _parts := {}
 var _tail: Node3D
 var _tell: Node3D
-var _tell_wash: MeshInstance3D
-var _tell_fill: MeshInstance3D
+var _tell_zone: MeshInstance3D
+var _tell_zone_mat: ShaderMaterial
+var _tell_line_thin: MeshInstance3D
 var _tell_line: MeshInstance3D
+## How far its health bar is raised to clear a neighbour's (PeopleLayer sets it; review 2).
+var bar_lift := 0.0
+var _bar_height := 0.0
 var _shot_line: MeshInstance3D
 var _sack: Sprite3D
 var _sack_disc: Sprite3D
@@ -134,9 +139,13 @@ func _init(enemy_kind := "wolf") -> void:
 	if _skins.is_empty():
 		for mesh in _model.find_children("*", "MeshInstance3D", true, false):
 			_skins.append(mesh)
+	# Snow doesn't settle on animals: the ink look's snow caps read as shiny highlights (review 2).
+	for mesh in _skins:
+		mesh.set_meta("no_snow", true)
 	_build_tell()
 	var look: Dictionary = LOOK[kind]
 	_hp_bar = HpBar.new(HpBar.WOLF_RED)
+	_bar_height = look.bar
 	_hp_bar.position = Vector3(0, look.bar, 0)
 	add_child(_hp_bar)
 	_sack_disc = Sprite3D.new()
@@ -341,21 +350,31 @@ func _build_tell() -> void:
 	_tell.visible = false
 	add_child(_tell)
 	var full: Mesh
+	var thin: Mesh
 	var line: Mesh
 	match _def.shape:
 		"wedge":
 			full = sector(0.0, _def.reach, _def.arc)
-			line = _wedge_outline(_def.reach, _def.arc)
+			thin = _wedge_outline(_def.reach, _def.arc, TELL_LINE_THIN)
+			line = _wedge_outline(_def.reach, _def.arc, TELL_LINE_WIDTH)
 		_:
 			# A slam's ring round it, or a shard's target where it will land.
 			full = sector(0.0, _def.reach, 360.0)
+			thin = sector(_def.reach - TELL_LINE_THIN, _def.reach, 360.0)
 			line = sector(_def.reach - TELL_LINE_WIDTH, _def.reach, 360.0)
-	_tell_wash = _ground_mesh(full, TELL_WASH)
-	_tell_fill = _ground_mesh(full, TELL_FILL)
+	_tell_zone = MeshInstance3D.new()
+	_tell_zone.mesh = full
+	_tell_zone_mat = ShaderMaterial.new()
+	_tell_zone_mat.shader = TELL_SHADER
+	_tell_zone_mat.set_shader_parameter("color", TELL_COLOR)
+	_tell_zone_mat.set_shader_parameter("reach", _def.reach)
+	_tell_zone.material_override = _tell_zone_mat
+	_tell_zone.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_tell_line_thin = _ground_mesh(thin, TELL_LINE)
 	_tell_line = _ground_mesh(line, TELL_LINE)
-	for mi in [_tell_wash, _tell_fill, _tell_line]:
+	for mi in [_tell_zone, _tell_line_thin, _tell_line]:
 		_tell.add_child(mi)
-	_tell_fill.position.y = 0.005
+	_tell_line_thin.position.y = 0.01
 	_tell_line.position.y = 0.01
 	if _def.shape == "shot":
 		var box := BoxMesh.new()
@@ -386,11 +405,10 @@ static func sector(inner: float, outer: float, arc: float) -> ArrayMesh:
 	return st.commit()
 
 
-## A wedge's outline: its arc and its two straight sides.
-func _wedge_outline(reach: float, arc: float) -> ArrayMesh:
+## A wedge's outline, `w` wide: its arc and its two straight sides.
+func _wedge_outline(reach: float, arc: float, w: float) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var w := TELL_LINE_WIDTH
 	var steps := maxi(10, int(arc / 8.0))
 	for i in steps:
 		var a0 := deg_to_rad(-arc / 2.0 + arc * i / steps)
@@ -435,10 +453,11 @@ func _update_tell(enemy: Dictionary) -> void:
 		return
 	var fade := clampf(t / 0.1, 0.0, 1.0)
 	var locked := t >= strike - Balance.ENEMY_AIM_LOCK
-	(_tell_wash.material_override as StandardMaterial3D).albedo_color.a = TELL_WASH.a * fade
-	(_tell_fill.material_override as StandardMaterial3D).albedo_color.a = TELL_FILL.a * fade
-	(_tell_line.material_override as StandardMaterial3D).albedo_color.a = (1.0 if locked else TELL_LINE_SOFT) * fade
-	_tell_fill.scale = Vector3.ONE * maxf(0.04, clampf(t / strike, 0.0, 1.0))
+	_tell_zone_mat.set_shader_parameter("fade", fade)
+	_tell_zone_mat.set_shader_parameter("progress", clampf(t / strike, 0.0, 1.0) * 1.25)
+	_tell_line_thin.visible = not locked
+	_tell_line.visible = locked
+	(_tell_line_thin.material_override as StandardMaterial3D).albedo_color.a = 0.85 * fade
 	var from: Vector2 = enemy.get("tell_from", enemy.pos)
 	var at := Vector3(from.x, 0.04, from.y)
 	var aim := Vector3(enemy.aim.x, 0.04, enemy.aim.y)
@@ -460,6 +479,12 @@ func _update_tell(enemy: Dictionary) -> void:
 
 
 # ---------- Life ----------
+
+## Meagan has picked it: its health bar's border lights up a moment (review 2: the chosen target
+## shows where it already looks, no extra ground ring).
+func accent() -> void:
+	_hp_bar.accent()
+
 
 ## Struck from `from`: a short warm rim flash and a recoil away from the hit (fight_v2 review 1;
 ## the ink flecks are main's).
@@ -534,6 +559,7 @@ func sync(enemy: Dictionary, delta: float) -> void:
 	for mesh in _skins:
 		mesh.material_overlay = _flash_mat if flashing else null
 	_hp_bar.set_value(enemy.hp / enemy.max_hp)
+	_hp_bar.position.y = lerpf(_hp_bar.position.y, _bar_height + bar_lift, minf(1.0, 10.0 * delta))
 	_update_tell(enemy)
 	_update_sack(enemy)
 
