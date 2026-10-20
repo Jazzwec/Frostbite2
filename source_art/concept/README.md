@@ -8,8 +8,8 @@ The game's art direction is now ink & watercolour (`docs/art-direction.md`). The
 
 | Reference | Export as | Rig | Notes |
 |---|---|---|---|
-| `ink/meagan.png` | `meagan.glb` | Humanoid | Falu-red parka, braid, mustard scarf. T-pose. |
-| `ink/jan.png` | `jan.glb` | Humanoid | Deep-teal parka, so no Jan wears her red. T-pose. |
+| `ink/meagan.png` | `meagan.glb` | Humanoid | Falu-red parka, braid, mustard scarf. T-pose. **Made with Meshy (meshy-6 + rig), 2026-10-20; in the game.** |
+| `ink/jan.png` | `jan.glb` | Humanoid | Deep-teal parka, so no Jan wears her red. T-pose. **Made with Meshy (meshy-6 + rig), 2026-10-20; in the game.** |
 | `ink/furnace.png` | `furnace.glb` | — | Fieldstone-and-iron village oven, with the furnace-mouth mark. **Made with Meshy (meshy-6), 2026-10-20; in the game.** |
 | `ink/bunkhouse.png` | `bunkhouse.glb` | — | Falu-red cabin, mittens on the door. |
 | `ink/lumber_yard.png` | `lumber_yard.glb` | — | Ochre woodshed, crooked-sun sign. |

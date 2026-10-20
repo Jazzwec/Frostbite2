@@ -8,7 +8,7 @@ What felt wrong while playing, and what's still open. This file is the prompt fo
 - **Game:** a drag joystick, the carry stack, the Stockpile, build pads, the furnace objective with a game-over card, blizzards, wolves, save and continue, first-minute hints, milestones, auto-assign, the Jans screen, zoom (16–34 m) and synthesized audio.
 - **The look (on by default; DEV → Ink look, or `-- --no-ink`, to compare):** banded watercolour light, wobbly ink lines, a paper pass, and a warm wash round the furnace that shrinks with the heat. The snowfield is painted (`ink_ground`), with paths to every pad.
 - **Assets:**
-  - Meagan, the Jan (recoloured to deep teal #35666B) and the wolf are Tripo models cleaned up in Blender.
+  - Meagan and the Jan are ink-style **Meshy** models (2026-10-20) from `source_art/concept/ink/`, through the `asset-pipeline` skill. The wolf is still the Tripo model. The old Tripo characters' sources are `source_art/blender/jan_tripo.blend` and `meagan_tripo.blend`.
   - Three low-poly Blender pines make the forests.
   - Watercolour icons are in `assets/ui/icons/`.
   - The furnace is a Meshy model (meshy-6, 45 credits for the pilot), made through the new **asset pipeline**: the `asset-pipeline` skill, `tools/blender/cleanup.py`, `chatgpt.py image --for-3d` and `tests/test_assets.gd`. The other buildings are still greybox shapes in code.
@@ -24,7 +24,7 @@ What felt wrong while playing, and what's still open. This file is the prompt fo
 **Next, in order:**
 1. **Building and character models from the ink references** in `source_art/concept/ink/` (Meagan, a Jan, the Bunkhouse, the Lumber Yard; the furnace is done), following the `asset-pipeline` skill.
    - The furnace's ChatGPT review (`source_art/direction/furnace_meshy/review.md`) says its fire mouth reads flat and its stonework is busy and muddy. Options: a simpler reference (fewer, larger stones, broad washes), a `meshy_retexture` (10 credits), or a brighter animated glow in `SiteView`.
-   - Meshy characters work with `ModelRig` after `cleanup_character` renames their bones (checked 2026-10-20). A Meshy Jan is made and rigged (`assets/models/meshy/jan_meshy6_rigged.glb`), closer to the ink reference than the Tripo Jan; **ask the user** whether it replaces `jan.glb`.
+   - Meagan and the Jan are done (Meshy). Their ChatGPT review (`source_art/direction/characters_meshy/review.md`) asks for simpler textures (one wash per garment, fewer dark marks; a `meshy_retexture` at 10 credits each, or a simpler reference), more of Meagan's red in her silhouette, clearer head shapes, a smaller log bundle on her back, a more readable chop pose and softer shadows. The last three are about the game, not the models.
    - Either the user makes them in Tripo Studio and drops the files in, or they're made with **Meshy** (below), which spends credits.
    - Buildings need no rig; they replace the greybox parts in `SiteView`, keeping the fire light, embers and pad.
 2. **The rest of `BACKLOG.md`.** It can also run as an AFK `/loop` (see `AFK.md`).
@@ -90,9 +90,9 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - [ ] Meagan injured: she lies down and can't move until the attack ends.
 
 **Meagan's model (2026-10-19)**
-- [ ] She's the textured Tripo model, 20% larger than life. She walks with swinging arms and legs, chops with the axe in her hands, crouches to fish, hammers, hugs a crate, swings at wolves and lies down when hurt.
+- [ ] She's the ink-style Meshy model (2026-10-20), 20% larger than life. She walks with swinging arms and legs, chops with the axe in her hands, crouches to fish, hammers, hugs a crate, swings at wolves and lies down when hurt.
 - [ ] Her stack sits on her back (at most 8 pieces), below her head.
-- [ ] Jans are the Tripo Jan model. They chop, fish and hammer either side of their building's pad, which stays clear for Meagan. Frozen Jans hug themselves inside a taller ice block. With 20 Jans and 3 wolves it ran at 165 FPS on desktop (155k triangles).
+- [ ] Jans are the ink-style Meshy Jan model (5k triangles; the 165 FPS figure below was measured with the old 5k Tripo Jan). They chop, fish and hammer either side of their building's pad, which stays clear for Meagan. Frozen Jans hug themselves inside a taller ice block. With 20 Jans and 3 wolves it ran at 165 FPS on desktop (155k triangles).
 
 **The wolf model (2026-10-19)** (DEV → Wolves)
 - [ ] Wolves are the Tripo wolf, about Meagan's length. They trot with diagonal leg pairs and a wagging tail, facing where they run.

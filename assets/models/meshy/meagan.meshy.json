@@ -1,0 +1,27 @@
+{
+  "asset": "meagan",
+  "date": "2026-10-20",
+  "reference": "source_art/concept/ink/meagan.png (padded to 1374x1374)",
+  "in_game": "assets/models/blender/meagan.glb via cleanup_character(height=1.7, max_tris=9000)",
+  "runs": [
+    {
+      "file": "meagan_meshy6.glb",
+      "task_id": "01a1593f-8011-723f-ab7f-5cb5fb12074e",
+      "tool": "meshy_image_to_3d",
+      "credits": 30,
+      "params": {"model_type": "standard", "ai_model": "meshy-6", "remove_lighting": true, "image_enhancement": false,
+                 "pose_mode": "t-pose", "should_remesh": true, "topology": "triangle", "target_polycount": 10000,
+                 "should_texture": true, "enable_pbr": false, "texture_resolution": "2k", "auto_size": true,
+                 "origin_at": "bottom", "target_formats": ["glb"]},
+      "result": "10,242 tris; Falu-red parka, braid, mustard scarf, backpack straps, fur hood"
+    },
+    {
+      "file": "meagan_meshy6_rigged.glb",
+      "task_id": "01a15941-d3b3-7172-9ea0-e68173cee285",
+      "tool": "meshy_rig",
+      "credits": 5,
+      "params": {"input_task_id": "01a1593f-8011-723f-ab7f-5cb5fb12074e", "height_meters": 1.7},
+      "result": "24-bone Meshy skeleton, renamed to Mixamo by tools/blender/rig_names.py"
+    }
+  ]
+}

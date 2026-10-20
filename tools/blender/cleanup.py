@@ -43,7 +43,8 @@ def _world_bounds(obj):
 
 def _select_only(objs, active):
     for o in bpy.context.view_layer.objects:
-        o.select_set(False)
+        if o is not None:  # a just-removed object can linger here until the view layer updates
+            o.select_set(False)
     for o in objs:
         o.select_set(True)
     bpy.context.view_layer.objects.active = active
@@ -219,6 +220,7 @@ def cleanup_character(name, source, height, max_tris=9000, tex_size=1024, export
     for o in imported:
         if o.type == "MESH" and o not in skinned:
             bpy.data.objects.remove(o)
+    bpy.context.view_layer.update()
     renamed = names["to_mixamo"](arm)
     tris_in = sum(_tris(o) for o in skinned)
 

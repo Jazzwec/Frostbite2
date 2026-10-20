@@ -1,0 +1,15 @@
+1. **Simplify the character textures.** Both views show mottled clothing, scratchy outlines and fragmented shading; the close-up makes this especially clear. At normal zoom, these merge into visual noise rather than watercolour. Use one broad colour wash per garment, subtle paper grain and two or three large shadow shapes. Remove fine black marks inside clothing; reserve ink accents for key seams and silhouette breaks.
+
+2. **Make Meagan’s red parka dominate her silhouette.** In image 1, her logs, pale hood and dark trousers compete with the small red torso. That makes the player character harder to locate quickly. Enlarge the visible red coat area by roughly 25%, including broader red sleeves, and use a warm brick red with lighter, less saturated shadows. Keep the Jans’ coats consistently muted teal.
+
+3. **Reduce and reposition Meagan’s log bundle.** Image 2 shows a tall, irregular brown mass projecting beside her head and extending almost to her boots. At normal zoom it can read as an extra limb or obscure her body direction. Shorten the bundle by about 25%, group it into three chunky logs, and centre it behind her shoulders with the ends below head height.
+
+4. **Strengthen the head silhouettes.** Meagan’s dark hair and the Jans’ dark beanies become similar small blobs in image 1; their identity depends too heavily on coat colour. Increase the Jan’s blue beanie crown by around 20% and give its cuff one clean shape. Give Meagan a clearly exposed hair crown and a thicker braid resting over one shoulder, visible from the gameplay camera.
+
+5. **Consolidate the pale fur and beard shapes.** In the close-up, cream trim, hands and the Jan’s beard break into many small patches. These crowd the face and make poses harder to parse. Use a single broad hood collar for Meagan and a single tapered beard shape for each Jan. Make the beard slightly darker and warmer than the snow-white trim so the two remain separate.
+
+6. **Make the chopping pose readable between strikes.** The Jan’s hands and axe overlap his torso and stump in both screenshots, weakening the action silhouette. Move the stump approximately half a body-width forward and keep the axe head clear of the coat during the raised pose. Hold that anticipation for 0.2–0.3 seconds before a quick strike, then pause briefly at contact.
+
+7. **Soften the character shadows.** Image 2 reveals a large, sharply patterned blue-grey shadow beside Meagan that competes with her outline. Reduce shadow opacity by about a third and soften its edge; retain a small, darker contact shadow beneath the boots. This will ground the figures without adding another noisy shape at normal zoom.
+
+Verdict: fix first — texture noise and the oversized log bundle undermine phone-size readability; coat colour alone carries too much of the character distinction.

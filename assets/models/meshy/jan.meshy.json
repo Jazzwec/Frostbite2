@@ -9,10 +9,24 @@
       "task_id": "01a1591f-78f9-7414-a1cf-dcae479f074b",
       "tool": "meshy_image_to_3d",
       "credits": 30,
-      "params": {"model_type": "standard", "ai_model": "meshy-6", "remove_lighting": true, "image_enhancement": false,
-                 "pose_mode": "t-pose", "should_remesh": true, "topology": "triangle", "target_polycount": 10000,
-                 "should_texture": true, "enable_pbr": false, "texture_resolution": "2k", "auto_size": true,
-                 "origin_at": "bottom", "target_formats": ["glb"]},
+      "params": {
+        "model_type": "standard",
+        "ai_model": "meshy-6",
+        "remove_lighting": true,
+        "image_enhancement": false,
+        "pose_mode": "t-pose",
+        "should_remesh": true,
+        "topology": "triangle",
+        "target_polycount": 10000,
+        "should_texture": true,
+        "enable_pbr": false,
+        "texture_resolution": "2k",
+        "auto_size": true,
+        "origin_at": "bottom",
+        "target_formats": [
+          "glb"
+        ]
+      },
       "result": "10,330 tris, T-pose, close to the reference"
     },
     {
@@ -20,8 +34,12 @@
       "task_id": "01a15921-fb44-76cf-bffb-3fdaed48d431",
       "tool": "meshy_rig",
       "credits": 5,
-      "params": {"input_task_id": "01a1591f-78f9-7414-a1cf-dcae479f074b", "height_meters": 1.6},
+      "params": {
+        "input_task_id": "01a1591f-78f9-7414-a1cf-dcae479f074b",
+        "height_meters": 1.6
+      },
       "result": "24 bones: Mixamo limb names without prefix, no fingers, spine reversed (Hips > Spine02 > Spine01 > Spine > neck); tools/blender/rig_names.py maps it"
     }
-  ]
+  ],
+  "in_game": "assets/models/blender/jan.glb via cleanup_character(height=1.6, max_tris=5000), since 2026-10-20"
 }

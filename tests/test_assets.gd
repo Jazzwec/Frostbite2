@@ -7,7 +7,7 @@ const DIRS := ["res://assets/models/blender", "res://assets/models/polyhaven"]
 ## Every model needs a row here: [max triangles, min height m, max height m].
 const BUDGETS := {
 	"furnace": [10000, 2.5, 4.5],
-	"jan": [10000, 1.4, 1.9],
+	"jan": [6000, 1.4, 1.9],  # up to 20 on screen at once
 	"meagan": [10000, 1.4, 1.9],
 	"wolf": [5000, 0.6, 1.2],
 	"pine_a": [500, 2.0, 4.0],
