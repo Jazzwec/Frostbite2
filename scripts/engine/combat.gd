@@ -265,15 +265,17 @@ static func nearest_store(s: GameState, pos: Vector2) -> Vector2:
 	return best
 
 
-## Stealing takes a moment (a hit interrupts it, see _land_shots); then it takes Food first,
-## then Wood, then Materials, up to what it carries, and runs off.
+## Stealing takes a moment (a hit interrupts it, see _land_shots); then it takes Food first
+## (never the pantry's last shelf, Balance.STEAL_FOOD_FLOOR_PER_JAN), then Wood, then Materials,
+## up to what it carries, and runs off.
 static func _steal(s: GameState, e: Dictionary, def: Dictionary, at: Vector2, dt: float, events: Array) -> void:
 	e.steal_t += dt
 	if e.steal_t < Balance.STEAL_TIME:
 		return
 	var room: float = def.steal
+	var floor := {"food": Balance.STEAL_FOOD_FLOOR_PER_JAN * s.jans.size()}
 	for res in ["food", "wood", "materials"]:
-		var take := minf(s.piles[res], room)
+		var take := minf(maxf(0.0, s.piles[res] - floor.get(res, 0.0)), room)
 		if take > 0.0:
 			s.piles[res] -= take
 			e.carry[res] = take

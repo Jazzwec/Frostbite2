@@ -299,3 +299,23 @@ func test_the_warning_names_the_wave_that_comes() -> void:
 	check_eq(came.size(), 1, "it came")
 	check_eq(came[0].mix, warned.mix, "as warned")
 	check(e.state.next_wave.is_empty(), "and the drawn wave is used up")
+
+
+## Review 1: one theft mustn't cascade. Thieves leave the pantry's last shelf, so a town with
+## fishers at work doesn't start losing Jans to a single raid.
+func test_a_theft_leaves_the_pantrys_last_shelf() -> void:
+	var e := engine()
+	_quiet(e)
+	for job in ["hunt", "hunt", "chop", "chop", ""]:
+		add_jan(e, job)
+	e.state.piles.food = 30.0
+	var floor := Balance.STEAL_FOOD_FLOOR_PER_JAN * 5
+	var at := Combat.nearest_store(e.state, Vector2(0, 40))
+	e.state.wolves.append(Combat.make_enemy(e.state, "bear", at, Vector2(0, 40)))
+	e.skip(Balance.STEAL_TIME + 0.5)
+	var thefts := _of(e, "theft")
+	check_eq(thefts.size(), 1, "it stole")
+	check_near(e.state.piles.food, floor, 0.2, "all but the last shelf (less a bite eaten since)")
+	e.skip(90.0)
+	check(_of(e, "jan_starved").is_empty(), "nobody left")
+	check_eq(e.state.jans.size(), 5, "all five still here")

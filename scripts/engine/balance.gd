@@ -429,6 +429,10 @@ const STEAL_REACH := 1.5
 const STEAL_TIME := 2.0
 const STEAL_RETRY := 1.0
 const CARRY_SPEED := 0.8
+## Thieves leave the pantry's bottom shelf: never the last this much Food per Jan (about three
+## minutes of eating), so one theft can't start a starvation spiral while the fishers' loads are
+## on their way (fight_v2 review 1: a recoverable first breach). [proto]
+const STEAL_FOOD_FLOOR_PER_JAN := 3.0
 ## With no Food, after a grace the Jans start leaving, one every so often, idle ones first; it
 ## stops once Food has stayed up a while.
 const STARVE_GRACE := 30.0

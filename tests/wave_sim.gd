@@ -10,8 +10,10 @@ const ACTIVE_RANGE := 14.0
 const RUN := 6.0
 
 ## Armory levels by play time on ChatGPT's schedule (steer fight_v2: 5 by 15:00, 7 by 22:00,
-## 10 by 30:00), in minutes.
+## 10 by 30:00), in minutes. The "late" plan buys each level LATE minutes after it (fight_v2
+## review 1: playtest missed upgrades, not just ideal buying).
 const SCHEDULE := [[0.0, 1], [6.0, 2], [9.0, 3], [12.0, 4], [15.0, 5], [18.5, 6], [22.0, 7], [25.0, 8], [27.5, 9], [30.0, 10]]
+const LATE := 3.0
 
 
 static func run(plan: String, waves: int, seed := 7, active := false) -> Array:
@@ -34,9 +36,10 @@ static func run(plan: String, waves: int, seed := 7, active := false) -> Array:
 	while s.wave <= waves and s.time < 3600.0:
 		# Armory by the clock.
 		var lv := 1
-		if plan == "schedule":
+		if plan == "schedule" or plan == "late":
+			var shift := LATE if plan == "late" else 0.0
 			for step in SCHEDULE:
-				if s.time / 60.0 >= step[0]:
+				if s.time / 60.0 >= step[0] + (shift if step[1] > 1 else 0.0):
 					lv = step[1]
 		_set_armory(s, lv)
 		e.fill()

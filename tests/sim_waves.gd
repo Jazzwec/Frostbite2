@@ -7,7 +7,7 @@ extends SceneTree
 
 
 func _init() -> void:
-	for setup in [["none", false], ["none", true], ["schedule", true]]:
+	for setup in [["none", false], ["none", true], ["late", true], ["schedule", true]]:
 		print("--- Armory: %s, %s ---" % [setup[0], "active" if setup[1] else "standing"])
 		for row in WaveSim.run(setup[0], 16, 7, setup[1]):
 			print("wave %2d at %5s  lv %2d  enemies %2d  thieves %2d  stolen %4d  Meagan down: %s" % [row.wave, row.clock, row.armory, row.enemies, row.thieves, row.stolen, row.injured])

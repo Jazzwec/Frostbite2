@@ -13,6 +13,9 @@ var e = Game.engine
 var s = e.state
 var main = get_tree().current_scene
 main._hud.sheet.close()
+# Waves come mid-game: the first-minute hints are long done by then.
+for id in HintRules.ORDER:
+	main._hud.hints._done[id] = true
 s.wolves.clear()
 s.wave_queue.clear()
 s.shots.clear()
@@ -122,8 +125,14 @@ if s.sites[i].building == \"\":
 	e.dev_level_up(i)
 e.dev_level_up(i)
 e.dev_level_up(i)
-main._hud.sheet.open_site(i)
+s.piles.materials = 8.0
 emit(i)" >/dev/null 2>&1
+sleep 1.5
+swallowtail runtime eval --code 'var s = Game.engine.state
+for k in s.sites.size():
+	if s.sites[k].building == "armory":
+		get_tree().current_scene._hud.sheet.open_site(k)
+emit(1)' >/dev/null 2>&1
 sleep 1.0
 swallowtail runtime screenshot --save_path "$OUT/armory_sheet.png" >/dev/null 2>&1
 swallowtail runtime eval --code 'get_tree().current_scene._hud.sheet.close()

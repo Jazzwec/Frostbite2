@@ -21,7 +21,11 @@ var _auto_on_style: StyleBoxFlat
 var _title: Label
 var _effect: Label
 var _status: Label
+## What the next upgrade costs against what she has (bag and store), a shortage in red.
+var _cost_line: RichTextLabel
 var _upgrade: Button
+## The Armory's three rows (fight_v2 review 1): [now, next] labels by stat.
+var _armory_cells := {}
 var _job_label: Label
 var _job_row: HBoxContainer
 var _job := ""
@@ -170,9 +174,11 @@ func _open_building(b: String) -> void:
 	_effect = UiTheme.label(Game.building_text(b).get("effect", ""), 34, UiTheme.INK_SOFT)
 	_body.add_child(_effect)
 	if b == "armory":
-		_body.add_child(UiTheme.label(_armory_stats(), 34))
+		_body.add_child(_armory_grid())
 	_status = UiTheme.label("", 38)
 	_body.add_child(_status)
+	_cost_line = UiTheme.rich_label(34)
+	_body.add_child(_cost_line)
 	_upgrade = UiTheme.button("", _start_upgrade)
 	_body.add_child(_upgrade)
 	for job in Balance.JOBS:
@@ -201,18 +207,56 @@ func _build() -> void:
 	close()
 
 
-## "Snowball 6 → 7 · Stick 10 → 12 · Guards 3 → 4": damage now and at the next level.
-func _armory_stats() -> String:
-	var s := Game.engine.state
+## The Armory's rows, aligned: what each does now and at the next level (fight_v2 review 1).
+const ARMORY_ROWS := [["snow", "Snowball damage"], ["stick", "Sweep damage"], ["guard", "Guard damage / HP"]]
+
+
+func _armory_grid() -> GridContainer:
+	var grid := GridContainer.new()
+	grid.columns = 3
+	grid.add_theme_constant_override("h_separation", 28)
+	grid.add_theme_constant_override("v_separation", 6)
+	_armory_cells = {}
+	for row in ARMORY_ROWS:
+		var name := UiTheme.label(row[1], 34, UiTheme.INK_SOFT)
+		name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var now := UiTheme.label("", 34)
+		var next := UiTheme.label("", 34, UiTheme.TEAL_DEEP)
+		for l in [now, next]:
+			l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+			l.custom_minimum_size.x = 150
+		grid.add_child(name)
+		grid.add_child(now)
+		grid.add_child(next)
+		_armory_cells[row[0]] = [now, next]
+	return grid
+
+
+func _refresh_armory(s: GameState) -> void:
 	var lv := maxi(Economy.level(s, "armory"), 1)
-	var now := Economy.meagan_weapon(s, lv)
-	var kit_now: Array = Economy.armory_row(s, lv).guard
-	if lv >= Balance.ARMORY_LEVELS.size():
-		return "Snowball %d (%.1f m) · Stick %d · Guards %d, %d HP" % [now.snow_damage, now.range, now.stick_damage, kit_now[0], kit_now[1]]
-	var next := Economy.meagan_weapon(s, lv + 1)
-	var kit_next: Array = Economy.armory_row(s, lv + 1).guard
-	return "Snowball %d → %d · Stick %d → %d\nGuards %d → %d, %d → %d HP" % [now.snow_damage, next.snow_damage, now.stick_damage, next.stick_damage,
-			kit_now[0], kit_next[0], kit_now[1], kit_next[1]]
+	var top := lv >= Balance.ARMORY_LEVELS.size()
+	var texts := func(at: int) -> Dictionary:
+		var w := Economy.meagan_weapon(s, at)
+		var kit: Array = Economy.armory_row(s, at).guard
+		return {"snow": "%d" % w.snow_damage, "stick": "%d" % w.stick_damage, "guard": "%d / %d" % [kit[0], kit[1]]}
+	var now: Dictionary = texts.call(lv)
+	var next: Dictionary = {} if top else texts.call(lv + 1)
+	for key in _armory_cells:
+		_armory_cells[key][0].text = now[key]
+		_armory_cells[key][1].text = "MAX" if top else "→ " + next[key]
+
+
+## "Wood 52 / 120  ·  Mat 15 / 8 short": each resource needed against what she has (bag and
+## store), red where she's short (fight_v2 review 1).
+func _cost_text(s: GameState, need: Dictionary) -> String:
+	var parts := []
+	for res in need:
+		var have: float = s.piles.get(res, 0.0) + s.bag.get(res, 0.0)
+		var part := "%s %s %s / %s" % [UiTheme.icon(res, 40), str(res).capitalize().replace("Materials", "Mat"), Fmt.num(need[res]), Fmt.num(have)]
+		if have < need[res]:
+			part = "[color=#%s]%s short[/color]" % [UiTheme.FALU.to_html(false), part]
+		parts.append(part)
+	return "Needs  " + "  ·  ".join(parts)
 
 
 func _start_upgrade() -> void:
@@ -302,7 +346,12 @@ func _refresh() -> void:
 	else:
 		_status.text = _summary(s, b) + _shared_note(s, b)
 		_upgrade.visible = true
-		_upgrade.text = "Upgrade to Lv %d  ·  %s" % [site.level + 1, Fmt.cost(Economy.site_cost(s, site_index))]
+		_upgrade.text = "Upgrade to Lv %d" % (site.level + 1)
+	_cost_line.visible = _upgrade.visible
+	if _upgrade.visible:
+		_cost_line.text = _cost_text(s, Economy.site_cost(s, site_index))
+	if b == "armory":
+		_refresh_armory(s)
 	if _job != "":
 		_job_row.visible = site.level >= 1
 		var def: Dictionary = Balance.JOBS[_job]
