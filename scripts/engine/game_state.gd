@@ -118,6 +118,9 @@ var attacks_repelled := 0
 ## enough to pause her work. Her hits on their way: {wolf, in (seconds), damage, knock, from,
 ## kind}. When a wolf last started winding up a bite.
 var meagan_mode := "ranged"
+## Who she's aiming at and since when (she holds a target a moment; fight_v2 review 1).
+var meagan_foe := -1
+var meagan_foe_at := -10.0
 ## Waves (agreed 2026-10-20): how many have come, the enemies still to come ({kind, at, from,
 ## strength}), whether a raid is on, the enemies' thrown shards on their way ({wolf, from, to,
 ## in, damage, reach}), and the outposts in opened tiles ({kind, pos, tile, awake, cleared, pay,
@@ -127,6 +130,9 @@ var wave_queue: Array = []
 var raid_on := false
 var enemy_shots: Array = []
 var outposts: Array = []
+## The next wave, drawn when it's announced so the warning can say what's coming and from where:
+## {n, mix, sides}, or empty.
+var next_wave: Dictionary = {}
 ## Starving (no Food): seconds without, the countdown to the next Jan leaving, and how long Food
 ## has been back up.
 var starve_t := 0.0

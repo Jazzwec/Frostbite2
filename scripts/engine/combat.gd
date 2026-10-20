@@ -39,7 +39,9 @@ static func _schedule(s: GameState, rng: RandomNumberGenerator, events: Array) -
 	var warning := Economy.attack_warning(s)
 	if warning > 0.0 and not s.attack_warned and not s.blizzard_active and s.time >= s.attack_at - warning:
 		s.attack_warned = true
-		events.append({"type": "attack_warning", "starts_in": maxf(s.attack_at - s.time, 0.0), "wave": s.wave + 1})
+		# Drawn now, so the warning can say what's coming and from where (fight_v2 review 1).
+		var next := _draw_wave(s, s.wave + 1, rng)
+		events.append({"type": "attack_warning", "starts_in": maxf(s.attack_at - s.time, 0.0), "wave": next.n, "mix": next.mix, "sides": next.sides})
 	if s.time < s.attack_at:
 		return
 	if s.blizzard_active:
@@ -99,18 +101,30 @@ static func wave_mix(n: int, rng: RandomNumberGenerator) -> Dictionary:
 	return mix
 
 
-## Queues wave `n`'s enemies in groups, a few seconds apart, from one or two sides.
-static func plan_wave(s: GameState, n: int, rng: RandomNumberGenerator, events: Array) -> void:
-	var mix := wave_mix(n, rng)
-	var strength := maxf(1.0, wave_budget(n) / Balance.WAVE_SPEND_MAX)
+## Wave `n`'s make-up and the sides it comes from, {n, mix, sides}: drawn once, at its warning or
+## when it comes, and kept in `state.next_wave` until it's queued.
+static func _draw_wave(s: GameState, n: int, rng: RandomNumberGenerator) -> Dictionary:
+	if s.next_wave.get("n", -1) == n:
+		return s.next_wave
 	var sides := [s.wolf_spawns[rng.randi_range(0, s.wolf_spawns.size() - 1)]]
 	if n >= Balance.WAVE_TWO_SIDES_FROM and s.wolf_spawns.size() > 1:
 		# The spawn furthest round from the first.
 		var best: Vector2 = sides[0]
 		for p in s.wolf_spawns:
-			if p.angle_to_point(Vector2.ZERO) != sides[0].angle_to_point(Vector2.ZERO) and absf(angle_difference(p.angle(), sides[0].angle())) > absf(angle_difference(best.angle(), sides[0].angle())):
+			if absf(angle_difference(p.angle(), sides[0].angle())) > absf(angle_difference(best.angle(), sides[0].angle())):
 				best = p
 		sides.append(best)
+	s.next_wave = {"n": n, "mix": wave_mix(n, rng), "sides": sides}
+	return s.next_wave
+
+
+## Queues wave `n`'s enemies in groups, a few seconds apart, from one or two sides.
+static func plan_wave(s: GameState, n: int, rng: RandomNumberGenerator, events: Array) -> void:
+	var drawn := _draw_wave(s, n, rng)
+	s.next_wave = {}
+	var mix: Dictionary = drawn.mix
+	var sides: Array = drawn.sides
+	var strength := maxf(1.0, wave_budget(n) / Balance.WAVE_SPEND_MAX)
 	var order := []
 	for kind in mix:
 		for i in mix[kind]:
@@ -176,7 +190,8 @@ static func _enemy(s: GameState, e: Dictionary, dt: float, events: Array) -> voi
 			s.wolves.erase(e)
 			events.append({"type": "wolf_left", "wolf": e.id, "carry": e.carry})
 		return
-	if e.outpost >= 0 and not _outpost_awake(s, e):
+	# An outpost's defenders sleep, and once woken take a moment to get up (fight_v2 review 1).
+	if e.outpost >= 0 and (not _outpost_awake(s, e) or s.time < s.outposts[e.outpost].get("woke_at", -100.0) + Balance.OUTPOST_WAKE):
 		return
 
 	# Fight the nearest defender close by, unless it's given up on them for now.
@@ -265,7 +280,7 @@ static func _steal(s: GameState, e: Dictionary, def: Dictionary, at: Vector2, dt
 			room -= take
 	e.stolen = true
 	e.mode = "leave"
-	events.append({"type": "theft", "wolf": e.id, "carry": e.carry, "pos": at})
+	events.append({"type": "theft", "wolf": e.id, "kind": e.kind, "carry": e.carry, "pos": at})
 
 
 static func _fight(s: GameState, e: Dictionary, def: Dictionary, foe: Dictionary, dt: float, events: Array) -> void:
@@ -291,8 +306,11 @@ static func _fight(s: GameState, e: Dictionary, def: Dictionary, foe: Dictionary
 	_attack(s, e, def, foe, dt, events)
 
 
-## An enemy's attack: its tell (aim locked, it stands still), then it lands (or throws), then it
-## recovers and waits. Only a couple wind up at once, their starts a little apart, so each reads.
+## An enemy's attack: its tell (it stands still, turning after its victim until ENEMY_AIM_LOCK
+## before the strike, then locked), then it lands (or throws), then it recovers and waits. The
+## strike is judged from where its tell was drawn (`tell_from`, `aim`), so what the snow shows
+## at the end is exactly what it hits (fight_v2 review 1). Only a couple wind up at once, their
+## starts a little apart, so each reads.
 static func _attack(s: GameState, e: Dictionary, def: Dictionary, foe: Dictionary, dt: float, events: Array) -> void:
 	var t: float = e.bite_t
 	e.bite_cd = maxf(0.0, e.bite_cd - dt)
@@ -305,9 +323,14 @@ static func _attack(s: GameState, e: Dictionary, def: Dictionary, foe: Dictionar
 		e.bite_t = 0.0
 		e.victim = foe.id
 		e.aim = foe.pos
+		e.tell_from = e.pos
 		s.wolf_windup_at = s.time
 		events.append({"type": "wolf_windup", "wolf": e.id, "kind": e.kind, "pos": e.pos, "aim": e.aim})
 		return
+	if def.shape != "ring" and t < strike - Balance.ENEMY_AIM_LOCK:
+		var victim := _victim_of(s, e)
+		if not victim.is_empty():
+			e.aim = victim.pos
 	e.bite_t = t + dt
 	if t < strike and e.bite_t >= strike:
 		match def.shape:
@@ -319,9 +342,9 @@ static func _attack(s: GameState, e: Dictionary, def: Dictionary, foe: Dictionar
 				var d: float = e.pos.distance_to(e.aim)
 				s.enemy_shots.append({"wolf": e.id, "from": e.pos, "to": e.aim, "in": d / Balance.ENEMY_SHOT_SPEED, "damage": e.damage, "reach": def.reach})
 				events.append({"type": "enemy_throw", "wolf": e.id, "from": e.pos, "to": e.aim, "flight": d / Balance.ENEMY_SHOT_SPEED})
-	if e.bite_t >= strike + Balance.ENEMY_RECOVER:
+	if e.bite_t >= strike + def.recover:
 		e.bite_t = -1.0
-		e.bite_cd = maxf(0.0, def.cooldown - Balance.ENEMY_RECOVER)
+		e.bite_cd = maxf(0.0, def.cooldown - def.recover)
 
 
 static func _may_wind_up(s: GameState, def: Dictionary) -> bool:
@@ -343,24 +366,33 @@ static func _may_wind_up(s: GameState, def: Dictionary) -> bool:
 	return melee + def.weight <= Balance.ENEMY_MAX_MELEE_WINDUP
 
 
-## A bite or swipe lands on its victim if it's still in reach and in front.
+## Whether `pos` stands inside an attack's wedge: within `reach` of `from` and inside `arc`
+## degrees about the line to `aim` (the shape its tell draws).
+static func in_wedge(pos: Vector2, from: Vector2, aim: Vector2, reach: float, arc: float) -> bool:
+	var to := pos - from
+	var facing := aim - from
+	if to.length() > reach:
+		return false
+	return to.length() < 0.01 or facing.length() < 0.01 or absf(rad_to_deg(facing.angle_to(to))) <= arc / 2.0
+
+
+## A bite or swipe lands on its victim if it's still inside the wedge its tell showed.
 static func _wedge_lands(s: GameState, e: Dictionary, def: Dictionary, events: Array) -> void:
 	var victim := _victim_of(s, e)
 	var hit := false
 	if not victim.is_empty():
-		var to: Vector2 = victim.pos - e.pos
-		var facing: Vector2 = e.aim - e.pos
-		hit = to.length() <= def.reach and (facing.length() < 0.01 or absf(rad_to_deg(facing.angle_to(to))) <= def.arc / 2.0 + 15.0)
+		hit = in_wedge(victim.pos, e.get("tell_from", e.pos), e.aim, def.reach, def.arc)
 		if hit:
 			_hurt(s, victim, e.damage, events)
 	events.append({"type": "wolf_bite", "wolf": e.id, "kind": e.kind, "victim": e.victim, "hit": hit, "pos": victim.get("pos", e.aim)})
 
 
-## A troll's slam hits every defender within its reach.
+## A troll's slam hits every defender inside its ring.
 static func _ring_lands(s: GameState, e: Dictionary, def: Dictionary, events: Array) -> void:
 	var victims := []
+	var centre: Vector2 = e.get("tell_from", e.pos)
 	for foe in _defenders(s):
-		if foe.pos.distance_to(e.pos) <= def.reach:
+		if foe.pos.distance_to(centre) <= def.reach:
 			_hurt(s, foe, e.damage, events)
 			victims.append(foe.id)
 	events.append({"type": "wolf_bite", "wolf": e.id, "kind": e.kind, "victim": e.victim, "hit": not victims.is_empty(), "pos": e.pos, "slam": true, "victims": victims})
@@ -421,7 +453,9 @@ static func _hurt(s: GameState, foe: Dictionary, damage: float, events: Array) -
 			e.fight_for = 0.0
 
 
-## Enemies at their target step apart when too close, so a pack spreads out round it.
+## Enemies at their target step apart when too close, so a pack spreads out round it: about
+## ENEMY_GAP of a body width between bodies (fight_v2 review 1). One winding up takes its tell
+## along.
 static func _spread(s: GameState, dt: float) -> void:
 	var pack := s.wolves.filter(func(w): return (w.mode == "fight" or w.mode == "jans") and w.hp > 0.0)
 	var most := Balance.WOLF_SPEED * dt
@@ -429,14 +463,30 @@ static func _spread(s: GameState, dt: float) -> void:
 		for j in range(i + 1, pack.size()):
 			var a: Dictionary = pack[i]
 			var b: Dictionary = pack[j]
+			var spacing := spacing_of(a.kind, b.kind)
 			var apart: Vector2 = a.pos - b.pos
 			var d := apart.length()
-			if d >= Balance.WOLF_SPACING:
+			if d >= spacing:
 				continue
 			var dir := apart / d if d > 0.001 else Vector2.RIGHT.rotated(float(a.id * 7 + b.id * 13))
-			var step := minf((Balance.WOLF_SPACING - d) / 2.0, most)
-			a.pos = (a.pos + dir * step).clamp(s.bounds.position, s.bounds.end)
-			b.pos = (b.pos - dir * step).clamp(s.bounds.position, s.bounds.end)
+			var step := minf((spacing - d) / 2.0, most)
+			_shift(s, a, dir * step)
+			_shift(s, b, -dir * step)
+
+
+## Moves an enemy by `by`, inside the world, and its tell with it if it's winding up.
+static func _shift(s: GameState, e: Dictionary, by: Vector2) -> void:
+	var was: Vector2 = e.pos
+	e.pos = (e.pos + by).clamp(s.bounds.position, s.bounds.end)
+	if e.bite_t >= 0.0 and e.has("tell_from"):
+		e.tell_from += e.pos - was
+
+
+## How far apart two enemies' middles keep: half of each one's width, plus the gap.
+static func spacing_of(a: String, b: String) -> float:
+	var wa: float = Balance.ENEMIES[a].width
+	var wb: float = Balance.ENEMIES[b].width
+	return (wa + wb) / 2.0 * (1.0 + Balance.ENEMY_GAP)
 
 
 ## The nearest defender within `range`, as {id, pos}, or {}.
@@ -474,8 +524,9 @@ static func _job_at_site(s: GameState, site: int) -> String:
 static func _outpost_awake(s: GameState, e: Dictionary) -> bool:
 	var post: Dictionary = s.outposts[e.outpost]
 	var near := s.meagan_pos.distance_to(post.pos) <= Balance.OUTPOST_ALERT
-	if near or e.hp < e.max_hp:
+	if (near or e.hp < e.max_hp) and not post.awake:
 		post.awake = true
+		post.woke_at = s.time
 	elif s.meagan_pos.distance_to(post.pos) > Balance.OUTPOST_LEASH or s.meagan_injured:
 		post.awake = false
 	return post.awake
@@ -506,7 +557,7 @@ static func add_outpost(s: GameState, kind: String, pos: Vector2, tile: Vector2i
 	for res in def.pay:
 		pay[res] = ceilf(def.pay[res] * p)
 	var index := s.outposts.size()
-	s.outposts.append({"kind": kind, "pos": pos, "tile": tile, "awake": false, "cleared": false, "pay": pay, "chest": def.chest})
+	s.outposts.append({"kind": kind, "pos": pos, "tile": tile, "awake": false, "woke_at": -100.0, "cleared": false, "pay": pay, "chest": def.chest})
 	var n := 0
 	for kind2 in def.defenders:
 		for k in def.defenders[kind2]:
@@ -568,24 +619,33 @@ static func _guards_fight(s: GameState, dt: float, events: Array) -> void:
 
 
 ## Meagan fights on her own: snowballs at range, a stick sweep up close (up to 3 enemies in
-## front), swapping with hysteresis; each attack lands its hit a moment later (_land_shots).
+## front), swapping with hysteresis (in at her reach, out beyond MELEE_EXIT_MULT of it); she
+## keeps a target at least MEAGAN_TARGET_HOLD before turning to a nearer one, so her choice is
+## predictable (fight_v2 review 1). Each attack lands its hit a moment later (_land_shots).
 static func _meagan_fights(s: GameState, dt: float, events: Array) -> void:
 	if s.meagan_injured:
 		return
 	s.meagan_attack_in = maxf(0.0, s.meagan_attack_in - dt)
 	var w := Economy.meagan_weapon(s)
-	var target := _nearest_enemy(s, s.meagan_pos)
+	var target := _meagan_target(s, w)
 	var d := INF if target.is_empty() else s.meagan_pos.distance_to(target.pos)
-	if d <= Balance.FIGHT_PAUSE_RANGE:
+	# The mode follows the nearest enemy, whichever she's aiming at.
+	var nearest := _nearest_enemy(s, s.meagan_pos)
+	var near_d := INF if nearest.is_empty() else s.meagan_pos.distance_to(nearest.pos)
+	if near_d <= Balance.FIGHT_PAUSE_RANGE:
 		s.meagan_fight_at = s.time
-	if d <= w.reach:
+	if near_d <= w.reach:
 		s.meagan_mode = "melee"
 		s.meagan_melee_clear = 0.0
 	elif s.meagan_mode == "melee":
-		s.meagan_melee_clear = s.meagan_melee_clear + dt if d > w.reach + Balance.MELEE_EXIT_MARGIN else 0.0
+		s.meagan_melee_clear = s.meagan_melee_clear + dt if near_d > w.reach * Balance.MELEE_EXIT_MULT else 0.0
 		if s.meagan_melee_clear >= Balance.MEAGAN_MELEE_EXIT_TIME:
 			s.meagan_mode = "ranged"
 	var melee := s.meagan_mode == "melee"
+	if melee and d > w.reach:
+		# Up close she sweeps at whatever's nearest.
+		target = nearest
+		d = near_d
 	if d > (w.reach if melee else w.range):
 		return
 	MeaganRules.set_activity(s, "fight", target.id, target.pos)
@@ -611,8 +671,8 @@ static func _land_shots(s: GameState, dt: float, events: Array) -> void:
 		s.shots.erase(shot)
 		if shot.kind == "melee":
 			var facing: Vector2 = shot.aim - s.meagan_pos
-			var hits := s.wolves.filter(func(e): return e.hp > 0.0 and e.pos.distance_to(s.meagan_pos) <= shot.reach + 0.3 \
-					and (facing.length() < 0.01 or absf(rad_to_deg(facing.angle_to(e.pos - s.meagan_pos))) <= Balance.STICK_ARC / 2.0))
+			# Exactly the arc the view draws (fight_v2 review 1).
+			var hits := s.wolves.filter(func(e): return e.hp > 0.0 and in_wedge(e.pos, s.meagan_pos, shot.aim, shot.reach, Balance.STICK_ARC))
 			hits.sort_custom(func(a, b): return a.pos.distance_to(s.meagan_pos) < b.pos.distance_to(s.meagan_pos))
 			for e in hits.slice(0, Balance.STICK_TARGETS):
 				_damage(s, e, shot.damage, s.meagan_pos, shot.knock, "melee", events)
@@ -630,9 +690,10 @@ static func _damage(s: GameState, e: Dictionary, damage: float, from: Vector2, k
 	var away: Vector2 = e.pos - from
 	var k: float = knock * Balance.ENEMIES[e.kind].knocked
 	if away.length() > 0.001 and k > 0.0:
-		e.pos = (e.pos + away.normalized() * k).clamp(s.bounds.position, s.bounds.end)
-	if e.outpost >= 0:
+		_shift(s, e, away.normalized() * k)
+	if e.outpost >= 0 and not s.outposts[e.outpost].awake:
 		s.outposts[e.outpost].awake = true
+		s.outposts[e.outpost].woke_at = s.time
 	events.append({"type": "wolf_hit", "wolf": e.id, "kind": kind, "pos": e.pos, "from": from, "amount": damage})
 
 
@@ -646,14 +707,35 @@ static func _nearest_enemy(s: GameState, pos: Vector2) -> Dictionary:
 	var best := {}
 	var best_d := INF
 	for e in s.wolves:
-		if e.hp <= 0.0 or (e.mode == "leave" and e.carry.is_empty()):
-			continue
-		if e.outpost >= 0 and not s.outposts[e.outpost].awake and pos.distance_to(e.pos) > Balance.OUTPOST_ALERT:
+		if not _worth_fighting(s, e, pos):
 			continue
 		var d: float = pos.distance_to(e.pos)
 		if d < best_d:
 			best = e
 			best_d = d
+	return best
+
+
+static func _worth_fighting(s: GameState, e: Dictionary, pos: Vector2) -> bool:
+	if e.hp <= 0.0 or (e.mode == "leave" and e.carry.is_empty()):
+		return false
+	return not (e.outpost >= 0 and not s.outposts[e.outpost].awake and pos.distance_to(e.pos) > Balance.OUTPOST_ALERT)
+
+
+## Her target: the one she has, while it's still worth fighting and in range and she's held it
+## less than MEAGAN_TARGET_HOLD; otherwise the nearest.
+static func _meagan_target(s: GameState, w: Dictionary) -> Dictionary:
+	for e in s.wolves:
+		if e.id != s.meagan_foe:
+			continue
+		var reach: float = w.reach if s.meagan_mode == "melee" else w.range
+		if _worth_fighting(s, e, s.meagan_pos) and s.meagan_pos.distance_to(e.pos) <= reach \
+				and s.time - s.meagan_foe_at < Balance.MEAGAN_TARGET_HOLD:
+			return e
+	var best := _nearest_enemy(s, s.meagan_pos)
+	if not best.is_empty() and best.id != s.meagan_foe:
+		s.meagan_foe = best.id
+		s.meagan_foe_at = s.time
 	return best
 
 

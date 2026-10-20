@@ -252,14 +252,14 @@ const CLIPS := {
 			{"t": 0.5, "arm_r": Vector3(-42, 0, 10), "arm_l": Vector3(-32, 0, -14), "lean": 7.0, "rise": -0.07, "tool": Vector3(-30, 0, 0)},
 		],
 	},
-	# Her stick sweep (Astra's steer): 0.16 s wind-up, a 0.08 s sweep to the hit at 0.24 s, 0.2 s
+	# Her stick sweep: a 0.1 s wind-up, a 0.06 s sweep to the hit at 0.16 s (fight_v2 review 1), 0.28 s
 	# recovery, rest. Played over her legs, so she can swing while she walks.
 	"sweep": {
-		"length": 0.8, "loop": false, "tool": "stick", "impact": 0.3,
+		"length": 0.8, "loop": false, "tool": "stick", "impact": 0.2,
 		"keys": [
 			{"t": 0.0, "arm_r": Vector3(-45, 0, 10), "arm_l": Vector3(-35, 0, -14), "turn": 0.0, "tool": Vector3(0, 90, 0)},
-			{"t": 0.2, "arm_r": Vector3(-72, 0, -36), "arm_l": Vector3(-60, 0, -30), "turn": 32.0, "lean": -4.0, "tool": Vector3(0, 90, 0), "ease": "out"},
-			{"t": 0.3, "arm_r": Vector3(-78, 0, 24), "arm_l": Vector3(-64, 0, 18), "turn": -28.0, "lean": 8.0, "tool": Vector3(0, 90, 0), "ease": "in"},
+			{"t": 0.13, "arm_r": Vector3(-72, 0, -36), "arm_l": Vector3(-60, 0, -30), "turn": 32.0, "lean": -4.0, "tool": Vector3(0, 90, 0), "ease": "out"},
+			{"t": 0.2, "arm_r": Vector3(-78, 0, 24), "arm_l": Vector3(-64, 0, 18), "turn": -28.0, "lean": 8.0, "tool": Vector3(0, 90, 0), "ease": "in"},
 			{"t": 0.55, "arm_r": Vector3(-55, 0, 20), "arm_l": Vector3(-45, 0, 10), "turn": -15.0, "lean": 4.0, "tool": Vector3(0, 90, 0)},
 			{"t": 1.0, "arm_r": Vector3(-40, 0, 10), "arm_l": Vector3(-32, 0, -14), "turn": 0.0, "tool": Vector3(0, 90, 0)},
 		],

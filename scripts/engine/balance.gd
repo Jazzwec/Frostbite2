@@ -118,11 +118,14 @@ const MEAGAN_ATTACK_RANGE := 2.5  # [proto]
 const MEAGAN_MELEE_REACH := 2.5
 const MEAGAN_MELEE_DAMAGE := 10.0
 const MEAGAN_MELEE_EVERY := 0.8
-## From the start of the sweep to its hit.
-const MEAGAN_MELEE_IMPACT := 0.24
+## From the start of the sweep to its hit: a short anticipation, its direction committed at the
+## start (fight_v2 review 1: 0.12-0.18 s).
+const MEAGAN_MELEE_IMPACT := 0.16
 const MEAGAN_MELEE_KNOCK := 0.25
 const MEAGAN_MELEE_EXIT := 3.0
-const MEAGAN_MELEE_EXIT_TIME := 0.3
+const MEAGAN_MELEE_EXIT_TIME := 0.4
+## She keeps a target at least this long before turning to a nearer one (fight_v2 review 1).
+const MEAGAN_TARGET_HOLD := 0.4
 const MEAGAN_RANGED_RANGE := 7.0
 const MEAGAN_RANGED_DAMAGE := 6.0
 const MEAGAN_RANGED_EVERY := 0.75
@@ -356,24 +359,32 @@ const GEAR := {
 ## "ring" (a slam all round it) or "shot" (a thrown shard). `hold` is how far from its target it
 ## stands (centre to centre), `reach` how far its attack lands (for a shot, how close to where it
 ## was aimed). `tell` is the wind-up before it lands, `cooldown` from one hit to the next wind-up.
-## `steal` is how much it carries off from the store; `loot` its Materials when killed; `cost`
-## its share of a wave's budget; `first` the first wave it can come in; `knocked` how much of a
-## knockback it takes; `weight` how much of the wind-up limit it uses.
+## `recover` is how long it holds its strike pose afterwards, the opening to step in (fight_v2
+## review 1: wind-ups 0.65-1.2 s, heavy hitters show a long recovery). `steal` is how much it
+## carries off from the store; `loot` its Materials when killed; `cost` its share of a wave's
+## budget; `first` the first wave it can come in; `knocked` how much of a knockback it takes;
+## `weight` how much of the wind-up limit it uses; `width` its body's width in metres (0.8 / 1 /
+## 1.5 / 1.8 of a wolf's, review 1), which spaces a pack. HP is about 25-35% over the steer's,
+## because the longer wind-ups made every raid easier (tests/sim_waves.gd).
 const ENEMIES := {
-	"fox": {"name": "Frost fox", "hp": 10.0, "speed": 3.6, "shape": "wedge", "hold": 1.0, "reach": 1.5, "arc": 45.0,
-		"tell": 0.45, "damage": 2.0, "cooldown": 1.4, "steal": 5.0, "loot": 1.0, "cost": 1, "first": 3, "knocked": 1.0, "weight": 1},
-	"wolf": {"name": "Wolf", "hp": 20.0, "speed": 2.5, "shape": "wedge", "hold": 1.3, "reach": 1.9, "arc": 60.0,
-		"tell": 0.4, "damage": 3.0, "cooldown": 1.5, "steal": 8.0, "loot": 1.0, "cost": 2, "first": 1, "knocked": 1.0, "weight": 1},
-	"bear": {"name": "Bear", "hp": 100.0, "speed": 1.4, "shape": "wedge", "hold": 1.8, "reach": 2.8, "arc": 110.0,
-		"tell": 0.9, "damage": 10.0, "cooldown": 2.6, "steal": 20.0, "loot": 5.0, "cost": 8, "first": 5, "knocked": 0.25, "weight": 1},
-	"raider": {"name": "Raider", "hp": 30.0, "speed": 2.1, "shape": "shot", "hold": 5.0, "reach": 0.7, "arc": 0.0,
-		"tell": 0.75, "damage": 4.0, "cooldown": 2.0, "steal": 15.0, "loot": 3.0, "cost": 4, "first": 4, "knocked": 1.0, "weight": 0},
-	"troll": {"name": "Ice troll", "hp": 240.0, "speed": 1.1, "shape": "ring", "hold": 2.0, "reach": 3.0, "arc": 360.0,
-		"tell": 1.4, "damage": 16.0, "cooldown": 4.5, "steal": 40.0, "loot": 15.0, "cost": 20, "first": 6, "knocked": 0.0, "weight": 2},
+	"fox": {"name": "Frost fox", "hp": 13.0, "speed": 3.6, "shape": "wedge", "hold": 1.0, "reach": 1.5, "arc": 45.0,
+		"tell": 0.65, "recover": 0.28, "damage": 2.0, "cooldown": 1.4, "steal": 5.0, "loot": 1.0, "cost": 1, "first": 3, "knocked": 1.0, "weight": 1, "width": 0.56},
+	"wolf": {"name": "Wolf", "hp": 27.0, "speed": 2.5, "shape": "wedge", "hold": 1.3, "reach": 1.9, "arc": 60.0,
+		"tell": 0.65, "recover": 0.28, "damage": 3.0, "cooldown": 1.5, "steal": 8.0, "loot": 1.0, "cost": 2, "first": 1, "knocked": 1.0, "weight": 1, "width": 0.7},
+	"bear": {"name": "Bear", "hp": 125.0, "speed": 1.4, "shape": "wedge", "hold": 1.8, "reach": 2.8, "arc": 110.0,
+		"tell": 0.9, "recover": 0.45, "damage": 10.0, "cooldown": 2.6, "steal": 20.0, "loot": 5.0, "cost": 8, "first": 5, "knocked": 0.25, "weight": 1, "width": 1.05},
+	"raider": {"name": "Raider", "hp": 40.0, "speed": 2.1, "shape": "shot", "hold": 5.0, "reach": 0.7, "arc": 0.0,
+		"tell": 1.0, "recover": 0.3, "damage": 4.0, "cooldown": 2.0, "steal": 15.0, "loot": 3.0, "cost": 4, "first": 4, "knocked": 1.0, "weight": 0, "width": 0.6},
+	"troll": {"name": "Ice troll", "hp": 300.0, "speed": 1.1, "shape": "ring", "hold": 2.0, "reach": 3.0, "arc": 360.0,
+		"tell": 1.2, "recover": 0.7, "damage": 16.0, "cooldown": 4.5, "steal": 40.0, "loot": 15.0, "cost": 20, "first": 6, "knocked": 0.0, "weight": 2, "width": 1.26},
 }
-## A wedge attack's short lunge before it lands, and the recovery after any attack.
+## A wedge attack's short lunge before it lands.
 const ENEMY_LUNGE := 0.12
-const ENEMY_RECOVER := 0.28
+## A wind-up's aim follows its victim until this long before the strike, then locks, so the end
+## of the tell shows exactly where it lands (fight_v2 review 1).
+const ENEMY_AIM_LOCK := 0.3
+## Bodies in a pack keep this much of a body width apart (review 1: about 0.7).
+const ENEMY_GAP := 0.7
 ## A thrown shard's speed, and how long before release its aim locks.
 const ENEMY_SHOT_SPEED := 6.0
 ## Enemies head for the store; they fight the nearest defender within this distance, but give up
@@ -442,8 +453,9 @@ const ARMORY_LEVELS := [
 ]
 const STICK_ARC := 100.0
 const STICK_TARGETS := 3
-## She goes back to snowballs once nothing has been within her stick's reach + this for a moment.
-const MELEE_EXIT_MARGIN := 0.6
+## She goes back to snowballs once nothing has been within this much of her stick's reach for
+## MEAGAN_MELEE_EXIT_TIME (fight_v2 review 1: in at 1.0x, out beyond 1.25x).
+const MELEE_EXIT_MULT := 1.25
 
 ## Outposts (agreed 2026-10-20): a chance per opened tile by ring, a kind by weight, its
 ## defenders asleep until she comes within the alert radius (or hits one), leashed to it, and
@@ -461,3 +473,5 @@ const OUTPOST_ALERT := 5.0
 const OUTPOST_LEASH := 10.0
 const OUTPOST_MAX_OPEN := 3
 const OUTPOST_ROOM := 2.6
+## Woken, an outpost's defenders take this long to get up before they fight (review 1).
+const OUTPOST_WAKE := 0.8

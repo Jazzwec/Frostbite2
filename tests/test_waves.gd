@@ -263,3 +263,39 @@ func test_outposts_survive_a_save() -> void:
 	var copy := GameEngine.from_json(e.to_json())
 	check_eq(copy.state.outposts.size(), 1, "kept")
 	check_eq(copy.state.wolves.filter(func(w): return w.outpost == 0).size(), 3, "with its defenders")
+
+
+## Review 1: woken, they take OUTPOST_WAKE to get up before they move.
+func test_woken_defenders_take_a_moment_to_get_up() -> void:
+	var e := engine()
+	_quiet(e)
+	var at := Vector2(20, 30)
+	Combat.add_outpost(e.state, "wolf_hollow", at, Vector2i(1, 2), 2)
+	var before: Vector2 = e.state.wolves[0].pos
+	put_meagan(e, at + Vector2(0, 4.5))
+	e.skip(Balance.OUTPOST_WAKE - 0.3)
+	check(e.state.outposts[0].awake, "awake")
+	check(e.state.wolves[0].pos.distance_to(before) < 0.01, "still getting up")
+	e.skip(1.0)
+	check(e.state.wolves[0].pos.distance_to(before) > 0.1, "then it comes")
+
+
+# ---------- The warning ----------
+
+## Review 1: the warning says what's coming and from where, and that's what comes.
+func test_the_warning_names_the_wave_that_comes() -> void:
+	var e := engine()
+	_quiet(e)
+	e.state.wave = 6
+	e.state.attack_at = e.state.time + Balance.WAVE_WARNING + 1.0
+	e.skip(2.0)
+	var warnings := _of(e, "attack_warning")
+	check_eq(warnings.size(), 1, "warned")
+	var warned: Dictionary = warnings[0]
+	check_eq(warned.wave, 7, "the next wave")
+	check(warned.sides.size() == 2, "from two sides by wave 7")
+	e.skip(Balance.WAVE_WARNING)
+	var came := _of(e, "wolves_arrived")
+	check_eq(came.size(), 1, "it came")
+	check_eq(came[0].mix, warned.mix, "as warned")
+	check(e.state.next_wave.is_empty(), "and the drawn wave is used up")

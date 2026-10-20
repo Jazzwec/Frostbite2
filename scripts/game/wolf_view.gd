@@ -552,7 +552,7 @@ func _lunge() -> float:
 	if t < ATTACK_HOLD:
 		return 1.0
 	t -= ATTACK_HOLD
-	var recover := Balance.ENEMY_RECOVER - ATTACK_HOLD
+	var recover: float = _def.recover - ATTACK_HOLD
 	if t < recover:
 		return 1.0 - smoothstep(0.0, 1.0, t / recover)
 	return 0.0

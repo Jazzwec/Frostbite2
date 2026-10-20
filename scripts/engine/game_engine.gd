@@ -10,7 +10,7 @@ extends RefCounted
 ## levels, upgrades in `upgrades`; 11: a stockpile per opened tile, the Stockpile's level; 12: the
 ## bag is back; 13: Jans haul their work; 14: hypercasual fighting; 15: the Armory, waves, the
 ## enemy roster and outposts (2026-10-20).
-const SAVE_VERSION := 15
+const SAVE_VERSION := 16
 
 var state: GameState
 var rng := RandomNumberGenerator.new()

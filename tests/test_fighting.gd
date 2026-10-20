@@ -84,11 +84,35 @@ func test_a_bite_is_telegraphed_and_misses_if_she_steps_away() -> void:
 	var hp: float = e.state.meagan_hp
 	# A few steps away, still in the wolf's sight: it lunges at where she was and misses.
 	put_meagan(e, Vector2(0, 23.5))
-	e.skip(0.7)
+	e.skip(Balance.ENEMIES.wolf.tell + Balance.ENEMY_LUNGE + 0.1)
 	var bites := _events_of(e, "wolf_bite")
 	check_eq(bites.size(), 1, "the bite came")
 	check(not bites[0].hit, "and missed her")
 	check_near(e.state.meagan_hp, hp, 0.001, "no damage")
+
+
+## Review 1: the tell follows her until ENEMY_AIM_LOCK before the strike, then holds still, so
+## a sidestep early is followed and a sidestep late dodges.
+func test_the_aim_follows_her_until_it_locks() -> void:
+	var strike: float = Balance.ENEMIES.wolf.tell + Balance.ENEMY_LUNGE
+	for late in [false, true]:
+		var e := engine()
+		put_meagan(e, Vector2(0, 20))
+		_wolf_at(e, Vector2(1.3, 20))
+		# She holds her fire, so no knockback moves it.
+		e.state.meagan_attack_in = 100.0
+		e.skip(0.1)
+		var w: Dictionary = e.state.wolves[0]
+		check(w.bite_t >= 0.0, "it's winding up")
+		var wait: float = strike - Balance.ENEMY_AIM_LOCK - w.bite_t + (0.15 if late else -0.25)
+		e.skip(wait)
+		# A short sidestep, still within its reach but out of the wedge's first line.
+		put_meagan(e, Vector2(1.3, 18.9))
+		e.drain_events()
+		e.skip(strike + 0.2)
+		var bites := _events_of(e, "wolf_bite")
+		check(not bites.is_empty(), "the bite came")
+		check_eq(bites[0].hit, not late, "a sidestep %s the lock is %s" % ["after" if late else "before", "dodged" if late else "followed"])
 
 
 func test_at_most_two_wolves_wind_up_at_once() -> void:
@@ -120,3 +144,28 @@ func test_guards_strike_once_a_second() -> void:
 	e.skip(2.05)
 	var strikes := _events_of(e, "guard_strike")
 	check(strikes.size() >= 2 and strikes.size() <= 3, "about one strike a second (%d)" % strikes.size())
+
+
+## Review 1: melee from her stick's reach in, snowballs again only once nothing has been within
+## MELEE_EXIT_MULT of it for MEAGAN_MELEE_EXIT_TIME.
+func test_melee_lasts_until_a_quarter_beyond_her_reach() -> void:
+	var e := engine()
+	put_meagan(e, Vector2(0, 20))
+	var w := _wolf_at(e, Vector2(1.2, 20))
+	w.damage = 0.0
+	var hold := func(seconds: float) -> void:
+		for i in roundi(seconds / 0.1):
+			w.pos = Vector2(1.2, 20)
+			w.bite_t = -1.0
+			e.skip(0.1)
+	hold.call(0.2)
+	check_eq(e.state.meagan_mode, "melee", "in reach: the stick")
+	var reach: float = Economy.meagan_weapon(e.state).reach
+	put_meagan(e, Vector2(1.2 - reach * 1.15, 20))
+	hold.call(1.0)
+	check_eq(e.state.meagan_mode, "melee", "just out of reach: still the stick")
+	put_meagan(e, Vector2(1.2 - reach * 1.4, 20))
+	hold.call(0.2)
+	check_eq(e.state.meagan_mode, "melee", "not for a moment yet")
+	hold.call(0.4)
+	check_eq(e.state.meagan_mode, "ranged", "then snowballs")
