@@ -21,7 +21,7 @@ const BUDGETS := {
 	"house_hunting_lodge": [3000, 2.5, 5.0],
 	"house_storehouse": [3000, 2.5, 5.0],
 	"house_workshop": [3000, 2.5, 5.0],
-	"house_barracks": [3000, 2.5, 5.0],
+	"house_barracks": [3000, 2.5, 5.6],
 	"house_bunkhouse": [3000, 2.5, 5.0],
 	"house_kitchen": [3000, 2.5, 5.0],
 	"house_watchtower": [3000, 6.0, 9.0],
