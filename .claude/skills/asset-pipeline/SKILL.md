@@ -85,7 +85,7 @@ It renames the bones to Mixamo's (`rig_names.py`), decimates only the skinned me
 3. Update the asset's row in `source_art/concept/README.md` (made with Meshy, which model), commit and push.
 
 ## Rules
-- Raw downloads (`assets/models/tripo/`, `assets/models/meshy/`) are kept as delivered and are `.gdignore`d. Never touch the user's uncommitted `assets/models/tripo/Meagan.glb`.
+- Raw downloads (`assets/models/tripo/`, `assets/models/meshy/`) are kept as delivered and are `.gdignore`d.
 - Never call `tripo_make` (no API credits); the user makes Tripo models by hand in Tripo Studio.
 - Generations stay private: don't publish to the Meshy Community (paid-plan outputs are the user's only while unpublished).
 - Mobile limits: one material per model where possible, textures ≤ 1024, budgets above. At the Android port, turn on `rendering/textures/vram_compression/import_etc2_astc` and profile on a real phone.

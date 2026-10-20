@@ -108,7 +108,7 @@ Polish and quality first, then new content.
 
 ## Art: ink & watercolour (decided 2026-10-20)
 
-The user committed to the ink & watercolour direction; the rules are in `docs/art-direction.md`. These come in this order, each its own commit with a ChatGPT review. The user's `Meagan.glb` stays untouched.
+The user committed to the ink & watercolour direction; the rules are in `docs/art-direction.md`. These come in this order, each its own commit with a ChatGPT review.
 
 - [x] **A1. Art direction doc.** `docs/art-direction.md`; the brief, CLAUDE.md and NOTES.md point to it.
 - [x] **A2. Ink look: steadier and on by default.**

@@ -167,7 +167,6 @@ Also still greybox: the Stockpile, the small furnace, chests and dens.
   - and the older ones in `balance.gd`.
 - **The meta brainstorm:** what carries over between runs (content unlocks plus a currency, maybe tokens from defeated enemies). The brief's Prestige section is on hold until then.
 - **Models** for the small furnace, chests, dens and other buildings, through the `asset-pipeline` skill. Meshy costs credits, so ask before each paid call.
-- **`assets/models/tripo/Meagan.glb`** has an uncommitted change by the user. Leave it alone: don't stage or process it.
 - **A real-phone performance check,** now with many open tiles.
 
 **Next, in order (pick with the user):**
