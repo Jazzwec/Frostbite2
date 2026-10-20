@@ -14,7 +14,8 @@ Agreed with the user on 2026-10-20 after three rounds of mock-ups (`source_art/d
 | --- | --- | --- |
 | Falu red | `#B2412E` | Meagan's parka, some house walls. **No Jan ever wears it.** |
 | Ochre | `#C9973F` | Houses, Meagan's mustard scarf, wood and rope |
-| Faded teal | `#5E8A87` | The Jans' parkas, houses, sleds |
+| Faded teal | `#5E8A87` | Houses, sleds |
+| Deep teal | `#35666B` | The Jans' parkas (darker than faded teal so they hold against cool snow) |
 | Snow | `#EEF2F2` | Snow and paper |
 | Blue shadow | `#7F93A6` | Shade, cold snow, distant forest |
 | Deep ink | `#2C3440` | Outlines and dark details (never pure black) |
@@ -24,7 +25,7 @@ UI accents may brighten these for contrast, but stay within the same hues.
 
 ## Characters
 - **Meagan:** the brightest thing on screen. Deep Falu-red parka with a cream fur-trimmed hood, a thick dark-brown braid, a long mustard scarf, dark trousers and tan boots. She is the only red figure.
-- **Jans:** one shared silhouette so a crowd reads at a glance: stocky, a full round brown beard, a red bead nose, a navy knitted beanie, chunky mittens and a **faded-teal** work parka. Variants change only one big prop (apron and ladle, blanket, clipboard, headphones).
+- **Jans:** one shared silhouette so a crowd reads at a glance: stocky, a full round brown beard, a red bead nose, a navy knitted beanie, chunky mittens and a **deep-teal** work parka. Variants change only one big prop (apron and ladle, blanket, clipboard, headphones).
 - **Proportions:** moderately stylised, head about a fifth of the height; small dot or bean eyes and minimal features; mitten hands; clean and friendly, never dirty or worn.
 - **Wolves:** blue-grey, a darker ink back, no gore.
 
@@ -38,6 +39,10 @@ UI accents may brighten these for contrast, but stay within the same hues.
 - `ink_toon` bands the light into a few watercolour washes with pigment granulation, warm in the sun and cool blue in shade.
 - `ink_lines` inks silhouettes and major seams in deep ink, 1–2 px at phone resolution, thinner inside, and ignores small colour speckle.
 - `ink_paper` adds pigment pooling at edges and a light paper grain under the HUD.
+- `ink_ground` paints the snowfield: a watercolour wash, cool hollows and packed paths.
+
+## Icons
+Watercolour icons with a thick deep-ink outline, in `assets/ui/icons/` (128 px, cut from `source_art/icons/sheet.png`). They sit inline in rich labels through `UiTheme.icon(name, size)`, at 36–48 px on the 1080-wide layout; a number keeps its word next to its icon.
 - The DEV panel's Ink look toggle switches it off, for comparison.
 
 ## Prompt template (ChatGPT and Tripo references)

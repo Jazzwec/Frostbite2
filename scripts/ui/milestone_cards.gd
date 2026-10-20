@@ -21,7 +21,7 @@ var _queue: Array = []
 var _showing := 0.0
 var _gap := 0.0
 var _check_in := 0.0
-var _title: Label
+var _title: RichTextLabel
 var _message: Label
 
 
@@ -43,7 +43,7 @@ func _ready() -> void:
 	var v := VBoxContainer.new()
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(v)
-	_title = UiTheme.label("", 44, UiTheme.ACCENT)
+	_title = UiTheme.rich_label(44, UiTheme.ACCENT)
 	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(_title)
 	_message = UiTheme.label("", 34)
@@ -84,7 +84,7 @@ func _check() -> void:
 
 
 func _show(m: Dictionary) -> void:
-	_title.text = m.get("title", "")
+	_title.text = UiTheme.icon("milestone", 56) + "  " + m.get("title", "")
 	_message.text = m.get("message", "")
 	# Full width from the anchors; the height shrinks back to the text (containers only grow).
 	offset_bottom = TOP

@@ -6,6 +6,13 @@ extends CanvasLayer
 ## DEV → Ink look: switch the ink-and-watercolour art test on or off.
 signal ink_toggled
 
+## The stats line's font, and the size it steps down to when the numbers grow long.
+const STATS_FONT := 36
+const STATS_FONT_SMALL := 31
+## The wolves countdown turns orange for its last this many seconds.
+const WOLVES_URGENT := 10.0
+const RESOURCE_NAMES := {"wood": "Wood", "food": "Food", "materials": "Mat"}
+
 var sheet: Sheet
 var joystick: Joystick
 var hints: Hints
@@ -16,12 +23,12 @@ var _root: Control
 var _top: PanelContainer
 var _heat_bar: ProgressBar
 var _heat_fill: StyleBoxFlat
-var _heat_label: Label
-var _stats: Label
-var _bag: Label
-var _forecast: Label
+var _heat_label: RichTextLabel
+var _stats: RichTextLabel
+var _bag: RichTextLabel
+var _forecast: RichTextLabel
 var _banner: PanelContainer
-var _banner_label: Label
+var _banner_label: RichTextLabel
 var _banner_timer := 0.0
 var _dev_button: Button
 var _game_over: GameOverCard
@@ -81,18 +88,20 @@ func _build_top() -> void:
 	_heat_fill.set_corner_radius_all(14)
 	_heat_bar.add_theme_stylebox_override("fill", _heat_fill)
 	heat_box.add_child(_heat_bar)
-	_heat_label = UiTheme.label("", 36)
+	_heat_label = UiTheme.rich_label(36)
+	_heat_label.fit_content = false
 	_heat_label.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_heat_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_heat_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_heat_label.add_theme_color_override("font_outline_color", Color(0.1, 0.05, 0.0))
 	_heat_label.add_theme_constant_override("outline_size", 10)
 	heat_box.add_child(_heat_label)
-	_stats = UiTheme.label("", 38)
+	_stats = UiTheme.rich_label(STATS_FONT)
+	_stats.autowrap_mode = TextServer.AUTOWRAP_OFF
 	v.add_child(_stats)
-	_bag = UiTheme.label("", 34, Color(0.9, 0.85, 0.7))
+	_bag = UiTheme.rich_label(34, Color(0.9, 0.85, 0.7))
 	v.add_child(_bag)
-	_forecast = UiTheme.label("", 34, UiTheme.COLD)
+	_forecast = UiTheme.rich_label(34, Color(0.9, 0.94, 1.0))
 	v.add_child(_forecast)
 
 
@@ -106,14 +115,15 @@ func _build_banner() -> void:
 	_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_banner.visible = false
 	_root.add_child(_banner)
-	_banner_label = UiTheme.label("", 42)
+	_banner_label = UiTheme.rich_label(42)
 	_banner_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_banner.add_child(_banner_label)
 
 
-func show_banner(text: String, seconds := 4.0, color := Color(0.55, 0.12, 0.1, 0.92)) -> void:
+## A warning across the screen; `icon` (a UiTheme icon name) leads the text.
+func show_banner(text: String, seconds := 4.0, color := Color(0.55, 0.12, 0.1, 0.92), icon := "") -> void:
 	_banner.add_theme_stylebox_override("panel", UiTheme.panel_style(color))
-	_banner_label.text = text
+	_banner_label.text = (UiTheme.icon(icon, 60) + "  " if icon != "" else "") + text
 	_banner.visible = true
 	_banner_timer = seconds
 	_banner.scale = Vector2(0.9, 0.9)
@@ -130,19 +140,41 @@ func _process(delta: float) -> void:
 	_heat_bar.value = s.heat
 	_heat_fill.bg_color = UiTheme.COLD.lerp(UiTheme.ACCENT, clampf(frac / Balance.COLD_THRESHOLD, 0.0, 1.0))
 	var drain := Economy.heat_drain(s)
-	_heat_label.text = "Heat %s / %s   (−%.1f/s)" % [Fmt.num(s.heat), Fmt.num(cap), drain]
+	_heat_label.text = "%s Heat %s / %s   (−%.1f/s)" % [UiTheme.icon("heat", 44), Fmt.num(s.heat), Fmt.num(cap), drain]
 	_warn_low_heat(s, frac)
 	var caps := Economy.caps(s)
-	_stats.text = "Jans %d/%d    Wood %s/%s    Food %s    Mat %s" % [
-		s.jans.size(), Economy.jan_cap(s), Fmt.num(s.piles.wood), Fmt.num(caps.wood), Fmt.num(s.piles.food), Fmt.num(s.piles.materials)]
-	_bag.text = "Bag %s/%s   (Wood %s, Food %s, Mat %s)%s" % [
-		Fmt.num(Economy.bag_total(s)), Fmt.num(Economy.bag_cap(s)), Fmt.num(s.bag.wood), Fmt.num(s.bag.food), Fmt.num(s.bag.materials),
-		"   Cold: half speed" if Economy.is_cold(s) and not s.jans.is_empty() else ("   Hungry!" if s.hungry else "")]
+	# Each number keeps its word next to its icon, so it says what it is.
+	_stats.text = "%s Jans %d/%d  %s Wood %s/%s  %s Food %s  %s Mat %s" % [
+		UiTheme.icon("jans", 48), s.jans.size(), Economy.jan_cap(s), UiTheme.icon("wood"), Fmt.num(s.piles.wood), Fmt.num(caps.wood),
+		UiTheme.icon("food"), Fmt.num(s.piles.food), UiTheme.icon("materials", 48), Fmt.num(s.piles.materials)]
+	_fit_stats()
+	var note := ""
+	if Economy.is_cold(s) and not s.jans.is_empty():
+		note = "   %s Cold: half speed" % UiTheme.icon("cold", 36)
+	elif s.hungry:
+		note = "   Hungry!"
+	# What she carries, by name; empty kinds are left out.
+	var parts := ["%s Bag %s/%s" % [UiTheme.icon("bag", 48), Fmt.num(Economy.bag_total(s)), Fmt.num(Economy.bag_cap(s))]]
+	for res in CarryStack.ORDER:
+		if s.bag[res] >= 1.0:
+			parts.append("%s %s" % [RESOURCE_NAMES[res], Fmt.num(floorf(s.bag[res]))])
+	_bag.text = " · ".join(parts) + note
 	_forecast.text = _forecast_text(s)
 	if _banner_timer > 0.0:
 		_banner_timer -= delta
 		if _banner_timer <= 0.0:
 			_banner.visible = false
+
+
+## The stats line steps down a size when big numbers would push it past the panel, and back up
+## once there's clearly room again (the gap stops it flickering between the two).
+func _fit_stats() -> void:
+	var width := _stats.get_content_width()
+	var size := _stats.get_theme_font_size("normal_font_size")
+	if size == STATS_FONT and width > _stats.size.x:
+		_stats.add_theme_font_size_override("normal_font_size", STATS_FONT_SMALL)
+	elif size == STATS_FONT_SMALL and width < _stats.size.x * 0.85:
+		_stats.add_theme_font_size_override("normal_font_size", STATS_FONT)
 
 
 ## Keeping the fire alive is the goal, so a dying fire is loud: the bar pulses red, a banner
@@ -154,7 +186,7 @@ func _warn_low_heat(s: GameState, frac: float) -> void:
 		_heat_fill.bg_color = Color(0.85, 0.15, 0.12).lerp(Color(1.0, 0.55, 0.3), 0.5 + 0.5 * sin(_time * 9.0))
 		if not _low_warned:
 			_low_warned = true
-			show_banner("The fire is dying! Bring Wood to the furnace.", 4.0)
+			show_banner("The fire is dying! Bring Wood to the furnace.", 4.0, Color(0.55, 0.12, 0.1, 0.92), "heat")
 			Audio.play("warning")
 	elif frac > Balance.LOW_HEAT_CLEAR:
 		_low_warned = false
@@ -177,18 +209,21 @@ func show_game_over(time_survived: float, best: float, new_best: bool) -> void:
 func _forecast_text(s: GameState) -> String:
 	var parts := []
 	if s.blizzard_active:
-		parts.append("BLIZZARD! %s left" % Fmt.clock(s.blizzard_ends_at - s.time))
+		parts.append("%s BLIZZARD! %s left" % [UiTheme.icon("blizzard", 40), Fmt.clock(s.blizzard_ends_at - s.time)])
 	elif s.blizzard_warned:
-		parts.append("Blizzard in %s" % Fmt.clock(s.blizzard_at - s.time))
+		parts.append("%s Blizzard in %s" % [UiTheme.icon("blizzard", 40), Fmt.clock(s.blizzard_at - s.time)])
 	else:
 		parts.append("Clear skies")
 	if not s.wolves.is_empty():
-		parts.append("Wolves: %d" % s.wolves.size())
+		parts.append("%s Wolves: %d" % [UiTheme.icon("wolves", 40), s.wolves.size()])
 	elif s.attack_warned:
-		parts.append("Wolves in %s" % Fmt.clock(maxf(s.attack_at - s.time, 0.0)))
+		var left := maxf(s.attack_at - s.time, 0.0)
+		var line := "%s Wolves in %s" % [UiTheme.icon("wolves", 40), Fmt.clock(left)]
+		# Orange only for the last seconds, so it reads as urgent rather than routine.
+		parts.append("[color=#%s]%s[/color]" % [UiTheme.ACCENT.to_html(false), line] if left <= WOLVES_URGENT else line)
 	if Game.engine.paused:
 		parts.append("PAUSED")
-	return "    ".join(parts)
+	return "  ·  ".join(parts)
 
 
 ## True when a screen point is over UI, so the world shouldn't get the touch.

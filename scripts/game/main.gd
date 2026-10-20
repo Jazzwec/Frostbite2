@@ -491,18 +491,18 @@ func _on_event(ev: Dictionary) -> void:
 			_float_text(_v3(ev.pos) + Vector3(0, 2.5, 0), "No room! Upgrade the Furnace\nor build a Bunkhouse", Color(1, 0.8, 0.5))
 		"blizzard_warning":
 			Audio.play("warning")
-			_hud.show_banner(Game.random_message("blizzardWarnings"), 6.0, BLIZZARD_BLUE)
+			_hud.show_banner(Game.random_message("blizzardWarnings"), 6.0, BLIZZARD_BLUE, "blizzard")
 		"blizzard_start":
-			_hud.show_banner(Game.random_message("blizzardStart"), 5.0, BLIZZARD_BLUE)
+			_hud.show_banner(Game.random_message("blizzardStart"), 5.0, BLIZZARD_BLUE, "blizzard")
 		"blizzard_end":
 			_hud.show_banner(Game.random_message("blizzardEnd"), 4.0, GOOD_GREEN)
 		"attack_warning":
 			Audio.play("warning")
 			# The countdown itself is in the forecast strip, so the banner can't disagree with it.
-			_hud.show_banner("The Watchtower spots wolves coming!", 5.0)
+			_hud.show_banner("The Watchtower spots wolves coming!", 5.0, Color(0.55, 0.12, 0.1, 0.92), "wolves")
 		"wolves_arrived":
 			Audio.play("howl")
-			_hud.show_banner("Wolves! %d of them, heading for the furnace." % ev.count, 4.0)
+			_hud.show_banner("%d wolves heading for the furnace!" % ev.count, 4.0, Color(0.55, 0.12, 0.1, 0.92), "wolves")
 		"breakthrough":
 			Audio.play("crash")
 			_float_text(Vector3(0, 3.5, 0), "Wolves raided the furnace!", Color(1, 0.5, 0.4))

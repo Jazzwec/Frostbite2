@@ -8,6 +8,9 @@ const BUTTON_HEIGHT := 120
 const PANEL := Color(0.08, 0.11, 0.2, 0.86)
 const ACCENT := Color(0.98, 0.62, 0.25)
 const COLD := Color(0.55, 0.78, 1.0)
+## The watercolour icons (assets/ui/icons/, cut from source_art/icons/sheet.png): wood, food,
+## materials, heat, jans, bag, blizzard, wolves, cold, milestone, build, stockpile.
+const ICON_DIR := "res://assets/ui/icons/"
 
 static var _theme: Theme
 
@@ -64,6 +67,24 @@ static func button(text: String, on_press: Callable) -> Button:
 	b.pressed.connect(func(): Audio.play("tap"))
 	b.pressed.connect(on_press)
 	return b
+
+
+## An icon inline in a rich label's text, e.g. `UiTheme.icon("wood") + " 12"`.
+static func icon(name: String, size := 44) -> String:
+	return "[img width=%d height=%d]%s%s.png[/img]" % [size, size, ICON_DIR, name]
+
+
+## A label that can show icons (BBCode), sized to its text, that never takes touches.
+static func rich_label(size := FONT_SIZE, color := Color(0.95, 0.96, 1.0)) -> RichTextLabel:
+	var l := RichTextLabel.new()
+	l.bbcode_enabled = true
+	l.fit_content = true
+	l.scroll_active = false
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	l.add_theme_font_size_override("normal_font_size", size)
+	l.add_theme_color_override("default_color", color)
+	return l
 
 
 static func label(text := "", size := FONT_SIZE, color := Color(0.95, 0.96, 1.0)) -> Label:

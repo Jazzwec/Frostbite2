@@ -9,12 +9,11 @@ extends PanelContainer
 const GAP := 28.0
 ## How quickly the readout follows her (per second), so it doesn't bob with her walk.
 const FOLLOW := 18.0
-const NAMES := {"wood": "Wood", "food": "Food", "materials": "Mat"}
 
 var _camera: Camera3D
 var _meagan: Meagan
 var _count: Label
-var _contents: Label
+var _contents: RichTextLabel
 var _was_full := false
 var _placed := false
 
@@ -41,7 +40,7 @@ func _ready() -> void:
 	_count.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_count.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(_count)
-	_contents = UiTheme.label("", 34, Color(0.96, 0.97, 1.0))
+	_contents = UiTheme.rich_label(34, Color(0.96, 0.97, 1.0))
 	_contents.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_contents.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(_contents)
@@ -71,8 +70,8 @@ func _process(delta: float) -> void:
 	var parts := []
 	for res in CarryStack.ORDER:
 		if s.bag[res] >= 1.0:
-			parts.append("%s %s" % [Fmt.num(floorf(s.bag[res])), NAMES[res]])
-	_contents.text = " · ".join(parts)
+			parts.append("%s %s" % [UiTheme.icon(res, 36), Fmt.num(floorf(s.bag[res]))])
+	_contents.text = "  ".join(parts)
 	_contents.visible = not parts.is_empty()
 	reset_size()
 	# Above whichever is higher on screen: the top of her load or her head.
