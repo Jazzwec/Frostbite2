@@ -85,12 +85,11 @@ const MEAGAN_WALK_SPEED := 6.0  # [proto] brisk, hypercasual
 const GATHER_RANGE := 3.0
 ## Hand-gathering per second by resource. [brief]
 const GATHER_RATE := {"wood": 5.0, "food": 3.0, "materials": 1.0}
-## Bag size: all resources together. [brief]
-const BAG_BASE := 20.0
-const BAG_PER_SLED_SHED_LEVEL := 10.0
-## Resources move between her bag and a building she stands near. [f1] 20 units/s shared
-const SITE_REACH := 4.5
-const MAGNET_PER_SECOND := 20.0
+## No bag (agreed 2026-10-20): what she gathers goes straight into the Stockpile, and each Sled
+## Shed level makes her gather this much faster. [proto]
+const SLED_SHED_GATHER_PER_LEVEL := 0.1
+## A build pad or gate she stands on takes what it needs from the Stockpile this fast. [f1] 20 units/s shared
+const PAD_PAY_PER_SECOND := 20.0
 ## Construction and upgrades are paid only while she stands on the plot's pad. [proto]
 const PAD_RADIUS := 1.4
 ## The furnace feeds itself from the Stockpile's Wood this fast, up to its fuel cap. [proto]
@@ -255,7 +254,7 @@ const CHEST_RANGE := 1.5
 const BOON_CHOICES := {"rare": 2, "epic": 3}
 ## Run-long boons: each adds its value to one modifier, and taking one twice adds up. [proto]
 const BOONS := {
-	"big_bag": {"name": "Big bag", "text": "Meagan carries 10 more", "mod": "bag_add", "value": 10.0},
+	"quick_builds": {"name": "Quick builds", "text": "Building takes resources 50% faster", "mod": "pay_mult", "value": 0.5},
 	"fast_feet": {"name": "Fast feet", "text": "Meagan walks 15% faster", "mod": "walk_mult", "value": 0.15},
 	"quick_hands": {"name": "Quick hands", "text": "Meagan gathers 20% faster", "mod": "gather_mult", "value": 0.2},
 	"slow_burn": {"name": "Slow burn", "text": "Heat drains 10% slower", "mod": "drain_cut", "value": 0.1},
@@ -276,5 +275,5 @@ const CACHE_RING_GROWTH := 0.5
 const GEAR := {
 	"axe": {"name": "Axe", "text": "gathering", "mod": "gather_mult", "tiers": {"common": 0.15, "rare": 0.3, "epic": 0.5}},
 	"boots": {"name": "Boots", "text": "walking", "mod": "walk_mult", "tiers": {"common": 0.1, "rare": 0.2, "epic": 0.3}},
-	"sled": {"name": "Sled", "text": "carrying", "mod": "bag_add", "tiers": {"common": 5.0, "rare": 10.0, "epic": 20.0}},
+	"sled": {"name": "Sled", "text": "gathering", "mod": "gather_mult", "tiers": {"common": 0.1, "rare": 0.2, "epic": 0.3}},
 }

@@ -1,0 +1,13 @@
+1. **Make the resource movement explain the Stockpile. This is the most important fix.** Shot 1’s flying log is tiny and detached from the Wood counter; shot 2’s scattered falling logs look like world debris. With no bag, the shared resource source needs to be unmistakable. Animate a consistent **24–30 px log icon** into the Wood counter when gathering, and **from that counter to the gate** when paying. Use a short curved path over **0.4–0.6 seconds**, with a subtle counter pulse at departure or arrival. Sizes here refer to the supplied 540 px-wide images.
+
+2. **Give each action a clear visual anchor.** In shot 1, “+5” reads, but the trees conceal Meagan and much of the gathering action. In shot 2, Meagan, the payment ring and “Wood 14/40” overlap. Fade obstructing trees to **40% opacity** while she is behind them; place gathering feedback above the struck tree and gate progress **35–45 px above the ring**. Keep both labels clear of her head.
+
+3. **Make the full-state pose visible.** Shot 3’s red “Stockpile full” tag communicates the outcome, but the tree and tag obscure the shrug. The pose contributes little at this size. Place the tag **above Meagan with a 12–16 px gap**, use a solid dark backing and pale coral text, and hold a broad, two-arm shrug for **0.8–1.0 seconds**. Trigger this once per attempted gathering action rather than continuously.
+
+4. **Connect gate payment to progress immediately.** Shot 2’s “Wood 14/40” is readable, but the falling logs do not clearly register as payment. Add an amber progress arc around the stone ring, advancing with each arriving log; pulse the number on each increment. Display **“Opening · 14/40 wood”** above it. Keep the Wood counter’s decrease synchronized with the departing icons.
+
+5. **Remove competing overlays from the action area.** The large blue buttons dominate all three shots; shot 1’s tutorial arrow also covers the start of its own instruction. Move development controls into a collapsed debug menu for playtests. Put the tutorial in the lower safe area, with its pointer **outside the text panel** and aimed directly at the gate. In shot 2, shorten the bottom panel so the gate and its resource route remain the focus.
+
+**Phone-size read:** gathering’s **+5 reads**, gate payment’s **source does not**, and “Stockpile full” **reads through text, while the shrug does not**.
+
+Verdict: fix first — make the Wood-counter-to-world resource route unmistakable before shipping the bagless interaction.

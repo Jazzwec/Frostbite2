@@ -88,7 +88,7 @@ func open_stockpile() -> void:
 	_start(-1)
 	stockpile = true
 	_title.text = "Stockpile"
-	_body.add_child(UiTheme.label("The town's store. Jans' work lands here, build pads and the furnace draw from it, and she can drop off her bag on the pad.", 34, Color(0.8, 0.85, 0.95)))
+	_body.add_child(UiTheme.label("The town's store. Everything Meagan and the Jans gather lands here, and build pads, gates and the furnace draw from it.", 34, Color(0.8, 0.85, 0.95)))
 	_status = UiTheme.label("", 38)
 	_body.add_child(_status)
 	visible = true
@@ -159,7 +159,7 @@ func _open_plot() -> void:
 	var b: String = Game.engine.state.sites[site_index].type
 	_title.text = Balance.BUILDINGS[b].name
 	_body.add_child(UiTheme.label(Game.building_text(b).get("effect", ""), 34, Color(0.8, 0.85, 0.95)))
-	_body.add_child(UiTheme.label("Build it, then stand on its pad: her bag pays first, then the Stockpile.", 34, Color(0.8, 0.85, 0.95)))
+	_body.add_child(UiTheme.label("Build it, then stand on its pad: it takes what it needs from the Stockpile.", 34, Color(0.8, 0.85, 0.95)))
 	_build_button = UiTheme.button("", _build)
 	_body.add_child(_build_button)
 
@@ -260,7 +260,7 @@ func _refresh() -> void:
 		var parts := []
 		for res in need:
 			parts.append("%s %s/%s" % [str(res).capitalize(), Fmt.num(site.progress.get(res, 0.0)), Fmt.num(need[res])])
-		_status.text = ("Being built: " if site.level == 0 else "Upgrading: ") + ", ".join(parts) + "\nStand on the pad: her bag pays first, then the Stockpile."
+		_status.text = ("Being built: " if site.level == 0 else "Upgrading: ") + ", ".join(parts) + "\nStand on the pad: it takes what it needs from the Stockpile."
 		_upgrade.visible = false
 	elif Economy.is_maxed(s, site_index):
 		_status.text = "Fully upgraded."
@@ -340,7 +340,7 @@ func _summary(s: GameState, b: String) -> String:
 		"furnace":
 			return "Jans %d/%d  ·  Fuel %s/%s  ·  Idle Jans %d" % [s.jans.size(), Economy.jan_cap(s), Fmt.num(s.fuel), Fmt.num(Economy.fuel_cap(s)), Economy.idle_count(s)]
 		"sled_shed":
-			return "Meagan's bag holds %s." % Fmt.num(Economy.bag_cap(s))
+			return "Meagan gathers %d%% faster." % roundi(Balance.SLED_SHED_GATHER_PER_LEVEL * Economy.level(s, "sled_shed") * 100.0)
 		"storehouse":
 			var caps := Economy.caps(s)
 			return "Storage: Wood %s, Food %s, Materials %s." % [Fmt.num(caps.wood), Fmt.num(caps.food), Fmt.num(caps.materials)]

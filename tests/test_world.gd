@@ -90,7 +90,7 @@ func test_a_gate_only_takes_payment_once_chosen_and_on_its_pad() -> void:
 	var i := _gate_to(e, Vector2i(2, 0))
 	var gate: Dictionary = e.state.gates[i]
 	e.state.fuel = 1000.0
-	e.state.bag.wood = 20.0
+	e.state.piles.wood = 20.0
 	put_meagan(e, gate.pad)
 	e.skip(1.0)
 	check_eq(gate.progress.get("wood", 0.0), 0.0, "not chosen: nothing paid")
@@ -100,7 +100,7 @@ func test_a_gate_only_takes_payment_once_chosen_and_on_its_pad() -> void:
 	check_eq(gate.progress.get("wood", 0.0), 0.0, "off the pad: nothing paid")
 	put_meagan(e, gate.pad)
 	e.skip(1.0)
-	check_near(gate.progress.get("wood", 0.0), 20.0, 0.01, "on the pad: her bag pays")
+	check_near(gate.progress.get("wood", 0.0), 20.0, 0.01, "on the pad: the Stockpile pays")
 
 
 func test_opening_a_tile_lights_a_small_furnace_that_adds_to_the_drain() -> void:

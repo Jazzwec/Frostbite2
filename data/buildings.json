@@ -12,5 +12,5 @@
   "hotSprings": { "name": "Hot Springs", "effect": "Heat drain −10% per level." },
   "barracks": { "name": "Barracks", "effect": "Opens Guarding; +15% guard strength per level. Gear is crafted here." },
   "signalBeacon": { "name": "Signal Beacon", "effect": "Caravans come 8% sooner per level." },
-  "sledShed": { "name": "Sled Shed", "effect": "Meagan carries 10 more per level." }
+  "sledShed": { "name": "Sled Shed", "effect": "Meagan gathers 10% faster per level." }
 }

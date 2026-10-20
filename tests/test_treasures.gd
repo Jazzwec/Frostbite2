@@ -73,7 +73,7 @@ func test_every_boon_does_what_it_says() -> void:
 	var e := engine()
 	e.state.sites[0].level = 3
 	var before := {
-		"bag": Economy.bag_cap(e.state), "walk": Economy.walk_speed(e.state),
+		"pay": Economy.pay_rate(e.state), "walk": Economy.walk_speed(e.state),
 		"gather": Economy.gather_rate(e.state, "wood"), "drain": Economy.heat_drain(e.state),
 		"work": Economy.output_mult(e.state), "slots": Economy.site_slots(e.state, 1),
 		"caps": Economy.caps(e.state).wood,
@@ -81,7 +81,7 @@ func test_every_boon_does_what_it_says() -> void:
 	for id in Balance.BOONS:
 		var boon: Dictionary = Balance.BOONS[id]
 		e.state.mods[boon.mod] = e.state.mods.get(boon.mod, 0.0) + boon.value
-	check_near(Economy.bag_cap(e.state), before.bag + 10.0, 0.001, "big bag")
+	check_near(Economy.pay_rate(e.state), before.pay * 1.5, 0.001, "quick builds")
 	check_near(Economy.walk_speed(e.state), before.walk * 1.15, 0.001, "fast feet")
 	check_near(Economy.gather_rate(e.state, "wood"), before.gather * 1.2, 0.001, "quick hands")
 	check_near(Economy.heat_drain(e.state), before.drain * 0.9, 0.001, "slow burn")
@@ -122,9 +122,9 @@ func test_gear_is_equipped_or_left() -> void:
 
 func test_treasure_survives_a_save() -> void:
 	var e := engine()
-	e.state.mods = {"bag_add": 10.0}
-	e.state.boons = ["big_bag"]
+	e.state.mods = {"pay_mult": 0.5}
+	e.state.boons = ["quick_builds"]
 	e.state.gear.boots = "epic"
 	var loaded := GameEngine.from_json(e.to_json())
-	check_near(Economy.bag_cap(loaded.state), Economy.bag_cap(e.state), 0.001, "boons kept")
+	check_near(Economy.pay_rate(loaded.state), Economy.pay_rate(e.state), 0.001, "boons kept")
 	check_eq(loaded.state.gear.boots, "epic", "gear kept")

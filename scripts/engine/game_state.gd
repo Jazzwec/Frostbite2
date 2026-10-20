@@ -13,18 +13,19 @@ var fuel := 0.0
 ## Wood burned per second last tick, for the fire's look.
 var burn_rate := 0.0
 
-## The Stockpile by the furnace, the town's store: Jans' output and whatever Meagan drops off.
-## Build pads and the furnace draw from it.
+## The Stockpile by the furnace, the town's store: Jans' output and everything Meagan gathers.
+## Build pads, gates and the furnace draw from it.
 var piles := {"wood": 0.0, "food": 0.0, "materials": 0.0}
+## What Meagan has gathered by hand this winter, by resource (it goes straight into the piles).
+var gathered := {"wood": 0.0, "food": 0.0, "materials": 0.0}
 
 ## Meagan. Her position comes from the scene every frame.
 var meagan_pos := Vector2(0, 3)
-var bag := {"wood": 0.0, "food": 0.0, "materials": 0.0}
 var meagan_hp := Balance.MEAGAN_HP
 var meagan_injured := false
 ## The frozen Jan she was sent to, or -1.
 var rescue_target := -1
-## What she did this tick, for her animation: "" | full | gather | load | store | fuel | build | fight.
+## What she did this tick, for her animation: "" | full | gather | build | fight.
 ## The target is a node index, site index or wolf id; the position is where to face.
 var meagan_activity := ""
 var meagan_target := -1
@@ -45,7 +46,7 @@ var chests: Array = []
 var dens: Array = []
 
 ## What chests gave her this winter (agreed 2026-10-20): run-long modifiers from boons, by key
-## (bag_add, walk_mult, gather_mult, drain_cut, work_mult, producer_slots, cap_mult, cache_mult),
+## (pay_mult, walk_mult, gather_mult, drain_cut, work_mult, producer_slots, cap_mult, cache_mult),
 ## the boons taken, and her gear: each slot's tier ("" for none).
 var mods := {}
 var boons: Array = []

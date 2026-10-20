@@ -2,7 +2,7 @@ extends TestCase
 ## Saving and loading a winter.
 
 
-## A winter well under way: Jans at work, a site being built, wolves out, things in the bag.
+## A winter well under way: Jans at work, a site being built, wolves out, Wood gathered.
 func _mid_game() -> GameEngine:
 	var e := engine()
 	e.dev_add_jan()
@@ -10,7 +10,7 @@ func _mid_game() -> GameEngine:
 	e.state.jans[0].job = "chop"
 	e.start_construction(3)
 	e.state.sites[3].progress = {"wood": 12.0}
-	e.state.bag = {"wood": 7.0, "food": 2.0, "materials": 1.0}
+	e.state.gathered = {"wood": 7.0, "food": 2.0, "materials": 1.0}
 	e.state.piles.wood = 40.0
 	e.dev_level_up(0)
 	e.spawn_wolves(3)

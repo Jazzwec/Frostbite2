@@ -72,12 +72,10 @@ func _gear(v: VBoxContainer) -> void:
 		row.add_child(button)
 
 
-## "+20% walking", "+10 carrying".
+## "+20% walking".
 static func _gear_effect(slot: String, tier: String) -> String:
 	var def: Dictionary = Balance.GEAR[slot]
 	var value: float = def.tiers[tier]
-	if def.mod == "bag_add":
-		return "+%d %s" % [int(value), def.text]
 	return "+%d%% %s" % [roundi(value * 100.0), def.text]
 
 

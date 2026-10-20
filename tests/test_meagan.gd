@@ -5,15 +5,27 @@ func _has_event(events: Array, type: String) -> bool:
 	return events.any(func(ev): return ev.type == type)
 
 
-func test_gathering_fills_the_bag_and_empties_the_node() -> void:
+func test_gathering_goes_straight_into_the_stockpile() -> void:
 	var e := engine()
+	e.state.fuel = 1000.0
 	var forest := node_index("forest")
 	put_meagan(e, MapData.START_NODES[forest].pos)
 	e.skip(1.0)
-	check_near(e.state.bag.wood, 5.0, 0.01, "5 Wood per second")
-	check(e.state.nodes[forest] < 60.0, "forest stock went down")
-	e.skip(10.0)
-	check_near(Economy.bag_total(e.state), 20.0, 0.01, "bag is full at 20")
+	check_near(e.state.piles.wood, 5.0, 0.01, "5 Wood per second, into the Stockpile")
+	check_near(e.state.gathered.wood, 5.0, 0.01, "counted as gathered")
+	check_near(e.state.nodes[forest], 55.0, 0.5, "forest stock went down (it regrows a little meanwhile)")
+
+
+func test_gathering_stops_when_the_stockpile_is_full() -> void:
+	var e := engine()
+	e.state.fuel = 1000.0
+	var forest := node_index("forest")
+	e.state.piles.wood = Economy.caps(e.state).wood - 2.0
+	put_meagan(e, MapData.START_NODES[forest].pos)
+	e.skip(1.0)
+	check_near(e.state.piles.wood, Economy.caps(e.state).wood, 0.01, "filled to the cap")
+	check_near(e.state.nodes[forest], 58.0, 0.5, "only what fitted was taken")
+	check_eq(e.state.meagan_activity, "full", "she shrugs")
 
 
 func test_nodes_regrow() -> void:
@@ -25,42 +37,34 @@ func test_nodes_regrow() -> void:
 	check_near(e.state.nodes[scrap], 7.5, 0.05, "half regrown after half of 240 s")
 
 
-func test_walking_past_the_furnace_fuels_it() -> void:
-	var e := engine()
-	e.state.bag.wood = 20.0
-	put_meagan(e, site_pos(0) + Vector2(0, 3))
-	e.skip(1.0)
-	check_near(e.state.bag.wood, 0.0, 0.01, "bag emptied into the furnace")
-	check(e.state.heat > 0.0, "heat rises")
-	check(e.state.fuel + e.state.heat / 10.0 > 19.0, "fuel plus burned wood adds up")
-
-
 func test_building_on_a_plot() -> void:
 	var e := engine()
 	check(e.start_construction(3), "sled shed site started")
 	check_eq(e.state.sites[3].building, "sled_shed", "the plot's own building")
 	check(not e.start_construction(3), "already started")
-	e.state.bag.wood = 20.0
+	e.state.fuel = 1000.0
+	e.state.piles.wood = 20.0
 	put_meagan(e, site_pos(3) + Vector2(0, 3))
 	e.skip(1.0)
 	check_near(e.state.sites[3].progress.get("wood", 0.0), 20.0, 0.01, "progress")
 	check_eq(e.state.sites[3].level, 0, "not built yet")
-	e.state.bag.wood = 10.0
+	var rate := Economy.gather_rate(e.state, "wood")
+	e.state.piles.wood = 10.0
 	e.skip(1.0)
 	check_eq(e.state.sites[3].level, 1, "built")
 	check(_has_event(e.drain_events(), "built"), "built event")
-	check_near(Economy.bag_cap(e.state), 30.0, 0.001, "bag grows")
+	check_near(Economy.gather_rate(e.state, "wood"), rate * 1.1, 0.001, "she gathers 10% faster")
 
 
 func test_upgrading_the_furnace() -> void:
 	var e := engine()
 	check(e.start_upgrade(0), "upgrade started")
-	e.state.heat = 0.0
-	e.state.bag.wood = 20.0
-	put_meagan(e, site_pos(0) + Vector2(0, 3))
-	e.skip(2.0)
-	check_near(e.state.fuel + e.state.heat / 10.0, 20.0, 0.2, "fuel is topped up before the upgrade")
-	check_eq(e.state.sites[0].progress.get("wood", 0.0), 0.0, "no upgrade progress while the fuel is low")
+	e.state.fuel = 1000.0
+	e.state.piles.wood = 40.0
+	put_meagan(e, MapData.pad_pos(e.state, 0))
+	e.skip(1.0)
+	check_near(e.state.sites[0].progress.get("wood", 0.0), 20.0, 0.01, "the pad takes 20 Wood a second")
+	check_near(e.state.piles.wood, 20.0, 0.01, "from the Stockpile")
 
 
 
@@ -97,21 +101,16 @@ func test_activity_follows_what_she_does() -> void:
 	e.skip(0.1)
 	check_eq(e.state.meagan_activity, "gather", "gathering at the forest")
 	check_eq(e.state.meagan_target, forest, "targets the forest")
-	e.state.bag.wood = Economy.bag_cap(e.state)
+	e.state.fuel = 1000.0
+	e.state.piles.wood = Economy.caps(e.state).wood
 	e.skip(0.1)
-	check_eq(e.state.meagan_activity, "full", "bag full")
+	check_eq(e.state.meagan_activity, "full", "Stockpile full")
 
 	put_meagan(e, Vector2(20, 35))
 	e.skip(0.1)
 	check_eq(e.state.meagan_activity, "", "nothing to do out in the snow")
 
-	e.state.bag.wood = 10.0
-	put_meagan(e, site_pos(0) + Vector2(0, 3))
-	e.skip(0.1)
-	check_eq(e.state.meagan_activity, "fuel", "fuelling the furnace")
-
 	e.start_construction(3)
-	e.state.bag.wood = 10.0
 	put_meagan(e, site_pos(3) + Vector2(0, 3))
 	e.skip(0.1)
 	check_eq(e.state.meagan_activity, "build", "building")
@@ -123,35 +122,14 @@ func test_activity_follows_what_she_does() -> void:
 func test_construction_is_paid_only_on_the_pad() -> void:
 	var e := engine()
 	e.start_construction(3)
-	e.state.bag.wood = 20.0
+	e.state.fuel = 1000.0
+	e.state.piles.wood = 20.0
 	put_meagan(e, site_pos(3) + Vector2(3.5, 0))
 	e.skip(1.0)
 	check_eq(e.state.sites[3].progress.get("wood", 0.0), 0.0, "beside the site, off the pad")
 	put_meagan(e, MapData.pad_pos(e.state, 3))
 	e.skip(1.0)
 	check_near(e.state.sites[3].progress.get("wood", 0.0), 20.0, 0.01, "on the pad")
-
-
-func test_the_stockpile_takes_everything() -> void:
-	var e := engine()
-	e.state.bag = {"wood": 8.0, "food": 6.0, "materials": 2.0}
-	put_meagan(e, MapData.stockpile_pad())
-	e.skip(0.1)
-	check_eq(e.state.meagan_activity, "store", "dropping off")
-	e.skip(1.0)
-	check_near(Economy.bag_total(e.state), 0.0, 0.01, "bag emptied")
-	check_near(e.state.piles.food, 6.0 - 0.1, 0.1, "food stored (Jans aren't eating: none yet)")
-	check_near(e.state.piles.materials, 2.0, 0.01, "materials stored")
-
-
-func test_the_stockpile_fills_only_to_its_cap() -> void:
-	var e := engine()
-	e.state.fuel = 1000.0
-	e.state.piles.wood = Economy.caps(e.state).wood - 5.0
-	e.state.bag.wood = 12.0
-	put_meagan(e, MapData.stockpile_pad())
-	e.skip(1.0)
-	check_near(e.state.bag.wood, 7.0, 0.01, "the rest stays in her bag")
 
 
 func test_building_pays_from_the_stockpile() -> void:

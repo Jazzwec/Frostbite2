@@ -21,7 +21,7 @@ static func walk_speed(s: GameState) -> float:
 
 ## How fast she gathers `resource` by hand, per second.
 static func gather_rate(s: GameState, resource: String) -> float:
-	return Balance.GATHER_RATE[resource] * (1.0 + mod(s, "gather_mult"))
+	return Balance.GATHER_RATE[resource] * (1.0 + mod(s, "gather_mult") + Balance.SLED_SHED_GATHER_PER_LEVEL * level(s, "sled_shed"))
 
 
 ## Level of a building: the highest of its plots, 0 if none is built yet (a first-time
@@ -78,12 +78,9 @@ static func heat_per_wood(s: GameState) -> float:
 	return Balance.HEAT_PER_WOOD * (1.0 + Balance.HEAT_PER_WOOD_BONUS_PER_LEVEL * (furnace_level(s) - 1))
 
 
-static func bag_cap(s: GameState) -> float:
-	return Balance.BAG_BASE + Balance.BAG_PER_SLED_SHED_LEVEL * level(s, "sled_shed") + mod(s, "bag_add")
-
-
-static func bag_total(s: GameState) -> float:
-	return s.bag.wood + s.bag.food + s.bag.materials
+## How fast build pads and gates take what they need from the Stockpile, per second.
+static func pay_rate(s: GameState) -> float:
+	return Balance.PAD_PAY_PER_SECOND * (1.0 + mod(s, "pay_mult"))
 
 
 static func caps(s: GameState) -> Dictionary:

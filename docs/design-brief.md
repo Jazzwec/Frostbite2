@@ -71,12 +71,12 @@ Storehouse multiplies every Wood, Food and Materials cap by 1.25 per level (comp
 
 **The map** grows during a winter (Frostbite2, agreed 2026-10-20; see **Areas, small furnaces & treasures**). It's a grid of square tiles: the town starts on a fixed 3 × 3 starting grid, and every other tile is generated from the winter's seed and opened by paying for a small furnace at its border. The camera follows Meagan closely, and a one-finger drag anywhere steers her like a joystick (agreed 2026-10-19). The starting grid holds two forests, one fishing pond and the scrap heap behind the furnace [proto]; opened tiles add more. Each holds a stock (forest 60 Wood, fishing pond 40 Food, scrap heap 15 Materials) that runs down as she gathers and grows back steadily, full again about 3 minutes after being emptied (scrap heaps 4), so she roams between them. Frozen Jans, caravans and animals arrive from the far edges; animals walk faster to keep their roughly 10-second approach.
 
-**Carrying and building (decided in Phase 3 planning; the Stockpile and build pads agreed for Frostbite2 on 2026-10-19).** Resources are physical, as in the ads:
+**Gathering and building (the Stockpile and build pads agreed for Frostbite2 on 2026-10-19; no bag agreed 2026-10-20).** Meagan carries nothing:
 
-- Meagan carries a bag (20 units, all types together, +10 per Sled Shed level). Her hand-gathering goes into the bag.
-- The **Stockpile** next to the furnace is the town's store (Wood, Food and Materials, up to the caps above). Standing on its pad drops off everything in her bag; anything over a cap stays in the bag. Jans' output goes straight into the Stockpile, and Jans eat from its Food automatically, at a steady rate.
-- The furnace holds 30 Wood of fuel per Furnace level. Walking past it tops it up from her bag first, and it also feeds itself from the Stockpile's Wood at 5 Wood/s [proto].
-- The map has plots, each with a **build pad** in front. **The game decides what each plot holds** (agreed 2026-10-20): the starting grid's plots each have a fixed utility building, and plots in opened tiles each hold a producer. Stopping on the pad of an unbuilt plot shows its building and cost (or the Furnace level it needs); paying starts it as a construction site. Stopping on a building's pad opens its panel, where its next upgrade starts. While she stands on the pad of a site under construction or upgrading, it pulls what it needs out of her bag first, then out of the Stockpile, into its progress ring; when the ring is full it is built or levels up.
+- There is no bag. Everything she gathers by hand goes straight into the Stockpile: a "+N" pops at the spot and the resource's icon flies up into its number in the top bar. When the Stockpile is full of that resource she stops and shrugs, under a red "Stockpile full" tag.
+- The **Stockpile** next to the furnace is the town's store (Wood, Food and Materials, up to the caps above). Its pad opens a sheet of its stores. Her gathering and the Jans' output goes straight into the Stockpile, and Jans eat from its Food automatically, at a steady rate.
+- The furnace holds 30 Wood of fuel per Furnace level. It feeds itself from the Stockpile's Wood at 5 Wood/s [proto]; nobody carries Wood to it.
+- The map has plots, each with a **build pad** in front. **The game decides what each plot holds** (agreed 2026-10-20): the starting grid's plots each have a fixed utility building, and plots in opened tiles each hold a producer. Stopping on the pad of an unbuilt plot shows its building and cost (or the Furnace level it needs); paying starts it as a construction site. Stopping on a building's pad opens its panel, where its next upgrade starts. While she stands on the pad of a site under construction or upgrading, it takes what it needs from the Stockpile into its progress ring (20 a second [f1]), and the pieces fall out of the sky onto it; when the ring is full it is built or levels up.
 - Tapping a building, resource spot or frozen Jan walks her there, routing around buildings.
 - Frozen Jans come two ways (agreed 2026-10-20): **camps** of 1–3 frozen Jans found in opened tiles, and the slow single arrivals, who now wait at a random spot on the frontier (the edge of the opened area). Tapping one walks her out to thaw him; if the city is full he stays frozen and a "No room" message suggests the Furnace or a Bunkhouse.
 
@@ -116,7 +116,7 @@ The Furnace is the tier gate: each Furnace level raises the Jan cap and unlocks 
 | Hot Springs | Heat drain down 10% per level | 5 | — | Tier 3 (Furnace Lv 7) |
 | Barracks | Guarding rate; Weapons, Armour and guard kits are crafted here | 20 | — | Furnace Lv 2 |
 | Signal Beacon | Caravans come 8% sooner per level | 10 | — | Furnace Lv 2 |
-| Sled Shed | Meagan carries +10 per level (base 20) | 10 | — | Start |
+| Sled Shed | Meagan gathers 10% faster per level [proto, agreed 2026-10-20] | 10 | — | Start |
 
 Every level of every building except the Furnace adds 0.05 heat/s to the drain, so growth always leans on the furnace. Every small furnace (one per opened tile) adds 0.15 heat/s more [proto].
 
@@ -127,7 +127,7 @@ Every level of every building except the Furnace adds 0.05 heat/s to the drain, 
 Agreed with the user on 2026-10-20: Frostbite2 plays like a roguelite. Each winter is a run with a new world, and it ends when the heat runs out.
 
 - **Tiles.** The world is a grid of square tiles, 20 × 20 m each [proto] (about one screen). The **starting grid** is 3 × 3 tiles around the furnace, always the same: the Furnace, the starting Lumber Yard and Fishing Lodge, the Stockpile, one fixed plot for each utility building (Sled Shed, Storehouse, Kitchen, Barracks, Bunkhouse, Watchtower, Hot Springs), two forests, one fishing pond and the scrap heap [proto].
-- **Opening a tile.** Every closed tile that touches an open one has a gate pad on the shared border, showing its cost. Meagan pays it like a build pad (bag first, then Stockpile): Wood 40 × 1.6^(d − 1), plus Materials 10 × 1.6^(d − 2) from d = 2, where d is the tile's distance from the furnace in tiles [proto].
+- **Opening a tile.** Every closed tile that touches an open one has a gate pad on the shared border, showing its cost. Meagan pays it like a build pad, from the Stockpile: Wood 40 × 1.6^(d − 1), plus Materials 10 × 1.6^(d − 2) from d = 2, where d is the tile's distance from the furnace in tiles [proto].
 - **Small furnaces.** Paying installs a **small furnace** on the gate and the tile thaws open. A small furnace never upgrades. It connects to the main furnace, burns from the same heat and adds 0.15 heat/s to the drain [proto], so every new tile makes Wood more pressing and opening one is a choice. When the heat runs out, they all go out together.
 - **What a tile holds,** generated from the winter's seed and the tile's position, so it's the same whatever order tiles are opened in:
   - 1–2 resource spots (forest, fishing pond or scrap heap);
@@ -137,8 +137,8 @@ Agreed with the user on 2026-10-20: Frostbite2 plays like a roguelite. Each wint
   - from distance 3, 20% a wolf den that animal attacks then come from [proto].
 - **Treasures.** Meagan opens a chest by walking onto it:
   - **Resource cache:** a burst of Wood, Food or Materials that grows with distance.
-  - **Boon chest:** rare offers a choice of 2 run-long boons, epic a choice of 3 (bigger bag, faster walk, faster gathering, slower heat drain, faster Jans, +1 Jan per producer, a wider warm circle, chests shown from afar…). The game pauses while she chooses.
-  - **Gear chest:** an item for one of her three slots (axe: gathering speed; boots: walk speed; sled: bag size), common, rare or epic. She equips it or keeps what she has.
+  - **Boon chest:** rare offers a choice of 2 run-long boons, epic a choice of 3 (quicker building, faster walk, faster gathering, slower heat drain, faster Jans, +1 Jan per producer, a wider warm circle, chests shown from afar…). The game pauses while she chooses.
+  - **Gear chest:** an item for one of her three slots (axe: gathering speed; boots: walk speed; sled: gathering speed too), common, rare or epic. She equips it or keeps what she has.
 - **End of a run.** Unchanged: at heat 0 the game-over card shows the time survived, now with the tiles opened, and Play again starts a new winter with a new seed.
 - **Between runs (to design with the user).** Runs will unlock new content and earn a currency for permanent upgrades. How the currency is earned, perhaps tokens from defeated enemies, is still open, and until then the Prestige section below is on hold.
 
@@ -146,7 +146,7 @@ Tiers are just Furnace level bands: Tier 1 is Furnace 1 to 3, Tier 2 is 4 to 6, 
 
 The Research tree is a separate list of 15 to 20 one-off purchases bought with Knowledge: percentage multipliers to each job, cheaper Furnace levels, Jan arrival rate, blizzard resistance. It is the long-tail sink once buildings cap out.
 
-The 16 nodes (any order, each costing 10 × 1.5^(nodes bought) Knowledge; names in `research.json`): Chopping, Fishing, Building and Research +15% each; every job +10%; Meagan walks 20% faster; Meagan carries 10 more; 10% more heat per Wood; Furnace upgrades 10% cheaper; blizzard drain −20%; heat drain −10%; Jans arrive 15% more often; Jans eat 10% less; scavenging 15% sooner; guards +20% damage; caravan Jans wait 50% longer. Research resets at each thaw.
+The 16 nodes (any order, each costing 10 × 1.5^(nodes bought) Knowledge; names in `research.json`): Chopping, Fishing, Building and Research +15% each; every job +10%; Meagan walks 20% faster; Meagan gathers 10% faster; 10% more heat per Wood; Furnace upgrades 10% cheaper; blizzard drain −20%; heat drain −10%; Jans arrive 15% more often; Jans eat 10% less; scavenging 15% sooner; guards +20% damage; caravan Jans wait 50% longer. Research resets at each thaw.
 
 Weapons, Armour and guard kits are crafted at the Barracks straight from the piles (no carrying), from its row on the Build screen.
 

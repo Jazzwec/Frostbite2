@@ -132,7 +132,7 @@ const CLIPS := {
 			{"t": 0.75, "arm_r": Vector3(-75, 0, -30), "arm_l": Vector3(-70, 0, -30), "turn": -45.0, "lean": 10.0, "tool": Vector3(0, 90, 0)},
 		],
 	},
-	# Bag full: a shrug.
+	# Stockpile full: a shrug.
 	"full": {
 		"length": 1.6, "loop": true, "tool": "", "impact": -1.0,
 		"keys": [

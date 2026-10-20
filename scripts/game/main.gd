@@ -30,10 +30,11 @@ const VEIL_COLOR := Color(0.6, 0.68, 0.82)
 const VEIL_HEIGHT := 1.2
 var _people: PeopleLayer
 var _stockpile: StockpileView
-## For showing the Stockpile paying a build pad: each site's progress and her bag last frame.
+## For showing a build pad or gate taking from the Stockpile: each one's progress last frame.
 var _last_progress := {}
-var _last_bag := 0.0
-var _bank_throw_in := 0.0
+var _drop_in := 0.0
+## How much of her hand-gathering has been shown, by resource.
+var _gather_shown := {}
 var _meagan: Meagan
 var _rig: CameraRig
 var _hud: Hud
@@ -47,7 +48,6 @@ var _low_fps_for := 0.0
 var _snow_quality := 1.0
 ## What Meagan last worked at: {activity, target}. Hit moments use it after the tick has moved on.
 var _work := {}
-var _work_age := 0.0
 ## The build pad she's standing on (-1 for none), how long she's been still on it, and which
 ## pad's sheet we opened.
 var _pad_site := -1
@@ -96,7 +96,7 @@ func _ready() -> void:
 	_rig.ui_blocker = _hud.blocks
 	_rig.joystick = _hud.joystick
 	_hud.hints.setup(_rig.camera, _meagan, Game.tips.get("hints", {}))
-	_hud.bag_readout.setup(_rig.camera, _meagan)
+	_hud.full_readout.setup(_rig.camera, _meagan)
 	Audio.listener = _meagan
 	Game.engine_event.connect(_on_event)
 	_ink = InkLook.new(_env, _sun)
@@ -118,9 +118,10 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_refresh_views(delta)
-	_update_meagan_activity(delta)
+	_update_meagan_activity()
 	_update_pad_stop(delta)
-	_update_bank_payments(delta)
+	_update_sky_drops(delta)
+	_update_gather_fx()
 	if _nav_dirty and not _baking:
 		_nav_dirty = false
 		_baking = true
@@ -497,46 +498,84 @@ func _update_pad_stop(delta: float) -> void:
 		_pad_opened = on
 
 
-## When a build pad is paid from the Stockpile rather than her bag, pieces fly over from the pile.
-func _update_bank_payments(delta: float) -> void:
+## Building takes from the Stockpile, and the pieces fall out of the sky onto the building or
+## gate, one at a time. [agreed 2026-10-20]
+const SKY_DROP_HEIGHT := 12.0
+const SKY_DROP_EVERY := 0.15
+const DROP_ITEMS := {"wood": "log", "food": "fish", "materials": "crate"}
+
+
+func _update_sky_drops(delta: float) -> void:
 	var s := Game.engine.state
-	var bag := Economy.bag_total(s)
-	_bank_throw_in -= delta
+	_drop_in -= delta
 	for i in s.sites.size():
-		var progress: Dictionary = s.sites[i].progress
-		var before: Dictionary = _last_progress.get(i, {})
-		for res in progress:
-			if progress[res] > before.get(res, progress[res]) + 0.001 and bag >= _last_bag - 0.001 and _bank_throw_in <= 0.0:
-				var item: String = {"wood": "log", "food": "fish", "materials": "crate"}[res]
-				Fx.throw(item, _stockpile.drop_point(), _v3(MapData.site_pos(s, i)) + Vector3(0, 1.0, 0), 0.45, 1.6)
-				Audio.play("whoosh", _stockpile.drop_point())
-				_bank_throw_in = 0.15
-		_last_progress[i] = progress.duplicate()
-	_last_bag = bag
+		_drop_from_sky("site %d" % i, s.sites[i].progress, _v3(MapData.site_pos(s, i)) + Vector3(0, 1.0, 0), i)
+	for gate in s.gates:
+		_drop_from_sky("gate %s" % gate.tile, gate.progress, _v3(gate.pos) + Vector3(0, 0.6, 0), -1)
+
+
+## Drops a piece onto `top` when `progress` grew since last frame. `site` is the plot that
+## shakes as it lands, or -1.
+func _drop_from_sky(key: String, progress: Dictionary, top: Vector3, site: int) -> void:
+	var before: Dictionary = _last_progress.get(key, {})
+	_last_progress[key] = progress.duplicate()
+	if _drop_in > 0.0:
+		return
+	for res in progress:
+		if progress[res] > before.get(res, progress[res]) + 0.001:
+			var from := top + Vector3(randf_range(-0.6, 0.6), SKY_DROP_HEIGHT, randf_range(-0.6, 0.6))
+			var landed := func() -> void:
+				Fx.burst("dust", top)
+				Audio.play("drop", top)
+				if site >= 0 and site < _sites.size():
+					_sites[site].knock()
+			Fx.throw(DROP_ITEMS[res], from, top, 0.5, 0.0, landed)
+			_drop_in = SKY_DROP_EVERY
+			return
+
+
+## What she gathers goes straight into the Stockpile: every this much, a "+N" pops at the spot
+## and its icon flies up into the top bar's number. [agreed 2026-10-20]
+const GATHER_FX_UNIT := {"wood": 5.0, "food": 3.0, "materials": 1.0}
+const GATHER_COLORS := {"wood": Color(1.0, 0.85, 0.6), "food": Color(1.0, 0.7, 0.65), "materials": Color(0.8, 0.85, 0.95)}
+
+
+func _update_gather_fx() -> void:
+	var s := Game.engine.state
+	for res in GATHER_FX_UNIT:
+		var unit: float = GATHER_FX_UNIT[res]
+		var total: float = s.gathered[res]
+		var shown: float = _gather_shown.get(res, floorf(total / unit) * unit)
+		if total < shown:
+			shown = 0.0
+		_gather_shown[res] = shown
+		if total < shown + unit:
+			continue
+		_gather_shown[res] = shown + unit
+		if _work.get("activity", "") != "gather":
+			continue
+		var spot := _nodes[_work.target].focus_point(_meagan.global_position) + Vector3(0, 0.8, 0)
+		Fx.pop("+%d" % unit, spot, GATHER_COLORS[res])
+		Audio.play("pop", spot)
+		_hud.fly_icon(res, _rig.camera.unproject_position(spot))
 
 
 # ---------- Meagan at work ----------
 
 const GATHER_CLIPS := {"forest": "chop", "hunting": "fish", "scrap": "scavenge"}
-## How long after an activity stops its pieces still fly to or from the same place.
-const CARRY_GRACE := 0.8
-const ACTIVITY_CLIPS := {"full": "full", "store": "carry", "fuel": "fuel", "build": "build", "fight": "fight"}
+const ACTIVITY_CLIPS := {"full": "full", "build": "build", "fight": "fight"}
 
 
-## Turns what the engine says she did this tick into a clip, a point to face, and where her
-## stack's pieces come from or go to.
-func _update_meagan_activity(delta: float) -> void:
+## Turns what the engine says she did this tick into a clip and a point to face.
+func _update_meagan_activity() -> void:
 	var s := Game.engine.state
 	var activity := s.meagan_activity
 	if activity == "full" and _work.get("activity", "") != "full":
 		Audio.play("full")
-	_work_age += delta
-	_update_carry()
 	if activity == "":
 		_meagan.set_activity("", Vector3.INF)
 		return
 	_work = {"activity": activity, "target": s.meagan_target, "pos": s.meagan_target_pos}
-	_work_age = 0.0
 	var face := _v3(s.meagan_target_pos)
 	if activity == "gather":
 		var view := _nodes[s.meagan_target]
@@ -549,33 +588,6 @@ func _update_meagan_activity(delta: float) -> void:
 			var side := signf(_meagan.global_position.x - face.x)
 			face += Vector3((side if side != 0.0 else 1.0) * MapData.SITE_HALF_SIZE * 0.8, 0, MapData.SITE_HALF_SIZE * 0.8)
 		_meagan.set_activity(ACTIVITY_CLIPS[activity], face)
-
-
-## Where pieces fly from (gathering) or to (fuel, construction, the Stockpile). It keeps the
-## last activity's ends for a moment, since the stack catches up one piece at a time.
-func _update_carry() -> void:
-	if _work.is_empty() or _work_age > CARRY_GRACE:
-		_meagan.carry(Vector3.INF, Vector3.INF)
-		return
-	var target: int = _work.target
-	var me := _meagan.global_position
-	var site_top := _v3(_work.pos) + Vector3(0, 1.0, 0) if _work.activity in ["fuel", "build"] else Vector3.ZERO
-	match _work.activity:
-		"gather":
-			_meagan.carry(_nodes[target].focus_point(me) + Vector3(0, 0.6, 0), Vector3.INF)
-		"store":
-			_meagan.carry(Vector3.INF, _stockpile.drop_point())
-		"build":
-			_meagan.carry(Vector3.INF, site_top)
-		"fuel":
-			var mouth := site_top + Vector3(0, 0.4, 0)
-			var landed := func() -> void:
-				_sites[0].flare()
-				Fx.burst("flame", mouth)
-				Audio.play("fire", mouth)
-			_meagan.carry(Vector3.INF, mouth, landed)
-		_:
-			_meagan.carry(Vector3.INF, Vector3.INF)
 
 
 ## A hit moment in her clip: effects, and the world reacts.

@@ -1,10 +1,8 @@
 {
   "hints": {
     "move": "Drag anywhere to move",
-    "chop": "Chop Wood",
-    "fuel": "Bring Wood to the furnace",
+    "chop": "Chop Wood for the Stockpile",
     "thaw": "Tap the frozen Jan",
-    "store": "Drop extras at the Stockpile",
     "open": "Open new ground at a stone ring"
   },
   "loading": [
@@ -13,7 +11,7 @@
     "Jans work better warm and fed. So does everyone.",
     "Your Jans' Wood goes to the Stockpile. The furnace helps itself.",
     "Blizzards are always announced. Use the warning to stock up.",
-    "A Sled Shed means fewer trips. Fewer trips means more naps.",
+    "A Sled Shed means faster gathering. Faster gathering means more naps.",
     "Wolves hate guards with proper kit.",
     "The scrap heap behind the furnace has Materials in it. Probably.",
     "Research is slow, but it never stops paying off.",

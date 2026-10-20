@@ -1,6 +1,6 @@
 [
   { "id": "firstJan", "trigger": { "type": "rescued", "count": 1 }, "title": "The first Jan", "message": "Thawed, blinking, and already saying thank you. It begins." },
-  { "id": "sledShed", "trigger": { "type": "building", "key": "sledShed", "level": 1 }, "title": "Bigger pockets", "message": "A sled! Meagan can carry twice the logs and half the worry." },
+  { "id": "sledShed", "trigger": { "type": "building", "key": "sledShed", "level": 1 }, "title": "Sled ready", "message": "A sled! Meagan gathers faster and worries less." },
   { "id": "furnace2", "trigger": { "type": "building", "key": "furnace", "level": 2 }, "title": "Proper fire", "message": "The furnace roars a little louder. The snow takes a step back." },
   { "id": "fiveJans", "trigger": { "type": "jans", "count": 5 }, "title": "A handful of Jans", "message": "Five Jans around one fire. It's starting to feel like a town." },
   { "id": "storehouse", "trigger": { "type": "building", "key": "storehouse", "level": 1 }, "title": "Somewhere to keep things", "message": "A Storehouse. The Jans have already started labelling shelves." },

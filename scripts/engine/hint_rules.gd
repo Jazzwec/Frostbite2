@@ -4,7 +4,7 @@ extends RefCounted
 ## The Hints UI (scripts/ui/hints.gd) shows them; the text is in data/tips.json under "hints".
 
 ## In order.
-const ORDER := ["move", "chop", "fuel", "thaw", "store", "open"]
+const ORDER := ["move", "chop", "thaw", "open"]
 
 
 ## Whether the player has done hint `id` in this state. Meagan started the winter at `start`.
@@ -13,13 +13,9 @@ static func is_done(id: String, s: GameState, start: Vector2) -> bool:
 		"move":
 			return s.meagan_pos.distance_to(start) >= Balance.HINT_MOVED_ENOUGH
 		"chop":
-			return s.bag.wood > 0.0 or s.meagan_activity == "fuel"
-		"fuel":
-			return s.meagan_activity == "fuel"
+			return s.gathered.wood > 0.0
 		"thaw":
 			return s.rescued_total > 0
-		"store":
-			return s.meagan_activity == "store"
 		"open":
 			return not s.stoves.is_empty() or s.gates.any(func(g): return g.paying)
 	return true
@@ -34,8 +30,6 @@ static func target(id: String, s: GameState) -> Vector2:
 				if node.kind == "forest" and s.meagan_pos.distance_to(node.pos) < s.meagan_pos.distance_to(best):
 					best = node.pos
 			return best
-		"fuel":
-			return MapData.site_pos(s, 0)
 		"thaw":
 			var best := Vector2.INF
 			for arrival in s.arrivals:
@@ -43,8 +37,6 @@ static func target(id: String, s: GameState) -> Vector2:
 				if s.meagan_pos.distance_to(pos) < s.meagan_pos.distance_to(best):
 					best = pos
 			return best
-		"store":
-			return MapData.stockpile_pad()
 		"open":
 			var best := Vector2.INF
 			for gate in s.gates:

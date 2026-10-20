@@ -11,12 +11,14 @@ const STATS_FONT := 36
 const STATS_FONT_SMALL := 31
 ## The wolves countdown turns orange for its last this many seconds.
 const WOLVES_URGENT := 10.0
-const RESOURCE_NAMES := {"wood": "Wood", "food": "Food", "materials": "Mat"}
+## Gathered resources fly up into their number this big, and this fast. [agreed 2026-10-20]
+const FLY_ICON_SIZE := 64.0
+const FLY_ICON_TIME := 0.45
 
 var sheet: Sheet
 var joystick: Joystick
 var hints: Hints
-var bag_readout: BagReadout
+var full_readout: FullReadout
 var milestone_cards: MilestoneCards
 
 var _root: Control
@@ -24,8 +26,9 @@ var _top: PanelContainer
 var _heat_bar: ProgressBar
 var _heat_fill: StyleBoxFlat
 var _heat_label: RichTextLabel
-var _stats: RichTextLabel
-var _bag: RichTextLabel
+## The stats line: one label each, so a gathered resource can fly to its own number.
+var _stats: HBoxContainer
+var _stat_labels := {}
 var _forecast: RichTextLabel
 var _banner: PanelContainer
 var _banner_label: RichTextLabel
@@ -55,8 +58,8 @@ func _ready() -> void:
 	_root.add_child(milestone_cards)
 	milestone_cards.setup(Game.milestones)
 	milestone_cards.banner = _banner
-	bag_readout = BagReadout.new()
-	_root.add_child(bag_readout)
+	full_readout = FullReadout.new()
+	_root.add_child(full_readout)
 	hints = Hints.new()
 	_root.add_child(hints)
 	joystick = Joystick.new()
@@ -98,11 +101,15 @@ func _build_top() -> void:
 	_heat_label.add_theme_color_override("font_outline_color", Color(0.1, 0.05, 0.0))
 	_heat_label.add_theme_constant_override("outline_size", 10)
 	heat_box.add_child(_heat_label)
-	_stats = UiTheme.rich_label(STATS_FONT)
-	_stats.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_stats = HBoxContainer.new()
+	_stats.add_theme_constant_override("separation", 22)
+	_stats.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v.add_child(_stats)
-	_bag = UiTheme.rich_label(34, Color(0.9, 0.85, 0.7))
-	v.add_child(_bag)
+	for key in ["jans", "wood", "food", "materials"]:
+		var l := UiTheme.rich_label(STATS_FONT)
+		l.autowrap_mode = TextServer.AUTOWRAP_OFF
+		_stats.add_child(l)
+		_stat_labels[key] = l
 	_forecast = UiTheme.rich_label(34, Color(0.9, 0.94, 1.0))
 	v.add_child(_forecast)
 
@@ -146,22 +153,17 @@ func _process(delta: float) -> void:
 	_warn_low_heat(s, frac)
 	var caps := Economy.caps(s)
 	# Each number keeps its word next to its icon, so it says what it is.
-	_stats.text = "%s Jans %d/%d  %s Wood %s/%s  %s Food %s  %s Mat %s" % [
-		UiTheme.icon("jans", 48), s.jans.size(), Economy.jan_cap(s), UiTheme.icon("wood"), Fmt.num(s.piles.wood), Fmt.num(caps.wood),
-		UiTheme.icon("food"), Fmt.num(s.piles.food), UiTheme.icon("materials", 48), Fmt.num(s.piles.materials)]
+	_stat_labels.jans.text = "%s Jans %d/%d" % [UiTheme.icon("jans", 48), s.jans.size(), Economy.jan_cap(s)]
+	_stat_labels.wood.text = "%s Wood %s/%s" % [UiTheme.icon("wood"), Fmt.num(s.piles.wood), Fmt.num(caps.wood)]
+	_stat_labels.food.text = "%s Food %s" % [UiTheme.icon("food"), Fmt.num(s.piles.food)]
+	_stat_labels.materials.text = "%s Mat %s" % [UiTheme.icon("materials", 48), Fmt.num(s.piles.materials)]
 	_fit_stats()
 	var note := ""
 	if Economy.is_cold(s) and not s.jans.is_empty():
 		note = "   %s Cold: half speed" % UiTheme.icon("cold", 36)
 	elif s.hungry:
 		note = "   Hungry!"
-	# What she carries, by name; empty kinds are left out.
-	var parts := ["%s Bag %s/%s" % [UiTheme.icon("bag", 48), Fmt.num(Economy.bag_total(s)), Fmt.num(Economy.bag_cap(s))]]
-	for res in CarryStack.ORDER:
-		if s.bag[res] >= 1.0:
-			parts.append("%s %s" % [RESOURCE_NAMES[res], Fmt.num(floorf(s.bag[res]))])
-	_bag.text = " · ".join(parts) + note
-	_forecast.text = _forecast_text(s)
+	_forecast.text = _forecast_text(s) + note
 	_update_offer_card(s)
 	if _banner_timer > 0.0:
 		_banner_timer -= delta
@@ -172,12 +174,44 @@ func _process(delta: float) -> void:
 ## The stats line steps down a size when big numbers would push it past the panel, and back up
 ## once there's clearly room again (the gap stops it flickering between the two).
 func _fit_stats() -> void:
-	var width := _stats.get_content_width()
-	var size := _stats.get_theme_font_size("normal_font_size")
+	var width := _stats.get_theme_constant("separation") * (_stat_labels.size() - 1.0)
+	for l in _stat_labels.values():
+		width += (l as RichTextLabel).get_content_width()
+	var size: int = _stat_labels.wood.get_theme_font_size("normal_font_size")
+	var next := size
 	if size == STATS_FONT and width > _stats.size.x:
-		_stats.add_theme_font_size_override("normal_font_size", STATS_FONT_SMALL)
+		next = STATS_FONT_SMALL
 	elif size == STATS_FONT_SMALL and width < _stats.size.x * 0.85:
-		_stats.add_theme_font_size_override("normal_font_size", STATS_FONT)
+		next = STATS_FONT
+	if next != size:
+		for l in _stat_labels.values():
+			(l as RichTextLabel).add_theme_font_size_override("normal_font_size", next)
+
+
+## A gathered resource's icon flies from `from` (a screen point) into its number in the top bar,
+## which gives a little pulse as it lands. [agreed 2026-10-20]
+func fly_icon(res: String, from: Vector2) -> void:
+	var label: RichTextLabel = _stat_labels.get(res)
+	if label == null:
+		return
+	var icon := TextureRect.new()
+	icon.texture = load(UiTheme.ICON_DIR + res + ".png")
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.size = Vector2.ONE * FLY_ICON_SIZE
+	icon.pivot_offset = icon.size / 2.0
+	_root.add_child(icon)
+	icon.position = from - icon.pivot_offset
+	var to := label.get_global_rect().get_center() - icon.pivot_offset
+	var t := create_tween()
+	t.tween_property(icon, "position", to, FLY_ICON_TIME).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	t.parallel().tween_property(icon, "scale", Vector2.ONE * 0.6, FLY_ICON_TIME)
+	t.tween_callback(func() -> void:
+		icon.queue_free()
+		label.pivot_offset = label.size / 2.0
+		label.scale = Vector2.ONE * 1.2
+		create_tween().tween_property(label, "scale", Vector2.ONE, 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT))
 
 
 ## Keeping the fire alive is the goal, so a dying fire is loud: the bar pulses red, a banner
@@ -189,7 +223,7 @@ func _warn_low_heat(s: GameState, frac: float) -> void:
 		_heat_fill.bg_color = Color(0.85, 0.15, 0.12).lerp(Color(1.0, 0.55, 0.3), 0.5 + 0.5 * sin(_time * 9.0))
 		if not _low_warned:
 			_low_warned = true
-			show_banner("The fire is dying! Bring Wood to the furnace.", 4.0, Color(0.55, 0.12, 0.1, 0.92), "heat")
+			show_banner("The fire is dying! Chop Wood for the Stockpile.", 4.0, Color(0.55, 0.12, 0.1, 0.92), "heat")
 			Audio.play("warning")
 	elif frac > Balance.LOW_HEAT_CLEAR:
 		_low_warned = false

@@ -5,8 +5,9 @@ extends RefCounted
 
 ## Bumped when a save from an older version can't be read as it is.
 ## 2: the layout lives in the state; 3: tiles, gates and small furnaces; 4: Jans work at a
-## producer; 5: chests, boons and gear; 6: camps, the frontier and dens (2026-10-20).
-const SAVE_VERSION := 6
+## producer; 5: chests, boons and gear; 6: camps, the frontier and dens; 7: no bag, gathering
+## goes to the Stockpile (2026-10-20).
+const SAVE_VERSION := 7
 
 var state: GameState
 var rng := RandomNumberGenerator.new()
@@ -105,7 +106,7 @@ func _tick(dt: float) -> void:
 	WorldEvents.eat(s, dt)
 	MeaganRules.regrow(s, dt)
 	MeaganRules.gather(s, dt)
-	MeaganRules.magnet(s, dt, _events)
+	MeaganRules.pay_pads(s, dt, _events)
 	MeaganRules.rescue(s, _events)
 	TreasureRules.open_near(s, rng, _events)
 	_feed_furnace(dt)
@@ -323,15 +324,13 @@ func skip(seconds: float) -> void:
 		_tick(Balance.TICK)
 
 
-## Fills the piles and the furnace, and Meagan's bag with Wood and Materials.
+## Fills the piles and the furnace.
 func fill() -> void:
 	var caps := Economy.caps(state)
 	for res in Economy.PILE_KEYS:
 		state.piles[res] = caps[res]
 	state.fuel = Economy.fuel_cap(state)
 	state.heat = Economy.heat_cap(state)
-	var half := Economy.bag_cap(state) / 2.0
-	state.bag = {"wood": half, "food": 0.0, "materials": half}
 
 
 func force_blizzard() -> void:
