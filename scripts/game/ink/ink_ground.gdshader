@@ -10,9 +10,14 @@ uniform sampler2D snow_tex : source_color, filter_linear_mipmap, repeat_enable;
 uniform float tile_m = 20.0;
 // How much of the wash's own contrast shows (1 = as painted), around its average colour.
 uniform float wash_contrast = 0.7;
-uniform vec3 wash_mean : source_color = vec3(0.886, 0.908, 0.925);
+// Slightly blue-grey snow, near-white kept for the lit highlights (AFK V3, 2026-10-20, from the
+// reviews): wash_mean was (0.886, 0.908, 0.925), shadow_strength 0.28.
+uniform vec3 wash_mean : source_color = vec3(0.855, 0.878, 0.91);
 uniform vec3 shadow_tint : source_color = vec3(0.8, 0.86, 0.94);
-uniform float shadow_strength = 0.28;
+uniform float shadow_strength = 0.42;
+// The whole wash, a little warm-grey: the rendered snow averaged #D8E4F4, too blue; the review's
+// target is about #DEE5EB, with #BCCDDD in the hollows (V3).
+uniform vec3 snow_tint : source_color = vec3(1.0, 0.98, 0.91);
 // Trodden snow: a cool blue-grey track broken into footprints, not a warm road (ink_v3, 2026-10-20).
 uniform vec3 path_color : source_color = vec3(0.76, 0.81, 0.89);
 uniform float path_strength = 0.8;
@@ -44,7 +49,7 @@ void fragment() {
 	vec2 p = world_pos.xz;
 	vec2 q = mat2(vec2(0.8, 0.6), vec2(-0.6, 0.8)) * p;
 	vec3 c = mix(texture(snow_tex, p / tile_m).rgb, texture(snow_tex, q / (tile_m * 2.3) + 0.37).rgb, 0.5);
-	c = mix(wash_mean, c, wash_contrast);
+	c = mix(wash_mean, c, wash_contrast) * snow_tint;
 
 	// Broad shadow washes, like the cool hollows between drifts.
 	// Broad and quiet (ink_v3 review): low frequencies and a wide ramp, so no blocky clusters.

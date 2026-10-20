@@ -16,7 +16,8 @@ uniform float wash_blur = 0.8;
 // winter (ink_v3, 2026-10-20). Its edge wanders like a laid wash. Characters and the closed-tile
 // veil turn it off (InkLook), and nothing this close to the ground gets a cap.
 uniform float snow_caps = 1.0;
-uniform vec3 snow_color : source_color = vec3(0.93, 0.95, 0.97);
+// A touch blue-grey, like the ground's snow (AFK V3, 2026-10-20): was (0.93, 0.95, 0.97).
+uniform vec3 snow_color : source_color = vec3(0.878, 0.906, 0.925);
 uniform float snow_min_height = 0.12;
 #ifdef INK_FADE
 // How solid it is while it fades out of Meagan's way (FadeCover).

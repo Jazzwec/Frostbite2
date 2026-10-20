@@ -36,6 +36,15 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 145 onwards (8 image
 - **Check in the game:** the top bar, the bag readout, banners, the game-over card.
 - **ChatGPT feedback** (`source_art/icons/v2/review.md`; old 6/10, new 7/10). Applied: no padding in the cut, bigger top-bar icons. Not done, because it needs another image round: simpler small-size versions of Fish, Materials and Wood (fewer speckles, a bigger gear hole), a stronger slate-blue wind curl with two snowflakes, and a bolder thermometer.
 
+### V3. Softer snow and lines (the InkLook tweak you approved)
+- **What changed** (the old values are noted in the shader comments):
+  - **Ground snow:** slightly blue-grey and warmer. A new `snow_tint` and a darker `wash_mean` bring the open snow from an average of #D8E4F4 (too blue and bright) to #D8DFE8, near the review's #DEE5EB target. The hollows are deeper (`shadow_strength` 0.28 → 0.42).
+  - **Snow caps:** a touch blue-grey (#E0E7EC).
+  - **Lines:** silhouette lines 1.8 → 1.4 px, ink #4B5865 at 72% (was near-black at 82%), and weaker colour-edge lines (0.2 → 0.12). Lines take more of what they outline (`local_tint` 0.55 → 0.65).
+- **FPS:** 165 before, 165 after.
+- **Check in the game:** the open snow and the furnace glow at the default zoom and wide. DEV → Ink look still compares.
+- **ChatGPT feedback** (`source_art/direction/ink_v5/review.md`). Applied: the snow and ink colours. Not done: a selective line treatment (breaking sunlit snow-rim lines while keeping undersides) and rounded snow-cap volume with a shaded lower band. Both need shader work beyond a tweak.
+
 ## Run 2026-10-20, 01:11 → 09:00
 
 ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.

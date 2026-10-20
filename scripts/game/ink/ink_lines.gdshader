@@ -10,13 +10,15 @@ render_mode unshaded, fog_disabled, depth_test_disabled, depth_draw_never, cull_
 
 uniform sampler2D depth_tex : hint_depth_texture, filter_nearest;
 uniform sampler2D screen_tex : hint_screen_texture, filter_linear;
-// Deep ink, a little warm: blue-brown rather than black.
-uniform vec4 ink : source_color = vec4(0.2, 0.21, 0.26, 0.82);
-// Silhouette line width in viewport pixels (1080 x 1920).
-uniform float width_px = 1.8;
-// Colour-edge lines: their width and how strong they are against a silhouette.
+// Deep ink, a little warm: blue-brown rather than black. Softer since AFK V3 (2026-10-20, the
+// reviews: thinner, softer, blue-grey lines): was (0.2, 0.21, 0.26, 0.82).
+uniform vec4 ink : source_color = vec4(0.294, 0.345, 0.396, 0.72);
+// Silhouette line width in viewport pixels (1080 x 1920). Was 1.8.
+uniform float width_px = 1.4;
+// Colour-edge lines: their width and how strong they are against a silhouette. Fewer dark
+// inner marks (V3): strength was 0.2.
 uniform float inner_width_px = 0.8;
-uniform float inner_strength = 0.2;
+uniform float inner_strength = 0.12;
 // A depth jump this big (metres) draws a line.
 uniform float depth_threshold = 0.18;
 // A colour difference this big draws a line (0 to about 3).
@@ -27,7 +29,8 @@ uniform float wobble_scale = 1.6;
 // How often the wobble re-seeds (frames a second): a gentle hand-drawn boil.
 uniform float boil_fps = 8.0;
 // How much of the outlined thing's own colour the line takes, and how dark that shade is.
-uniform float local_tint = 0.55;
+// (V3: local_tint was 0.55, so lines take more of what they outline and read softer.)
+uniform float local_tint = 0.65;
 uniform float local_darken = 0.38;
 
 float hash(vec2 p) {

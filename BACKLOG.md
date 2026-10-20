@@ -163,7 +163,7 @@ Make the game and its animations match the agreed visual, `source_art/direction/
     - Cut it into the same 12 files in `assets/ui/icons/` at 128 px, so no code changes.
     - Look at every icon before committing.
   - **Done when:** the icons sit on the paper HUD without clashing, and a review is applied.
-- [ ] **V3. Softer snow and lines (safe, InkLook tweak approved by the user).**
+- [x] **V3. Softer snow and lines (safe, InkLook tweak approved by the user).** Done 2026-10-20 (AFK).
   - **What:**
     - snow slightly blue-grey, with near-white only in highlights;
     - thinner, softer outlines in deep blue-grey or brown;
