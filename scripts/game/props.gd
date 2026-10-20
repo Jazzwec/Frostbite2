@@ -71,4 +71,8 @@ static func use_vertex_colours(node: Node) -> void:
 		_vertex_paint.vertex_color_use_as_albedo = true
 		_vertex_paint.roughness = 1.0
 	for mi in node.find_children("*", "MeshInstance3D", true, false):
-		(mi as MeshInstance3D).material_override = _vertex_paint
+		# Only meshes that carry vertex colours (the hand-built kit, the pines); a textured model from
+		# the pipeline keeps its own material.
+		var mesh := (mi as MeshInstance3D).mesh
+		if mesh and mesh.get_surface_count() > 0 and mesh.surface_get_format(0) & Mesh.ARRAY_FORMAT_COLOR:
+			(mi as MeshInstance3D).material_override = _vertex_paint

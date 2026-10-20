@@ -126,6 +126,50 @@ def palette_snap(image, strength=0.5, blur=1):
     image.update()
 
 
+def pad_islands(obj, image, iterations=32):
+    """Texture padding: grows every UV island's colours out over the unused texture between islands,
+    so the ink shader's blurred (mip) reads never bleed the empty background into a model."""
+    import numpy as np
+    w, h = image.size
+    me = obj.data
+    me.calc_loop_triangles()
+    uv = me.uv_layers.active.data
+    mask = np.zeros((h, w), dtype=bool)
+    for lt in me.loop_triangles:
+        p = np.array([[uv[i].uv.x * w, uv[i].uv.y * h] for i in lt.loops])
+        x0, y0 = np.floor(p.min(axis=0)).astype(int)
+        x1, y1 = np.ceil(p.max(axis=0)).astype(int)
+        x0, y0, x1, y1 = max(x0, 0), max(y0, 0), min(x1, w - 1), min(y1, h - 1)
+        if x1 < x0 or y1 < y0:
+            continue
+        gx, gy = np.meshgrid(np.arange(x0, x1 + 1) + 0.5, np.arange(y0, y1 + 1) + 0.5)
+        (ax, ay), (bx, by), (cx, cy) = p
+        d = (by - cy) * (ax - cx) + (cx - bx) * (ay - cy)
+        if abs(d) < 1e-9:
+            continue
+        l1 = ((by - cy) * (gx - cx) + (cx - bx) * (gy - cy)) / d
+        l2 = ((cy - ay) * (gx - cx) + (ax - cx) * (gy - cy)) / d
+        inside = (l1 >= -0.02) & (l2 >= -0.02) & (1.0 - l1 - l2 >= -0.02)
+        mask[y0:y1 + 1, x0:x1 + 1] |= inside
+    px = np.array(image.pixels[:], dtype=np.float32).reshape(h, w, 4)
+    rgb = px[:, :, :3] * mask[:, :, None]
+    filled = mask.astype(np.float32)
+    for _ in range(iterations):
+        if filled.min() > 0:
+            break
+        pr = np.pad(rgb, ((1, 1), (1, 1), (0, 0)))
+        pf = np.pad(filled, ((1, 1), (1, 1)))
+        s = sum(pr[dy:dy + h, dx:dx + w] for dy in range(3) for dx in range(3))
+        n = sum(pf[dy:dy + h, dx:dx + w] for dy in range(3) for dx in range(3))
+        grow = (filled == 0) & (n > 0)
+        rgb[grow] = s[grow] / n[grow][:, None]
+        filled[grow] = 1.0
+    px[:, :, :3] = rgb
+    image.pixels[:] = px.ravel()
+    image.update()
+    return float(mask.mean())
+
+
 def _split_lid(obj, at):
     """Cuts a chest at height `at` into itself (the body) and `<name>_lid`, whose origin is its
     back hinge (the top back edge of the body), with both cut faces filled."""
@@ -161,10 +205,12 @@ def _split_lid(obj, at):
 
 
 def cleanup(name, source, height=None, footprint=None, max_tris=8000, tex_size=1024,
-            weld=0.0005, yaw=0.0, export=True, palette=0.0, split_lid_at=None):
+            weld=0.0005, yaw=0.0, export=True, palette=0.0, split_lid_at=None, stretch=(1.0, 1.0, 1.0)):
     """See the module docstring. `height` or `footprint` (the larger of width and depth) in metres.
     `palette` (0 to 1) pulls the texture towards the art-direction palette (palette_snap);
-    `split_lid_at` (metres, after scaling) cuts a chest into a body and a hinged lid."""
+    `split_lid_at` (metres, after scaling) cuts a chest into a body and a hinged lid;
+    `stretch` scales width, depth and height before sizing (a building shallower front to back
+    and a little taller shows more wall under the 52° game camera)."""
     if (height is None) == (footprint is None):
         raise ValueError("give exactly one of height or footprint")
     scene_name = "FB2_" + "".join(w.capitalize() for w in name.split("_"))
@@ -209,6 +255,7 @@ def cleanup(name, source, height=None, footprint=None, max_tris=8000, tex_size=1
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     bm.to_mesh(obj.data)
     bm.free()
+    obj.data.validate(clean_customdata=False)
 
     # Decimate to the budget.
     tris = _tris(obj)
@@ -229,6 +276,8 @@ def cleanup(name, source, height=None, footprint=None, max_tris=8000, tex_size=1
     if yaw:
         obj.rotation_euler.z = math.radians(yaw)
         bpy.ops.object.transform_apply(rotation=True)
+    if tuple(stretch) != (1.0, 1.0, 1.0):
+        obj.data.transform(Matrix.Diagonal((stretch[0], stretch[1], stretch[2], 1.0)))
     lo, hi = _world_bounds(obj)
     size = hi - lo
     k = height / size.z if height is not None else footprint / max(size.x, size.y)
@@ -241,6 +290,9 @@ def cleanup(name, source, height=None, footprint=None, max_tris=8000, tex_size=1
     images = [_flatten_material(slot.material, tex_size) for slot in obj.material_slots if slot.material]
     for image in images:
         if image:
+            # Padding first, so neither the snap's blur nor the game's mip reads pull in the background.
+            if obj.data.uv_layers:
+                pad_islands(obj, image)
             if palette > 0.0:
                 palette_snap(image, palette)
             image.pack()

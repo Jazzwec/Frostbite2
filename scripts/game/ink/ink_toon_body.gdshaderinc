@@ -8,9 +8,10 @@ uniform vec3 emission_color : source_color = vec3(0.0);
 uniform float emission_energy = 0.0;
 // How strongly the pigment granulates (0 = flat colour).
 uniform float granulation = 0.07;
-// Reads the texture this many mip levels blurrier, so detailed textures flatten into washes
-// (a stand-in for textures painted in watercolour).
-uniform float wash_blur = 2.6;
+// Reads the texture this many mip levels blurrier, to soften speckle. Kept low (2026-10-20): Meshy
+// atlases are many small UV islands, and a strong blur averages neighbouring islands (snow into
+// walls). Models are flattened in the asset instead (cleanup.py's palette_snap).
+uniform float wash_blur = 0.8;
 // Snow settles on whatever faces up, so every roof, crate, rock and chimney sits in the same
 // winter (ink_v3, 2026-10-20). Its edge wanders like a laid wash. Characters and the closed-tile
 // veil turn it off (InkLook), and nothing this close to the ground gets a cap.
