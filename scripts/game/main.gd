@@ -37,6 +37,12 @@ var _last_progress := {}
 var _drop_in := 0.0
 ## How much of her hand-gathering has been shown, by resource.
 var _last_bag := 0.0
+## One emptying of her bag at a stockpile, summed up once it's over (AFK V5): what it took by
+## resource, at which stockpile, and her bag last frame.
+var _stored := {}
+var _stored_at := 0
+var _stored_idle := 0.0
+var _store_bag := {}
 ## Seconds since her last activity, for CARRY_GRACE.
 var _work_age := 0.0
 var _meagan: Meagan
@@ -688,15 +694,50 @@ func _update_carry() -> void:
 		"gather":
 			_meagan.carry(_nodes[target].focus_point(me) + Vector3(0, 0.6, 0), Vector3.INF)
 		"store":
-			var drop := _stockpiles[target].drop_point()
-			var landed := func(res: String) -> void:
-				_hud.fly_to_counter(res, func() -> Vector2: return _rig.camera.unproject_position(drop))
-			_meagan.carry(Vector3.INF, drop, landed)
+			_meagan.carry(Vector3.INF, _stockpiles[target].drop_point())
 		"build":
 			var top := _v3(MapData.site_pos(Game.engine.state, target)) if target >= 0 else _v3(_work.pos)
 			_meagan.carry(Vector3.INF, top + Vector3(0, 1.0, 0))
 		_:
 			_meagan.carry(Vector3.INF, Vector3.INF)
+
+
+## While her bag empties at a stockpile, adds up what it takes; a moment after it stops, one
+## "Stored +20 Wood" by the stockpile and one icon per resource up into the top bar, whose
+## number pulses. [AFK V5, from the Astra review, 2026-10-20]
+const STORE_SUM_AFTER := 0.2
+## A routine deposit's summary is small, not a reward announcement (Astra review).
+const STORE_SUM_SIZE := 36
+const RESOURCE_WORDS := {"wood": "Wood", "food": "Food", "materials": "Mat"}
+
+
+func _track_store(s: GameState, delta: float) -> void:
+	if s.meagan_activity == "store":
+		for res in s.bag:
+			var drop: float = _store_bag.get(res, s.bag[res]) - s.bag[res]
+			if drop > 0.0:
+				_stored[res] = _stored.get(res, 0.0) + drop
+		_stored_at = s.meagan_target
+		_stored_idle = 0.0
+	elif not _stored.is_empty():
+		_stored_idle += delta
+		if _stored_idle >= STORE_SUM_AFTER:
+			_sum_up_store()
+	_store_bag = s.bag.duplicate()
+
+
+func _sum_up_store() -> void:
+	var drop := _stockpiles[_stored_at].drop_point()
+	var parts := []
+	for res in ["wood", "food", "materials"]:
+		if _stored.get(res, 0.0) >= 0.5:
+			parts.append("+%d %s" % [roundi(_stored[res]), RESOURCE_WORDS[res]])
+			_hud.fly_to_counter(res, func() -> Vector2: return _rig.camera.unproject_position(drop))
+	_stored.clear()
+	if parts.is_empty():
+		return
+	Fx.pop(" · ".join(parts), drop + Vector3(0, 0.5, 0), Color(1.0, 0.9, 0.68), STORE_SUM_SIZE)
+	Audio.play("coin", drop)
 
 
 # ---------- Meagan at work ----------
@@ -716,6 +757,7 @@ func _update_meagan_activity(delta: float) -> void:
 		Audio.play("full")
 	_work_age += delta
 	_update_carry()
+	_track_store(s, delta)
 	if activity == "":
 		_meagan.set_activity("", Vector3.INF)
 		return

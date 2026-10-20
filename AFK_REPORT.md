@@ -61,6 +61,15 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 145 onwards (8 image
   - a staged put-down (lower 0.15 s, release, 0.2 s);
   - checking the loads at the normal camera (my shots were close-ups).
 
+### V5. Storing that reads as one action
+- **What changed:**
+  - Her bag's pieces fly into the stockpile with no "+N" each, and no icon to the top bar each.
+  - 0.2 s after she finishes, one small summary ("+14 Wood · +6 Mat") shows over the stockpile, and one icon per resource flies to its top-bar number, which pulses.
+  - The stockpile's label hides while she stores, and is back to just "Stockpile · Lv N".
+  - `Fx.pop` takes a font size.
+- **Check in the game:** empty a mixed bag at the Stockpile.
+- **ChatGPT feedback** (`source_art/direction/hud_v1/review_v5.md`: "yes, it reads as one deposit"). Applied: the smaller summary, the shorter delay, the hidden label. Not done: pulsing each counter exactly when its icon lands (it pulses on arrival already).
+
 ## Run 2026-10-20, 01:11 → 09:00
 
 ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.

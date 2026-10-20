@@ -66,10 +66,11 @@ func refresh(s: GameState) -> void:
 	# Its pad and name show only as she comes near, like the plots' (ink_v3 review).
 	var d := s.meagan_pos.distance_to(MapData.stockpile_pad(s, index))
 	_pad.visible = d <= SiteView.PAD_SHOW
-	_pad_label.visible = focused
+	# Hidden while she empties her bag here, so it doesn't compete with the deposit (AFK V5).
+	_pad_label.visible = focused and s.meagan_activity != "store"
 	if focused:
-		# The level is shared by every stockpile, and the label says so (Astra review, 2026-10-20).
-		_pad_label.text = ("Stockpile · Lv %d\nshared store" % s.stockpile_level)
+		# The level is shared by every stockpile; the sheet says so (Astra review, 2026-10-20).
+		_pad_label.text = "Stockpile · Lv %d" % s.stockpile_level
 	var caps := Economy.caps(s)
 	for res in HEAPS:
 		var amount: float = s.piles[res]

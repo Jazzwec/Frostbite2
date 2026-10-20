@@ -106,9 +106,9 @@ func _remove(res: String, unit: float, dest: Vector3, landed: Callable) -> void:
 		node.queue_free()
 		if dest != Vector3.INF:
 			Audio.play("whoosh", from)
+			# No "+N" per piece (AFK V5): the stockpile or pad sums it up once.
 			var arrive := func() -> void:
 				Audio.play("drop", dest)
-				Fx.pop("+%d" % unit, dest + Vector3(0, 0.4, 0), COLORS[res])
 				if landed.is_valid():
 					landed.call(res)
 			Fx.throw(ITEMS[res], from, dest, 0.35, 1.2, arrive)

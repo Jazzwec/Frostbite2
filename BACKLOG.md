@@ -176,7 +176,7 @@ Make the game and its animations match the agreed visual, `source_art/direction/
     - At the stockpile he pauses 0.3 s, the bundle goes into the store, and he walks back visibly empty-handed.
   - **How:** the `haul_*` clips, `Tools`, and a view-only pause in `JanView`.
   - **Done when:** a screenshot shows a hauler's load clearly at the default zoom.
-- [ ] **V5. Storing that reads as one action (safe, feedback).**
+- [x] **V5. Storing that reads as one action (safe, feedback).** Done 2026-10-20 (AFK).
   - **What:**
     - 3–5 pieces fly from her bag to the stockpile in one short arc while her stack shrinks.
     - Then one "Stored +20 Wood" by the stockpile, one icon to the top bar and a 200 ms pulse of that counter.

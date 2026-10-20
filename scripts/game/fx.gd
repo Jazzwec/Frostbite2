@@ -67,12 +67,16 @@ static func throw(item: String, from: Vector3, to: Vector3, seconds := 0.45, hei
 
 
 ## A number (or short word) that pops up at `pos`, rises and fades.
-static func pop(text: String, pos: Vector3, color := Color.WHITE) -> void:
+static func pop(text: String, pos: Vector3, color := Color.WHITE, size := POP_SIZE) -> void:
 	if instance:
-		instance._pop(text, pos, color)
+		instance._pop(text, pos, color, size)
 
 
-func _pop(text: String, pos: Vector3, color: Color) -> void:
+## The pop numbers' font size.
+const POP_SIZE := 54
+
+
+func _pop(text: String, pos: Vector3, color: Color, size := POP_SIZE) -> void:
 	if _pops.is_empty():
 		for i in POP_POOL:
 			var l := Shapes.label("", Vector3.ZERO, 54)
@@ -82,6 +86,7 @@ func _pop(text: String, pos: Vector3, color: Color) -> void:
 	var l := _pops[_next_pop]
 	_next_pop = (_next_pop + 1) % POP_POOL
 	l.text = text
+	l.font_size = size
 	l.modulate = color
 	l.global_position = pos
 	l.scale = Vector3.ONE * 0.6
