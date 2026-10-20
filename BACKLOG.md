@@ -66,7 +66,7 @@ Polish and quality first, then new content.
   - **What:** measure FPS and draw calls with 20 Jans, 4 wolves and a blizzard (use the DEV tools), then fix the biggest costs, e.g. share materials and meshes, pool `Fx.throw` items, and cut the snow particles on low FPS.
   - **Done when:** the numbers before and after are in the report.
 
-- [ ] **13. Test coverage (safe).**
+- [x] **13. Test coverage (safe).** Done 2026-10-20 (AFK).
   - **What:** add tests for the engine rules that don't have any yet. Read `tests/` and the `scripts/engine/` functions to find them: for example `arrival_interval`, blizzard scheduling edge cases, guards returning to their posts, and caps with a Storehouse.
   - **Done when:** the new tests pass, and none of the existing ones were weakened.
 

@@ -60,7 +60,7 @@ Frostbite2 is a fresh rebuild in Godot of Frostbite 1 (a finished Vite + Phaser 
 - **Text:** player-facing writing lives in `data/` (JSON copied from Frostbite 1, still placeholder drafts), not in code.
 - **Randomness:** an injected, seeded RNG, so tests are deterministic.
 - **Physics layers** are in `scripts/game/layers.gd`: ground, obstacle, tappable.
-- **Tests:** no framework yet; picking GUT or gdUnit4 is still open, so ask before adding one. Meanwhile `tests/run_tests.gd` runs every `test_*` method in `tests/test_*.gd`; tests extend `TestCase` (`tests/test_case.gd`).
+- **Tests:** no framework yet; picking GUT or gdUnit4 is still open, so ask before adding one. Meanwhile `tests/run_tests.gd` runs every `test_*` method in `tests/test_*.gd`; tests extend `TestCase` (`tests/test_case.gd`). The runner also fails a test that raises a script error (caught with `OS.add_logger`) and a test file that won't load. Headless there are no autoloads, so code under test must not use `Game`, `Audio` or `UiTheme`: keep rules in engine-side classes (e.g. `HintRules`).
 
 ## Assets
 - `assets/models/tripo/`: GLB files the user generates by hand in Tripo Studio (the web app) and drops in, kept as delivered. The folder is `.gdignore`d; the game uses the cleaned-up exports in `assets/models/blender/`. Tripo characters come rigged with Mixamo bone names (`mixamorig_*` in Godot); animals get Tripo's quadruped auto-rig instead, with bones named `tripo::…` or `bone_N` (`tripo__…` in Godot) and odd bone rolls, so pose them in character space. The pipeline:

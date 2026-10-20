@@ -174,3 +174,20 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.
   - Pooling `Fx.throw` items: they're short-lived and didn't show up in the measurements.
   - Godot's `TIME_PROCESS` monitor proved too noisy to use; FPS was the reliable signal.
 - **For the phone port:** check on a real device. The CPU side (rigs, per-frame label refreshes) is the likely limit there, not the GPU.
+
+### 13. Test coverage
+- **Commits:** "Tests: stricter runner and nine new rule tests".
+- **The runner:**
+  - It now fails a test that raises a script error, caught with an `OS.add_logger` logger, and a test file that won't load. Before, both counted as passes, which happened earlier tonight with the hints.
+  - Proved with two throwaway probe tests (a missing function, a file that won't compile): both failed as they should, and were then deleted.
+- **New tests** (`tests/test_rules.gd`):
+  - the next blizzard 20–40 min after one ends, and its warning re-arming
+  - the ×3 blizzard drain
+  - an attack that falls in a blizzard waiting until 30 s after it
+  - guards walking back to their posts on the ring round the furnace
+  - a level-2 Storehouse raising all three caps
+  - wolf strength from Furnace Lv 3
+  - unlocks by Furnace level and max levels
+  - the fire's countdown only without fuel
+  - one of each building on the plots
+- **Count:** 65 tests, all passing. No existing test was changed.
