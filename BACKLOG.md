@@ -70,7 +70,7 @@ Polish and quality first, then new content.
   - **What:** add tests for the engine rules that don't have any yet. Read `tests/` and the `scripts/engine/` functions to find them: for example `arrival_interval`, blizzard scheduling edge cases, guards returning to their posts, and caps with a Storehouse.
   - **Done when:** the new tests pass, and none of the existing ones were weakened.
 
-- [ ] **4. Kitchen (safe).**
+- [x] **4. Kitchen (safe).** Done 2026-10-20 (AFK).
   - **What:** a new building from the brief: food eaten per Jan −5% per level, unlocks at Furnace Lv 2, cost and growth from the brief's economy table.
   - **Where:** add it to `balance.gd`, `economy.food_eaten_per_second`, the build list and `SiteView.LOOKS` (with a cooking-pot prop).
   - **Done when:** a test covers the food reduction, and it can be built from a pad in the game.

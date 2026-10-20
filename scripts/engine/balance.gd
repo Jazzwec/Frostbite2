@@ -42,6 +42,9 @@ const FIRE_OUT_COUNTDOWN := 0.10
 
 ## Each Jan eats 1 Food per minute. [brief]
 const FOOD_PER_JAN_PER_SECOND := 1.0 / 60.0
+## Each Kitchen level cuts the Food a Jan eats by this share of the base (additive, so Lv 10
+## halves it). [brief] + [f1] kitchenReductionPerLevel
+const KITCHEN_FOOD_CUT_PER_LEVEL := 0.05
 ## With no Food in store, Jans work this much slower. [brief]
 const HUNGRY_OUTPUT_MULT := 0.75
 
@@ -122,6 +125,7 @@ const BUILDINGS := {
 	"hunting_lodge": {"name": "Fishing Lodge", "max": 25, "unlock": 1, "start": 1, "cost": {"wood": 15.0}, "growth": 1.12},
 	"sled_shed": {"name": "Sled Shed", "max": 10, "unlock": 1, "start": 0, "cost": {"wood": 30.0}, "growth": 1.3},
 	"storehouse": {"name": "Storehouse", "max": 15, "unlock": 1, "start": 0, "cost": {"wood": 40.0, "materials": 5.0}, "growth": 1.15},
+	"kitchen": {"name": "Kitchen", "max": 10, "unlock": 2, "start": 0, "cost": {"wood": 40.0, "materials": 5.0}, "growth": 1.15},
 	"workshop": {"name": "Workshop", "max": 20, "unlock": 2, "start": 0, "cost": {"wood": 60.0, "materials": 10.0}, "growth": 1.15},
 	"barracks": {"name": "Barracks", "max": 20, "unlock": 2, "start": 0, "cost": {"wood": 60.0, "materials": 10.0}, "growth": 1.15},
 	"bunkhouse": {"name": "Bunkhouse", "max": 10, "unlock": 3, "start": 0, "cost": {"wood": 120.0, "materials": 30.0}, "growth": 1.25},

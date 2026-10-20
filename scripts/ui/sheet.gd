@@ -195,4 +195,6 @@ func _summary(s: GameState, b: String) -> String:
 			return "Storage: Wood %s, Food %s, Materials %s." % [Fmt.num(caps.wood), Fmt.num(caps.food), Fmt.num(caps.materials)]
 		"bunkhouse":
 			return "Room for %d Jans in the city." % Economy.jan_cap(s)
+		"kitchen":
+			return "Each Jan eats %s Food a minute." % ("%.2f" % (Economy.food_per_jan_per_second(s) * 60.0))
 	return ""

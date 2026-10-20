@@ -3,7 +3,7 @@
   "lumberYard": { "name": "Lumber Yard", "effect": "+15% Chopping and +50 Wood storage per level." },
   "huntingLodge": { "name": "Fishing Lodge", "effect": "+15% Fishing per level. Jans ice-fish here for Food." },
   "storehouse": { "name": "Storehouse", "effect": "Wood, Food and Materials storage ×1.25 per level." },
-  "kitchen": { "name": "Kitchen", "effect": "Jans eat 5% less per level. Chef Jans start turning up." },
+  "kitchen": { "name": "Kitchen", "effect": "Jans eat 5% less per level." },
   "workshop": { "name": "Workshop", "effect": "Opens the Building job (Materials); +20% per level." },
   "researchHut": { "name": "Research Hut", "effect": "Opens the Research job (Knowledge); +20% per level. Spreadsheet Jans start turning up." },
   "bunkhouse": { "name": "Bunkhouse", "effect": "Room for 2 more Jans per level." },

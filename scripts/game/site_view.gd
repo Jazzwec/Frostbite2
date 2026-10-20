@@ -13,6 +13,7 @@ const LOOKS := {
 	"workshop": {"wall": Color(0.5, 0.52, 0.56), "roof": Color(0.3, 0.32, 0.36)},
 	"barracks": {"wall": Color(0.55, 0.22, 0.2), "roof": Color(0.25, 0.25, 0.28)},
 	"bunkhouse": {"wall": Color(0.85, 0.7, 0.4), "roof": Color(0.5, 0.25, 0.15)},
+	"kitchen": {"wall": Color(0.93, 0.88, 0.76), "roof": Color(0.78, 0.38, 0.16)},
 }
 const SNOW := Color(0.94, 0.96, 1.0)
 ## The build pad's look: its disc colour by state, and the progress ring.
@@ -36,6 +37,9 @@ var _fire: MeshInstance3D
 var _light: OmniLight3D
 var _embers: GPUParticles3D
 var _flare := 0.0
+## A working Kitchen puffs steam from its chimney every so often.
+const STEAM_EVERY := 2.0
+var _steam_in := 0.0
 var _pad: MeshInstance3D
 var _pad_label: Label3D
 var _ring: MeshInstance3D
@@ -94,6 +98,11 @@ func refresh(s: GameState) -> void:
 	_update_labels(s, site)
 	if index == 0:
 		_update_fire(s)
+	if site.building == "kitchen" and site.level > 0:
+		_steam_in -= get_process_delta_time()
+		if _steam_in <= 0.0:
+			_steam_in = STEAM_EVERY
+			Fx.burst("steam", global_position + Vector3(-1.0, 1.6 + 0.08 * site.level + 1.6, -0.6))
 
 
 func bounce() -> void:
@@ -200,6 +209,15 @@ func _build_house(b: String, level: int) -> void:
 					_shapes.add_child(crate)
 		"hunting_lodge":
 			_shapes.add_child(Shapes.cone(0.35, 0.7, Color(0.75, 0.7, 0.6), Vector3(1.3, 0.35, 1.9)))
+		"kitchen":
+			# A big cooking pot over a little fire by the door, a ladle in it, and a chimney (it steams).
+			_shapes.add_child(Shapes.cone(0.45, 0.45, Color(1.0, 0.5, 0.15), Vector3(1.05, 0.22, 2.0)))
+			_shapes.add_child(Shapes.cylinder(0.62, 0.75, Color(0.14, 0.14, 0.17), Vector3(1.05, 0.8, 2.0), 0.7))
+			_shapes.add_child(Shapes.cylinder(0.6, 0.05, Color(0.9, 0.62, 0.3), Vector3(1.05, 1.16, 2.0)))
+			var ladle := Shapes.cylinder(0.05, 1.2, Color(0.55, 0.38, 0.22), Vector3(1.25, 1.5, 2.0))
+			ladle.rotation_degrees.z = -25.0
+			_shapes.add_child(ladle)
+			_shapes.add_child(Shapes.box(Vector3(0.5, 1.4, 0.5), Color(0.45, 0.32, 0.25), Vector3(-1.0, h + 0.9, -0.6)))
 		"barracks":
 			_shapes.add_child(Shapes.cylinder(0.04, 2.6, Color(0.4, 0.3, 0.2), Vector3(1.5, 1.3, 1.7)))
 			_shapes.add_child(Shapes.box(Vector3(0.7, 0.45, 0.04), Color(0.8, 0.2, 0.2), Vector3(1.85, 2.3, 1.7)))

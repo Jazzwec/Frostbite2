@@ -77,3 +77,40 @@ func test_neediest_job() -> void:
 	check_eq(Economy.neediest_job(e.state), "hunt", "by share")
 	check_eq(Economy.buildable(e.state).has("workshop"), true, "workshop is a buildable type")
 	check_eq(Economy.is_unlocked(e.state, "workshop"), false, "but locked until Furnace Lv 2")
+
+
+func test_a_kitchen_cuts_what_jans_eat() -> void:
+	var e := engine()
+	for i in 6:
+		add_jan(e, "")
+	var plain := Economy.food_eaten_per_second(e.state)
+	check_near(plain, 6.0 / 60.0, 0.0001, "6 Jans eat 6 Food a minute")
+	give_building(e, "kitchen", 1)
+	check_near(Economy.food_eaten_per_second(e.state), plain * 0.95, 0.0001, "Lv 1: 5% less")
+	give_building(e, "kitchen", 10)
+	check_near(Economy.food_eaten_per_second(e.state), plain * 0.5, 0.0001, "Lv 10: half")
+
+
+func test_the_kitchen_unlocks_at_furnace_2() -> void:
+	var e := engine()
+	check(Economy.buildable(e.state).has("kitchen"), "on the build list")
+	check(not Economy.is_unlocked(e.state, "kitchen"), "locked at Furnace Lv 1")
+	e.state.sites[0].level = 2
+	check(Economy.is_unlocked(e.state, "kitchen"), "open at Furnace Lv 2")
+	check_eq(Economy.cost("kitchen", 0), {"wood": 40.0, "materials": 5.0}, "first cost")
+	check_eq(Economy.cost("kitchen", 1), {"wood": 46.0, "materials": 6.0}, "second cost, ×1.15 rounded up")
+
+
+func test_a_kitchen_slows_the_stores_running_down() -> void:
+	var a := engine()
+	var b := engine()
+	for e in [a, b]:
+		for i in 8:
+			add_jan(e, "")
+		e.state.piles.food = 100.0
+		e.state.fuel = 10000.0
+		put_meagan(e, Vector2(20, 35))
+	give_building(b, "kitchen", 4)
+	a.skip(60.0)
+	b.skip(60.0)
+	check(b.state.piles.food > a.state.piles.food + 1.0, "more Food left with a Kitchen (%.1f vs %.1f)" % [b.state.piles.food, a.state.piles.food])

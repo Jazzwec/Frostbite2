@@ -153,7 +153,13 @@ static func job_rate(s: GameState, job: String) -> float:
 
 
 static func food_eaten_per_second(s: GameState) -> float:
-	return s.jans.size() * Balance.FOOD_PER_JAN_PER_SECOND
+	return s.jans.size() * food_per_jan_per_second(s)
+
+
+## What one Jan eats a second, after the Kitchen's cut. [brief]
+static func food_per_jan_per_second(s: GameState) -> float:
+	var cut := minf(level(s, "kitchen") * Balance.KITCHEN_FOOD_CUT_PER_LEVEL, 1.0)
+	return Balance.FOOD_PER_JAN_PER_SECOND * (1.0 - cut)
 
 
 ## Seconds until the next frozen Jan when the city is this full. [brief] 60 s empty, 180 s at the cap.

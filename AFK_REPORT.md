@@ -191,3 +191,19 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.
   - the fire's countdown only without fuel
   - one of each building on the plots
 - **Count:** 65 tests, all passing. No existing test was changed.
+
+### 4. Kitchen
+- **Commits:** "Kitchen: Jans eat 5% less per level".
+- **What changed:**
+  - The Kitchen comes from the brief: unlocks at Furnace Lv 2, max Lv 10, 40 Wood + 5 Materials growing ×1.15.
+  - Food eaten per Jan falls by 5% of the base per level, additive as in Frostbite 1's `kitchenReductionPerLevel`, so Lv 10 halves it. That's `Economy.food_per_jan_per_second`.
+  - It's on the build list.
+  - Greybox look: cream walls, a burnt-orange roof, a big cooking pot with a ladle over a little fire by the door, and a chimney that puffs steam every 2 s.
+  - Its sheet shows "Each Jan eats 0.85 Food a minute."
+- **Check in the game:** DEV → Furnace +1, then build a Kitchen on any plot.
+- **Tests:** three new ones (the food cut at Lv 1 and Lv 10, the unlock and costs, Food lasting longer over a minute). 68 pass.
+- **Text:** the Kitchen line in `data/buildings.json` lost its "Chef Jans start turning up" half, because Jan variants aren't in the game yet. Put it back when they are.
+- **ChatGPT feedback:**
+  - Applied: a bigger dark pot by the door, a steaming chimney, cream and burnt-orange colours instead of salmon and green.
+  - Not applied: merging the pad's "Lv 1 / Upgrade" text into one badge (UI, item 16's area).
+- **Felt wrong:** nothing new. The stricter test runner caught a parse error in this change straight away, which is exactly what it's for.

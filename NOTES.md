@@ -125,6 +125,10 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - [ ] Music, Sound and DEV sit in a row under the top bar without touching, each a comfortable thumb size; the DEV panel opens below them.
 - [ ] Every button (sheet buttons, Close, −/+, build list) is at least 120 px tall at 1080 wide.
 
+**Kitchen (2026-10-20)**
+- [ ] At Furnace Lv 2 the build list offers a Kitchen (40 Wood + 5 Materials). Built, it has cream walls, an orange roof, a big cooking pot by the door and a chimney that puffs steam.
+- [ ] Its sheet says how much each Jan eats a minute, 5% less per level. With a Kitchen the Food lasts longer.
+
 **Objective: keep the fire burning**
 - [ ] A winter starts at 100/100 heat. With no Wood it lasts about 2½ minutes.
 - [ ] Below 25%: the bar pulses red, banner and horn. Below 10%: "Fire out in 0:12" on the bar.
