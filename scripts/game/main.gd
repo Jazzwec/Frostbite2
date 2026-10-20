@@ -7,7 +7,7 @@ const GOOD_GREEN := Color(0.15, 0.45, 0.25, 0.92)
 
 var _env: Environment
 var _sun: DirectionalLight3D
-## The ink-and-watercolour look under test (DEV → Ink look, or run with `-- --ink`).
+## The ink-and-watercolour look, on by default (DEV → Ink look compares; `-- --no-ink` starts without it).
 var _ink: InkLook
 var _nav: NavigationRegion3D
 var _nav_dirty := false
@@ -92,7 +92,7 @@ func _ready() -> void:
 	_refresh_views(0.0)
 	_nav.bake_navigation_mesh(false)
 	_nav_dirty = false
-	if OS.get_cmdline_user_args().has("--ink"):
+	if not OS.get_cmdline_user_args().has("--no-ink"):
 		_ink.set_enabled(true)
 	# A saved winter that had already ended shows its card again.
 	var s := Game.engine.state

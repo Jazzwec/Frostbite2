@@ -85,11 +85,11 @@ Frostbite2 is a fresh rebuild in Godot of Frostbite 1 (a finished Vite + Phaser 
 - `python tools/audio/make_audio.py` regenerates the music and sound effects (needs numpy and scipy).
 - `python tools/chatgpt/chatgpt.py review|ask|image ...`: ChatGPT via the Codex CLI (see the `chatgpt` skill). A review or ask takes about 30 s, an image about 40 s.
 - **In the game (debug builds):** the DEV button or F1 opens the dev panel: skip 60 s, fill resources, add a Jan, Furnace +1, blizzard, wolves, and Ink look.
-- **Ink look (art test):** `InkLook` (`scripts/game/ink/`) switches the ink-and-watercolour direction on at runtime: toon-banded washes (`ink_toon`), a screen-space ink line on depth and colour edges (`ink_lines`) and a paper pass under the HUD (`ink_paper`). Off by default; DEV → Ink look, or run with `-- --ink`. Results and screenshots are in `source_art/direction/ink_test/`.
+- **Ink look (the art style):** `InkLook` (`scripts/game/ink/`) turns every opaque material into toon-banded watercolour washes (`ink_toon`), inks depth and colour edges with a world-pinned wobble (`ink_lines`) and adds a paper pass under the HUD (`ink_paper`). A warm wash surrounds the furnace and grows and shrinks with its heat (`WARM_RADIUS_*`), cool blue beyond; point lights only glaze, so the fire doesn't blow out. On by default; DEV → Ink look switches it off to compare, and `-- --no-ink` starts without it. Screenshots and reviews: `source_art/direction/ink_test/` (first test) and `ink_v2/`.
 - **Driving the running game from Swallowtail:**
   - Use the Bash tool: PowerShell 5.1 strips the double quotes inside `--code` strings.
   - `swallowtail input click` takes viewport coordinates (1080×1920), not window pixels.
-  - After adding a new `class_name` file, run `godot --headless --path . --import` and then `swallowtail editor reload` before `scene play`. Without the import, the class cache can miss the new class and the game stops at a parser break ("Identifier not found"); this happened twice on 2026-10-20.
+  - After adding a new `class_name` file, run `godot --headless --path . --import` and then `swallowtail editor reload` before `scene play`. Without the import, the class cache can miss the new class and the game stops at a parser break ("Identifier not found"); this happened several times on 2026-10-20. Running the headless tests while the editor is open also leaves the class cache stale (the newest classes drop out), so re-import after a test run too.
 
 ## How to work
 - Plan before coding anything larger than a one-file change, and show the plan first.

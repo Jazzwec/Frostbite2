@@ -1,23 +1,29 @@
 shader_type spatial;
 // The ink line, drawn in screen space on a full-screen quad: wherever depth jumps (silhouettes,
 // one thing in front of another) or colour changes sharply. It works the same on every mesh,
-// however its normals are split. The line wanders a little; with boil_fps above 0 it also
-// "boils" like hand-inked animation (off by default: the review found it read as noise).
+// however its normals are split. Silhouettes get the full line; colour edges a thinner, lighter
+// one, measured on a slightly blurred picture so texture speckle doesn't ink. The line wanders a
+// little, by a wobble pinned to the world, so it stays still on a still picture and moves with
+// the surface instead of crawling over it.
 
 render_mode unshaded, fog_disabled, depth_test_disabled, depth_draw_never, cull_disabled, shadows_disabled;
 
 uniform sampler2D depth_tex : hint_depth_texture, filter_nearest;
 uniform sampler2D screen_tex : hint_screen_texture, filter_linear;
-uniform vec4 ink : source_color = vec4(0.2, 0.19, 0.27, 0.85);
-// Line width in viewport pixels.
-uniform float width_px = 1.8;
+// Deep ink, a little warm: blue-brown rather than black.
+uniform vec4 ink : source_color = vec4(0.25, 0.24, 0.3, 0.65);
+// Silhouette line width in viewport pixels (1080 x 1920).
+uniform float width_px = 1.2;
+// Colour-edge lines: their width and how strong they are against a silhouette.
+uniform float inner_width_px = 0.8;
+uniform float inner_strength = 0.4;
 // A depth jump this big (metres) draws a line.
 uniform float depth_threshold = 0.18;
 // A colour difference this big draws a line (0 to about 3).
-uniform float color_threshold = 1.2;
-// How far the line wanders (pixels) and how often it's redrawn per second.
-uniform float wobble_px = 1.2;
-uniform float boil_fps = 0.0;
+uniform float color_threshold = 0.9;
+// How far the line wanders (pixels), and the size of its wander (metres).
+uniform float wobble_px = 1.0;
+uniform float wobble_scale = 1.6;
 
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -35,30 +41,43 @@ void vertex() {
 	POSITION = vec4(VERTEX.xy, 1.0, 1.0);
 }
 
-float view_depth(vec2 uv, mat4 inv_projection) {
+vec3 view_pos(vec2 uv, mat4 inv_projection) {
 	float d = texture(depth_tex, uv).r;
 	vec4 v = inv_projection * vec4(uv * 2.0 - 1.0, d, 1.0);
-	return -v.z / v.w;
+	return v.xyz / v.w;
+}
+
+float view_depth(vec2 uv, mat4 inv_projection) {
+	return -view_pos(uv, inv_projection).z;
+}
+
+// The picture, softened over about 4 x 4 pixels (four bilinear taps), so single-pixel speckle
+// on textured clothing doesn't count as a colour edge.
+vec3 soft(vec2 uv, vec2 px) {
+	return (texture(screen_tex, uv + px * vec2(0.75, 0.75)).rgb + texture(screen_tex, uv + px * vec2(-0.75, 0.75)).rgb
+			+ texture(screen_tex, uv + px * vec2(0.75, -0.75)).rgb + texture(screen_tex, uv + px * vec2(-0.75, -0.75)).rgb) * 0.25;
 }
 
 void fragment() {
 	vec2 px = 1.0 / VIEWPORT_SIZE;
-	float frame = floor(TIME * boil_fps);
-	vec2 n = SCREEN_UV * VIEWPORT_SIZE / 14.0;
-	vec2 jitter = vec2(value_noise(n + frame * 3.1), value_noise(n - frame * 1.7)) - 0.5;
+	// Wobble pinned to the surface under this pixel.
+	vec3 world = (INV_VIEW_MATRIX * vec4(view_pos(SCREEN_UV, INV_PROJECTION_MATRIX), 1.0)).xyz;
+	vec2 n = (world.xz + world.y * 0.5) * wobble_scale;
+	vec2 jitter = vec2(value_noise(n), value_noise(n + 17.3)) - 0.5;
 	vec2 uv = SCREEN_UV + jitter * wobble_px * px;
-	vec2 o = px * width_px;
 
+	vec2 o = px * width_px;
 	float c = view_depth(uv, INV_PROJECTION_MATRIX);
 	float jump = max(
 		max(abs(view_depth(uv + vec2(o.x, 0.0), INV_PROJECTION_MATRIX) - c), abs(view_depth(uv - vec2(o.x, 0.0), INV_PROJECTION_MATRIX) - c)),
 		max(abs(view_depth(uv + vec2(0.0, o.y), INV_PROJECTION_MATRIX) - c), abs(view_depth(uv - vec2(0.0, o.y), INV_PROJECTION_MATRIX) - c)));
 	float edge = smoothstep(depth_threshold, depth_threshold * 1.6, jump);
 
-	vec3 dx = texture(screen_tex, uv + vec2(o.x, 0.0)).rgb - texture(screen_tex, uv - vec2(o.x, 0.0)).rgb;
-	vec3 dy = texture(screen_tex, uv + vec2(0.0, o.y)).rgb - texture(screen_tex, uv - vec2(0.0, o.y)).rgb;
+	vec2 oi = px * inner_width_px;
+	vec3 dx = soft(uv + vec2(oi.x, 0.0), px) - soft(uv - vec2(oi.x, 0.0), px);
+	vec3 dy = soft(uv + vec2(0.0, oi.y), px) - soft(uv - vec2(0.0, oi.y), px);
 	float contrast = length(dx) + length(dy);
-	edge = max(edge, smoothstep(color_threshold, color_threshold * 1.5, contrast));
+	edge = max(edge, smoothstep(color_threshold, color_threshold * 1.5, contrast) * inner_strength);
 
 	// No line along the screen's own edge.
 	vec2 inside = step(o * 2.0, uv) * step(uv, 1.0 - o * 2.0);

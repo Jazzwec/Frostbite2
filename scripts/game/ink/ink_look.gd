@@ -1,7 +1,7 @@
 class_name InkLook
 extends Node
-## A test of the ink-and-watercolour art direction (source_art/direction, round 3), switchable at
-## runtime so it can be compared with the current look.
+## The ink-and-watercolour look (docs/art-direction.md), on from the start. DEV → Ink look
+## switches it off and on at runtime, to compare with the plain materials.
 ##
 ## It's built from three cheap layers instead of one expensive painterly shader:
 ## - every opaque material becomes `ink_toon` (banded watercolour washes with pigment granulation),
@@ -9,7 +9,8 @@ extends Node
 ##   change, in a dark blue-brown (an inverted-hull outline tears apart on the Tripo models' split
 ##   normals),
 ## - one full-screen `ink_paper` pass adds pigment pooling at edges, uneven washes and paper grain.
-## The lighting turns warm sun / cool blue shade, and the snow turns warm paper white.
+## The lighting turns warm sun / cool blue shade, and the snow turns warm paper white. A painted disc
+## of warm wash surrounds the furnace, cool blue beyond; it grows and shrinks with the heat.
 ## Switching it off restores every original material.
 
 const TOON := preload("res://scripts/game/ink/ink_toon.gdshader")
@@ -17,12 +18,19 @@ const LINES := preload("res://scripts/game/ink/ink_lines.gdshader")
 const PAPER := preload("res://scripts/game/ink/ink_paper.gdshader")
 ## Greybox colours swapped for the watercolour palette (snow as paper white, etc.).
 const RECOLOR := [
-	[Shapes.SNOW_COLOR, Color(0.93, 0.95, 0.96)],  # the snowfield
+	[Shapes.SNOW_COLOR, Color(0.89, 0.92, 0.94)],  # the snowfield, a light blue-grey the warmth tints
 	[Color(0.66, 0.72, 0.82), Color(0.78, 0.84, 0.9)],  # the snow beyond the field
 	[Color(0.9, 0.93, 1.0), Color(0.96, 0.97, 0.98)],  # snowbanks
 ]
+## The most a glowing material may glow in the ink look.
+const EMISSION_CAP := 0.85
 ## How often new and changed meshes are picked up.
 const SCAN_INTERVAL := 0.4
+## The warm disc's radius (metres) with the furnace cold and full.
+const WARM_RADIUS_COLD := 5.0
+const WARM_RADIUS_FULL := 12.0
+## How fast the disc follows the heat (per second), so it breathes rather than jumps.
+const WARM_FOLLOW := 1.5
 
 var enabled := false
 
@@ -36,6 +44,7 @@ var _original_of := {}  # ink material -> original material
 var _restore := {}  # MeshInstance3D -> {surface index: original surface override (or null)}
 var _paper: CanvasLayer
 var _scan_in := 0.0
+var _warm_radius := WARM_RADIUS_FULL
 
 
 func _init(env: Environment, sun: DirectionalLight3D) -> void:
@@ -81,6 +90,20 @@ func _process(delta: float) -> void:
 	if _scan_in <= 0.0:
 		_scan_in = SCAN_INTERVAL
 		_scan()
+	_update_warmth(delta)
+
+
+## The warm disc follows the furnace's heat.
+func _update_warmth(delta: float) -> void:
+	var s := Game.engine.state
+	var cap := Economy.heat_cap(s)
+	var fraction := clampf(s.heat / cap, 0.0, 1.0) if cap > 0.0 else 0.0
+	var target := lerpf(WARM_RADIUS_COLD, WARM_RADIUS_FULL, fraction)
+	_warm_radius = lerpf(_warm_radius, target, minf(1.0, delta * WARM_FOLLOW))
+	var center := MapData.SITES[0].pos as Vector2
+	for ink in _original_of:
+		ink.set_shader_parameter("warm_radius", _warm_radius)
+		ink.set_shader_parameter("warm_center", Vector3(center.x, 0.0, center.y))
 
 
 # ---------- Materials ----------
@@ -135,7 +158,8 @@ func _ink(m: Material) -> ShaderMaterial:
 	ink.set_shader_parameter("use_vertex_color", base.vertex_color_use_as_albedo)
 	if base.emission_enabled:
 		ink.set_shader_parameter("emission_color", base.emission)
-		ink.set_shader_parameter("emission_energy", base.emission_energy_multiplier)
+		# Glows stay paint, not light: capped so the fire reads orange instead of clipping to yellow.
+		ink.set_shader_parameter("emission_energy", minf(base.emission_energy_multiplier, EMISSION_CAP))
 	_ink_of[m] = ink
 	_original_of[ink] = m
 	return ink
@@ -159,7 +183,7 @@ func _add_lines() -> void:
 	quad.size = Vector2(2, 2)
 	var m := ShaderMaterial.new()
 	m.shader = LINES
-	m.render_priority = 100
+	m.render_priority = 5  # after other see-through things, under the labels (10)
 	_lines = MeshInstance3D.new()
 	_lines.mesh = quad
 	_lines.material_override = m
@@ -179,11 +203,11 @@ func _apply_lighting() -> void:
 	_env.background_color = Color(0.86, 0.88, 0.88)
 	# Shade is a cool blue wash; the sun is warm.
 	_env.ambient_light_color = Color(0.62, 0.7, 0.88)
-	_env.ambient_light_energy = 0.8
+	_env.ambient_light_energy = 0.85
 	_env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
 	_env.fog_light_color = Color(0.93, 0.93, 0.92)
 	_sun.light_color = Color(1.0, 0.95, 0.87)
-	_sun.light_energy = 0.9
+	_sun.light_energy = 0.95
 	_sun.shadow_opacity = 0.7
 
 

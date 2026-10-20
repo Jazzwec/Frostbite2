@@ -111,7 +111,7 @@ Polish and quality first, then new content.
 The user committed to the ink & watercolour direction; the rules are in `docs/art-direction.md`. These come in this order, each its own commit with a ChatGPT review. The user's `Meagan.glb` stays untouched.
 
 - [x] **A1. Art direction doc.** `docs/art-direction.md`; the brief, CLAUDE.md and NOTES.md point to it.
-- [ ] **A2. Ink look: steadier and on by default.**
+- [x] **A2. Ink look: steadier and on by default.**
   - **What:** following ChatGPT's review of the test (`source_art/direction/ink_test/chatgpt_review.md`):
     - 1–2 px silhouette lines and thinner inner lines in blue-brown ink.
     - Small colour speckle ignored, and no 8 fps wobble.

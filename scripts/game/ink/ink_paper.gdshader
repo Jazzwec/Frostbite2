@@ -3,12 +3,12 @@ shader_type canvas_item;
 // broad uneven washes, and paper grain. It sits under the HUD, so the UI stays crisp.
 
 uniform sampler2D screen_tex : hint_screen_texture, filter_linear_mipmap;
-uniform vec3 paper : source_color = vec3(0.995, 0.985, 0.96);
+uniform vec3 paper : source_color = vec3(0.985, 0.97, 0.94);
 // Pigment pooling at the dark side of colour edges, like a drying wash.
-uniform float edge_darkening = 0.75;
+uniform float edge_darkening = 0.5;
 // Broad blotches of uneven wash, and the fine paper fibre.
-uniform float wash = 0.045;
-uniform float grain = 0.03;
+uniform float wash = 0.02;
+uniform float grain = 0.012;
 
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);

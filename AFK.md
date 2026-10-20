@@ -47,4 +47,4 @@ These rules override the "plan first, show the plan, ask before guessing" rules 
 - Go over the ChatGPT budget: **8 images and 25 reviews or asks per run**, counted in `tools/chatgpt/calls.log` from the run's start time. ChatGPT through the Codex bridge uses the user's ChatGPT plan, which is allowed within this budget.
 - Touch anything outside `C:\Claude Code\Frostbite2`. The Blender MCP may only change the Frostbite2 source `.blend` files.
 - Change `.claude/settings.json`, permissions or the user's global settings.
-- Change the art style: no new art direction, palettes, textures or models unless an item says so, and the ink look (`InkLook`) stays off. Items on hold in BACKLOG.md stay on hold.
+- Change the art style: no new art direction, palettes, textures or models unless an item says so, and the ink look (`InkLook`) stays as it is. Items on hold in BACKLOG.md stay on hold.
