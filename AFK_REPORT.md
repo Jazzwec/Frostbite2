@@ -46,3 +46,16 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.
 - **Felt wrong / notes:**
   - The headless test runner reports "passed" even when a test script fails to compile (an autoload missing headless). Worth fixing in item 13 (test coverage).
   - World labels ("Furnace Lv 1", "Fuel 0/30") crowd the on-screen arrow. Item 16 (smaller nameplates) should help.
+
+### 3. Zoom
+- **Commits:** "Zoom: pinch and mouse wheel".
+- **What changed:**
+  - Two-finger pinch zooms on phones and the mouse wheel zooms on desktop (10% per notch), between 16 and 34 m view height, default 22. The view eases to the new height.
+  - A second finger cancels the joystick, so Meagan stops instead of running off. The leftover finger doesn't take over until it's lifted.
+- **Checked in the game** (events injected through `runtime eval`):
+  - 4 wheel notches out reach 32.2 m.
+  - A pinch spreading from 100 to 500 px hits the 16 m limit, with Meagan still and the joystick hidden.
+  - One-finger drag still steers.
+- **Tests:** `tests/test_camera.gd` (pinch and wheel maths and the limits).
+- **New numbers:** none beyond the backlog's (16 / 34 / 22 m). The 10% wheel step and the easing speed are camera feel, in `CameraRig`.
+- **ChatGPT feedback (not applied, your call):** it would tighten the range to 18–30 m and default to about 25 m. At 22 m nearby buildings clip at the screen edges; at 32 m Meagan gets hard to spot. The backlog gave 16–34 / 22, so I kept those. Label clutter is item 16.

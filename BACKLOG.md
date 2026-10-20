@@ -31,7 +31,7 @@ Polish and quality first, then new content.
   - **Remember them:** hints that are done are stored in `user://settings.cfg`, so they don't repeat. Play again doesn't repeat them either.
   - **Done when:** a fresh profile sees each hint in turn and they never block touches.
 
-- [ ] **3. Zoom (safe).**
+- [x] **3. Zoom (safe).** Done 2026-10-20 (AFK).
   - **What:** two-finger pinch on phones and the mouse wheel on desktop.
   - **How:** zoom the camera between `VIEW_HEIGHT` 16 and 34 (default 22). One-finger drag stays the joystick.
   - **Done when:** both zoom inputs work in the running game and the joystick is unaffected. Pinch is checked by injecting two touch events through `runtime eval`.

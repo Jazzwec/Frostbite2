@@ -97,6 +97,10 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - [ ] Off-screen targets get an arrow on the screen edge; on-screen ones a bobbing arrow above them. The line moves up when a sheet opens, and dragging on it still steers Meagan.
 - [ ] Once all five are done they never come back, not after Play again or a restart.
 
+**Zoom (2026-10-20)**
+- [ ] The mouse wheel zooms in and out in steps, smoothly, between a close view and a wide one (16 to 34 m tall; it starts at 22).
+- [ ] On a phone: two fingers pinch to zoom. While pinching, Meagan doesn't move and the joystick doesn't show; one finger still steers as before.
+
 **Objective: keep the fire burning**
 - [ ] A winter starts at 100/100 heat. With no Wood it lasts about 2½ minutes.
 - [ ] Below 25%: the bar pulses red, banner and horn. Below 10%: "Fire out in 0:12" on the bar.
