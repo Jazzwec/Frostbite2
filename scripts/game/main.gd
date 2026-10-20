@@ -87,6 +87,10 @@ func _ready() -> void:
 	_nav_dirty = false
 	if OS.get_cmdline_user_args().has("--ink"):
 		_ink.set_enabled(true)
+	# A saved winter that had already ended shows its card again.
+	var s := Game.engine.state
+	if s.game_over:
+		_hud.show_game_over(s.time, Game.best_time(), false)
 
 
 func _process(delta: float) -> void:

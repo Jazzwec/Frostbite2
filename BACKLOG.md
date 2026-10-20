@@ -11,7 +11,7 @@ Add, reorder or delete items freely; Claude only reads this file at the start of
 
 Polish and quality first, then new content.
 
-- [ ] **1. Save and continue (safe).**
+- [x] **1. Save and continue (safe).** Done 2026-10-20 (AFK).
   - **What:** the winter survives closing the game.
   - **How:** serialize `GameState` to `user://save.json` every 10 s, on pause or focus loss and on quit; load it on launch if it exists. A new winter (Play again) deletes the save. Engine-side `to_dict()`/`from_dict()` with a version number.
   - **Done when:**

@@ -10,6 +10,8 @@ extends RefCounted
 const TICK := 0.1
 ## Most real time one advance() call may simulate; longer frames are dropped, never caught up. [f1]
 const MAX_ADVANCE := 1.0
+## The winter is saved this often while playing, and on pause, focus loss and quit. [backlog]
+const AUTOSAVE_INTERVAL := 10.0
 
 # ---------- Heat and fuel ----------
 

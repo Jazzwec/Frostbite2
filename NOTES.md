@@ -88,6 +88,10 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - [ ] Fighting: tail up, a crouch, a lunge forward with the front paws out, then back, about once a second. When hit, the whole wolf flashes white for a moment and hops back a little.
 - [ ] The health bar sits above the head and doesn't hide the ears.
 
+**Save and continue (2026-10-20)**
+- [ ] Play a minute (build something, rescue a Jan), close the window, start again: the winter continues where it was, with the same Jans, buildings, bag and timers.
+- [ ] Let the fire go out, close and reopen: the game-over card shows again. Play again starts a fresh winter, and reopening after that starts fresh too.
+
 **Objective: keep the fire burning**
 - [ ] A winter starts at 100/100 heat. With no Wood it lasts about 2½ minutes.
 - [ ] Below 25%: the bar pulses red, banner and horn. Below 10%: "Fire out in 0:12" on the bar.

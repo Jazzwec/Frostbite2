@@ -68,3 +68,25 @@ var next_id := 1
 func new_id() -> int:
 	next_id += 1
 	return next_id - 1
+
+
+## Every field above, by name, for saving. Values are copied deeply, so the dictionary doesn't
+## change as the game goes on.
+func to_dict() -> Dictionary:
+	var out := {}
+	for prop in get_property_list():
+		if prop.usage & PROPERTY_USAGE_SCRIPT_VARIABLE:
+			var value: Variant = get(prop.name)
+			out[prop.name] = value.duplicate(true) if value is Array or value is Dictionary else value
+	return out
+
+
+## The state saved by to_dict(). Fields missing from an older save keep their defaults, and
+## unknown ones are ignored.
+static func from_dict(data: Dictionary) -> GameState:
+	var s := GameState.new()
+	for prop in s.get_property_list():
+		if prop.usage & PROPERTY_USAGE_SCRIPT_VARIABLE and data.has(prop.name):
+			var value: Variant = data[prop.name]
+			s.set(prop.name, value.duplicate(true) if value is Array or value is Dictionary else value)
+	return s

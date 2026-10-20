@@ -3,6 +3,9 @@ extends RefCounted
 ## Owns the GameState and runs the rules in fixed ticks. Scenes call the actions below and read
 ## `state`; they never change it directly. Things the scenes should react to queue up as events.
 
+## Bumped when a save from an older version can't be read as it is.
+const SAVE_VERSION := 1
+
 var state: GameState
 var rng := RandomNumberGenerator.new()
 var paused := false
@@ -30,6 +33,32 @@ static func new_winter() -> GameState:
 	# The furnace starts full; keeping it burning is the goal. [agreed 2026-10-19]
 	s.heat = Economy.heat_cap(s)
 	return s
+
+
+## A save: the whole state plus the random generator, as JSON text (Vector2s and ints kept).
+func to_json() -> String:
+	return JSON.stringify(JSON.from_native({
+		"version": SAVE_VERSION,
+		"state": state.to_dict(),
+		# As text: a 64-bit state doesn't survive a JSON number.
+		"rng_seed": str(rng.seed),
+		"rng_state": str(rng.state),
+	}))
+
+
+## The engine saved by to_json(), or null if the text isn't a save this version can read.
+static func from_json(text: String) -> GameEngine:
+	var json := JSON.new()
+	if json.parse(text) != OK or not json.data is Dictionary or not json.data.has("type"):
+		return null
+	var data: Variant = JSON.to_native(json.data)
+	if not data is Dictionary or int(data.get("version", 0)) != SAVE_VERSION or not data.get("state") is Dictionary:
+		return null
+	var e := GameEngine.new()
+	e.state = GameState.from_dict(data.state)
+	e.rng.seed = String(data.get("rng_seed", "0")).to_int()
+	e.rng.state = String(data.get("rng_state", "0")).to_int()
+	return e
 
 
 ## Runs whole ticks for `delta` seconds of real time. Long frames are capped, never caught up.
