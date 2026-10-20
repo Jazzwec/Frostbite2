@@ -2,6 +2,32 @@
 
 What felt wrong while playing, and what's still open. This file is the prompt for the next session.
 
+## The bag, small stockpiles, global levels, hauling Jans (2026-10-20, night)
+
+The user changed their mind about the bag. Plan: `~/.claude/plans/make-sure-there-is-ancient-avalanche.md`. All four parts are in and tested (140 tests), one commit each:
+1. **Global levels:** every plot of a building shares its level, and its upgrade is paid on any of their pads. The furnace's level is shared with the small furnaces, which now have a pad that opens the furnace's sheet.
+2. **Small stockpiles:** one beside each small furnace, all doors into the one store. The Stockpile has its own shared level (every cap ×1.2 per level).
+3. **The bag:** 20, +10 per Stockpile level. It empties at any stockpile, and pads take from it before the store.
+4. **Hauling:** Jans carry loads (Wood 5, Food 3, Materials 1) to the nearest stockpile.
+
+**Check in the game:**
+- chop to MAX and empty the bag at the main and a small stockpile;
+- pay a furnace upgrade at a small furnace;
+- upgrade a Lumber Yard and see every yard go up;
+- watch Jans walk loads to the stockpile.
+
+**New `[proto]` numbers, for your sign-off:**
+- the bag's +10 per Stockpile level;
+- the Stockpile's cost (60 Wood + 10 Materials, ×1.5 per level, max 10) and its cap ×1.2 per level;
+- the loads, Jan walking 3 m/s with a 1.25 path factor;
+- the small stockpile's spot;
+- the small furnace's pad 2.4 m in.
+
+**Notes:**
+- `job_rate` and the sheets still show working speed, not what reaches the store after the walk.
+- A wolf can still scare a Jan who is out hauling.
+- The dev save is reset (`SAVE_VERSION` 13).
+
 ## Model pipeline: every model through GPT -> Meshy -> Blender (2026-10-20, evening)
 
 Plan: `~/.claude/plans/make-sure-there-is-ancient-avalanche.md`. The user approved a 1,200-credit Meshy cap; **1,060 spent** (`assets/models/meshy/ledger.json`, one `<name>.meshy.json` per model). References come from ChatGPT on **gpt-6-astra** (`tools/chatgpt/refs_buildings.py` for buildings, props, trees, chests and tools; `refs_characters.py` for the front/side/back character views).

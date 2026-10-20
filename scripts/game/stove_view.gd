@@ -77,7 +77,12 @@ func refresh(s: GameState) -> void:
 		var lv := Economy.furnace_level(s)
 		var state := "paying" if paying else ("maxed" if lv >= Balance.BUILDINGS.furnace.max else "idle")
 		_pad.material_override = Shapes.material(SiteView.PAD_COLORS[state])
-		_pad_label.text = "Furnace Lv %d\n%s" % [lv, {"paying": "Upgrading", "maxed": "Max", "idle": "Upgrade"}[state]]
+		var line: String = {"maxed": "Max", "idle": "Upgrade"}.get(state, "")
+		if state == "paying":
+			var need := Economy.cost("furnace", lv)
+			var got: Dictionary = s.upgrades.furnace
+			line = "Paying %s/%s Wood" % [Fmt.num(got.get("wood", 0.0)), Fmt.num(need.get("wood", 0.0))]
+		_pad_label.text = ("Furnace · Lv %d\n%s" % [lv, line])
 	var cap := Economy.heat_cap(s)
 	var frac := clampf(s.heat / cap, 0.0, 1.0) if cap > 0.0 else 0.0
 	_glow.scale = Vector3.ONE * (0.2 + 0.8 * frac)

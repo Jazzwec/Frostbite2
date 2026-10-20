@@ -55,7 +55,7 @@ func setup(stockpile_index: int, s: GameState) -> void:
 	var pad_at := MapData.stockpile_pad(s, index) - pos
 	_pad = Shapes.cylinder(1.1, 0.03, PAD_COLOR, Vector3(pad_at.x, 0.02, pad_at.y))
 	add_child(_pad)
-	_pad_label = Shapes.label("Stockpile", Vector3(pad_at.x, 0.08, pad_at.y), 42)
+	_pad_label = Shapes.label("Stockpile", Vector3(pad_at.x, 0.08, pad_at.y), 30)
 	_pad_label.billboard = BaseMaterial3D.BILLBOARD_DISABLED
 	_pad_label.rotation_degrees.x = -90.0
 	add_child(_pad_label)
@@ -68,7 +68,8 @@ func refresh(s: GameState) -> void:
 	_pad.visible = d <= SiteView.PAD_SHOW
 	_pad_label.visible = focused
 	if focused:
-		_pad_label.text = "Stockpile Lv %d" % s.stockpile_level
+		# The level is shared by every stockpile, and the label says so (Astra review, 2026-10-20).
+		_pad_label.text = ("Stockpile · Lv %d\nshared store" % s.stockpile_level)
 	var caps := Economy.caps(s)
 	for res in HEAPS:
 		var amount: float = s.piles[res]

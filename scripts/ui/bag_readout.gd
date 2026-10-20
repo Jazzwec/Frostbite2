@@ -1,6 +1,7 @@
 class_name BagReadout
 extends PanelContainer
-## The one readout over Meagan: what's in her bag ("12/20", or "MAX" in red when it's full) with
+## The one readout over Meagan: what's in her bag ("Bag 12/20", or a coral "BAG FULL", from the
+## Astra review 2026-10-20) with
 ## what she carries on a short line under it. It's drawn on the screen, not in the world, so it
 ## stays the same small size at any zoom and sits above the buildings' labels. Hidden when the
 ## bag is empty; it never takes touches.
@@ -59,8 +60,8 @@ func _process(delta: float) -> void:
 		return
 	var cap := Economy.bag_cap(s)
 	var full := total >= cap - 0.01
-	_count.text = "MAX" if full else "%s/%s" % [Fmt.num(floorf(total)), Fmt.num(cap)]
-	_count.add_theme_color_override("font_color", Color(1.0, 0.45, 0.4) if full else Color(0.95, 0.96, 1.0))
+	_count.text = "BAG FULL" if full else "Bag %s/%s" % [Fmt.num(floorf(total)), Fmt.num(cap)]
+	_count.add_theme_color_override("font_color", Color(1.0, 0.55, 0.45) if full else Color(0.95, 0.96, 1.0))
 	if full and not _was_full:
 		# A little pop the moment the bag fills up.
 		pivot_offset = size / 2.0

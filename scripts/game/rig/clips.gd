@@ -129,7 +129,7 @@ const CLIPS := {
 			{"t": 0.75, "arm_r": Vector3(-76, 0, -14), "arm_l": Vector3(-76, 0, -14), "rise": 0.1, "lean": 4.0},
 		],
 	},
-	# Hugging a box from her bag into a stockpile.
+	# Emptying her bag into a stockpile.
 	"carry": {
 		"length": 0.8, "loop": true, "tool": "crate", "socket": "chest", "impact": 0.5,
 		"keys": [
