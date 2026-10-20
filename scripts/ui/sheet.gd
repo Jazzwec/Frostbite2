@@ -24,8 +24,10 @@ var _status: Label
 ## What the next upgrade costs against what she has (bag and store), a shortage in red.
 var _cost_line: RichTextLabel
 var _upgrade: Button
-## The Armory's three rows (fight_v2 review 1): [now, next] labels by stat.
+## The Armory's rows (fight_v2 reviews 1 and 2): [now, next, name] labels by stat.
 var _armory_cells := {}
+## Whether the upgrade button is in its muted look (she's short of something).
+var _upgrade_muted := false
 var _job_label: Label
 var _job_row: HBoxContainer
 var _job := ""
@@ -180,6 +182,7 @@ func _open_building(b: String) -> void:
 	_cost_line = UiTheme.rich_label(34)
 	_body.add_child(_cost_line)
 	_upgrade = UiTheme.button("", _start_upgrade)
+	_upgrade_muted = false
 	_body.add_child(_upgrade)
 	for job in Balance.JOBS:
 		if Balance.JOBS[job].building == b:
@@ -217,18 +220,19 @@ func _armory_grid() -> GridContainer:
 	grid.add_theme_constant_override("h_separation", 28)
 	grid.add_theme_constant_override("v_separation", 6)
 	_armory_cells = {}
-	for row in ARMORY_ROWS:
-		var name := UiTheme.label(row[1], 34, UiTheme.INK_SOFT)
+	# A fourth row says what the next level does to a wolf, when it does something (review 2).
+	for row in ARMORY_ROWS + [["wolf", "Hits to beat a wolf"]]:
+		var name := UiTheme.label(row[1], 36, UiTheme.INK_SOFT)
 		name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var now := UiTheme.label("", 34)
-		var next := UiTheme.label("", 34, UiTheme.TEAL_DEEP)
+		var now := UiTheme.label("", 40)
+		var next := UiTheme.label("", 40, UiTheme.TEAL_DEEP)
 		for l in [now, next]:
 			l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 			l.custom_minimum_size.x = 150
 		grid.add_child(name)
 		grid.add_child(now)
 		grid.add_child(next)
-		_armory_cells[row[0]] = [now, next]
+		_armory_cells[row[0]] = [now, next, name]
 	return grid
 
 
@@ -241,22 +245,51 @@ func _refresh_armory(s: GameState) -> void:
 		return {"snow": "%d" % w.snow_damage, "stick": "%d" % w.stick_damage, "guard": "%d / %d" % [kit[0], kit[1]]}
 	var now: Dictionary = texts.call(lv)
 	var next: Dictionary = {} if top else texts.call(lv + 1)
+	# Sweeps to beat a wolf (its base HP), or snowballs if the sweep's count doesn't change.
+	var wolf_hp: float = Balance.ENEMIES.wolf.hp
+	var w_now := Economy.meagan_weapon(s, lv)
+	var w_next := Economy.meagan_weapon(s, mini(lv + 1, Balance.ARMORY_LEVELS.size()))
+	var sweeps := [ceili(wolf_hp / w_now.stick_damage), ceili(wolf_hp / w_next.stick_damage)]
+	var balls := [ceili(wolf_hp / w_now.snow_damage), ceili(wolf_hp / w_next.snow_damage)]
+	var shows_wolf: bool = not top and (sweeps[1] < sweeps[0] or balls[1] < balls[0])
+	var by_sweep: bool = sweeps[1] < sweeps[0] or balls[1] >= balls[0]
+	var counts: Array = sweeps if by_sweep else balls
+	now["wolf"] = "%d" % counts[0]
+	next["wolf"] = "%d" % counts[1]
+	_armory_cells.wolf[2].text = "Sweeps to beat a wolf" if by_sweep else "Snowballs to beat a wolf"
 	for key in _armory_cells:
-		_armory_cells[key][0].text = now[key]
-		_armory_cells[key][1].text = "MAX" if top else "→ " + next[key]
+		var cells: Array = _armory_cells[key]
+		cells[0].text = now[key]
+		cells[1].text = "MAX" if top else "→ " + next.get(key, "")
+		if key == "wolf":
+			for c in cells:
+				c.visible = shows_wolf
 
 
-## "Wood 52 / 120  ·  Mat 15 / 8 short": each resource needed against what she has (bag and
-## store), red where she's short (fight_v2 review 1).
+## Each resource the upgrade needs against what she has (bag and store), owned first (fight_v2
+## review 2): "Wood 299 owned / 82 needed", or "Materials 8 / 25, need 17" with only the
+## shortfall in red. One per line.
 func _cost_text(s: GameState, need: Dictionary) -> String:
-	var parts := []
+	var lines := []
 	for res in need:
 		var have: float = s.piles.get(res, 0.0) + s.bag.get(res, 0.0)
-		var part := "%s %s %s / %s" % [UiTheme.icon(res, 40), str(res).capitalize().replace("Materials", "Mat"), Fmt.num(need[res]), Fmt.num(have)]
-		if have < need[res]:
-			part = "[color=#%s]%s short[/color]" % [UiTheme.FALU.to_html(false), part]
-		parts.append(part)
-	return "Needs  " + "  ·  ".join(parts)
+		var name := str(res).capitalize()
+		if have >= need[res]:
+			lines.append("%s %s %s owned / %s needed" % [UiTheme.icon(res, 40), name, Fmt.num(have), Fmt.num(need[res])])
+		else:
+			lines.append("%s %s %s / %s, [color=#%s]need %s[/color]" % [UiTheme.icon(res, 40), name, Fmt.num(have), Fmt.num(need[res]),
+					UiTheme.FALU.to_html(false), Fmt.num(ceilf(need[res] - have))])
+	return "\n".join(lines)
+
+
+## What's still missing for `need`, as "17 Materials" (or "" when she has it all).
+func _shortfall(s: GameState, need: Dictionary) -> String:
+	var parts := []
+	for res in need:
+		var short: float = need[res] - s.piles.get(res, 0.0) - s.bag.get(res, 0.0)
+		if short > 0.0:
+			parts.append("%s %s" % [Fmt.num(ceilf(short)), str(res).capitalize()])
+	return ", ".join(parts)
 
 
 func _start_upgrade() -> void:
@@ -346,7 +379,16 @@ func _refresh() -> void:
 	else:
 		_status.text = _summary(s, b) + _shared_note(s, b)
 		_upgrade.visible = true
-		_upgrade.text = "Upgrade to Lv %d" % (site.level + 1)
+		# Short of something, the button says so and looks muted; it still starts the upgrade, which
+		# she pays on the pad as she brings it (review 2).
+		var short := _shortfall(s, Economy.site_cost(s, site_index))
+		_upgrade.text = "Upgrade to Lv %d" % (site.level + 1) if short == "" else "Start Lv %d: need %s" % [site.level + 1, short]
+		if (short != "") != _upgrade_muted:
+			_upgrade_muted = short != ""
+			if _upgrade_muted:
+				UiTheme.style_utility(_upgrade, UiTheme.UTILITY_OFF)
+			else:
+				UiTheme.style_primary(_upgrade)
 	_cost_line.visible = _upgrade.visible
 	if _upgrade.visible:
 		_cost_line.text = _cost_text(s, Economy.site_cost(s, site_index))

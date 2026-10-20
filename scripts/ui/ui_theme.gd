@@ -103,6 +103,14 @@ static func style_utility(b: Button, color := UTILITY) -> void:
 		b.add_theme_color_override(c, INK)
 
 
+## Back to the theme's own (primary) button look, undoing style_utility.
+static func style_primary(b: Button) -> void:
+	for state in ["normal", "hover", "pressed", "disabled"]:
+		b.remove_theme_stylebox_override(state)
+	for c in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+		b.remove_theme_color_override(c)
+
+
 static func _button_style(color: Color) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
 	s.bg_color = color
