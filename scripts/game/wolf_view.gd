@@ -13,8 +13,14 @@ extends Node3D
 const MODEL_PATH := "res://assets/models/blender/wolf.glb"
 ## Drawn larger than life (1.3 m long in the file), so it reads from the game camera.
 const MODEL_SCALE := 1.5
-## A fox is a smaller wolf, painted rust-orange over the wolf's grey.
-const FOX_SCALE := 0.72
+## Sizes by kind, as a wolf's footprint (fight_v2 review 1): fox 0.8, wolf 1, bear 1.5, troll
+## 1.8, so a crowd sorts itself at a glance. A fox is a smaller, lower wolf, painted rust-orange
+## over the wolf's grey; a wolf is a little broad in the shoulder.
+const FOX_SCALE := 0.8
+const FOX_LOW := 0.82
+const WOLF_BROAD := 1.12
+const BEAR_SCALE := 1.15
+const TROLL_SCALE := 1.08
 const FOX_TINT := Color(1.0, 0.58, 0.32)
 const FOX_FUR := Color(0.85, 0.45, 0.2)
 ## The bones the trot and lunge move, by the end of their names (Tripo's auto-rig names them
@@ -64,6 +70,9 @@ const LOOK := {
 }
 
 var kind := "wolf"
+## An outpost's sleeper lies low: 1 asleep, 0 up and about, in between while it gets up (PeopleLayer
+## sets it from the outpost; fight_v2 review 1).
+var rest := 0.0
 var _def: Dictionary
 var _model: Node3D
 var _hp_bar: HpBar
@@ -160,6 +169,10 @@ func _init(enemy_kind := "wolf") -> void:
 func _build_model() -> void:
 	_pivot = Node3D.new()
 	_pivot.scale = Vector3.ONE * MODEL_SCALE * (FOX_SCALE if kind == "fox" else 1.0)
+	if kind == "fox":
+		_pivot.scale.y *= FOX_LOW
+	else:
+		_pivot.scale.x *= WOLF_BROAD
 	_model.add_child(_pivot)
 	var model: Node3D = load(MODEL_PATH).instantiate()
 	_pivot.add_child(model)
@@ -224,10 +237,14 @@ func _add_fox_tail() -> void:
 func _build_bear() -> void:
 	var fur := Color(0.4, 0.29, 0.22)
 	var dark := fur.darkened(0.3)
+	# Wide and low (review 1): the whole bear a size up, and broader than it is tall.
+	var size := Node3D.new()
+	size.scale = Vector3(1.2, 0.92, 1.0) * BEAR_SCALE
+	_model.add_child(size)
 	# It rears about its hind legs, so the body hangs off a pivot there.
 	var rear := Node3D.new()
 	rear.position = Vector3(0, 0, -0.55)
-	_model.add_child(rear)
+	size.add_child(rear)
 	var body := Node3D.new()
 	body.position = Vector3(0, 0, 0.55)
 	rear.add_child(body)
@@ -258,6 +275,7 @@ func _build_troll() -> void:
 	var hide := Color(0.52, 0.6, 0.68)
 	var ice := Color(0.8, 0.9, 0.98)
 	var body := Node3D.new()
+	body.scale = Vector3.ONE * TROLL_SCALE
 	_model.add_child(body)
 	var trunk := Shapes.capsule(0.62, 1.9, hide, Vector3(0, 1.55, -0.05))
 	trunk.rotation_degrees.x = 12.0
@@ -277,8 +295,10 @@ func _build_troll() -> void:
 		var arm := Node3D.new()
 		arm.position = Vector3(x, 2.25, 0.1)
 		body.add_child(arm)
-		arm.add_child(Shapes.capsule(0.21, 1.4, hide, Vector3(0, -0.65, 0)))
-		arm.add_child(Shapes.sphere(0.34, hide.darkened(0.15), Vector3(0, -1.4, 0.05)))
+		# Oversized forearms and fists (review 1): its slam reads from its outline.
+		arm.add_child(Shapes.capsule(0.19, 0.8, hide, Vector3(0, -0.35, 0)))
+		arm.add_child(Shapes.capsule(0.32, 0.9, hide.darkened(0.08), Vector3(0, -1.0, 0.03)))
+		arm.add_child(Shapes.sphere(0.46, hide.darkened(0.15), Vector3(0, -1.48, 0.06)))
 		_parts["arm_r" if x > 0 else "arm_l"] = arm
 	_parts.body = body
 
@@ -493,7 +513,7 @@ func sync(enemy: Dictionary, delta: float) -> void:
 	_recoil = maxf(0.0, _recoil - delta)
 	# Out and back: half a sine over the recoil's time.
 	var recoil := _recoil_dir * RECOIL * sin(PI * (1.0 - _recoil / RECOIL_TIME)) if _recoil > 0.0 else Vector3.ZERO
-	var asleep: bool = enemy.get("outpost", -1) >= 0 and not moving and not fighting
+	var asleep := rest > 0.99
 	_t += delta * (0.0 if asleep else (14.0 if fighting else TROT_SPEED * _def.speed / 2.5))
 	var lunge := _lunge() if fighting else 0.0
 	_model.position = recoil
@@ -504,6 +524,8 @@ func sync(enemy: Dictionary, delta: float) -> void:
 		_pose(fighting, lunge)
 	else:
 		_pose_greybox(fighting, lunge, moving)
+	if rest > 0.0:
+		_lie_down(rest)
 	if _tail:
 		_tail.rotation.y = deg_to_rad(16.0 * sin(_t)) if not fighting else deg_to_rad(5.0 * sin(_t))
 		_tail.rotation.x = deg_to_rad(-12.0 if fighting else 0.0)
@@ -547,6 +569,33 @@ static func _badge_disc() -> Texture2D:
 				img.set_pixel(x, y, col)
 		_disc = ImageTexture.create_from_image(img)
 	return _disc
+
+
+## An outpost's sleeper: low to the ground, head down (a raider sits, its shard put away); by
+## `amount` (1 asleep), so waking up is a visible stand-up.
+func _lie_down(amount: float) -> void:
+	match kind:
+		"wolf", "fox":
+			if _pivot:
+				for leg in GAIT_PHASE:
+					_turn_bone(_bone["leg_" + leg], Basis(Vector3.RIGHT, deg_to_rad((-50.0 if leg.begins_with("f") else 45.0) * amount)))
+					_turn_bone(_bone["knee_" + leg], Basis(Vector3.RIGHT, deg_to_rad(80.0 * amount)))
+				_turn_bone(_bone.neck, Basis(Vector3.RIGHT, deg_to_rad(25.0 * amount)))
+				_turn_bone(_bone.tail, Basis(Vector3.UP, deg_to_rad(40.0 * amount)))
+				_pivot.position.y -= 0.32 * amount * _pivot.scale.y / MODEL_SCALE
+			else:
+				_model.position.y -= 0.3 * amount
+		"raider":
+			_model.position.y -= 0.42 * amount
+			_parts.arm_r.rotation_degrees.x = lerpf(_parts.arm_r.rotation_degrees.x, 0.0, amount)
+			_parts.shard.visible = _parts.shard.visible and amount < 0.5
+			_parts.body.rotation_degrees.x = 14.0 * amount
+		"bear":
+			_model.position.y -= 0.35 * amount
+			_parts.rear.rotation_degrees.x = 8.0 * amount
+		"troll":
+			_model.position.y -= 0.6 * amount
+			_parts.body.rotation_degrees.x = 22.0 * amount
 
 
 ## Poses the wolf model: a trot while it runs, a lunge and snap while it fights.

@@ -84,11 +84,12 @@ for i in 3:
 	add.call([\"wolf\", \"fox\", \"raider\"][i], f + Vector2(-2.5 + 2.5 * i, 3.0), 30.0)
 emit(1)"
 
+# A raider camp asleep in view; she walks in after the first frames and it wakes.
 bash "$STRIP" "$OUT" outpost 6 0.7 "$PRE
-Combat.add_outpost(s, \"raider_camp\", p + Vector2(6, 2), Vector2i(0, 1), 3)
+Combat.add_outpost(s, \"raider_camp\", p + Vector2(4.5, -3), Vector2i(0, 1), 3)
 main._add_outpost_view(s.outposts.size() - 1)
-p = p + Vector2(2.5, 1)
-m.walk_to(Vector3(p.x, 0, p.y))
+var to = Vector3(p.x + 1.5, 0, p.y - 1.0)
+get_tree().create_timer(3.2).timeout.connect(func(): m.walk_to(to))
 emit(1)"
 
 swallowtail runtime eval --code 'var s = Game.engine.state

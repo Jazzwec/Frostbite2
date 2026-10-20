@@ -166,6 +166,7 @@ func _sync_wolves(s: GameState, delta: float) -> void:
 			add_child(view)
 			view.global_position = Vector3(wolf.pos.x, 0, wolf.pos.y)
 			_wolves[wolf.id] = view
+		view.rest = _rest(s, wolf)
 		view.sync(wolf, delta)
 	_nudge_wolves(s, delta)
 	for id in _wolves.keys():
@@ -177,6 +178,17 @@ func _sync_wolves(s: GameState, delta: float) -> void:
 			else:
 				_wolves[id].queue_free()
 			_wolves.erase(id)
+
+
+## How far an outpost's defender is lying down: asleep, getting up for OUTPOST_WAKE once woken,
+## then up.
+func _rest(s: GameState, wolf: Dictionary) -> float:
+	if wolf.outpost < 0:
+		return 0.0
+	var post: Dictionary = s.outposts[wolf.outpost]
+	if not post.awake:
+		return 1.0
+	return clampf(1.0 - (s.time - post.get("woke_at", -100.0)) / Balance.OUTPOST_WAKE, 0.0, 1.0)
 
 
 ## A wolf view, if it's on the map.
@@ -200,8 +212,9 @@ func _drop_spot(s: GameState, k: int, id: int) -> Vector2:
 	return MapData.stockpile_pad(s, k) + Vector2(col * DROP_GAP, 0.3 + 0.5 * float((id / slots) % 2))
 
 
-## Wolves closer than this are drawn apart (view only), and how quickly the nudge settles.
-const WOLF_VIEW_SPACING := 1.0
+## Wolves closer than this share of the engine's spacing (by kind) are drawn apart (view only),
+## and how quickly the nudge settles.
+const WOLF_VIEW_SPACING := 0.9
 const WOLF_NUDGE_EASE := 6.0
 
 
@@ -216,9 +229,10 @@ func _nudge_wolves(s: GameState, delta: float) -> void:
 				continue
 			var apart: Vector2 = wolf.pos - other.pos
 			var d := apart.length()
-			if d < WOLF_VIEW_SPACING:
+			var spacing := Combat.spacing_of(wolf.kind, other.kind) * WOLF_VIEW_SPACING
+			if d < spacing:
 				var dir := apart / d if d > 0.001 else Vector2.RIGHT.rotated(float(wolf.id * 7 - other.id * 3))
-				push += dir * (WOLF_VIEW_SPACING - d) * 0.5
+				push += dir * (spacing - d) * 0.5
 		view.nudge = view.nudge.lerp(Vector3(push.x, 0, push.y), minf(1.0, WOLF_NUDGE_EASE * delta))
 
 

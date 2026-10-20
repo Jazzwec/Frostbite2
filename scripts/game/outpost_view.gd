@@ -3,7 +3,9 @@ extends Node3D
 ## An enemy outpost in an opened tile (agreed 2026-10-20): a lair or camp whose defenders sleep
 ## until Meagan comes near. Greybox until its models are made: a fox den's snowy burrow, a wolf
 ## hollow's ring of stones, a raider camp's stakes and tent, a bear's cave. A rust pennant flies
-## over it until it's cleared, then it drops and the place goes quiet.
+## over it until it's cleared, then it drops and the place goes quiet. While its defenders sleep,
+## one "z z" floats over the camp; woken, a "!" for the moment they take to get up (fight_v2
+## review 1). The camp's stakes stand only behind it, so none hide the fight from the camera.
 
 const ROCK := Color(0.45, 0.44, 0.47)
 const DARK := Color(0.12, 0.12, 0.16)
@@ -13,6 +15,8 @@ const PENNANT := Color(0.66, 0.3, 0.2)
 var index := -1
 var _flag: Node3D
 var _cleared := false
+var _sleep: Label3D
+var _was_awake := false
 
 
 func setup(i: int, post: Dictionary) -> void:
@@ -30,8 +34,9 @@ func setup(i: int, post: Dictionary) -> void:
 				add_child(rock)
 			add_child(Shapes.cylinder(1.4, 0.03, Color(0.78, 0.8, 0.85), Vector3(0, 0.02, 0)))
 		"raider_camp":
+			# Only along the back (away from the camera, which looks north).
 			for k in 9:
-				var a := TAU * k / 12.0 + 0.8
+				var a := PI + 0.25 + (PI - 0.5) * k / 8.0
 				var stake := Shapes.cylinder(0.08, 1.1 + 0.15 * (k % 2), WOOD, Vector3(cos(a) * 2.2, 0.55, sin(a) * 2.2))
 				add_child(stake)
 			add_child(Shapes.cone(0.95, 1.4, Color(0.42, 0.36, 0.3), Vector3(-0.5, 0.7, -0.5)))
@@ -51,10 +56,18 @@ func setup(i: int, post: Dictionary) -> void:
 	add_child(_flag)
 	_flag.add_child(Shapes.cylinder(0.04, 2.2, WOOD, Vector3(0, 1.1, 0)))
 	_flag.add_child(Shapes.box(Vector3(0.6, 0.38, 0.03), PENNANT, Vector3(0.3, 1.95, 0)))
+	_sleep = Shapes.label("z z", Vector3(0, 2.6, 0), 64, Color(0.86, 0.9, 1.0))
+	add_child(_sleep)
 	refresh(post)
 
 
 func refresh(post: Dictionary) -> void:
+	var now := Time.get_ticks_msec() / 1000.0
+	_sleep.visible = not post.cleared and not post.awake
+	_sleep.position.y = 2.6 + 0.12 * sin(now * 2.0)
+	if post.awake and not _was_awake and not post.cleared:
+		_wake_mark()
+	_was_awake = post.awake
 	if post.cleared and not _cleared:
 		_cleared = true
 		# The pennant comes down.
@@ -64,3 +77,15 @@ func refresh(post: Dictionary) -> void:
 		t.tween_callback(_flag.hide)
 	elif not post.cleared and _flag:
 		_flag.rotation.y = 0.15 * sin(Time.get_ticks_msec() / 400.0 + index)
+
+
+## Woken: a "!" pops over the camp while they get up.
+func _wake_mark() -> void:
+	var mark := Shapes.label("!", Vector3(0, 2.4, 0), 96, Color(0.95, 0.72, 0.3))
+	add_child(mark)
+	mark.scale = Vector3.ONE * 0.4
+	var t := create_tween()
+	t.tween_property(mark, "scale", Vector3.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.tween_interval(Balance.OUTPOST_WAKE - 0.18)
+	t.tween_property(mark, "modulate:a", 0.0, 0.25)
+	t.tween_callback(mark.queue_free)
