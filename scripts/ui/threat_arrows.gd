@@ -7,8 +7,8 @@ extends Control
 
 const SIZE := 34.0
 ## Where an arrow may sit: this far in from each screen edge (left, top, right, bottom), clear
-## of the top panel and the buttons under it.
-const EDGE_MARGINS := Vector4(50, 560, 50, 160)
+## of the top panel, the buttons and the fight strip under them.
+const EDGE_MARGINS := Vector4(50, 650, 50, 160)
 const RUST := Color(0.62, 0.24, 0.15)
 const THIEF := Color(0.95, 0.72, 0.3)
 const ICON_SIZE := 56.0

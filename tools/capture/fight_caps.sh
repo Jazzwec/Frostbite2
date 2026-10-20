@@ -89,9 +89,9 @@ emit(1)"
 
 # A raider camp asleep in view; she walks in after the first frames and it wakes.
 bash "$STRIP" "$OUT" outpost 6 0.7 "$PRE
-Combat.add_outpost(s, \"raider_camp\", p + Vector2(4.5, -3), Vector2i(0, 1), 3)
+Combat.add_outpost(s, \"raider_camp\", p + Vector2(4, -5.5), Vector2i(0, 1), 3)
 main._add_outpost_view(s.outposts.size() - 1)
-var to = Vector3(p.x + 1.5, 0, p.y - 1.0)
+var to = Vector3(p.x + 2.0, 0, p.y - 2.0)
 get_tree().create_timer(3.2).timeout.connect(func(): m.walk_to(to))
 emit(1)"
 
