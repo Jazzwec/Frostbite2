@@ -30,6 +30,8 @@ const VEIL_COLOR := Color(0.6, 0.68, 0.82)
 const VEIL_HEIGHT := 1.2
 var _people: PeopleLayer
 var _stockpile: StockpileView
+## Woodpiles, fences, rocks and shrubs round the plots and over open snow. [ink_v3, 2026-10-20]
+var _dressing: SetDressing
 ## For showing a build pad or gate taking from the Stockpile: each one's progress last frame.
 var _last_progress := {}
 var _drop_in := 0.0
@@ -58,6 +60,8 @@ var _pad_opened := -1
 func _ready() -> void:
 	_build_environment()
 	_build_ground()
+	_dressing = SetDressing.new()
+	add_child(_dressing)
 	for i in Game.engine.state.sites.size():
 		_add_site_view(i)
 	for i in Game.engine.state.node_defs.size():
@@ -143,6 +147,7 @@ func _refresh_views(delta: float) -> void:
 	var cam := _rig.camera.global_transform if _rig else Transform3D()
 	var her := _meagan.global_position if _meagan else Vector3.INF
 	var hidden := false
+	_dressing.refresh(s)
 	for v in _sites:
 		v.refresh(s)
 		if _rig:

@@ -23,6 +23,15 @@ const PATHS := {
 	"house_kitchen": "res://assets/models/blender/house_kitchen.glb",
 	"house_watchtower": "res://assets/models/blender/house_watchtower.glb",
 	"house_hot_springs": "res://assets/models/blender/house_hot_springs.glb",
+	# Its set dressing (SetDressing places them).
+	"prop_rock_a": "res://assets/models/blender/prop_rock_a.glb",
+	"prop_rock_b": "res://assets/models/blender/prop_rock_b.glb",
+	"prop_fence": "res://assets/models/blender/prop_fence.glb",
+	"prop_shrub": "res://assets/models/blender/prop_shrub.glb",
+	"prop_lantern_post": "res://assets/models/blender/prop_lantern_post.glb",
+	"prop_woodpile": "res://assets/models/blender/prop_woodpile.glb",
+	"prop_sled": "res://assets/models/blender/prop_sled.glb",
+	"prop_bench": "res://assets/models/blender/prop_bench.glb",
 }
 ## The pines' own height in metres (base of the trunk to the tip), to scale them to a tree's height.
 const PINE_HEIGHTS := {"pine_a": 3.45, "pine_b": 3.55, "pine_c": 2.55}

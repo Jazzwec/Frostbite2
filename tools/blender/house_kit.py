@@ -387,22 +387,118 @@ BUILDINGS = {
 }
 
 
+# ---------- Set dressing (ink_v3 phase 3): the small things that make it a place ----------
+
+def _rock(name, lumps):
+    h = House(name)
+    for (x, y, sx, sy, sz) in lumps:
+        h.blob((x, y, sz * 0.32), (sx, sy, sz), "stone")
+    # Snow settled on top, a little smaller than the stone, the shaded side bluer.
+    for (x, y, sx, sy, sz) in lumps:
+        h.blob((x, y, sz * 0.62), (sx * 0.8, sy * 0.8, sz * 0.4), "snow")
+    h.blob((0.0, 0.0, 0.02), (1.6, 1.4, 0.18), "snow_shade")  # a drift round its foot
+    return h
+
+
+def rock_a():
+    return _rock("prop_rock_a", [(0.0, 0.0, 1.2, 1.0, 0.8), (0.45, 0.2, 0.7, 0.6, 0.5)])
+
+
+def rock_b():
+    return _rock("prop_rock_b", [(0.0, 0.0, 0.8, 0.7, 0.55), (-0.4, -0.2, 0.5, 0.45, 0.35), (0.35, -0.25, 0.45, 0.4, 0.3)])
+
+
+def fence():
+    """One 2 m run of fence: two posts, two rails, snow along the top."""
+    h = House("prop_fence")
+    for x in (-0.95, 0.95):
+        h.cyl((x, 0, 0.5), 0.07, 1.0, "wood_dark", segments=6)
+        h.blob((x, 0, 1.02), (0.2, 0.2, 0.14), "snow")
+    for z in (0.4, 0.8):
+        h.box((0, 0, z), (2.0, 0.07, 0.11), "wood", rz=0.0, rx=0.0, ry=0.02 if z > 0.5 else -0.02)
+    h.box((0, 0, 0.88), (1.95, 0.12, 0.07), "snow", bevel=0.03)
+    h.blob((0.0, 0.0, 0.02), (2.3, 0.5, 0.16), "snow_shade")
+    return h
+
+
+def shrub():
+    """A bare winter shrub: a few dark twigs fanning out, snow caught at the base."""
+    h = House("prop_shrub")
+    for i in range(6):
+        a = i * math.tau / 6.0 + 0.3
+        lean = 0.35 + 0.1 * (i % 2)
+        h.cyl((math.cos(a) * 0.12, math.sin(a) * 0.12, 0.35), 0.025, 0.75, "wood_dark", segments=4, rz=a, rx=lean)
+    h.blob((0.0, 0.0, 0.05), (0.6, 0.55, 0.2), "snow")
+    return h
+
+
+def lantern_post():
+    h = House("prop_lantern_post")
+    h.cyl((0, 0, 0.9), 0.06, 1.8, "wood_dark", segments=6)
+    h.box((0.18, 0, 1.75), (0.4, 0.06, 0.06), "wood_dark")
+    h.box((0.34, 0, 1.55), (0.18, 0.18, 0.26), "fire")
+    h.box((0.34, 0, 1.71), (0.24, 0.24, 0.06), "iron")
+    h.blob((0.34, 0, 1.76), (0.24, 0.24, 0.08), "snow")
+    h.blob((0.0, 0.0, 0.02), (0.6, 0.6, 0.16), "snow_shade")
+    return h
+
+
+def woodpile():
+    h = House("prop_woodpile")
+    for row, count in enumerate((4, 3, 2)):
+        h.logs(0, 0, row * 0.26, count, length=1.0, r=0.13)
+    h.blob((0, 0.1, 0.8), (0.5, 0.7, 0.1), "snow")
+    h.blob((0.0, 0.0, 0.02), (1.4, 1.3, 0.16), "snow_shade")
+    return h
+
+
+def sled():
+    h = House("prop_sled")
+    for x in (-0.32, 0.32):
+        h.box((x, 0, 0.06), (0.06, 1.5, 0.06), "iron")
+        h.box((x, -0.78, 0.16), (0.06, 0.2, 0.06), "iron", rx=-0.9)
+        for y in (-0.45, 0.45):
+            h.box((x, y, 0.16), (0.05, 0.05, 0.2), "wood_dark")
+    for i in range(5):
+        h.box((0, -0.5 + i * 0.25, 0.27), (0.78, 0.18, 0.04), "wood_light")
+    h.box((0, -0.82, 0.32), (0.7, 0.04, 0.04), "rope")
+    return h
+
+
+def bench():
+    h = House("prop_bench")
+    for x in (-0.55, 0.55):
+        h.cyl((x, 0, 0.18), 0.17, 0.36, "wood", segments=8)
+        h.cyl((x, 0, 0.37), 0.15, 0.03, "wood_light", segments=8)
+    h.cyl((0, 0, 0.47), 0.15, 1.5, "wood", axis='X', segments=8)
+    h.box((0, 0, 0.6), (1.4, 0.22, 0.06), "snow", bevel=0.03)
+    return h
+
+
+PROPS = {
+    "rock_a": rock_a, "rock_b": rock_b, "fence": fence, "shrub": shrub, "lantern_post": lantern_post,
+    "woodpile": woodpile, "sled": sled, "bench": bench,
+}
+
+
 def _scene():
     scene = bpy.data.scenes.get(SCENE) or bpy.data.scenes.new(SCENE)
     bpy.context.window.scene = scene
     for ob in list(scene.collection.objects):
         bpy.data.objects.remove(ob, do_unlink=True)
     for me in list(bpy.data.meshes):
-        if me.users == 0 and me.name.startswith("house_"):
+        if me.users == 0 and me.name.startswith(("house_", "prop_")):
             bpy.data.meshes.remove(me)
     return scene
 
 
 def build_all(export=False, only=None, spacing=6.0):
-    """Builds every house (or those in `only`) side by side; exports each GLB when `export`."""
+    """Builds every house and prop (or those in `only`) side by side; exports each GLB when
+    `export` (house_<building>.glb, prop_<name>.glb)."""
     scene = _scene()
     built = []
-    for i, (key, make) in enumerate(BUILDINGS.items()):
+    makers = [("house_" + k, f) for k, f in BUILDINGS.items()] + [("prop_" + k, f) for k, f in PROPS.items()]
+    for i, (key, make) in enumerate(makers):
         if only and key not in only:
             continue
         ob = make().finish(scene.collection)
@@ -419,7 +515,7 @@ def build_all(export=False, only=None, spacing=6.0):
                 for other in scene.objects:
                     other.select_set(other == ob, view_layer=layer)
                 layer.objects.active = ob
-                bpy.ops.export_scene.gltf(filepath=os.path.join(out_dir, "house_%s.glb" % key), export_format='GLB',
+                bpy.ops.export_scene.gltf(filepath=os.path.join(out_dir, "%s.glb" % key), export_format='GLB',
                                           use_selection=True, use_active_scene=True, export_yup=True, export_apply=True,
                                           export_vertex_color='ACTIVE', export_materials='EXPORT')
             ob.location.x = x
