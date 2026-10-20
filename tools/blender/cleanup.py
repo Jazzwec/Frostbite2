@@ -207,7 +207,8 @@ def _split_lid(obj, at):
 
 
 def cleanup(name, source, height=None, footprint=None, max_tris=8000, tex_size=1024,
-            weld=0.0005, yaw=0.0, export=True, palette=0.0, split_lid_at=None, stretch=(1.0, 1.0, 1.0)):
+            weld=0.0005, yaw=0.0, export=True, palette=0.0, split_lid_at=None, stretch=(1.0, 1.0, 1.0),
+            strip_rig=False):
     """See the module docstring. `height` or `footprint` (the larger of width and depth) in metres.
     `palette` (0 to 1) pulls the texture towards the art-direction palette (palette_snap);
     `split_lid_at` (metres, after scaling) cuts a chest into a body and a hinged lid;
@@ -230,7 +231,25 @@ def cleanup(name, source, height=None, footprint=None, max_tris=8000, tex_size=1
     if not meshes:
         raise RuntimeError(f"no meshes in {source}")
     if any(o.type == "ARMATURE" for o in imported) or any(o.find_armature() for o in meshes):
-        raise RuntimeError("rigged model: clean it by hand (cleanup.py is for static models)")
+        if not strip_rig:
+            raise RuntimeError("rigged model: clean it by hand (cleanup.py is for static models), "
+                               "or pass strip_rig=True if the rig is unwanted")
+        # Meshy sometimes rigs a prop (a shrub came with a hand skeleton): keep the rest-pose mesh.
+        # Only the skinned meshes: the importer's bone-display spheres go.
+        rigs = [o for o in imported if o.type == "ARMATURE"]
+        spheres = [o for o in meshes if o.name.startswith("Icosphere")]
+        skinned = [o for o in meshes if o not in spheres]
+        for o in skinned:
+            for mod in [m for m in o.modifiers if m.type == "ARMATURE"]:
+                o.modifiers.remove(mod)
+            o.vertex_groups.clear()
+            world = o.matrix_world.copy()
+            o.parent = None
+            o.matrix_world = world
+        for o in spheres + rigs:
+            bpy.data.objects.remove(o)
+        meshes = skinned
+        imported = list(skinned)
     tris_in = sum(_tris(o) for o in meshes)
 
     # One object, transforms applied, parents (glTF empties) gone.
@@ -276,8 +295,8 @@ def cleanup(name, source, height=None, footprint=None, max_tris=8000, tex_size=1
 
     # Face +Z in Godot, then scale to size, then origin at the bottom centre at (0, 0, 0).
     if yaw:
-        obj.rotation_euler.z = math.radians(yaw)
-        bpy.ops.object.transform_apply(rotation=True)
+        # On the mesh itself: an object rotation plus transform_apply didn't always take here.
+        obj.data.transform(Matrix.Rotation(math.radians(yaw), 4, "Z"))
     if tuple(stretch) != (1.0, 1.0, 1.0):
         obj.data.transform(Matrix.Diagonal((stretch[0], stretch[1], stretch[2], 1.0)))
     lo, hi = _world_bounds(obj)

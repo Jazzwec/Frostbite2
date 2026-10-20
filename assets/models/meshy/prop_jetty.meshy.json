@@ -1,0 +1,25 @@
+{
+  "task_id": "01a15a16-5c9b-75c3-a2c6-048a5cf03a42",
+  "date": "2026-10-20",
+  "ai_model": "meshy-6",
+  "endpoint": "image-to-3d",
+  "credits": 30,
+  "params": {
+    "remove_lighting": true,
+    "image_enhancement": false,
+    "should_remesh": true,
+    "topology": "triangle",
+    "should_texture": true,
+    "enable_pbr": false,
+    "texture_resolution": "2k",
+    "auto_size": true,
+    "origin_at": "bottom",
+    "target_formats": [
+      "glb"
+    ],
+    "target_polycount": 2000
+  },
+  "reference": "source_art/concept/ink/prop_jetty.png",
+  "reference_model": "gpt-6-astra (tools/chatgpt/chatgpt.py image --for-3d)",
+  "download": "assets/models/meshy/prop_jetty_meshy6.glb"
+}

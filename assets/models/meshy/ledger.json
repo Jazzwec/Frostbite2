@@ -20,5 +20,12 @@
   "prop_fence": ["01a15a12-3258-7291-a9b8-b0ac9803b50d", "meshy-6", 30, 1500],
   "prop_woodpile": ["01a15a15-7d14-721d-bf10-8bbca4419d57", "meshy-6", 30, 2000],
   "prop_boat": ["01a15a15-83e3-7381-9baf-58ff97122171", "meshy-6", 30, 2000],
-  "prop_jetty": ["01a15a16-5c9b-75c3-a2c6-048a5cf03a42", "meshy-6", 30, 2000]
+  "prop_jetty": ["01a15a16-5c9b-75c3-a2c6-048a5cf03a42", "meshy-6", 30, 2000],
+  "prop_shrub": ["01a15a19-1eb8-73ae-8b09-f8b69e5d81d1", "meshy-t2.5", 15, 1200],
+  "prop_lantern_post": ["01a15a19-247f-73fe-89a8-cad9d0fd9423", "meshy-t2.5", 15, 1200],
+  "prop_sled": ["01a15a1b-3a9b-7651-9cd7-aa119bc264db", "meshy-t2.5", 15, 1200],
+  "prop_bench": ["01a15a1b-405a-73a7-a844-27df1d6a8450", "meshy-t2.5", 15, 1200],
+  "crate": ["01a15a1b-4570-7687-a947-b07b4882d7ba", "meshy-t2.5", 15, 1000],
+  "log": ["01a15a1f-4d7b-7034-9ab0-8b05358ffa26", "meshy-t2.5", 15, 800],
+  "pine_a": ["01a15a1f-538b-7221-bdfe-1144da912014", "meshy-6", 30, 1500]
 }
