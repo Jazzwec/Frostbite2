@@ -198,3 +198,24 @@ func test_her_attack_clips_hit_when_the_engine_does() -> void:
 	check_near(throw.impact * throw.length, Balance.MEAGAN_RANGED_RELEASE, 0.005, "the snowball leaves on time")
 	check(sweep.length <= Balance.MEAGAN_MELEE_EVERY - 0.2, "the stick's ready stance shows 200 ms between sweeps")
 	check(throw.length <= Balance.MEAGAN_RANGED_EVERY - 0.2, "the snowball's between throws")
+
+
+## Review 4: the two striking her spread round her, at least SLOT_SEPARATION apart, and out of
+## the arc straight south of her (towards the camera), even if they both come from there.
+func test_strikers_spread_round_her_and_off_the_camera_side() -> void:
+	var e := engine()
+	put_meagan(e, Vector2(0, 20))
+	e.state.meagan_attack_in = 1000.0
+	for x in [0.0, 0.3]:
+		var w := _wolf_at(e, Vector2(x, 21.4))
+		w.damage = 0.0
+	for i in 40:
+		e.state.meagan_attack_in = 1000.0
+		e.skip(0.1)
+	var angles := []
+	for w in e.state.wolves:
+		var a: float = (w.pos - e.state.meagan_pos).angle()
+		angles.append(a)
+		check(absf(angle_difference(PI / 2.0, a)) >= deg_to_rad(Balance.SLOT_CLEAR_SOUTH - 5.0), "wolf %d is off the south side (%.0f deg)" % [w.id, rad_to_deg(a)])
+	var apart := absf(angle_difference(angles[0], angles[1]))
+	check(apart >= deg_to_rad(Balance.SLOT_SEPARATION - 5.0), "they're %.0f deg apart" % rad_to_deg(apart))

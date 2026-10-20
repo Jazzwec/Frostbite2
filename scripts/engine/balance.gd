@@ -391,7 +391,11 @@ const ENEMY_AIM_LOCK := 0.4
 ## Around one defender at most this many melee enemies strike; the rest wait a body length
 ## (ENEMY_WAIT_BACK widths) farther out, and give up as usual (review 3: spacing round Meagan).
 const ENEMY_MAX_ENGAGED := 2
-const ENEMY_WAIT_BACK := 1.0
+const ENEMY_WAIT_BACK := 1.8
+## The strikers round one defender keep at least this many degrees apart, and out of the arc this
+## wide straight towards the camera (south), where they'd be drawn over her (fight_v2 review 4).
+const SLOT_SEPARATION := 70.0
+const SLOT_CLEAR_SOUTH := 40.0
 ## Only one melee wind-up at a time against one defender, the next starting at least this long
 ## after the last one struck (review 3: one committed danger shape at her feet). [proto]
 const ENEMY_WINDUP_STAGGER := 0.3

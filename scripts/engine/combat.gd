@@ -302,6 +302,8 @@ static func _fight(s: GameState, e: Dictionary, def: Dictionary, foe: Dictionary
 	if t < 0.0:
 		# Hold its distance (a thrower stands off), closing in or backing off.
 		e.pos = e.pos.move_toward(foe_pos + dir * hold, def.speed * Balance.SPEED_SCALE * dt)
+		if striker and def.shape != "shot":
+			_take_slot(s, e, def, foe_pos, dt)
 		e.aim = foe_pos
 		e.fight_for = e.fight_for + dt if e.pos.distance_to(foe_pos) > def.hold + 0.4 else 0.0
 		if e.fight_for >= Balance.ENEMY_GIVE_UP:
@@ -315,6 +317,36 @@ static func _fight(s: GameState, e: Dictionary, def: Dictionary, foe: Dictionary
 	e.foe_pos = foe_pos
 	if striker:
 		_attack(s, e, def, foe, dt, events)
+
+
+## A striker circles round its defender to a clear slot: away from the arc straight south of them
+## (towards the camera, where it would cover them) and at least SLOT_SEPARATION from the other
+## striker (fight_v2 review 4).
+static func _take_slot(s: GameState, e: Dictionary, def: Dictionary, foe_pos: Vector2, dt: float) -> void:
+	var from_foe: Vector2 = e.pos - foe_pos
+	var r := from_foe.length()
+	if r < 0.01:
+		return
+	var ang := from_foe.angle()
+	var push := 0.0
+	var south := angle_difference(PI / 2.0, ang)
+	if absf(south) < deg_to_rad(Balance.SLOT_CLEAR_SOUTH):
+		# angle_difference(a, b) is b - a: move further the way it already leans.
+		push += 1.0 if south >= 0.0 else -1.0
+	for w in s.wolves:
+		if w.id == e.id or w.hp <= 0.0 or w.mode != "fight" or w.get("foe_id", -99) != e.foe_id:
+			continue
+		if Balance.ENEMIES[w.kind].shape == "shot" or w.pos.distance_to(foe_pos) > Balance.ENEMIES[w.kind].hold + 0.6:
+			continue
+		var diff := angle_difference(ang, (w.pos - foe_pos).angle())
+		if absf(diff) < deg_to_rad(Balance.SLOT_SEPARATION):
+			if diff == 0.0:
+				diff = 1.0 if e.id < w.id else -1.0
+			push += -1.0 if diff > 0.0 else 1.0
+	if push == 0.0:
+		return
+	var step: float = clampf(push, -1.0, 1.0) * def.speed * Balance.SPEED_SCALE * 0.7 * dt / r
+	e.pos = (foe_pos + Vector2.from_angle(ang + step) * r).clamp(s.bounds.position, s.bounds.end)
 
 
 ## Whether `e` is one of the ENEMY_MAX_ENGAGED melee enemies nearest `foe` (one already winding up
