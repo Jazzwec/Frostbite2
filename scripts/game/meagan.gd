@@ -12,7 +12,7 @@ const LINGER := 0.35
 ## Her rigged model (Tripo, prepared in Blender); the greybox stands in if it's missing.
 const MODEL_PATH := "res://assets/models/blender/meagan.glb"
 ## Drawn a little larger than life, so she reads at phone size.
-const MODEL_SCALE := 1.2
+const MODEL_SCALE := 1.45
 const SILHOUETTE := preload("res://scripts/game/ink/silhouette.gdshader")
 
 var _agent: NavigationAgent3D
@@ -62,7 +62,7 @@ func _ready() -> void:
 	_silhouette.render_priority = 6
 	_hp_bar = HpBar.new(HpBar.MEAGAN_GREEN, 1.8, 0.22)
 	# A little higher than a wolf's or guard's, so hers stays clear of theirs in a fight.
-	_hp_bar.position = Vector3(0, 2.05, 0)
+	_hp_bar.position = Vector3(0, 1.7 * MODEL_SCALE, 0)
 	add_child(_hp_bar)
 
 	_agent = NavigationAgent3D.new()

@@ -7,7 +7,7 @@ extends Node3D
 
 const MODEL_PATH := "res://assets/models/blender/wolf.glb"
 ## Drawn larger than life (1.3 m long in the file), so it reads from the game camera.
-const MODEL_SCALE := 1.25
+const MODEL_SCALE := 1.5
 ## The bones the trot and lunge move, by the end of their names (Tripo's auto-rig names them
 ## `tripo::…` or `bone_N`; Godot turns the colons into underscores). The model faces +Z.
 const BONES := {
@@ -50,7 +50,7 @@ func _init() -> void:
 	var bar_height := 1.5
 	if ResourceLoader.exists(MODEL_PATH):
 		_build_model()
-		bar_height = 1.35
+		bar_height = 1.08 * MODEL_SCALE
 	else:
 		_build_greybox()
 	_hp_bar = HpBar.new(HpBar.WOLF_RED)

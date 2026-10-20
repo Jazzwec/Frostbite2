@@ -10,7 +10,7 @@ const WALK_SPEED := 3.0
 ## His rigged model (Tripo, prepared in Blender); the greybox stands in if it's missing.
 const MODEL_PATH := "res://assets/models/blender/jan.glb"
 ## A little smaller than Meagan's 1.2, so she stands out.
-const MODEL_SCALE := 1.15
+const MODEL_SCALE := 1.4
 ## The Jan whose line is showing.
 static var _speaker: JanView
 ## How far a chatter bubble keeps from the screen's edge, in pixels.
