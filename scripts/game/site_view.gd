@@ -40,6 +40,8 @@ var _pad: MeshInstance3D
 var _pad_label: Label3D
 var _ring: MeshInstance3D
 var _ring_frac := -1.0
+## Whether the building is (still) faded because Meagan is behind it.
+var _faded := false
 
 
 func setup(site_index: int) -> void:
@@ -242,6 +244,15 @@ func _update_labels(s: GameState, site: Dictionary) -> void:
 	if text != _title.text:
 		_title.text = text
 		_title.font_size = fit_font(name, PLATE_FONT, PLATE_MIN_FONT, PLATE_WIDTH, _title.pixel_size)
+
+
+## Fades the building while it stands between the camera and Meagan.
+func fade_covers(camera: Transform3D, meagan: Vector3, delta: float) -> void:
+	var near := _body != null and global_position.distance_to(meagan) < 8.0
+	if not near and not _faded:
+		return
+	var cover := near and FadeCover.covers(camera, meagan, global_position, 4.0, MapData.SITE_HALF_SIZE)
+	_faded = FadeCover.fade(_shapes, cover, delta)
 
 
 ## The biggest font size (down to `smallest`) at which `text` is no wider than `width` metres.

@@ -84,3 +84,15 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.
   - Applied: nameplates raised above roof and chimney, tighter line spacing, and tapping the Stockpile opens its sheet.
   - Not applied, your call: a fuel icon next to the furnace nameplate that turns amber below 30% and pulses red below 10%. The heat bar already warns at 25% and counts down at 10%. Also a dark backing behind nameplates (Label3D has none; the outline is thicker instead).
 - **Felt wrong:** the bottom sheet is slightly see-through, so ground labels like "+ Build" show faintly through it.
+
+### 17. Fade canopies over Meagan
+- **Commits:** "Fade trees and buildings that hide Meagan".
+- **What changed:**
+  - Tree crowns and buildings standing between the camera and Meagan fade to 30% opacity and drop their shadow while she's behind them. They fade out in about 0.13 s and back in over about 0.23 s.
+  - The check is pure camera-space geometry (`FadeCover.covers`).
+- **Check in the game:** walk into a forest, and walk behind the Lumber Yard.
+- **Tests:** `tests/test_fade_cover.gd` (in front, behind, beside, far ahead). 163–165 FPS with fading active, the same as before.
+- **ChatGPT feedback:**
+  - Applied: stronger fade (30% rather than 35%), no shadow while faded, quick out and slower in.
+  - Not applied, your call: a warm cream outline on Meagan while she's hidden, which is an art-style change. Also a single-silhouette fade: overlapping parts of one tree still show faint layers, much less at 30%.
+- **Felt wrong / notes:** `GeometryInstance3D.transparency` silently does nothing in the mobile renderer, so the fade swaps in a per-mesh see-through material copy. Greybox and Shapes meshes fade; imported Poly Haven props (logs, crates) don't, since they have no material override.

@@ -114,10 +114,17 @@ func _process(delta: float) -> void:
 
 func _refresh_views(delta: float) -> void:
 	var s := Game.engine.state
+	# Trees and buildings between the camera and Meagan fade so she's never hidden.
+	var cam := _rig.camera.global_transform if _rig else Transform3D()
+	var her := _meagan.global_position if _meagan else Vector3.INF
 	for v in _sites:
 		v.refresh(s)
+		if _rig:
+			v.fade_covers(cam, her, delta)
 	for v in _nodes:
 		v.refresh(s)
+		if _rig:
+			v.fade_covers(cam, her, delta)
 	_stockpile.refresh(s)
 	_people.refresh(s, delta)
 

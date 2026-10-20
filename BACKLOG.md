@@ -44,7 +44,7 @@ Polish and quality first, then new content.
   - **What:** world labels are wider than the buildings. Use a smaller nameplate (name and level only), and move upgrade and stock details into the tap sheet. From the ChatGPT review of the Jans (NOTES.md).
   - **Done when:** at the default zoom no nameplate is wider than its building, and every number is still reachable in a sheet.
 
-- [ ] **17. Fade canopies over Meagan (safe, polish).**
+- [x] **17. Fade canopies over Meagan (safe, polish).** Done 2026-10-20 (AFK).
   - **What:** tree crowns (and roofs, if any) between the camera and Meagan fade to about 35% opacity while she's behind them, and back when she leaves. From the ChatGPT review of her model.
   - **Done when:** a screenshot of her chopping inside a forest shows her clearly, and FPS stays the same.
 

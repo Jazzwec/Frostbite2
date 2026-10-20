@@ -109,6 +109,10 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - [ ] Buildings show a small two-line nameplate (name, then "Lv 2") above the roof, never wider than the building, also at Lv 10.
 - [ ] The furnace's fuel is in its sheet. Tapping the Stockpile, or stopping on its pad, opens a sheet with Wood, Food and Materials against their caps.
 
+**Fading trees and buildings over Meagan (2026-10-20)**
+- [ ] Walk into a forest: any tree between the camera and her fades to a see-through ghost (and drops its shadow) while she's behind it, then comes back when she steps out.
+- [ ] The same for a building she walks behind. The FPS doesn't change.
+
 **Objective: keep the fire burning**
 - [ ] A winter starts at 100/100 heat. With no Wood it lasts about 2½ minutes.
 - [ ] Below 25%: the bar pulses red, banner and horn. Below 10%: "Fire out in 0:12" on the bar.

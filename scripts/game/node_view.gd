@@ -18,6 +18,8 @@ var _pieces: Array[Node3D] = []
 var _up: Array[bool] = []
 var _holes: Array[Vector3] = []
 var _label: Label3D
+## Whether any crown here is (still) faded for Meagan.
+var _faded := false
 
 
 func setup(node_index: int) -> void:
@@ -65,6 +67,7 @@ func _make_piece(rng: RandomNumberGenerator) -> Node3D:
 			n.add_child(Shapes.cylinder(0.14, 0.02, Color(0.78, 0.62, 0.42), Vector3(0, 0.26, 0)))
 			var crown := Node3D.new()
 			crown.name = "Crown"
+			crown.set_meta("height", 0.6 + h)
 			n.add_child(crown)
 			crown.add_child(Shapes.cylinder(0.15, 0.6, Color(0.4, 0.27, 0.15), Vector3(0, 0.3, 0)))
 			crown.add_child(Shapes.cone(0.9, h * 0.6, Color(0.18, 0.38, 0.26), Vector3(0, 0.6 + h * 0.3, 0)))
@@ -109,6 +112,22 @@ func refresh(s: GameState) -> void:
 	# While Meagan works here her bag readout is over her; the spot's own label steps aside.
 	_label.visible = s.meagan_pos.distance_to(MapData.RESOURCE_NODES[index].pos) > Balance.GATHER_RANGE + 1.0
 	_label.modulate = Color(1, 1, 1, 0.9) if frac > 0.05 else Color(0.7, 0.7, 0.75, 0.6)
+
+
+## Fades the tree crowns that stand between the camera and Meagan.
+func fade_covers(camera: Transform3D, meagan: Vector3, delta: float) -> void:
+	if kind != "forest":
+		return
+	var near := global_position.distance_to(meagan) < 9.0
+	if not near and not _faded:
+		return
+	_faded = false
+	for piece in _pieces:
+		var crown := piece.get_node_or_null("Crown") as Node3D
+		if crown == null:
+			continue
+		var cover := near and FadeCover.covers(camera, meagan, piece.global_position, crown.get_meta("height", 3.0), 0.9)
+		_faded = FadeCover.fade(crown, cover, delta) or _faded
 
 
 ## What Meagan works at from `from`: the nearest standing tree or crate, or the nearest ice hole.
