@@ -79,16 +79,23 @@ static func make(id: String) -> Node3D:
 		# A raider's thrown ice shard.
 		# A raider's ice shard in flight: pale ice in a darker sleeve, so it reads against snow
 		# (fight_v2 review 1: 10-14 px long on the phone, dark-edged).
+		# Pointing along -Z (Fx.throw aims it down its flight): a dark blue-grey sleeve, pale ice
+		# inside, and a tapered terracotta trail behind (fight_v2 review 5: a hostile silhouette,
+		# about 11 px plus a 20 px trail).
 		"shard":
-			var edge := Shapes.cone(0.09, 0.32, Color(0.22, 0.3, 0.42))
-			edge.rotation_degrees.x = 90.0
+			var edge := Shapes.cone(0.12, 0.3, Color(0.22, 0.3, 0.42))
+			edge.rotation_degrees.x = -90.0
 			n.add_child(edge)
-			var ice := Shapes.cone(0.065, 0.36, Color(0.82, 0.93, 1.0), Vector3(0, 0, 0.02))
-			ice.rotation_degrees.x = 90.0
+			var ice := Shapes.cone(0.085, 0.34, Color(0.82, 0.93, 1.0), Vector3(0, 0, -0.02))
+			ice.rotation_degrees.x = -90.0
 			n.add_child(ice)
+			var trail := Shapes.cone(0.09, 0.5, Color(0.66, 0.3, 0.2, 0.75), Vector3(0, 0, 0.38))
+			trail.rotation_degrees.x = 90.0
+			n.add_child(trail)
 		# A snowball in her mitten, for her throw.
+		# Hers: cream (review 5: cream and blue, apart from the raiders' terracotta).
 		"snowball":
-			n.add_child(Shapes.sphere(0.16, Color(0.97, 0.97, 0.95), Vector3(0, -0.1, 0)))
+			n.add_child(Shapes.sphere(0.16, Color(1.0, 0.96, 0.86), Vector3(0, -0.1, 0)))
 		# A Jan's load on the way to a stockpile (AFK V4, 2026-10-20): big, distinct shapes held
 		# clear of his chest, about a third of his height, so a hauler reads at a glance.
 		"bundle":

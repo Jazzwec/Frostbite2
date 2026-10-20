@@ -99,8 +99,9 @@ func _draw() -> void:
 		draw_set_transform(Vector2.ZERO)
 		if mk[3] != "":
 			# The thief's badge rides on its arrow: the ochre disc and what it carries.
-			var c: Vector2 = mk[0] - dir * a * 2.7
-			draw_texture_rect(_disc, Rect2(c - Vector2.ONE * ICON_SIZE / 2.0, Vector2.ONE * ICON_SIZE), false)
-			var size := _font.get_string_size(mk[3], HORIZONTAL_ALIGNMENT_CENTER, -1, 34)
-			draw_string(_font, c + Vector2(-size.x / 2.0, 12.0), mk[3], HORIZONTAL_ALIGNMENT_CENTER, -1, 34, UiTheme.INK)
-			draw_texture_rect(_bag, Rect2(c + Vector2(-ICON_SIZE * 1.15, -ICON_SIZE * 0.3), Vector2.ONE * ICON_SIZE * 0.6), false)
+			# The thief's capsule rides on its arrow, the same as over its head: a sack and the amount.
+			var c: Vector2 = mk[0] - dir * a * 2.9
+			var capsule := Vector2(ICON_SIZE * 2.0, ICON_SIZE)
+			draw_texture_rect(_disc, Rect2(c - capsule / 2.0, capsule), false)
+			draw_texture_rect(_bag, Rect2(c + Vector2(-ICON_SIZE * 0.8, -ICON_SIZE * 0.3), Vector2.ONE * ICON_SIZE * 0.6), false)
+			draw_string(_font, c + Vector2(-2.0, 12.0), mk[3], HORIZONTAL_ALIGNMENT_LEFT, -1, 34, UiTheme.INK)

@@ -244,10 +244,13 @@ func _nudge_wolves(s: GameState, delta: float) -> void:
 				push += dir * (spacing - d) * 0.5
 		view.nudge = view.nudge.lerp(Vector3(push.x, 0, push.y), minf(1.0, WOLF_NUDGE_EASE * delta))
 		var below := 0
+		# Clear of Meagan's bar too (review 5: 8 px from hers).
+		if absf(s.meagan_pos.x - wolf.pos.x) < BAR_CLEAR_X and absf(s.meagan_pos.y - wolf.pos.y) < BAR_CLEAR_Z:
+			below += 1
 		for other in s.wolves:
 			if other.id < wolf.id and absf(other.pos.x - wolf.pos.x) < BAR_CLEAR_X and absf(other.pos.y - wolf.pos.y) < BAR_CLEAR_Z:
 				below += 1
-		view.bar_lift = BAR_STEP * below
+		view.bar_lift = BAR_STEP * mini(below, 2)
 
 
 ## Every 20 to 30 s while the city is calm, a working Jan says something. [brief]

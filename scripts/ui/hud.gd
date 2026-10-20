@@ -19,6 +19,11 @@ const STRIP_TIME := 1.5
 const STRIP_FONT := 32
 const COMING_WASH := Color(UiTheme.OCHRE, 0.97)
 const TROLL_COMING_WASH := Color(UiTheme.OCHRE_DEEP, 0.97)
+## The countdown strip is quiet cream with ink text, amber only for its last seconds; the wave's
+## make-up shows for its first seconds and its last (fight_v2 review 5).
+const COUNTDOWN_WASH := Color(UiTheme.PAPER, 0.97)
+const COUNTDOWN_URGENT := 5.0
+const MIX_SHOW := 3.0
 ## Resources fly between their number in the top bar and the world (into it as she gathers, out
 ## of it as a pad or gate takes them) as icons this big, along a curve this wide, in this long.
 ## [agreed 2026-10-20, from ChatGPT's review]
@@ -238,6 +243,7 @@ func show_strip(text: String, icon := "", color := COMING_WASH, seconds := STRIP
 		return
 	_strip.add_theme_stylebox_override("panel", _strip_style(color))
 	_countdown_look = -1
+	_strip_label.add_theme_color_override("default_color", UiTheme.PAPER_TEXT)
 	_strip_label.text = (UiTheme.icon(icon, 44) + "  " if icon != "" else "") + text
 	_strip.visible = true
 	_strip_timer = seconds
@@ -302,9 +308,13 @@ func _process(delta: float) -> void:
 		if _strip.visible:
 			var troll: bool = s.next_wave.get("mix", {}).get("troll", 0) > 0
 			var left := ceili(maxf(s.attack_at - s.time, 0.0))
-			if int(troll) != _countdown_look:
-				_countdown_look = int(troll)
-				_strip.add_theme_stylebox_override("panel", _strip_style(TROLL_COMING_WASH if troll else COMING_WASH))
+			var urgent := left <= COUNTDOWN_URGENT
+			var look := (2 if urgent else 0) + int(troll)
+			if look != _countdown_look:
+				_countdown_look = look
+				var wash: Color = (TROLL_COMING_WASH if troll else COMING_WASH) if urgent else COUNTDOWN_WASH
+				_strip.add_theme_stylebox_override("panel", _strip_style(wash))
+				_strip_label.add_theme_color_override("default_color", UiTheme.PAPER_TEXT if urgent else UiTheme.INK)
 			_strip_label.text = "%s  %s  ·  %ds" % [UiTheme.icon("troll" if troll else "wolves", 44), "Troll raid" if troll else "Next raid", left]
 			_strip.modulate.a = 1.0
 
@@ -481,9 +491,11 @@ func _forecast_text(s: GameState) -> String:
 	if s.raid_on and raiders > 0:
 		wave_line = "%s Wave %d  ·  %d left" % [UiTheme.icon("wolves", 44), s.wave, raiders]
 	# What's coming, by kind, on its own row (review 4); the strip has the countdown.
-	_mix_row.visible = s.attack_warned and not s.next_wave.is_empty()
+	var left := maxf(s.attack_at - s.time, 0.0)
+	var shown_for := Economy.attack_warning(s) - left
+	_mix_row.visible = s.attack_warned and not s.next_wave.is_empty() and (shown_for < MIX_SHOW or left <= COUNTDOWN_URGENT)
 	if _mix_row.visible:
-		_mix_row.text = "Wave %d:  %s" % [s.wave + 1, mix_icons(s.next_wave.get("mix", {}), 48)]
+		_mix_row.text = "Wave %d:   %s" % [s.wave + 1, mix_icons(s.next_wave.get("mix", {}), 48)]
 	if s.blizzard_active:
 		parts.append("%s BLIZZARD! %s left" % [UiTheme.icon("blizzard", 44), Fmt.clock(s.blizzard_ends_at - s.time)])
 	elif s.blizzard_warned:
@@ -506,12 +518,12 @@ static func mix_icons(mix: Dictionary, size := 40) -> String:
 		if n <= 0:
 			continue
 		var name: String = "wolves" if kind == "wolf" else kind
-		var part := ("%s%d" % [UiTheme.icon(name, size), n]) if ResourceLoader.exists(UiTheme.ICON_DIR + name + ".png") \
+		var part := ("%s [b]%d[/b]" % [UiTheme.icon(name, size), n]) if ResourceLoader.exists(UiTheme.ICON_DIR + name + ".png") \
 				else "%d %s" % [n, Balance.ENEMIES[kind].name.to_lower()]
 		if kind == "troll":
 			part = "[color=#%s]%s[/color]" % [UiTheme.FALU.to_html(false), part]
 		parts.append(part)
-	return "  ".join(parts)
+	return "    ".join(parts)
 
 
 ## True when a screen point is over UI, so the world shouldn't get the touch.

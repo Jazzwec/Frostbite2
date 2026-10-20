@@ -23,17 +23,16 @@ func test_an_armory_upgraded_on_schedule_holds() -> void:
 
 
 ## Review 1: missed upgrades, not just ideal buying. Three minutes behind the schedule, the
-## Armory holds a good while, then breaks once, and catching up wins the next wave back.
-func test_an_armory_three_minutes_behind_breaks_once_and_recovers() -> void:
+## Armory holds a good while (nothing lost: thefts get won back), then the late raids break
+## through, but only partly: never more than half of one gets away (review 5: thefts that are
+## caught don't count as losses).
+func test_an_armory_three_minutes_behind_breaks_but_doesnt_collapse() -> void:
 	var rows := WaveSim.run("late", 16, 7, true)
-	var worst := -1
-	for i in rows.size():
-		if worst < 0 or float(rows[i].thieves) / rows[i].enemies > float(rows[worst].thieves) / rows[worst].enemies:
-			worst = i
 	for row in rows.slice(0, 10):
-		check(float(row.thieves) / row.enemies <= 0.1, "wave %d held at Armory %d" % [row.wave, row.armory])
-	var ratio: float = float(rows[worst].thieves) / rows[worst].enemies
-	check(ratio >= 0.2, "a real breach comes (wave %d, %.0f%%)" % [rows[worst].wave, ratio * 100.0])
-	if worst + 1 < rows.size():
-		var after: float = float(rows[worst + 1].thieves) / rows[worst + 1].enemies
-		check(after <= ratio / 2.0, "and the next wave is mostly held again (%.0f%%)" % (after * 100.0))
+		check(row.stolen < 10.0, "wave %d held at Armory %d (%d lost)" % [row.wave, row.armory, row.stolen])
+	var breached := false
+	for row in rows:
+		var ratio: float = float(row.thieves) / row.enemies
+		breached = breached or row.stolen >= 50.0
+		check(ratio <= 0.5, "wave %d: at most half get away (%.0f%%)" % [row.wave, ratio * 100.0])
+	check(breached, "but being behind does cost something")

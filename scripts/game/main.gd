@@ -987,8 +987,13 @@ func _on_event(ev: Dictionary) -> void:
 		"enemy_throw":
 			var thrower := _people.wolf_view(ev.wolf)
 			var from := (thrower.global_position if thrower else _v3(ev.from)) + Vector3(0, 1.9, 0)
+			var to := _v3(ev.to) + Vector3(0, 0.3, 0)
+			# Clear of the hand at release (review 5: a visible gap), then aimed down its flight.
+			var flat := Vector3(to.x - from.x, 0, to.z - from.z)
+			if flat.length() > 0.01:
+				from += flat.normalized() * 0.3
 			Audio.play("whoosh", from, 0.8, -4.0)
-			Fx.throw("shard", from, _v3(ev.to) + Vector3(0, 0.3, 0), maxf(ev.flight, 0.15), 0.9)
+			Fx.throw("shard", from, to, maxf(ev.flight, 0.15), 0.9, Callable(), true)
 		"shard_landed":
 			Fx.burst("shards", _v3(ev.pos) + Vector3(0, 0.2, 0))
 			if ev.victim == -1:
@@ -1024,7 +1029,7 @@ func _on_event(ev: Dictionary) -> void:
 				var killing: bool = Game.engine.state.wolves.all(func(w): return w.id != ev.wolf or w.hp <= 0.0)
 				wolf.hit(from, "heavy" if killing else ("sweep" if ev.kind == "melee" else "light"))
 				var counter: bool = ev.get("exposed", false)
-				Fx.impact(wolf.contact_point(from), 1.28 if killing else 1.0, counter)
+				Fx.impact(wolf.contact_point(from), 1.28 if killing else 1.0, counter, from)
 				if counter:
 					_show_counter(wolf.global_position)
 				# One secondary flourish: ink flecks flung away from the blow (fight_v2 review 1).
@@ -1053,8 +1058,12 @@ func _on_event(ev: Dictionary) -> void:
 			_gather_loot(ev)
 		"meagan_up":
 			# Back up: if anything's being carried off, that's her job now (review 4).
-			if not ThreatArrows.nearest_thief(Game.engine.state).is_empty():
+			var thief := ThreatArrows.nearest_thief(Game.engine.state)
+			if not thief.is_empty():
 				_hud.show_strip("Recover stolen supplies!", "bag", UiTheme.WARN_WASH, 2.0)
+				var view := _people.wolf_view(thief.id)
+				if view:
+					view.pulse_badge()
 		"meagan_injured":
 			Audio.play("hurt", Vector3.INF, 0.8)
 			_hud.show_strip("Meagan is down for %d s!" % roundi(ev.up_in), "", UiTheme.WARN_WASH, 2.0)
@@ -1106,7 +1115,18 @@ func _show_counter(at: Vector3) -> void:
 	cfg.load(Game.SETTINGS_PATH)
 	cfg.set_value("hints", "counters", _counters_shown)
 	cfg.save(Game.SETTINGS_PATH)
-	Fx.pop("Counter!", at + Vector3(0, 2.4, 0), Color(0.98, 0.8, 0.4), 46)
+	# Above every bar near it, small and brief, so it never hides the next threat (review 5).
+	var top := at.y + 2.2
+	for w in Game.engine.state.wolves:
+		var view := _people.wolf_view(w.id)
+		if view and view.global_position.distance_to(at) < 3.0:
+			top = maxf(top, view.global_position.y + WolfView.LOOK[w.kind].bar + 0.4)
+	var l := Shapes.label("Counter!", Vector3(at.x, top + 0.55, at.z), 34, Color(0.98, 0.82, 0.42))
+	add_child(l)
+	var t := l.create_tween()
+	t.tween_interval(0.3)
+	t.tween_property(l, "modulate:a", 0.0, 0.15)
+	t.tween_callback(l.queue_free)
 
 
 ## A beat of stillness on a kill or a heavy blow, and only then (review 2: 35-50 ms).

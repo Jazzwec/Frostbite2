@@ -108,10 +108,14 @@ var _tell_zone_mat: ShaderMaterial
 var _tell_line_thin: MeshInstance3D
 var _tell_line: MeshInstance3D
 ## Once locked, a cream keyline just outside the dark boundary (review 4: the lock reads as a
-## change of state, not a shade of the warning).
+## change of state, not a shade of the warning; review 5: 3 px each).
 var _tell_key: MeshInstance3D
 const TELL_KEY := Color(0.98, 0.94, 0.86, 1.0)
-const TELL_KEY_WIDTH := 0.07
+const TELL_KEY_WIDTH := 0.075
+## While it recovers from its strike (the counter window, Balance.RECOVERY_DAMAGE_MULT), a broken
+## ochre halo lies under its feet, for exactly that long (review 5).
+var _halo: MeshInstance3D
+const HALO := Color(0.86, 0.62, 0.22, 0.9)
 ## How far its health bar is raised to clear a neighbour's (PeopleLayer sets it; review 2), with a
 ## thin line down to its owner once it's lifted (review 3).
 var bar_lift := 0.0
@@ -123,9 +127,10 @@ var _sack_disc: Sprite3D
 var _sack_res := ""
 ## The stolen load on its back while it runs off (fight_v2 review 1: a laden retreat that reads).
 var _load: Node3D
-## The nearest thief's badge (fight_v2 review 2, only that one; the rest show their sacks): the
-## resource's icon on an ochre disc with an ink rim, about 32 px across, and how much it carries.
-const BADGE_PIXEL := 0.0057
+## The nearest thief's badge (fight_v2 review 2, only that one; the rest show their sacks): a cream
+## capsule with a terracotta border (review 5: a pursuit objective, not loot), a sack and how
+## much it carries, on a stem from its bar.
+const BADGE_PIXEL := 0.0045
 const LADEN_LEAN := 9.0
 static var _disc: Texture2D
 ## Whether this one wears the badge (PeopleLayer picks the nearest thief).
@@ -444,6 +449,21 @@ func _build_tell() -> void:
 	for mi in [_tell_zone, _tell_key, _tell_line_thin, _tell_line]:
 		_tell.add_child(mi)
 	_tell_key.position.y = 0.005
+	_halo = MeshInstance3D.new()
+	var quad := QuadMesh.new()
+	quad.orientation = PlaneMesh.FACE_Y
+	quad.size = Vector2.ONE * _def.width * 1.9
+	_halo.mesh = quad
+	var halo_mat := StandardMaterial3D.new()
+	halo_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	halo_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	halo_mat.albedo_texture = Fx.broken_ring_texture()
+	halo_mat.albedo_color = HALO
+	_halo.material_override = halo_mat
+	_halo.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_halo.position.y = 0.05
+	_halo.visible = false
+	add_child(_halo)
 	_tell_line_thin.position.y = 0.01
 	_tell_line.position.y = 0.01
 	if _def.shape == "shot":
@@ -664,13 +684,17 @@ func sync(enemy: Dictionary, delta: float) -> void:
 		_bar_link.position.y = _bar_height - 0.1 + lifted / 2.0
 		_bar_link.scale.y = lifted
 	# The thief's badge hangs just above its bar on a short stem, a sack beside the amount.
-	_sack_disc.position = Vector3(0.14, _hp_bar.position.y + 0.5, 0)
-	_badge_amount.position = _sack_disc.position
-	_badge_bag.position = _sack_disc.position + Vector3(-0.5, 0, 0)
+	_sack_disc.position = Vector3(0.0, _hp_bar.position.y + 0.5, 0)
+	_badge_amount.position = _sack_disc.position + Vector3(0.16, 0, 0)
+	_badge_bag.position = _sack_disc.position + Vector3(-0.2, 0, 0)
 	_badge_stem.position = Vector3(0, _hp_bar.position.y + 0.2, 0)
 	_badge_stem.scale.y = 0.28
 	_update_tell(enemy)
 	_update_sack(enemy)
+	var t: float = enemy.get("bite_t", -1.0)
+	_halo.visible = t >= _def.tell + (Balance.ENEMY_LUNGE if _def.shape == "wedge" else 0.0)
+	if _halo.visible:
+		_halo.rotation.y += delta * 1.5
 
 
 ## A carrier shows what it took: a sack-sized icon of the resource it carries most of.
@@ -696,22 +720,33 @@ func _update_sack(enemy: Dictionary) -> void:
 		_sack.texture = load("res://assets/ui/icons/%s.png" % most)
 
 
-## The paper disc behind a thief's badge, drawn once.
+## The capsule behind a thief's badge: cream with a terracotta border, drawn once.
 static func _badge_disc() -> Texture2D:
 	if _disc == null:
-		var size := 128
-		var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
-		var c := Vector2(size, size) / 2.0
-		for y in size:
-			for x in size:
-				var d := Vector2(x + 0.5, y + 0.5).distance_to(c)
+		var w := 200
+		var h := 100
+		var img := Image.create(w, h, false, Image.FORMAT_RGBA8)
+		var r := h / 2.0 - 2.0
+		for y in h:
+			for x in w:
+				# Distance outside a horizontal segment, so the ends are round.
+				var px := clampf(x + 0.5, r + 2.0, w - r - 2.0)
+				var d := Vector2(x + 0.5, y + 0.5).distance_to(Vector2(px, h / 2.0))
 				var col := Color(0, 0, 0, 0)
-				if d <= 60.0:
-					col = Color(0.17, 0.2, 0.25) if d > 53.0 else Color(0.86, 0.66, 0.3)
-					col.a = clampf(60.5 - d, 0.0, 1.0)
+				if d <= r:
+					col = Color(0.66, 0.3, 0.2) if d > r - 9.0 else Color(0.99, 0.95, 0.87)
+					col.a = clampf(r + 0.5 - d, 0.0, 1.0)
 				img.set_pixel(x, y, col)
 		_disc = ImageTexture.create_from_image(img)
 	return _disc
+
+
+## A quick pulse on the badge (twice over 600 ms, review 5), when she's back up to chase it.
+func pulse_badge() -> void:
+	var t := create_tween()
+	for i in 2:
+		t.tween_property(_sack_disc, "scale", Vector3.ONE * 1.35, 0.15)
+		t.tween_property(_sack_disc, "scale", Vector3.ONE, 0.15)
 
 
 ## An outpost's sleeper: low to the ground, head down (a raider sits, its shard put away); by

@@ -78,17 +78,24 @@ static func burst(kind: String, pos: Vector3, dir := Vector3.UP) -> void:
 		instance._burst(kind, pos, dir)
 
 
-## Throws a greybox item (from `Tools`) in an arc, then calls `landed`.
-static func throw(item: String, from: Vector3, to: Vector3, seconds := 0.45, height := 1.2, landed := Callable()) -> void:
+## Throws a greybox item (from `Tools`) in an arc, then calls `landed`. An `aimed` one (a raider's
+## shard) points along its flight instead of tumbling, so its trail shows where it's going.
+static func throw(item: String, from: Vector3, to: Vector3, seconds := 0.45, height := 1.2, landed := Callable(), aimed := false) -> void:
 	if instance == null:
 		return
 	var node := Tools.make(item)
 	instance.add_child(node)
 	node.global_position = from
 	var spin := Vector3(randf_range(-8, 8), randf_range(-4, 4), randf_range(-8, 8))
+	var arc := func(u: float) -> Vector3: return from.lerp(to, u) + Vector3.UP * height * 4.0 * u * (1.0 - u)
 	var fly := func(u: float) -> void:
-		node.global_position = from.lerp(to, u) + Vector3.UP * height * 4.0 * u * (1.0 - u)
-		node.rotation = spin * u
+		node.global_position = arc.call(u)
+		if aimed:
+			var ahead: Vector3 = arc.call(minf(u + 0.05, 1.0)) - arc.call(maxf(u - 0.05, 0.0))
+			if ahead.length() > 0.001:
+				node.look_at(node.global_position + ahead, Vector3.UP if absf(ahead.normalized().y) < 0.99 else Vector3.RIGHT)
+		else:
+			node.rotation = spin * u
 	var land := func() -> void:
 		node.queue_free()
 		if landed.is_valid():
@@ -98,13 +105,14 @@ static func throw(item: String, from: Vector3, to: Vector3, seconds := 0.45, hei
 	t.tween_callback(land)
 
 
-## A blow's impact mark at `pos`, `size` times the usual size; a counter's has ochre rays.
-static func impact(pos: Vector3, size := 1.0, counter := false) -> void:
+## A blow's impact mark at `pos`, `size` times the usual size, its rays flung away from `from`
+## (review 5: a few unequal rays pointing away from the contact); a counter's rays are ochre.
+static func impact(pos: Vector3, size := 1.0, counter := false, from := Vector3.INF) -> void:
 	if instance:
-		instance._impact(pos, size, counter)
+		instance._impact(pos, size, counter, from)
 
 
-func _impact(pos: Vector3, size: float, counter := false) -> void:
+func _impact(pos: Vector3, size: float, counter := false, from := Vector3.INF) -> void:
 	if _impacts.is_empty():
 		for i in IMPACT_POOL:
 			var s := Sprite3D.new()
@@ -121,7 +129,13 @@ func _impact(pos: Vector3, size: float, counter := false) -> void:
 	mark.global_position = pos
 	mark.texture = _impact_star(COUNTER_RAYS if counter else IMPACT_RAYS)
 	mark.pixel_size = IMPACT_SIZE * size / 128.0
-	mark.rotation.z = randf() * TAU
+	# Turn its rays (drawn along +X) away from the blow, on screen.
+	var camera := get_viewport().get_camera_3d()
+	if camera and from != Vector3.INF:
+		var away := camera.unproject_position(pos) - camera.unproject_position(from)
+		mark.rotation.z = -away.angle() if away.length() > 0.5 else 0.0
+	else:
+		mark.rotation.z = randf() * TAU
 	mark.modulate = Color.WHITE
 	mark.scale = Vector3.ONE * 0.6
 	mark.visible = true
@@ -131,8 +145,11 @@ func _impact(pos: Vector3, size: float, counter := false) -> void:
 	t.chain().tween_callback(mark.hide)
 
 
-## The impact mark: an opaque cream centre with eight rays in `rays`, drawn once per colour
-## (review 4).
+## The impact mark: an opaque cream centre with four unequal rays in `rays` fanned along +X (away
+## from the blow once turned), drawn once per colour (reviews 4 and 5).
+const IMPACT_RAY_SET := [[-48.0, 0.78], [-14.0, 1.0], [20.0, 0.86], [52.0, 0.62]]
+
+
 static func _impact_star(rays: Color) -> Texture2D:
 	var key := rays.to_html()
 	if not _stars.has(key):
@@ -142,17 +159,19 @@ static func _impact_star(rays: Color) -> Texture2D:
 		for y in size:
 			for x in size:
 				var v := Vector2(x + 0.5, y + 0.5) - c
-				var a := v.angle()
-				# Long rays on the diagonals, shorter ones between; a round cream centre.
-				var edge := 62.0 * (0.36 + 0.64 * pow(absf(cos(2.0 * a)), 3.0))
 				var d := v.length()
 				var col := Color(0, 0, 0, 0)
-				if d <= 24.0:
+				# A ray: a tapering wedge from the centre out to its length.
+				for ray in IMPACT_RAY_SET:
+					var off := absf(rad_to_deg(angle_difference(deg_to_rad(ray[0]), v.angle())))
+					var length: float = 62.0 * ray[1]
+					var half := 16.0 * (1.0 - d / length)
+					if d <= length and off <= half:
+						col = rays
+						col.a = clampf((half - off) * 0.5, 0.0, 1.0)
+				if d <= 22.0:
 					col = Color(1.0, 0.96, 0.86)
-					col.a = clampf(24.5 - d, 0.0, 1.0) if d > 23.0 else 1.0
-				elif d <= edge:
-					col = rays
-					col.a = clampf(edge - d, 0.0, 1.0)
+					col.a = clampf(22.5 - d, 0.0, 1.0) if d > 21.0 else 1.0
 				img.set_pixel(x, y, col)
 		_stars[key] = ImageTexture.create_from_image(img)
 	return _stars[key]
@@ -174,7 +193,7 @@ func _slam_puff(pos: Vector3) -> void:
 		var m := StandardMaterial3D.new()
 		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		m.albedo_texture = _broken_ring()
+		m.albedo_texture = broken_ring_texture()
 		_puff.material_override = m
 		_puff.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(_puff)
@@ -187,6 +206,16 @@ func _slam_puff(pos: Vector3) -> void:
 	t.tween_property(_puff, "scale", Vector3.ONE * SLAM_PUFF_SIZE * 2.0, SLAM_PUFF_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	t.tween_property(m, "albedo_color:a", 0.0, SLAM_PUFF_TIME).set_ease(Tween.EASE_IN)
 	t.chain().tween_callback(_puff.hide)
+
+
+## The broken ring, white: the slam puff tints it snow, the counter halo ochre.
+static var _ring: Texture2D
+
+
+static func broken_ring_texture() -> Texture2D:
+	if _ring == null:
+		_ring = _broken_ring()
+	return _ring
 
 
 ## A ring of snow broken into chunks, white with a blue-grey edge.
