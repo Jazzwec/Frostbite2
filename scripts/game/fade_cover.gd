@@ -13,6 +13,9 @@ const SPEED_IN := 3.0
 ## Meagan's body on screen: from her feet up this far, in metres, and this wide either side.
 const BODY_HEIGHT := 1.9
 const BODY_HALF_WIDTH := 0.4
+## The ink look's surface and its see-through twin, swapped in while an ink-painted mesh fades.
+const INK_TOON := preload("res://scripts/game/ink/ink_toon.gdshader")
+const INK_TOON_FADE := preload("res://scripts/game/ink/ink_toon_fade.gdshader")
 
 
 ## Whether an upright thing standing at `base`, `height` tall and `radius` wide, covers Meagan
@@ -46,20 +49,40 @@ static func fade(root: Node, faded: bool, delta: float) -> bool:
 		mi.set_meta("fade", t)
 		if t > 0.0:
 			if not mi.has_meta("solid"):
-				var solid := mi.material_override as StandardMaterial3D
-				if solid == null:
+				var see_through := see_through_copy(mi.material_override)
+				if see_through == null:
 					continue
-				mi.set_meta("solid", solid)
+				mi.set_meta("solid", mi.material_override)
 				# A see-through crown shouldn't still throw a solid shadow over her.
 				mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-				var see_through := solid.duplicate() as StandardMaterial3D
-				see_through.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_DEPTH_PRE_PASS
 				mi.material_override = see_through
-			var m := mi.material_override as StandardMaterial3D
-			m.albedo_color.a = (mi.get_meta("solid") as StandardMaterial3D).albedo_color.a * (1.0 - t)
+			set_opacity(mi.material_override, mi.get_meta("solid"), 1.0 - t)
 			any = true
 		elif mi.has_meta("solid"):
 			mi.material_override = mi.get_meta("solid")
 			mi.remove_meta("solid")
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	return any
+
+
+## A see-through copy of a mesh's material: a plain material, or an ink-painted one (the ink
+## look's ShaderMaterial, on its see-through twin shader). Null for anything else.
+static func see_through_copy(solid: Material) -> Material:
+	if solid is StandardMaterial3D:
+		var copy := solid.duplicate() as StandardMaterial3D
+		copy.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_DEPTH_PRE_PASS
+		return copy
+	var ink := solid as ShaderMaterial
+	if ink and ink.shader == INK_TOON:
+		var copy := ink.duplicate() as ShaderMaterial
+		copy.shader = INK_TOON_FADE
+		return copy
+	return null
+
+
+## How solid a see-through copy is, from 0 (gone) to 1 (as solid as the original).
+static func set_opacity(copy: Material, solid: Material, opacity: float) -> void:
+	if copy is StandardMaterial3D:
+		(copy as StandardMaterial3D).albedo_color.a = (solid as StandardMaterial3D).albedo_color.a * opacity
+	else:
+		(copy as ShaderMaterial).set_shader_parameter("opacity", opacity)
