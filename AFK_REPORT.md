@@ -99,6 +99,11 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 145 onwards (8 image
 - **Felt wrong:** the rig has no knee joint, so the seated legs stick straight out a little. It reads as sitting at the game camera.
 - **No ChatGPT review** (budget).
 
+### V9. Tile-opening flame trail
+- **What changed:** when a tile opens, a glowing ember leaves the furnace's top and arcs over 1.8 s (4 m high) to the new small furnace, shedding sparks. The small furnace stays dark until it lands, then flares alight with a flame burst and a fire sound (`main.gd _flame_trail`, `StoveView.set_lit`/`light_up`).
+- **Check in the game:** open a gate and watch the furnace and the new tile.
+- **No ChatGPT review** (budget).
+
 ## Run 2026-10-20, 01:11 → 09:00
 
 ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.

@@ -198,7 +198,7 @@ Make the game and its animations match the agreed visual, `source_art/direction/
     - Resting or cold Jans vary their idle: stamp their feet, blow on their hands, look round.
     - Meagan's breath puffs while it's cold.
   - **Done when:** screenshots of each, and the rig contract (`impact`, `tip_position`) is kept.
-- [ ] **V9. Tile-opening flame trail (safe, effects).**
+- [x] **V9. Tile-opening flame trail (safe, effects).** Done 2026-10-20 (AFK).
   - **What:** when a tile opens, an ember trail runs from the main furnace to the new small furnace, which then flares alight.
   - **Done when:** a screenshot sequence shows it.
 - [ ] **V10. Bag-full nudge (safe, feedback).**
