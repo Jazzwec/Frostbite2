@@ -2,6 +2,22 @@
 
 The PNGs here are reference images, made with ChatGPT (`tools/chatgpt/chatgpt.py image`, prompts in `*.prompt.txt`). They're for making the 3D models in Tripo Studio and are never used in the game directly. This folder is `.gdignore`d.
 
+## Ink & watercolour references (2026-10-20)
+
+The game's art direction is now ink & watercolour (`docs/art-direction.md`). The references in `ink/` replace the older ones of the same name below; use them for any remake. Their surfaces are painted washes with only light outlines, because the game draws its own ink lines.
+
+| Reference | Export as | Rig | Notes |
+|---|---|---|---|
+| `ink/meagan.png` | `meagan.glb` | Humanoid | Falu-red parka, braid, mustard scarf. T-pose. |
+| `ink/jan.png` | `jan.glb` | Humanoid | Deep-teal parka, so no Jan wears her red. T-pose. |
+| `ink/furnace.png` | `furnace.glb` | — | Fieldstone-and-iron village oven, with the furnace-mouth mark. |
+| `ink/bunkhouse.png` | `bunkhouse.glb` | — | Falu-red cabin, mittens on the door. |
+| `ink/lumber_yard.png` | `lumber_yard.glb` | — | Ochre woodshed, crooked-sun sign. |
+
+Tip for Tripo: ask for **flat, even lighting** in the texture, so the game's own light and shade aren't fighting light baked into the model.
+
+## Earlier references (soft cartoon, 2026-10-19)
+
 | Reference | Export as | Rig |
 |---|---|---|
 | `meagan.png` | `meagan.glb` | Humanoid |
