@@ -22,12 +22,15 @@ const PAD_COLORS := {
 	"paying": Color(1.0, 0.78, 0.3, 0.55), "maxed": Color(0.6, 0.6, 0.65, 0.35),
 }
 const RING_COLOR := Color(1.0, 0.92, 0.5)
+## Nameplates: the largest font, and the most of the building's width they may take.
+const PLATE_FONT := 36
+const PLATE_MIN_FONT := 24
+const PLATE_WIDTH := 3.4
 
 var index := 0
 var _signature := ""
 var _shapes: Node3D
 var _title: Label3D
-var _info: Label3D
 var _body: StaticBody3D
 var _fire: MeshInstance3D
 var _light: OmniLight3D
@@ -44,10 +47,11 @@ func setup(site_index: int) -> void:
 	position = Vector3(MapData.SITES[index].pos.x, 0, MapData.SITES[index].pos.y)
 	_shapes = Node3D.new()
 	add_child(_shapes)
-	_title = Shapes.label("", Vector3(0, 4.4, 0), 56)
+	# Above the roof and the furnace's chimney, name and level as one tight block.
+	_title = Shapes.label("", Vector3(0, 4.9, 0), PLATE_FONT)
+	_title.outline_size = 14
+	_title.line_spacing = -10.0
 	add_child(_title)
-	_info = Shapes.label("", Vector3(0, 3.0, 0), 44, Color(1, 0.95, 0.75))
-	add_child(_info)
 	var size := Vector3(MapData.SITE_HALF_SIZE * 2.0, 3.0, MapData.SITE_HALF_SIZE * 2.0)
 	add_child(Shapes.tap_area(size, "site", index))
 	_build_pad()
@@ -231,14 +235,22 @@ func _update_labels(s: GameState, site: Dictionary) -> void:
 	_update_pad(s, site)
 	if b == "":
 		_title.text = ""
-		_info.text = ""
 		return
+	# Just the name and level; numbers (fuel, stores, costs) are in the building's sheet.
 	var name: String = Balance.BUILDINGS[b].name
-	_title.text = name if site.level == 0 else "%s  Lv %d" % [name, site.level]
-	var lines := []
-	if index == 0:
-		lines.append("Fuel %s/%s" % [Fmt.num(s.fuel), Fmt.num(Economy.fuel_cap(s))])
-	_info.text = "\n".join(lines)
+	var text := name if site.level == 0 else "%s\nLv %d" % [name, site.level]
+	if text != _title.text:
+		_title.text = text
+		_title.font_size = fit_font(name, PLATE_FONT, PLATE_MIN_FONT, PLATE_WIDTH, _title.pixel_size)
+
+
+## The biggest font size (down to `smallest`) at which `text` is no wider than `width` metres.
+static func fit_font(text: String, largest: int, smallest: int, width: float, pixel_size: float) -> int:
+	var font := ThemeDB.fallback_font
+	var size := largest
+	while size > smallest and font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x * pixel_size > width:
+		size -= 1
+	return size
 
 
 func _update_pad(s: GameState, site: Dictionary) -> void:

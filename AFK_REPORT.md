@@ -71,3 +71,16 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.
   - Applied: bigger, near-white text (44 / 34 px), more gap above her, smoothed position, a pop when full.
   - Not applied: "FULL 20/20" instead of "MAX", because the backlog asks for "MAX".
 - **Felt wrong:** standing on a build pad, the pill sits over the pad's own "Lv 1 / Upgrade" ground label. Item 16 (smaller nameplates) should ease it.
+
+### 16. Smaller building nameplates
+- **Commits:** "Smaller building nameplates; the Stockpile gets a sheet".
+- **What changed:**
+  - Nameplates are name over level ("Lumber Yard / Lv 2") above the roof, auto-sized to fit the building. Before they were 5.7–8.1 m wide on 3.6 m buildings; now at most 3.4 m ("Fishing Lodge / Lv 10" measured 3.36 m in the game).
+  - The furnace's "Fuel 14/30" world line went; its sheet already shows fuel.
+  - The Stockpile's three stock lines went too. A new Stockpile sheet shows them against their caps. It opens when you tap the Stockpile or stop on its pad.
+- **Check in the game:** look at the nameplates at the default zoom, upgrade the Fishing Lodge high with DEV, then tap the Stockpile.
+- **Tests:** `tests/test_nameplates.gd`: every building name fits at a readable size.
+- **ChatGPT feedback:**
+  - Applied: nameplates raised above roof and chimney, tighter line spacing, and tapping the Stockpile opens its sheet.
+  - Not applied, your call: a fuel icon next to the furnace nameplate that turns amber below 30% and pulses red below 10%. The heat bar already warns at 25% and counts down at 10%. Also a dark backing behind nameplates (Label3D has none; the outline is thicker instead).
+- **Felt wrong:** the bottom sheet is slightly see-through, so ground labels like "+ Build" show faintly through it.

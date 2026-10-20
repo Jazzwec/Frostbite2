@@ -1,10 +1,12 @@
 class_name Sheet
 extends PanelContainer
-## The bottom sheet: the build list for an empty plot, or a building's panel
-## (level, what the next level costs, Upgrade, and −/+ for its Jans).
+## The bottom sheet: the build list for an empty plot, a building's panel
+## (level, what the next level costs, Upgrade, and −/+ for its Jans), or the Stockpile's stores.
 ## Built once when opened; texts and buttons update in place so a press is never interrupted.
 
 var site_index := -1
+## Open on the Stockpile rather than a plot.
+var stockpile := false
 
 var _title: Label
 var _effect: Label
@@ -29,10 +31,36 @@ func _ready() -> void:
 func close() -> void:
 	visible = false
 	site_index = -1
+	stockpile = false
 
 
 func open_site(index: int) -> void:
+	_start(index)
+	var site: Dictionary = Game.engine.state.sites[index]
+	if site.building == "":
+		_open_plot()
+	else:
+		_open_building(site.building)
+	visible = true
+	_refresh()
+
+
+## The Stockpile's sheet: what's in store against the caps.
+func open_stockpile() -> void:
+	_start(-1)
+	stockpile = true
+	_title.text = "Stockpile"
+	_body.add_child(UiTheme.label("The town's store. Jans' work lands here, build pads and the furnace draw from it, and she can drop off her bag on the pad.", 34, Color(0.8, 0.85, 0.95)))
+	_status = UiTheme.label("", 38)
+	_body.add_child(_status)
+	visible = true
+	_refresh()
+
+
+## Clears the sheet and builds its header (title and Close).
+func _start(index: int) -> void:
 	site_index = index
+	stockpile = false
 	for c in get_children():
 		c.queue_free()
 	_build_buttons.clear()
@@ -48,14 +76,6 @@ func open_site(index: int) -> void:
 	var close_button := UiTheme.button("Close", close)
 	close_button.custom_minimum_size = Vector2(200, 96)
 	header.add_child(close_button)
-
-	var site: Dictionary = Game.engine.state.sites[index]
-	if site.building == "":
-		_open_plot()
-	else:
-		_open_building(site.building)
-	visible = true
-	_refresh()
 
 
 func _open_plot() -> void:
@@ -112,6 +132,13 @@ func _process(_delta: float) -> void:
 
 func _refresh() -> void:
 	var s := Game.engine.state
+	if stockpile:
+		var caps := Economy.caps(s)
+		var lines := []
+		for res in ["wood", "food", "materials"]:
+			lines.append("%s  %s / %s" % [str(res).capitalize(), Fmt.num(s.piles[res]), Fmt.num(caps[res])])
+		_status.text = "\n".join(lines)
+		return
 	if site_index < 0:
 		return
 	var site: Dictionary = s.sites[site_index]

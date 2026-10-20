@@ -10,7 +10,6 @@ const PAD_COLOR := Color(0.45, 0.85, 0.5, 0.5)
 
 var _heaps := {}  # resource -> Array of Node3D, bottom first
 var _shown := {"wood": 0, "food": 0, "materials": 0}
-var _label: Label3D
 
 
 func setup() -> void:
@@ -37,14 +36,11 @@ func setup() -> void:
 	pad_label.billboard = BaseMaterial3D.BILLBOARD_DISABLED
 	pad_label.rotation_degrees.x = -90.0
 	add_child(pad_label)
-	_label = Shapes.label("", Vector3(0, 2.5, 0), 38, Color(1, 0.95, 0.75))
-	add_child(_label)
 	add_child(Shapes.tap_area(Vector3(3.4, 2.0, 3.8), "stockpile", 0, Vector3(0, 0, 0.9)))
 
 
 func refresh(s: GameState) -> void:
 	var caps := Economy.caps(s)
-	var lines := []
 	for res in HEAPS:
 		var amount: float = s.piles[res]
 		# Square root, so a little stock already shows a little heap.
@@ -59,8 +55,7 @@ func refresh(s: GameState) -> void:
 					create_tween().tween_property(piece, "scale", full_scale, 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 				piece.visible = show
 			_shown[res] = want
-		lines.append("%s %s/%s" % [{"wood": "Wood", "food": "Food", "materials": "Mat"}[res], Fmt.num(amount), Fmt.num(caps[res])])
-	_label.text = "\n".join(lines)
+
 
 
 ## Where dropped-off pieces land, and where bank payments fly from.

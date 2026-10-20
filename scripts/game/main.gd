@@ -245,7 +245,7 @@ func _on_tap(screen_pos: Vector2) -> void:
 			_hud.sheet.close()
 		"stockpile":
 			_walk(_v3(MapData.stockpile_pad()))
-			_hud.sheet.close()
+			_hud.sheet.open_stockpile()
 		"arrival":
 			var arrival_id: int = hit.index
 			for a in s.arrivals:
@@ -275,6 +275,8 @@ func _walk(target: Vector3) -> void:
 
 ## How long she must stand still on a pad before its sheet opens.
 const PAD_STOP_TIME := 0.25
+## The Stockpile's pad, in the pad-stop logic alongside the plots' indexes.
+const STOCKPILE_PAD := 1000
 
 
 ## Stopping on a plot's pad opens its sheet (build list or upgrade panel); leaving closes it.
@@ -285,6 +287,8 @@ func _update_pad_stop(delta: float) -> void:
 		if me.distance_to(MapData.pad_pos(i)) <= Balance.PAD_RADIUS:
 			on = i
 			break
+	if me.distance_to(MapData.stockpile_pad()) <= Balance.PAD_RADIUS:
+		on = STOCKPILE_PAD
 	if on != _pad_site:
 		_pad_site = on
 		_pad_still = 0.0
@@ -295,7 +299,10 @@ func _update_pad_stop(delta: float) -> void:
 		return
 	_pad_still = 0.0 if _meagan.moving else _pad_still + delta
 	if _pad_still >= PAD_STOP_TIME:
-		_hud.sheet.open_site(on)
+		if on == STOCKPILE_PAD:
+			_hud.sheet.open_stockpile()
+		else:
+			_hud.sheet.open_site(on)
 		Audio.play("tap")
 		_pad_opened = on
 

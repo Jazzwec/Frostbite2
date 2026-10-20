@@ -40,7 +40,7 @@ Polish and quality first, then new content.
   - **What:** the labels stacked over her (the node's stock, "12/20", "12 Wood") become one compact readout: the bag count, with "MAX" in red when full and the carried resources on one short line under it. From the ChatGPT review of her model (NOTES.md).
   - **Done when:** a screenshot shows a single readout that never overlaps her head or the furnace labels, and the "+N" pops still show.
 
-- [ ] **16. Smaller building nameplates (safe, polish).**
+- [x] **16. Smaller building nameplates (safe, polish).** Done 2026-10-20 (AFK).
   - **What:** world labels are wider than the buildings. Use a smaller nameplate (name and level only), and move upgrade and stock details into the tap sheet. From the ChatGPT review of the Jans (NOTES.md).
   - **Done when:** at the default zoom no nameplate is wider than its building, and every number is still reachable in a sheet.
 
