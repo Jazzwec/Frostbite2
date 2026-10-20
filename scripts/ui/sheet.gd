@@ -257,16 +257,18 @@ func _refresh() -> void:
 	_title.text = name if site.level == 0 else "%s  Lv %d" % [name, site.level]
 	if site.upgrading:
 		var need := Economy.site_cost(s, site_index)
+		var progress := Economy.site_progress(s, site_index)
 		var parts := []
 		for res in need:
-			parts.append("%s %s/%s" % [str(res).capitalize(), Fmt.num(site.progress.get(res, 0.0)), Fmt.num(need[res])])
-		_status.text = ("Being built: " if site.level == 0 else "Upgrading: ") + ", ".join(parts) + "\nStand on the pad: it takes what it needs from the Stockpile."
+			parts.append("%s %s/%s" % [str(res).capitalize(), Fmt.num(progress.get(res, 0.0)), Fmt.num(need[res])])
+		var where := "Stand on the pad" if site.level == 0 else _upgrade_where(s, b)
+		_status.text = ("Being built: " if site.level == 0 else "Upgrading: ") + ", ".join(parts) + "\n%s: it takes what it needs from the Stockpile." % where
 		_upgrade.visible = false
 	elif Economy.is_maxed(s, site_index):
 		_status.text = "Fully upgraded."
 		_upgrade.visible = false
 	else:
-		_status.text = _summary(s, b)
+		_status.text = _summary(s, b) + _shared_note(s, b)
 		_upgrade.visible = true
 		_upgrade.text = "Upgrade to Lv %d  ·  %s" % [site.level + 1, Fmt.cost(Economy.site_cost(s, site_index))]
 	if _job != "":
@@ -276,6 +278,20 @@ func _refresh() -> void:
 		if def.resource != "":
 			line = "%s: %d/%d Jans  ·  %s %s/s" % [def.name, Economy.site_jans(s, site_index), Economy.site_slots(s, site_index), str(def.resource).capitalize(), "%.1f" % Economy.site_rate(s, site_index)]
 		_job_label.text = line + "\nIdle Jans: %d" % Economy.idle_count(s)
+
+
+## Upgrades are shared by every plot of a building (agreed 2026-10-20), so the sheet says so.
+func _shared_note(s: GameState, b: String) -> String:
+	if b == "furnace":
+		return "\nUpgrading raises every small furnace too." if not s.stoves.is_empty() else ""
+	var plots := Economy.upgrade_pads(s, b).size()
+	return "\nUpgrading raises all %d of them." % plots if plots > 1 else ""
+
+
+func _upgrade_where(s: GameState, b: String) -> String:
+	if b == "furnace":
+		return "Stand on the furnace's pad or a small furnace's" if not s.stoves.is_empty() else "Stand on the pad"
+	return "Stand on any of their pads" if Economy.upgrade_pads(s, b).size() > 1 else "Stand on the pad"
 
 
 func _refresh_jans(s: GameState) -> void:

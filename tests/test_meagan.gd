@@ -64,7 +64,7 @@ func test_upgrading_the_furnace() -> void:
 	e.state.piles.wood = 40.0
 	put_meagan(e, MapData.pad_pos(e.state, 0))
 	e.skip(1.0)
-	check_near(e.state.sites[0].progress.get("wood", 0.0), 20.0, 0.01, "the pad takes 20 Wood a second")
+	check_near(Economy.site_progress(e.state, 0).get("wood", 0.0), 20.0, 0.01, "the pad takes 20 Wood a second")
 	check_near(e.state.piles.wood, 20.0, 0.01, "from the Stockpile")
 
 

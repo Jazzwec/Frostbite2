@@ -55,7 +55,8 @@ func add_jan(e: GameEngine, job: String) -> Dictionary:
 
 
 ## Builds `building` at `level` on its plot, for setting up tests. A building with no free plot
-## (a producer, found only in opened tiles) gets a new plot well away from the town.
+## (a producer, found only in opened tiles) gets a new plot well away from the town. Levels are
+## shared (agreed 2026-10-20), so every built plot of it ends up at `level`.
 func give_building(e: GameEngine, building: String, level := 1, new_plot := false) -> int:
 	var i := -1 if new_plot else MapData.site_of_building(e.state.sites, building)
 	if i < 0 and not new_plot:
@@ -67,6 +68,8 @@ func give_building(e: GameEngine, building: String, level := 1, new_plot := fals
 		i = e.state.sites.size()
 		e.state.sites.append({"type": building, "pos": Vector2(60 + 10 * i, 60), "building": "", "level": 0, "upgrading": false, "progress": {}})
 	e.state.sites[i].building = building
-	e.state.sites[i].level = level
 	e.state.sites[i].upgrading = false
+	for site in e.state.sites:
+		if site.building == building:
+			site.level = level
 	return i

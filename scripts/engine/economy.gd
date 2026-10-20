@@ -24,8 +24,8 @@ static func gather_rate(s: GameState, resource: String) -> float:
 	return Balance.GATHER_RATE[resource] * (1.0 + mod(s, "gather_mult"))
 
 
-## Level of a building: the highest of its plots, 0 if none is built yet (a first-time
-## construction site is level 0).
+## Level of a building, shared by all its built plots (agreed 2026-10-20), 0 if none is built
+## yet (a first-time construction site is level 0).
 static func level(s: GameState, building: String) -> int:
 	var best := 0
 	for site in s.sites:
@@ -64,6 +64,27 @@ static func site_cost(s: GameState, index: int) -> Dictionary:
 static func is_maxed(s: GameState, index: int) -> bool:
 	var site: Dictionary = s.sites[index]
 	return site.level >= Balance.BUILDINGS[site.building].max
+
+
+## What a plot has been paid so far: its own construction, or its building's shared upgrade.
+static func site_progress(s: GameState, index: int) -> Dictionary:
+	var site: Dictionary = s.sites[index]
+	if site.level >= 1:
+		return s.upgrades.get(site.building, {})
+	return site.progress
+
+
+## Where a building's upgrade can be paid: the pad of every built plot of it, and for the furnace
+## every small furnace's pad too (agreed 2026-10-20). {pos, site} (site -1 for a small furnace).
+static func upgrade_pads(s: GameState, building: String) -> Array:
+	var out := []
+	for i in s.sites.size():
+		if s.sites[i].building == building and s.sites[i].level >= 1:
+			out.append({"pos": MapData.pad_pos(s, i), "site": i})
+	if building == "furnace":
+		for k in s.stoves.size():
+			out.append({"pos": MapData.stove_pad(s, k), "site": -1})
+	return out
 
 
 static func heat_cap(s: GameState) -> float:

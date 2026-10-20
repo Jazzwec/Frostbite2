@@ -67,6 +67,14 @@ static func site_pos(s: GameState, i: int) -> Vector2:
 
 
 ## The build pad in front of a plot, where she stands to pay for construction and upgrades.
+## The pad in front of small furnace `k`, a little way into its tile: standing on it opens the
+## furnace's sheet, and pays the furnace's upgrade there too. [agreed 2026-10-20]
+static func stove_pad(s: GameState, k: int) -> Vector2:
+	var stove: Dictionary = s.stoves[k]
+	var into: Vector2 = (tile_rect(stove.tile).get_center() - stove.pos).normalized()
+	return stove.pos + into * Balance.STOVE_PAD_INSET
+
+
 static func pad_pos(s: GameState, i: int) -> Vector2:
 	var half := FURNACE_RADIUS if i == 0 else SITE_HALF_SIZE
 	return s.sites[i].pos + Vector2(0, half + 0.9)

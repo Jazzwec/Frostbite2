@@ -460,7 +460,7 @@ func _update_pad(s: GameState, site: Dictionary) -> void:
 		var total := 0.0
 		var lines := []
 		for res in need:
-			var got: float = site.progress.get(res, 0.0)
+			var got: float = Economy.site_progress(s, index).get(res, 0.0)
 			have += got
 			total += need[res]
 			lines.append("%s %s/%s" % [{"wood": "Wood", "food": "Food", "materials": "Mat"}[res], Fmt.num(got), Fmt.num(need[res])])

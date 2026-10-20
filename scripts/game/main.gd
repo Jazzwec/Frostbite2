@@ -388,7 +388,7 @@ func _add_chest_view(i: int) -> void:
 func _add_stove_view(i: int) -> void:
 	var view := StoveView.new()
 	_nav.add_child(view)
-	view.setup(Game.engine.state.stoves[i].pos)
+	view.setup(i, Game.engine.state)
 	_stoves.append(view)
 
 
@@ -528,6 +528,10 @@ func _on_tap(screen_pos: Vector2) -> void:
 		"stockpile":
 			_walk(_v3(MapData.stockpile_pad()))
 			_hud.sheet.open_stockpile()
+		"stove":
+			# A small furnace shares the furnace's level: its pad opens the furnace's sheet.
+			_walk(_v3(MapData.stove_pad(s, hit.index)))
+			_hud.sheet.open_site(0)
 		"chest":
 			var i: int = hit.index
 			_walk(_v3(s.chests[i].pos) + Vector3(0, 0, 0.9))
@@ -569,6 +573,7 @@ const PAD_STOP_TIME := 0.25
 ## The Stockpile's pad and the gates' pads, in the pad-stop logic alongside the plots' indexes.
 const STOCKPILE_PAD := 1000
 const GATE_PAD := 2000
+const STOVE_PAD := 3000
 
 
 ## Stopping on a plot's pad opens its sheet (build list or upgrade panel); leaving closes it.
@@ -585,6 +590,9 @@ func _update_pad_stop(delta: float) -> void:
 	for i in s.gates.size():
 		if me.distance_to(s.gates[i].pad) <= Balance.PAD_RADIUS:
 			on = GATE_PAD + i
+	for k in s.stoves.size():
+		if me.distance_to(MapData.stove_pad(s, k)) <= Balance.PAD_RADIUS:
+			on = STOVE_PAD + k
 	if on != _pad_site:
 		_pad_site = on
 		_pad_still = 0.0
@@ -597,6 +605,8 @@ func _update_pad_stop(delta: float) -> void:
 	if _pad_still >= PAD_STOP_TIME:
 		if on == STOCKPILE_PAD:
 			_hud.sheet.open_stockpile()
+		elif on >= STOVE_PAD:
+			_hud.sheet.open_site(0)
 		elif on >= GATE_PAD:
 			_hud.sheet.open_gate(on - GATE_PAD)
 		else:
@@ -614,7 +624,14 @@ func _update_pad_payments(delta: float) -> void:
 	var s := Game.engine.state
 	_drop_in -= delta
 	for i in s.sites.size():
-		_send_from_stockpile("site %d" % i, s.sites[i].progress, _v3(MapData.site_pos(s, i)) + Vector3(0, 1.0, 0), i)
+		if s.sites[i].level == 0:
+			_send_from_stockpile("site %d" % i, s.sites[i].progress, _v3(MapData.site_pos(s, i)) + Vector3(0, 1.0, 0), i)
+	# A building's upgrade is shared, paid at whichever of its pads she stands on (agreed 2026-10-20):
+	# the piece flies to the plot or small furnace she's paying at.
+	for building in s.upgrades:
+		var at := s.meagan_target if s.meagan_activity == "build" else -1
+		var top := _v3(MapData.site_pos(s, at)) + Vector3(0, 1.0, 0) if at >= 0 else _v3(s.meagan_target_pos) + Vector3(0, 1.0, 0)
+		_send_from_stockpile("upgrade %s" % building, s.upgrades[building], top, at)
 	for gate in s.gates:
 		_send_from_stockpile("gate %s" % gate.tile, gate.progress, _v3(gate.pos) + Vector3(0, 0.6, 0), -1)
 
@@ -758,10 +775,25 @@ func _on_event(ev: Dictionary) -> void:
 		"gear_equipped":
 			_float_text(_meagan.global_position + Vector3(0, 3.0, 0), "New %s!" % Balance.GEAR[ev.slot].name.to_lower(), UiTheme.ACCENT, true)
 		"built", "levelled":
-			_sites[ev.site].celebrate()
-			_rig.shake(0.3 if ev.site == 0 else 0.14)
+			var s := Game.engine.state
+			# A level is shared by every plot of the building (agreed 2026-10-20): they all celebrate,
+			# and the words float over the one she's nearest.
+			var at: int = ev.site
+			if ev.type == "levelled":
+				for i in s.sites.size():
+					if s.sites[i].building == ev.building:
+						_sites[i].celebrate()
+						if s.meagan_pos.distance_to(MapData.site_pos(s, i)) < s.meagan_pos.distance_to(MapData.site_pos(s, at)):
+							at = i
+			else:
+				_sites[at].celebrate()
+			_rig.shake(0.3 if ev.building == "furnace" else 0.14)
 			Audio.play("build_done")
-			var p := MapData.site_pos(Game.engine.state, ev.site)
+			var p := MapData.site_pos(s, at)
+			if ev.building == "furnace" and ev.type == "levelled":
+				for k in s.stoves.size():
+					if s.meagan_pos.distance_to(s.stoves[k].pos) < s.meagan_pos.distance_to(p):
+						p = s.stoves[k].pos
 			var name: String = Balance.BUILDINGS[ev.building].name
 			_float_text(Vector3(p.x, 5.0, p.y), ("%s built!" % name) if ev.type == "built" else ("%s Lv %d!" % [name, ev.level]), UiTheme.ACCENT, true)
 		"no_room":

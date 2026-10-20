@@ -51,7 +51,8 @@ static func regrow(s: GameState, dt: float) -> void:
 
 
 ## A build pad or gate she stands on takes what it needs from the Stockpile. [brief, Stockpile
-## agreed 2026-10-19, no bag 2026-10-20]
+## agreed 2026-10-19, no bag 2026-10-20]. A building's upgrade is global and can be paid on the pad
+## of any of its plots (the furnace's on any small furnace's too). [agreed 2026-10-20]
 static func pay_pads(s: GameState, dt: float, events: Array) -> void:
 	if s.meagan_injured:
 		return
@@ -59,8 +60,15 @@ static func pay_pads(s: GameState, dt: float, events: Array) -> void:
 	for i in s.sites.size():
 		if budget <= 0.0:
 			return
-		if s.sites[i].upgrading and s.meagan_pos.distance_to(MapData.pad_pos(s, i)) <= Balance.PAD_RADIUS:
+		var site: Dictionary = s.sites[i]
+		if site.upgrading and site.level == 0 and s.meagan_pos.distance_to(MapData.pad_pos(s, i)) <= Balance.PAD_RADIUS:
 			budget = _deliver_to_site(s, i, budget, events)
+	for building in s.upgrades.keys():
+		for pad in Economy.upgrade_pads(s, building):
+			if budget <= 0.0:
+				return
+			if s.upgrades.has(building) and s.meagan_pos.distance_to(pad.pos) <= Balance.PAD_RADIUS:
+				budget = _deliver_upgrade(s, building, pad, budget, events)
 	# A gate she's chosen to open takes its cost the same way. [agreed 2026-10-20]
 	for i in range(s.gates.size() - 1, -1, -1):
 		var gate: Dictionary = s.gates[i]
@@ -91,17 +99,52 @@ static func is_paid(need: Dictionary, progress: Dictionary) -> bool:
 	return true
 
 
-## Pays a site from the Stockpile.
+## Pays a plot's construction from the Stockpile.
 static func _deliver_to_site(s: GameState, i: int, budget: float, events: Array) -> float:
 	var site: Dictionary = s.sites[i]
 	var need := Economy.site_cost(s, i)
 	budget = pay(s, need, site.progress, budget, "build", i, MapData.site_pos(s, i))
 	if is_paid(need, site.progress):
-		site.level += 1
-		site.upgrading = false
-		site.progress = {}
-		events.append({"type": "built" if site.level == 1 else "levelled", "site": i, "building": site.building, "level": site.level})
+		finish_construction(s, i, events)
 	return budget
+
+
+## A finished plot joins its building's shared level (1 for the first), and its upgrade if one is
+## under way.
+static func finish_construction(s: GameState, i: int, events: Array) -> void:
+	var site: Dictionary = s.sites[i]
+	site.level = maxi(Economy.level(s, site.building), 1)
+	site.upgrading = s.upgrades.has(site.building)
+	site.progress = {}
+	events.append({"type": "built", "site": i, "building": site.building, "level": site.level})
+
+
+## Pays a building's shared upgrade at one of its pads.
+static func _deliver_upgrade(s: GameState, building: String, pad: Dictionary, budget: float, events: Array) -> float:
+	var need := Economy.cost(building, Economy.level(s, building))
+	var target: int = pad.site
+	var at: Vector2 = MapData.site_pos(s, target) if target >= 0 else pad.pos
+	budget = pay(s, need, s.upgrades[building], budget, "build", target, at)
+	if is_paid(need, s.upgrades[building]):
+		level_up(s, building, events)
+	return budget
+
+
+## Raises every built plot of `building` a level and ends its upgrade.
+static func level_up(s: GameState, building: String, events: Array) -> void:
+	s.upgrades.erase(building)
+	var first := -1
+	var lv := 0
+	for i in s.sites.size():
+		var site: Dictionary = s.sites[i]
+		if site.building == building and site.level >= 1:
+			site.level += 1
+			site.upgrading = false
+			site.progress = {}
+			lv = site.level
+			if first < 0:
+				first = i
+	events.append({"type": "levelled", "site": first, "building": building, "level": lv})
 
 
 ## She thaws any frozen Jan she reaches. A full city leaves him frozen; the one she was sent to says so. [brief]

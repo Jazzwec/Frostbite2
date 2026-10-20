@@ -1,22 +1,37 @@
 class_name StoveView
 extends Node3D
-## A small furnace on the border of an opened tile (agreed 2026-10-20): it never upgrades and
-## burns from the main furnace's heat, so its glow and light dim with that heat. Greybox until its
-## model is made.
+## A small furnace on the border of an opened tile (agreed 2026-10-20): it burns from the main
+## furnace's heat, so its glow and light dim with that heat, and it shares the furnace's level.
+## Its pad opens the furnace's sheet, and the furnace's upgrade can be paid there.
 
 const STONE := Color(0.5, 0.48, 0.47)
 const IRON := Color(0.22, 0.2, 0.22)
 const FIRE := Color(1.0, 0.55, 0.15)
 
+var index := -1
 var _glow: MeshInstance3D
+var _pad: MeshInstance3D
+var _pad_label: Label3D
+var _pad_at := Vector2.ZERO
 var _light: OmniLight3D
 var _embers: GPUParticles3D
 ## Where its embers rise: the model's chimney top (measured on the mesh), or the greybox one.
 var _chimney := Vector3(0.25, 1.75, -0.2)
 
 
-func setup(pos: Vector2) -> void:
+func setup(stove_index: int, s: GameState) -> void:
+	index = stove_index
+	var pos: Vector2 = s.stoves[index].pos
 	position = Vector3(pos.x, 0, pos.y)
+	_pad_at = MapData.stove_pad(s, index)
+	var pad_local := _pad_at - pos
+	_pad = Shapes.cylinder(SiteView.PAD_RADIUS_SHOWN, 0.03, SiteView.PAD_COLORS.idle, Vector3(pad_local.x, 0.02, pad_local.y))
+	add_child(_pad)
+	_pad_label = Shapes.label("", Vector3(pad_local.x, 0.08, pad_local.y), 30)
+	_pad_label.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+	_pad_label.rotation_degrees.x = -90.0
+	add_child(_pad_label)
+	add_child(Shapes.tap_area(Vector3(2.0, 2.2, 2.0), "stove", index, Vector3(0, 1.0, 0)))
 	# The house kit's fieldstone stove (ink_v3); its fire sits in the mouth facing the camera.
 	var model := Props.make("prop_stove")
 	if model:
@@ -53,6 +68,16 @@ func setup(pos: Vector2) -> void:
 
 
 func refresh(s: GameState) -> void:
+	# Its pad shows as she comes near, like the plots': the shared furnace's level and upgrade.
+	var near := s.meagan_pos.distance_to(_pad_at) <= SiteView.PAD_SHOW
+	var paying := s.upgrades.has("furnace")
+	_pad.visible = near or paying
+	_pad_label.visible = near
+	if near:
+		var lv := Economy.furnace_level(s)
+		var state := "paying" if paying else ("maxed" if lv >= Balance.BUILDINGS.furnace.max else "idle")
+		_pad.material_override = Shapes.material(SiteView.PAD_COLORS[state])
+		_pad_label.text = "Furnace Lv %d\n%s" % [lv, {"paying": "Upgrading", "maxed": "Max", "idle": "Upgrade"}[state]]
 	var cap := Economy.heat_cap(s)
 	var frac := clampf(s.heat / cap, 0.0, 1.0) if cap > 0.0 else 0.0
 	_glow.scale = Vector3.ONE * (0.2 + 0.8 * frac)

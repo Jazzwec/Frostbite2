@@ -20,7 +20,8 @@ func test_a_producer_holds_three_jans() -> void:
 	check(Economy.neediest_job(e.state) != "chop", "and isn't sent to chop")
 
 
-func test_a_second_lumber_yard_makes_room_and_adds_its_own_rate() -> void:
+## Levels are shared (agreed 2026-10-20): the new yard works at the same level as the first.
+func test_a_second_lumber_yard_makes_room_and_adds_its_rate_at_the_shared_level() -> void:
 	var e := engine()
 	e.state.sites[0].level = 3
 	for i in 3:
@@ -30,9 +31,10 @@ func test_a_second_lumber_yard_makes_room_and_adds_its_own_rate() -> void:
 	var jan := _jan(e)
 	check(JobRules.assign(e.state, jan, "chop"), "he chops")
 	check_eq(jan.site, second, "at the new Lumber Yard")
-	check_near(Economy.site_rate(e.state, 1), 3.0, 0.0001, "3 Jans at Lv 1: 3 Wood/s")
+	check_eq(e.state.sites[1].level, 3, "the first yard is at the shared level too")
+	check_near(Economy.site_rate(e.state, 1), 3.0 * pow(1.15, 2), 0.0001, "3 Jans at Lv 3")
 	check_near(Economy.site_rate(e.state, second), 1.0 * pow(1.15, 2), 0.0001, "1 Jan at Lv 3")
-	check_near(Economy.job_rate(e.state, "chop"), 3.0 + pow(1.15, 2), 0.0001, "the job adds them up")
+	check_near(Economy.job_rate(e.state, "chop"), 4.0 * pow(1.15, 2), 0.0001, "the job adds them up")
 
 
 func test_jans_go_to_the_emptiest_producer() -> void:

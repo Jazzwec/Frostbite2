@@ -6,8 +6,9 @@ extends RefCounted
 ## Bumped when a save from an older version can't be read as it is.
 ## 2: the layout lives in the state; 3: tiles, gates and small furnaces; 4: Jans work at a
 ## producer; 5: chests, boons and gear; 6: camps, the frontier and dens; 7: no bag, gathering
-## goes to the Stockpile; 8: no Sled Shed plot; 9: the tighter town layout (2026-10-20).
-const SAVE_VERSION := 9
+## goes to the Stockpile; 8: no Sled Shed plot; 9: the tighter town layout; 10: global building
+## levels, upgrades in `upgrades` (2026-10-20).
+const SAVE_VERSION := 10
 
 var state: GameState
 var rng := RandomNumberGenerator.new()
@@ -218,11 +219,26 @@ func start_gate(gate_index: int) -> bool:
 ## Starts the next level of a built building; Meagan delivers what it needs.
 func start_upgrade(site_index: int) -> bool:
 	var site: Dictionary = state.sites[site_index]
-	if site.building == "" or site.level < 1 or site.upgrading or Economy.is_maxed(state, site_index):
+	if site.building == "" or site.level < 1:
 		return false
-	site.upgrading = true
-	site.progress = {}
-	_events.append({"type": "site_started", "site": site_index, "building": site.building})
+	return start_upgrade_of(site.building, site_index)
+
+
+## Starts the next level of `building`, shared by all its plots (agreed 2026-10-20): it can be paid
+## on any of their pads, and raises them all.
+func start_upgrade_of(building: String, site_index := -1) -> bool:
+	if state.upgrades.has(building) or Economy.level(state, building) < 1:
+		return false
+	if Economy.level(state, building) >= Balance.BUILDINGS[building].max:
+		return false
+	state.upgrades[building] = {}
+	for i in state.sites.size():
+		var site: Dictionary = state.sites[i]
+		if site.building == building and site.level >= 1:
+			site.upgrading = true
+			if site_index < 0:
+				site_index = i
+	_events.append({"type": "site_started", "site": site_index, "building": building})
 	return true
 
 
@@ -345,15 +361,15 @@ func spawn_wolves(count := -1) -> void:
 	Combat.spawn_pack(state, rng, _events, count)
 
 
-## Finishes the next level of a building (or its construction) straight away.
+## Finishes a plot's construction, or its building's next level, straight away.
 func dev_level_up(site_index: int) -> void:
 	var site: Dictionary = state.sites[site_index]
 	if site.building == "" or Economy.is_maxed(state, site_index):
 		return
-	site.level += 1
-	site.upgrading = false
-	site.progress = {}
-	_events.append({"type": "built" if site.level == 1 else "levelled", "site": site_index, "building": site.building, "level": site.level})
+	if site.level == 0:
+		MeaganRules.finish_construction(state, site_index, _events)
+	else:
+		MeaganRules.level_up(state, site.building, _events)
 
 
 ## Thaws a Jan beside Meagan straight away, if there's room.

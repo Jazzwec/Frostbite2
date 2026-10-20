@@ -60,9 +60,13 @@ var bounds := Rect2()
 
 ## One entry per plot: {type: the building it holds (the game decides), pos: Vector2,
 ## building: String ("" = not started yet), level: int, upgrading: bool, progress: {resource: amount}}.
-## A plot under first construction has its building, level 0 and upgrading = true.
-## Index 0 is always the furnace.
+## A plot under first construction has its building, level 0 and upgrading = true; its progress
+## is its own. Index 0 is always the furnace.
+## Levels are global per building (agreed 2026-10-20): every built plot of a building has the
+## same level, and an upgrade, paid at any of its pads, raises them all. While one is under way,
+## its progress is in `upgrades` by building and each built plot of it has upgrading = true.
 var sites: Array = []
+var upgrades := {}
 
 ## The resource spots: {kind, pos: Vector2}, and the stock left at each, by the same index.
 var node_defs: Array = []

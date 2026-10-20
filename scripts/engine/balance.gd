@@ -209,6 +209,9 @@ const GATE_MATERIALS := 10.0
 const GATE_GROWTH := 1.6
 ## The gate's pad sits this far inside the open tile, in front of the border. [proto]
 const GATE_PAD_INSET := 1.8
+## A small furnace's pad sits this far into its tile; the furnace's upgrade can be paid there.
+## [proto, agreed 2026-10-20]
+const STOVE_PAD_INSET := 2.4
 ## The frontier (agreed 2026-10-20): along every edge between open and closed ground, a single
 ## frozen Jan can wait this far inside it and this far to one side of its gate, and wolves come in
 ## on the border this far to the other side. [proto]
