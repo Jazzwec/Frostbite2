@@ -24,12 +24,21 @@ static func _schedule(s: GameState, rng: RandomNumberGenerator, events: Array) -
 		if Economy.furnace_level(s) >= Balance.ATTACK_MIN_FURNACE_LEVEL:
 			s.attack_at = s.time + rng.randf_range(Balance.ATTACK_GAP_MIN, Balance.ATTACK_GAP_MAX)
 		return
-	if s.time < s.attack_at or not s.wolves.is_empty():
+	if not s.wolves.is_empty():
+		return
+	# A Watchtower spots them coming. [brief] Not while a blizzard would hold them off anyway.
+	var warning := Economy.attack_warning(s)
+	if warning > 0.0 and not s.attack_warned and not s.blizzard_active and s.time >= s.attack_at - warning:
+		s.attack_warned = true
+		events.append({"type": "attack_warning", "starts_in": maxf(s.attack_at - s.time, 0.0)})
+	if s.time < s.attack_at:
 		return
 	if s.blizzard_active:
 		s.attack_at = s.blizzard_ends_at + 30.0
+		s.attack_warned = false
 		return
 	spawn_pack(s, rng, events)
+	s.attack_warned = false
 	s.attack_at = s.time + rng.randf_range(Balance.ATTACK_GAP_MIN, Balance.ATTACK_GAP_MAX)
 
 

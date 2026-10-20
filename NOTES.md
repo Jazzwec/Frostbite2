@@ -129,6 +129,10 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - [ ] At Furnace Lv 2 the build list offers a Kitchen (40 Wood + 5 Materials). Built, it has cream walls, an orange roof, a big cooking pot by the door and a chimney that puffs steam.
 - [ ] Its sheet says how much each Jan eats a minute, 5% less per level. With a Kitchen the Food lasts longer.
 
+**Watchtower (2026-10-20)** (DEV → Furnace +1 three times)
+- [ ] At Furnace Lv 4 a Watchtower can be built (120 Wood + 30 Materials): a hut with a tall lookout, a cone roof and a red flag.
+- [ ] With it, a wolf attack is announced 15 s ahead per level ("The Watchtower spots wolves coming!", then "Wolves in 0:29" in the forecast), and blizzards a minute sooner per level. Without one, wolves still come unannounced.
+
 **Objective: keep the fire burning**
 - [ ] A winter starts at 100/100 heat. With no Wood it lasts about 2½ minutes.
 - [ ] Below 25%: the bar pulses red, banner and horn. Below 10%: "Fire out in 0:12" on the bar.

@@ -117,3 +117,14 @@ func test_one_of_each_building_on_the_plots() -> void:
 	check(not Economy.buildable(e.state).has("furnace"), "the furnace is never on the list")
 	give_building(e, "sled_shed", 1)
 	check(not Economy.buildable(e.state).has("sled_shed"), "only one Sled Shed")
+
+
+func test_a_watchtower_warns_of_blizzards_a_minute_sooner_per_level() -> void:
+	var e := engine()
+	_quiet(e)
+	give_building(e, "watchtower", 3)
+	check_near(Economy.blizzard_warning(e.state), Balance.BLIZZARD_WARNING + 180.0, 0.01, "3 + 3 minutes")
+	e.state.blizzard_at = 400.0
+	e.skip(400.0 - 360.0 + 0.2)
+	check(e.state.blizzard_warned, "warned 6 minutes ahead")
+	check(not e.state.blizzard_active, "not here yet")

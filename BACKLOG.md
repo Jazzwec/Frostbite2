@@ -75,7 +75,7 @@ Polish and quality first, then new content.
   - **Where:** add it to `balance.gd`, `economy.food_eaten_per_second`, the build list and `SiteView.LOOKS` (with a cooking-pot prop).
   - **Done when:** a test covers the food reduction, and it can be built from a pad in the game.
 
-- [ ] **5. Watchtower and attack warnings (safe).**
+- [x] **5. Watchtower and attack warnings (safe).** Done 2026-10-20 (AFK).
   - **What:** a new building from the brief: +1 min blizzard warning and +15 s attack warning per level. Tier 2: check the brief's tier table for the Furnace level.
   - **Attack warnings:** with a Watchtower, wolves are announced ahead with a banner and the forecast strip ("Wolves in 0:30"). Without one there's still no warning, as now.
   - **Done when:** tests cover both warning lengths, and the warning banner shows in the game.

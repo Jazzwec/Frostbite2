@@ -470,6 +470,10 @@ func _on_event(ev: Dictionary) -> void:
 			_hud.show_banner(Game.random_message("blizzardStart"), 5.0, BLIZZARD_BLUE)
 		"blizzard_end":
 			_hud.show_banner(Game.random_message("blizzardEnd"), 4.0, GOOD_GREEN)
+		"attack_warning":
+			Audio.play("warning")
+			# The countdown itself is in the forecast strip, so the banner can't disagree with it.
+			_hud.show_banner("The Watchtower spots wolves coming!", 5.0)
 		"wolves_arrived":
 			Audio.play("howl")
 			_hud.show_banner("Wolves! %d of them, heading for the furnace." % ev.count, 4.0)

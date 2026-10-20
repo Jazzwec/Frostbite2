@@ -207,3 +207,20 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.
   - Applied: a bigger dark pot by the door, a steaming chimney, cream and burnt-orange colours instead of salmon and green.
   - Not applied: merging the pad's "Lv 1 / Upgrade" text into one badge (UI, item 16's area).
 - **Felt wrong:** nothing new. The stricter test runner caught a parse error in this change straight away, which is exactly what it's for.
+
+### 5. Watchtower and attack warnings
+- **Commits:** "Watchtower: attack and blizzard warnings".
+- **The building:** from the brief and Frostbite 1. Tier 2 means Furnace Lv 4; max Lv 10; 120 Wood + 30 Materials, ×1.25.
+- **Engine:**
+  - `Economy.blizzard_warning` is 3 minutes + 1 minute per level. `Economy.attack_warning` is 15 s per level, and 0 without a Watchtower.
+  - `Combat` raises an `attack_warning` event once per attack, never during a blizzard, and re-arms it. A saved `attack_warned` flag holds the state.
+- **View:**
+  - A banner ("The Watchtower spots wolves coming!") and "Wolves in 0:29" in the forecast strip.
+  - Greybox look: a hut with a tall lookout (thick legs, platform, cone roof, red flag).
+  - The sheet shows both warning lengths.
+- **Check in the game:** DEV → Furnace +1 three times, build a Watchtower, then wait for (or push forward) an attack.
+- **Tests:** three new ones (no warning without a Watchtower, 30 s at Lv 2 once and re-armed, blizzards warned 6 minutes ahead at Lv 3). 71 pass.
+- **Not done:** arrows from Lv 5 (not in this item). Its text in `data/buildings.json` no longer promises them.
+- **ChatGPT feedback:**
+  - Applied: the banner no longer carries a countdown that could disagree with the forecast's; a bolder lookout silhouette.
+  - Not applied: a wolf icon in the warning, which waits on HUD icons (on hold with the style).

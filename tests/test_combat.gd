@@ -139,3 +139,32 @@ func test_spreading_doesnt_push_a_wolf_out_of_the_fight() -> void:
 	for w in e.state.wolves:
 		check_eq(w.mode, "fight", "wolf %d is still fighting" % w.id)
 		check(w.pos.distance_to(e.state.meagan_pos) >= Balance.WOLF_FIGHT_DISTANCE - 0.3, "wolf %d isn't on top of her" % w.id)
+
+
+func test_no_attack_warning_without_a_watchtower() -> void:
+	var e := engine()
+	_quiet(e)
+	e.state.sites[0].level = 2
+	e.state.attack_at = 20.0
+	e.skip(19.0)
+	check(not e.drain_events().any(func(ev): return ev.type == "attack_warning"), "no warning")
+	e.skip(1.5)
+	check(not e.state.wolves.is_empty(), "the wolves still come")
+
+
+func test_a_watchtower_warns_15_s_per_level() -> void:
+	var e := engine()
+	_quiet(e)
+	e.state.sites[0].level = 4
+	give_building(e, "watchtower", 2)
+	e.state.attack_at = 60.0
+	e.skip(60.0 - 30.0 - 0.2)
+	check(not e.state.attack_warned, "not yet")
+	e.skip(0.4)
+	var warn: Array = e.drain_events().filter(func(ev): return ev.type == "attack_warning")
+	check_eq(warn.size(), 1, "warned once, 30 s ahead")
+	if not warn.is_empty():
+		check_near(warn[0].starts_in, 30.0, 0.15, "how long until they come")
+	e.skip(30.0)
+	check(not e.state.wolves.is_empty(), "then they come")
+	check(not e.state.attack_warned, "the warning re-arms for the next attack")

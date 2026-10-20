@@ -177,6 +177,8 @@ func _forecast_text(s: GameState) -> String:
 		parts.append("Clear skies")
 	if not s.wolves.is_empty():
 		parts.append("Wolves: %d" % s.wolves.size())
+	elif s.attack_warned:
+		parts.append("Wolves in %s" % Fmt.clock(maxf(s.attack_at - s.time, 0.0)))
 	if Game.engine.paused:
 		parts.append("PAUSED")
 	return "    ".join(parts)

@@ -14,6 +14,7 @@ const LOOKS := {
 	"barracks": {"wall": Color(0.55, 0.22, 0.2), "roof": Color(0.25, 0.25, 0.28)},
 	"bunkhouse": {"wall": Color(0.85, 0.7, 0.4), "roof": Color(0.5, 0.25, 0.15)},
 	"kitchen": {"wall": Color(0.93, 0.88, 0.76), "roof": Color(0.78, 0.38, 0.16)},
+	"watchtower": {"wall": Color(0.5, 0.42, 0.34), "roof": Color(0.28, 0.33, 0.42)},
 }
 const SNOW := Color(0.94, 0.96, 1.0)
 ## The build pad's look: its disc colour by state, and the progress ring.
@@ -218,6 +219,18 @@ func _build_house(b: String, level: int) -> void:
 			ladle.rotation_degrees.z = -25.0
 			_shapes.add_child(ladle)
 			_shapes.add_child(Shapes.box(Vector3(0.5, 1.4, 0.5), Color(0.45, 0.32, 0.25), Vector3(-1.0, h + 0.9, -0.6)))
+		"watchtower":
+			# A tall wooden lookout beside the hut: four legs, a platform, a little roof and a flag.
+			var wood := Color(0.45, 0.32, 0.2)
+			var top := 4.6 + 0.12 * level
+			for x in [-0.45, 0.45]:
+				for z in [-0.45, 0.45]:
+					_shapes.add_child(Shapes.box(Vector3(0.26, top, 0.26), wood, Vector3(1.1 + x, top / 2.0, 1.2 + z)))
+			_shapes.add_child(Shapes.box(Vector3(1.8, 0.18, 1.8), wood.lightened(0.15), Vector3(1.1, top, 1.2)))
+			_shapes.add_child(Shapes.box(Vector3(1.8, 0.55, 0.1), wood, Vector3(1.1, top + 0.32, 2.05)))
+			_shapes.add_child(Shapes.cone(1.3, 0.9, LOOKS.watchtower.roof, Vector3(1.1, top + 1.4, 1.2)))
+			_shapes.add_child(Shapes.cylinder(0.04, 0.9, wood, Vector3(1.1, top + 2.2, 1.2)))
+			_shapes.add_child(Shapes.box(Vector3(0.75, 0.42, 0.04), Color(0.95, 0.15, 0.15), Vector3(1.5, top + 2.4, 1.2)))
 		"barracks":
 			_shapes.add_child(Shapes.cylinder(0.04, 2.6, Color(0.4, 0.3, 0.2), Vector3(1.5, 1.3, 1.7)))
 			_shapes.add_child(Shapes.box(Vector3(0.7, 0.45, 0.04), Color(0.8, 0.2, 0.2), Vector3(1.85, 2.3, 1.7)))

@@ -61,6 +61,8 @@ var blizzards_survived := 0
 var wolves: Array = []
 ## Time of the next attack, or -1 until the Furnace reaches Lv 2.
 var attack_at := -1.0
+## Whether the coming attack has been announced (only a Watchtower does that).
+var attack_warned := false
 var attacks_repelled := 0
 
 var next_id := 1

@@ -51,7 +51,7 @@ static func pick_jan_to_lose(s: GameState, job := "") -> Dictionary:
 	return s.jans.back()
 
 
-## Warned BLIZZARD_WARNING ahead, heat drain ×3 while it lasts, then the next one is 20 to 40 minutes later. [brief]
+## Warned Economy.blizzard_warning() ahead (longer with a Watchtower), heat drain ×3 while it lasts, then the next one is 20 to 40 minutes later. [brief]
 static func blizzard(s: GameState, rng: RandomNumberGenerator, events: Array) -> void:
 	if s.blizzard_active:
 		if s.time >= s.blizzard_ends_at:
@@ -61,7 +61,7 @@ static func blizzard(s: GameState, rng: RandomNumberGenerator, events: Array) ->
 			s.blizzard_at = s.time + rng.randf_range(Balance.BLIZZARD_GAP_MIN, Balance.BLIZZARD_GAP_MAX)
 			events.append({"type": "blizzard_end"})
 		return
-	if not s.blizzard_warned and s.time >= s.blizzard_at - Balance.BLIZZARD_WARNING:
+	if not s.blizzard_warned and s.time >= s.blizzard_at - Economy.blizzard_warning(s):
 		s.blizzard_warned = true
 		events.append({"type": "blizzard_warning", "starts_in": s.blizzard_at - s.time})
 	if s.time >= s.blizzard_at:

@@ -194,6 +194,16 @@ static func guard_damage(s: GameState) -> float:
 	return Balance.GUARD_DAMAGE_PER_SECOND * Balance.GUARD_NO_KIT_MULT * pow(Balance.GUARD_GROWTH, lv - 1)
 
 
+## How long before a blizzard it's announced: 3 minutes, plus a minute per Watchtower level. [brief]
+static func blizzard_warning(s: GameState) -> float:
+	return Balance.BLIZZARD_WARNING + Balance.WATCHTOWER_BLIZZARD_WARNING_PER_LEVEL * level(s, "watchtower")
+
+
+## How long before an attack it's announced: never without a Watchtower, 15 s per level. [brief]
+static func attack_warning(s: GameState) -> float:
+	return Balance.WATCHTOWER_ATTACK_WARNING_PER_LEVEL * level(s, "watchtower")
+
+
 ## Wolves get stronger with the Furnace. [brief] ×1.6 per level above 2.
 static func wolf_scale(s: GameState) -> float:
 	return pow(Balance.WOLF_SCALE_PER_FURNACE_LEVEL, maxi(furnace_level(s) - 2, 0))
