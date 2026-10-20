@@ -11,7 +11,7 @@ const WALK_SPEED := 3.0
 const MODEL_PATH := "res://assets/models/blender/jan.glb"
 ## A little smaller than Meagan's 1.2, so she stands out.
 const MODEL_SCALE := 1.15
-const PARKA := Color(0.37, 0.54, 0.53)  # faded teal (#5E8A87, docs/art-direction.md)
+const PARKA := Color(0.21, 0.4, 0.42)  # deep teal (#35666B, docs/art-direction.md)
 const JOB_CLIPS := {"chop": "chop", "hunt": "fish", "build": "build"}
 ## Where his station sits in front of him, by job.
 const STATION_GAP := {"chop": 0.85, "hunt": 1.4, "build": 0.65}
