@@ -39,6 +39,15 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 152 onwards.
   - "Wolves raided the furnace!" floats higher over the furnace, as a pop, clear of the fight.
 - **Check in the game:** chop and fish, and watch the "+N" and the small squash on each blow.
 
+### N4 and N6. A walk with weight; unloading and paying that read
+- **Walk (N4):**
+  - With her bag over 60% full she walks with a heavier `walk_loaded` clip: 0.72 s a stride, leaning 9° into the load, ±21° legs, less bounce, and arms swinging less.
+  - Her stack sits snug against her back (it stood 0.5 m behind her and looked detached in side view). It leans out of her turns and back as she sets off, a beat late (follow-through, up to about 7°).
+- **Unloading and paying (N6):**
+  - Each piece leaving her stack dips her body 5° (`CharacterRig.dip`).
+  - Each one landing pulses the stockpile (6%) or knocks the building she's paying.
+- **Check in the game:** walk with a full bag, then empty it at a stockpile and pay a pad.
+
 ## Run 2026-10-20, 19:27 → 22:00 (visual polish)
 
 ChatGPT budget: counted from `tools/chatgpt/calls.log` line 145 onwards (8 images, 25 reviews).

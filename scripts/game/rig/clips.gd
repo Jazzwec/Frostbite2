@@ -48,6 +48,17 @@ const CLIPS := {
 			{"t": 0.75, "arm_r": Vector3(-3, 0, 8), "arm_l": Vector3(-3, 0, 8), "rise": 0.12, "lean": 6.0},
 		],
 	},
+	# Walking with a heavy bag (AFK N4, from Astra's animation review): a slower, shorter stride,
+	# leaning into the load, less bounce, arms swinging less.
+	"walk_loaded": {
+		"length": 0.72, "loop": true, "tool": "", "impact": -1.0,
+		"keys": [
+			{"t": 0.0, "arm_r": Vector3(-20, 0, 10), "arm_l": Vector3(14, 0, 10), "lean": 9.0, "leg_l": 21.0, "leg_r": -21.0, "rise": -0.01},
+			{"t": 0.25, "arm_r": Vector3(-4, 0, 10), "arm_l": Vector3(-4, 0, 10), "rise": 0.04, "lean": 9.0, "head": -3.0},
+			{"t": 0.5, "arm_r": Vector3(14, 0, 10), "arm_l": Vector3(-20, 0, 10), "lean": 9.0, "leg_l": -21.0, "leg_r": 21.0, "rise": -0.01},
+			{"t": 0.75, "arm_r": Vector3(-4, 0, 10), "arm_l": Vector3(-4, 0, 10), "rise": 0.04, "lean": 9.0, "head": -3.0},
+		],
+	},
 	# Felling: two hands on the axe, wound back over the shoulder, then swung flat into the trunk.
 	# A flat swing reads as a wide arc from the camera above.
 	"chop": {

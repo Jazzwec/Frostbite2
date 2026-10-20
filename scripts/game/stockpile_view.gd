@@ -100,6 +100,14 @@ func refresh(s: GameState) -> void:
 
 
 
+## A small pulse as a piece lands on it (AFK N6).
+func bump() -> void:
+	var body := get_child(0) as Node3D
+	var base := Vector3.ONE * (1.0 if index == 0 else SMALL_SCALE)
+	body.scale = base * Vector3(1.06, 0.95, 1.06)
+	create_tween().tween_property(body, "scale", base, 0.15).set_ease(Tween.EASE_OUT)
+
+
 ## Where pieces emptied from her bag land.
 func drop_point() -> Vector3:
 	return global_position + Vector3(0, 1.0, 0)

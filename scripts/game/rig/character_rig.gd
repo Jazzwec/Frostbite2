@@ -53,6 +53,8 @@ var _squash := 0.0
 var _base_scale := Vector3.ZERO
 ## The float dips when a fish bites (1 at the bite, easing back to 0).
 var _dip := 0.0
+## A quick forward dip of the whole body, in degrees, easing out (dip()).
+var _nod := 0.0
 ## Whether the character is on screen: off it, the clip keeps time (and its impacts still fire)
 ## but the body isn't posed, which is most of a rig's cost.
 var _screen: VisibleOnScreenNotifier3D
@@ -142,6 +144,7 @@ func _process(delta: float) -> void:
 	_time += delta
 	_update_squash(delta)
 	_dip = move_toward(_dip, 0.0, delta * 3.0)
+	_nod = move_toward(_nod, 0.0, delta * 40.0)
 	if _hold > 0.0:
 		_hold -= delta
 		return
@@ -176,11 +179,21 @@ func _process(delta: float) -> void:
 	var w := smoothstep(0.0, 1.0, _blend)
 	for joint in target:
 		_pose[joint] = lerp(_from_pose[joint], target[joint], w)
-	_apply_pose(_pose, sin(_time * 55.0) * 2.0 * shiver)
+	if _nod > 0.0:
+		var posed := _pose.duplicate()
+		posed.lean += _nod
+		_apply_pose(posed, sin(_time * 55.0) * 2.0 * shiver)
+	else:
+		_apply_pose(_pose, sin(_time * 55.0) * 2.0 * shiver)
 	if _tool:
 		_tool.rotation_degrees = _pose.tool
 		_tool.visible = not _thrown
 	_update_line()
+
+
+## A quick dip of `degrees` forward that eases out over about 0.12 s (a piece set down).
+func dip(degrees: float) -> void:
+	_nod = maxf(_nod, degrees)
 
 
 ## The squash after a blow: down and out, springing back, volume kept.

@@ -16,7 +16,14 @@ const PIECE_SCALE := 0.8
 const HEIGHTS := {"wood": 0.18, "food": 0.13, "materials": 0.19}
 const COLORS := {"wood": Color(1.0, 0.85, 0.6), "food": Color(1.0, 0.7, 0.65), "materials": Color(0.8, 0.85, 0.95)}
 
+## A piece left the stack for a stockpile or pad (her body dips with it).
+signal piece_left
+
 var _pieces: Array = []  # {res, node}, bottom first
+## The whole stack lags behind her turns and starts, swaying a few degrees (AFK N4): its tilt,
+## and her yaw and speed last frame.
+var _tilt := Vector2.ZERO
+var _last_yaw := INF
 var _incoming := {"wood": 0, "food": 0, "materials": 0}
 var _cooldown := 0.0
 var _time := 0.0
@@ -103,6 +110,7 @@ func _remove(res: String, unit: float, dest: Vector3, landed: Callable) -> void:
 		_pieces.remove_at(i)
 		var from := node.global_position
 		node.queue_free()
+		piece_left.emit()
 		if dest != Vector3.INF:
 			Audio.play("whoosh", from)
 			# No "+N" per piece (AFK V5): the stockpile or pad sums it up once.
@@ -123,8 +131,22 @@ func _offset(index: int) -> float:
 
 ## Pieces settle into place, and the stack wobbles more towards the top while she runs.
 func _layout(moving: float, delta: float) -> void:
+	_sway(moving, delta)
 	for i in _pieces.size():
 		var node: Node3D = _pieces[i].node
 		var sway := sin(_time * 9.0 + i * 0.5) * 0.012 * i * moving
 		var target := Vector3(sway, _offset(i), -0.02 * i * moving)
 		node.position = node.position.lerp(target, minf(1.0, 18.0 * delta))
+
+
+## Follow-through: the stack leans out of her turns and back as she sets off, then settles, a
+## beat behind her body (Astra animation review: about ±3-7°, 0.06-0.09 s late).
+func _sway(moving: float, delta: float) -> void:
+	var yaw := global_rotation.y
+	var turn := 0.0
+	if _last_yaw != INF and delta > 0.0:
+		turn = wrapf(yaw - _last_yaw, -PI, PI) / delta
+	_last_yaw = yaw
+	var want := Vector2(clampf(-turn * 0.05, -0.12, 0.12), -0.06 * moving)
+	_tilt = _tilt.lerp(want, minf(1.0, 9.0 * delta))
+	rotation = Vector3(_tilt.y, 0.0, _tilt.x)

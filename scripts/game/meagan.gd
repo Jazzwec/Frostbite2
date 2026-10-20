@@ -33,6 +33,8 @@ var moving := false
 var _step_in := 0.0
 ## Seconds to her next breath puff while it's cold (AFK V8).
 var _breath_in := 0.0
+## How full her bag must be for the loaded walk.
+const HEAVY_BAG := 0.6
 const BREATH_EVERY := 2.4
 
 
@@ -65,8 +67,11 @@ func _ready() -> void:
 	# Her load stacks up on her back (the bag is back, agreed 2026-10-20); the HUD's BagReadout
 	# shows how much above it.
 	_stack = CarryStack.new()
-	_stack.position = Vector3(0, 0.45, -0.5) if _rig is GreyboxRig else Vector3(0, 0.55, -0.5)
+	# Snug against her back, so it reads as carried, not floating beside her (AFK N4).
+	_stack.position = Vector3(0, 0.45, -0.5) if _rig is GreyboxRig else Vector3(0, 0.55, -0.34)
 	_rig.body.add_child(_stack)
+	# Each piece leaving her back dips her body a little (AFK N6).
+	_stack.piece_left.connect(func() -> void: _rig.dip(5.0))
 	_rig.impact.connect(func(clip: String): worked.emit(clip))
 	_silhouette = ShaderMaterial.new()
 	_silhouette.shader = SILHOUETTE
@@ -212,7 +217,8 @@ func _physics_process(delta: float) -> void:
 	elif moving:
 		_rig.cancel_once()
 		_linger = 0.0
-		_rig.play("walk")
+		# A bag over 60% full weighs her down (AFK N4).
+		_rig.play("walk_loaded" if Economy.bag_total(s) >= Economy.bag_cap(s) * HEAVY_BAG else "walk")
 	else:
 		_rig.play(_clip if _linger > 0.0 and _clip != "" else "idle")
 		if _linger > 0.0 and _face != Vector3.INF:

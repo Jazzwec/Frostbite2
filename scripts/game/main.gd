@@ -732,10 +732,14 @@ func _update_carry() -> void:
 		"gather":
 			_meagan.carry(_nodes[target].focus_point(me) + Vector3(0, 0.6, 0), Vector3.INF)
 		"store":
-			_meagan.carry(Vector3.INF, _stockpiles[target].drop_point())
+			var pile := _stockpiles[target]
+			_meagan.carry(Vector3.INF, pile.drop_point(), func(_res: String) -> void: pile.bump())
 		"build":
 			var top := _v3(MapData.site_pos(Game.engine.state, target)) if target >= 0 else _v3(_work.pos)
-			_meagan.carry(Vector3.INF, top + Vector3(0, 1.0, 0))
+			var knock := func(_res: String) -> void:
+				if target >= 0 and target < _sites.size():
+					_sites[target].knock()
+			_meagan.carry(Vector3.INF, top + Vector3(0, 1.0, 0), knock)
 		_:
 			_meagan.carry(Vector3.INF, Vector3.INF)
 
