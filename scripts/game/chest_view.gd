@@ -21,6 +21,29 @@ func setup(chest_index: int, chest: Dictionary) -> void:
 	position = Vector3(chest.pos.x, 0, chest.pos.y)
 	rotation_degrees.y = float((chest_index * 47) % 60) - 30.0
 	var look: Dictionary = LOOKS.get(chest.kind if chest.kind != "boon" else "boon_" + chest.rarity, LOOKS.cache)
+	add_child(Shapes.tap_area(Vector3(1.6, 1.4, 1.6), "chest", index))
+	# The pipeline's chest (cleanup.py cut its lid off as "<name>_lid", hinged at its top back
+	# edge), one per kind; an epic boon chest glows warm. Else the greybox chest below.
+	var model := Props.make("chest_" + str(chest.kind))
+	if model:
+		add_child(model)
+		var drift_m := Shapes.sphere(0.5, Shapes.SNOW_COLOR, Vector3(0, 0.0, 0.05))
+		drift_m.scale = Vector3(1.9, 0.3, 1.5)
+		add_child(drift_m)
+		_lid = model.find_child("*_lid", true, false) as Node3D
+		if chest.kind == "boon" and chest.rarity == "epic":
+			var glow := OmniLight3D.new()
+			glow.light_color = Color(1.0, 0.75, 0.35)
+			glow.light_energy = 1.2
+			glow.omni_range = 2.5
+			glow.position = Vector3(0, 1.0, 0.4)
+			add_child(glow)
+		if _lid == null:
+			_lid = Node3D.new()
+			add_child(_lid)
+		if chest.opened:
+			_open(false)
+		return
 	# Chunky, like the house kit (ink_v3 review): a stout box with broad bands, a rounded lid
 	# (the ink look snows on its top) and a drift round its foot.
 	add_child(Shapes.box(Vector3(1.0, 0.55, 0.66), look.body, Vector3(0, 0.275, 0)))
@@ -41,7 +64,6 @@ func setup(chest_index: int, chest: Dictionary) -> void:
 		var band := Shapes.cylinder(0.35, 0.16, look.trim, Vector3(x, 0.0, 0.33))
 		band.rotation_degrees.z = 90.0
 		_lid.add_child(band)
-	add_child(Shapes.tap_area(Vector3(1.6, 1.4, 1.6), "chest", index))
 	if chest.opened:
 		_open(false)
 

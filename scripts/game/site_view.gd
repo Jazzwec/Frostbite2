@@ -45,8 +45,8 @@ const STEAM_EVERY := 2.0
 ## Where the Hot Springs' pool sits, beside the hut and clear of the build pad.
 const HOT_SPRINGS_POOL := Vector3(2.75, 0, 0.7)
 ## On the furnace model (assets/models/blender/furnace.glb): its fire mouth and chimney top.
-const FURNACE_MOUTH := Vector3(-0.13, 0.91, 0.6)
-const FURNACE_CHIMNEY := Vector3(0.0, 3.43, -0.26)
+const FURNACE_MOUTH := Vector3(-0.13, 1.18, 0.6)
+const FURNACE_CHIMNEY := Vector3(0.0, 4.46, -0.26)
 var _steam_in := 0.0
 var _pad: MeshInstance3D
 var _pad_label: Label3D

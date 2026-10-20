@@ -5,9 +5,10 @@ extends RefCounted
 ## Returns null when a model is missing, so callers keep their greybox shape.
 
 const PATHS := {
-	"boulder": "res://assets/models/polyhaven/boulder.glb",
-	"crate": "res://assets/models/polyhaven/crate.glb",
-	"log": "res://assets/models/polyhaven/log.glb",
+	# The pipeline's models; Props.make falls back to the kit's, then Poly Haven's, of the same name.
+	"boulder": "res://assets/models/blender/boulder.glb",
+	"crate": "res://assets/models/blender/crate.glb",
+	"log": "res://assets/models/blender/log.glb",
 	"pine_a": "res://assets/models/blender/pine_a.glb",
 	"pine_b": "res://assets/models/blender/pine_b.glb",
 	"pine_c": "res://assets/models/blender/pine_c.glb",
@@ -37,6 +38,10 @@ const PATHS := {
 	"prop_stockpile": "res://assets/models/blender/prop_stockpile.glb",
 	"prop_stove": "res://assets/models/blender/prop_stove.glb",
 	"prop_den": "res://assets/models/blender/prop_den.glb",
+	# Chests by kind, each with its lid as a "<name>_lid" child (cleanup.py split_lid_at).
+	"chest_cache": "res://assets/models/blender/chest_cache.glb",
+	"chest_boon": "res://assets/models/blender/chest_boon.glb",
+	"chest_gear": "res://assets/models/blender/chest_gear.glb",
 }
 ## The pines' own height in metres (base of the trunk to the tip), to scale them to a tree's height.
 const PINE_HEIGHTS := {"pine_a": 3.45, "pine_b": 3.55, "pine_c": 2.55}
@@ -49,9 +54,10 @@ static func make(id: String, scale := 1.0, yaw_degrees := 0.0) -> Node3D:
 	if not _cache.has(id):
 		var path: String = PATHS.get(id, "")
 		# The pipeline's model (assets/models/blender) when there is one, else the hand-built kit's
-		# (assets/models/kit, tools/blender/house_kit.py).
-		if path != "" and not ResourceLoader.exists(path):
-			path = path.replace("/models/blender/", "/models/kit/")
+		# (assets/models/kit: tools/blender/house_kit.py, trees.blend), else Poly Haven's.
+		for fallback in ["/models/kit/", "/models/polyhaven/"]:
+			if path != "" and not ResourceLoader.exists(path):
+				path = PATHS.get(id, "").replace("/models/blender/", fallback)
 		_cache[id] = load(path) if path != "" and ResourceLoader.exists(path) else null
 	var scene: PackedScene = _cache[id]
 	if scene == null:

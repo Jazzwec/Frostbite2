@@ -13,5 +13,12 @@
   "prop_stove": ["01a15a06-744d-73cf-9383-566a476f6bc6", "meshy-6", 30, 3000],
   "prop_den": ["01a15a06-793b-7671-abd9-d718d7a2df5b", "meshy-6", 30, 3000],
   "prop_stockpile": ["01a15a06-7ead-74bb-a007-0790a07693e0", "meshy-6", 30, 3000],
-  "furnace_v2": ["01a15a07-fb3e-75b9-b84b-10fe4741df22", "meshy-6", 30, 10000]
+  "furnace_v2": ["01a15a07-fb3e-75b9-b84b-10fe4741df22", "meshy-6", 30, 10000],
+  "prop_rock_a_v2": ["01a15a0f-971b-74fb-8851-0f31256cbedc", "meshy-6", 30, 2000, "source_art/concept/ink/prop_rock_a.png"],
+  "prop_rock_b": ["01a15a12-02c5-7626-bc5b-c69544a880cc", "meshy-6", 30, 2000],
+  "boulder": ["01a15a12-0965-764b-b48f-17190c7cd275", "meshy-6", 30, 2000],
+  "prop_fence": ["01a15a12-3258-7291-a9b8-b0ac9803b50d", "meshy-6", 30, 1500],
+  "prop_woodpile": ["01a15a15-7d14-721d-bf10-8bbca4419d57", "meshy-6", 30, 2000],
+  "prop_boat": ["01a15a15-83e3-7381-9baf-58ff97122171", "meshy-6", 30, 2000],
+  "prop_jetty": ["01a15a16-5c9b-75c3-a2c6-048a5cf03a42", "meshy-6", 30, 2000]
 }

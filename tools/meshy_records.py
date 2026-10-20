@@ -30,7 +30,7 @@ def main():
         if model.startswith("meshy-t"):
             params = dict(params, model_type="smart-topology")
             params.pop("remove_lighting")
-        ref = f"source_art/concept/ink/{name}.png"
+        ref = entry[4] if len(entry) > 4 else f"source_art/concept/ink/{name}.png"
         record.write_text(json.dumps({
             "task_id": task, "date": "2026-10-20", "ai_model": model, "endpoint": "image-to-3d", "credits": credits,
             "params": params, "reference": ref, "reference_model": "gpt-6-astra (tools/chatgpt/chatgpt.py image --for-3d)",
