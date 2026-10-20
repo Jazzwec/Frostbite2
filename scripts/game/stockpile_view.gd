@@ -87,6 +87,6 @@ func refresh(s: GameState) -> void:
 
 
 
-## Where dropped-off pieces land, and where bank payments fly from.
+## Where pieces emptied from her bag land.
 func drop_point() -> Vector3:
 	return global_position + Vector3(0, 1.0, 0)

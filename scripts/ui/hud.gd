@@ -25,7 +25,7 @@ const FLY_TRAIL_COLOR := Color(1.0, 0.93, 0.78, 0.9)
 var sheet: Sheet
 var joystick: Joystick
 var hints: Hints
-var full_readout: FullReadout
+var bag_readout: BagReadout
 var milestone_cards: MilestoneCards
 
 var _root: Control
@@ -65,8 +65,8 @@ func _ready() -> void:
 	_root.add_child(milestone_cards)
 	milestone_cards.setup(Game.milestones)
 	milestone_cards.banner = _banner
-	full_readout = FullReadout.new()
-	_root.add_child(full_readout)
+	bag_readout = BagReadout.new()
+	_root.add_child(bag_readout)
 	hints = Hints.new()
 	_root.add_child(hints)
 	joystick = Joystick.new()

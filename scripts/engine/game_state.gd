@@ -20,7 +20,10 @@ var burn_rate := 0.0
 var piles := {"wood": 0.0, "food": 0.0, "materials": 0.0}
 var stockpiles: Array = []
 var stockpile_level := 1
-## What Meagan has gathered by hand this winter, by resource (it goes straight into the piles).
+## What Meagan carries (agreed 2026-10-20, the bag is back): she gathers into it, empties it on
+## any stockpile's pad, and build pads take from it before the store.
+var bag := {"wood": 0.0, "food": 0.0, "materials": 0.0}
+## What Meagan has gathered by hand this winter, by resource.
 var gathered := {"wood": 0.0, "food": 0.0, "materials": 0.0}
 
 ## Meagan. Her position comes from the scene every frame.
@@ -29,8 +32,8 @@ var meagan_hp := Balance.MEAGAN_HP
 var meagan_injured := false
 ## The frozen Jan she was sent to, or -1.
 var rescue_target := -1
-## What she did this tick, for her animation: "" | full | gather | build | fight.
-## The target is a node index, site index or wolf id; the position is where to face.
+## What she did this tick, for her animation: "" | full | gather | store | build | fight.
+## The target is a node index, stockpile index, site index or wolf id; the position is where to face.
 var meagan_activity := ""
 var meagan_target := -1
 var meagan_target_pos := Vector2.ZERO

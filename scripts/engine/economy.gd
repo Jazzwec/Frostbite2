@@ -109,6 +109,16 @@ static func pay_rate(s: GameState) -> float:
 	return Balance.PAD_PAY_PER_SECOND * (1.0 + mod(s, "pay_mult"))
 
 
+## How much her bag holds, all resources together: 20, +10 per Stockpile level above the first.
+## [brief; the Stockpile's part proto, agreed 2026-10-20]
+static func bag_cap(s: GameState) -> float:
+	return Balance.BAG_BASE + Balance.BAG_PER_STOCKPILE_LEVEL * (s.stockpile_level - 1)
+
+
+static func bag_total(s: GameState) -> float:
+	return s.bag.wood + s.bag.food + s.bag.materials
+
+
 static func caps(s: GameState) -> Dictionary:
 	var store := pow(Balance.STOREHOUSE_CAP_GROWTH, level(s, "storehouse")) * (1.0 + mod(s, "cap_mult"))
 	store *= pow(Balance.STOCKPILE_CAP_GROWTH, s.stockpile_level - 1)

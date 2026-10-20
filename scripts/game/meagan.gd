@@ -17,6 +17,10 @@ const SILHOUETTE := preload("res://scripts/game/ink/silhouette.gdshader")
 
 var _agent: NavigationAgent3D
 var _rig: CharacterRig
+var _stack: CarryStack
+var _source := Vector3.INF
+var _dest := Vector3.INF
+var _landed := Callable()
 var _hp_bar: HpBar
 var _silhouette: ShaderMaterial
 var _silhouette_on := false
@@ -55,6 +59,11 @@ func _ready() -> void:
 		_rig.head.add_child(Shapes.cylinder(0.32, 0.25, white, Vector3(0, 0.42, 0), 0.22))
 		_rig.head.add_child(Shapes.sphere(0.12, white, Vector3(0, 0.62, 0)))
 		_rig.body.add_child(Shapes.box(Vector3(0.7, 0.12, 0.12), Color(0.9, 0.75, 0.2), Vector3(0, 1.12, 0.2)))
+	# Her load stacks up on her back (the bag is back, agreed 2026-10-20); the HUD's BagReadout
+	# shows how much above it.
+	_stack = CarryStack.new()
+	_stack.position = Vector3(0, 0.45, -0.5) if _rig is GreyboxRig else Vector3(0, 0.55, -0.5)
+	_rig.body.add_child(_stack)
 	_rig.impact.connect(func(clip: String): worked.emit(clip))
 	_silhouette = ShaderMaterial.new()
 	_silhouette.shader = SILHOUETTE
@@ -118,6 +127,18 @@ func play_once(clip: String, face := Vector3.INF) -> void:
 
 func tip_position() -> Vector3:
 	return _rig.tip_position()
+
+
+## Where her load is going and coming from this frame (Vector3.INF for nowhere). `landed(res)`
+## runs as each delivered piece arrives.
+func carry(source: Vector3, dest: Vector3, landed := Callable()) -> void:
+	_source = source
+	_dest = dest
+	_landed = landed
+
+
+func bag_position() -> Vector3:
+	return _stack.top_position()
 
 
 func head_position() -> Vector3:
@@ -194,6 +215,7 @@ func _physics_process(delta: float) -> void:
 		if _linger > 0.0 and _face != Vector3.INF:
 			_turn_towards(_face - global_position, delta)
 
+	_stack.sync(s.bag, Economy.bag_cap(s), _source, _dest, _landed, 1.0 if moving else 0.0, delta)
 	# Health only matters in a fight.
 	_hp_bar.visible = not s.wolves.is_empty() or s.meagan_hp < Balance.MEAGAN_HP
 	_hp_bar.set_value(s.meagan_hp / Balance.MEAGAN_HP)

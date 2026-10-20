@@ -7,8 +7,9 @@ extends RefCounted
 ## 2: the layout lives in the state; 3: tiles, gates and small furnaces; 4: Jans work at a
 ## producer; 5: chests, boons and gear; 6: camps, the frontier and dens; 7: no bag, gathering
 ## goes to the Stockpile; 8: no Sled Shed plot; 9: the tighter town layout; 10: global building
-## levels, upgrades in `upgrades`; 11: a stockpile per opened tile, the Stockpile's level (2026-10-20).
-const SAVE_VERSION := 11
+## levels, upgrades in `upgrades`; 11: a stockpile per opened tile, the Stockpile's level; 12: the
+## bag is back (2026-10-20).
+const SAVE_VERSION := 12
 
 var state: GameState
 var rng := RandomNumberGenerator.new()
@@ -109,6 +110,7 @@ func _tick(dt: float) -> void:
 	MeaganRules.regrow(s, dt)
 	MeaganRules.gather(s, dt)
 	MeaganRules.pay_pads(s, dt, _events)
+	MeaganRules.store(s, dt)
 	MeaganRules.rescue(s, _events)
 	TreasureRules.open_near(s, rng, _events)
 	_feed_furnace(dt)
@@ -348,6 +350,8 @@ func fill() -> void:
 		state.piles[res] = caps[res]
 	state.fuel = Economy.fuel_cap(state)
 	state.heat = Economy.heat_cap(state)
+	var cap := Economy.bag_cap(state)
+	state.bag = {"wood": cap / 2.0, "food": 0.0, "materials": cap / 2.0}
 
 
 func force_blizzard() -> void:

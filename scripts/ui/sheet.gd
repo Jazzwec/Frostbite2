@@ -88,7 +88,7 @@ func open_stockpile() -> void:
 	_start(-1)
 	stockpile = true
 	_title.text = "Stockpile"
-	_body.add_child(UiTheme.label("The town's store. Every stockpile is a door into it: everything Meagan and the Jans gather lands here, and build pads, gates and the furnace draw from it. Its level is shared by them all and raises every cap.", 34, Color(0.8, 0.85, 0.95)))
+	_body.add_child(UiTheme.label("The town's store. Every stockpile is a door into it: Meagan empties her bag here and the Jans bring their work, and build pads, gates and the furnace draw from it. Its level is shared by them all and raises every cap.", 34, Color(0.8, 0.85, 0.95)))
 	_status = UiTheme.label("", 38)
 	_body.add_child(_status)
 	_upgrade = UiTheme.button("", func() -> void: Game.engine.start_upgrade_of("stockpile"))
@@ -161,7 +161,7 @@ func _open_plot() -> void:
 	var b: String = Game.engine.state.sites[site_index].type
 	_title.text = Balance.BUILDINGS[b].name
 	_body.add_child(UiTheme.label(Game.building_text(b).get("effect", ""), 34, Color(0.8, 0.85, 0.95)))
-	_body.add_child(UiTheme.label("Build it, then stand on its pad: it takes what it needs from the Stockpile.", 34, Color(0.8, 0.85, 0.95)))
+	_body.add_child(UiTheme.label("Build it, then stand on its pad: it takes what it needs from her bag, then the Stockpile.", 34, Color(0.8, 0.85, 0.95)))
 	_build_button = UiTheme.button("", _build)
 	_body.add_child(_build_button)
 
@@ -278,7 +278,7 @@ func _refresh() -> void:
 		for res in need:
 			parts.append("%s %s/%s" % [str(res).capitalize(), Fmt.num(progress.get(res, 0.0)), Fmt.num(need[res])])
 		var where := "Stand on the pad" if site.level == 0 else _upgrade_where(s, b)
-		_status.text = ("Being built: " if site.level == 0 else "Upgrading: ") + ", ".join(parts) + "\n%s: it takes what it needs from the Stockpile." % where
+		_status.text = ("Being built: " if site.level == 0 else "Upgrading: ") + ", ".join(parts) + "\n%s: it takes what it needs from her bag, then the Stockpile." % where
 		_upgrade.visible = false
 	elif Economy.is_maxed(s, site_index):
 		_status.text = "Fully upgraded."

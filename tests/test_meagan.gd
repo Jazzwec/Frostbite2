@@ -5,27 +5,62 @@ func _has_event(events: Array, type: String) -> bool:
 	return events.any(func(ev): return ev.type == type)
 
 
-func test_gathering_goes_straight_into_the_stockpile() -> void:
+## The bag is back (agreed 2026-10-20).
+func test_gathering_fills_the_bag() -> void:
 	var e := engine()
 	e.state.fuel = 1000.0
 	var forest := node_index("forest")
 	put_meagan(e, MapData.START_NODES[forest].pos)
 	e.skip(1.0)
-	check_near(e.state.piles.wood, 5.0, 0.01, "5 Wood per second, into the Stockpile")
+	check_near(e.state.bag.wood, 5.0, 0.01, "5 Wood per second, into her bag")
+	check_near(e.state.piles.wood, 0.0, 0.01, "not the store")
 	check_near(e.state.gathered.wood, 5.0, 0.01, "counted as gathered")
 	check_near(e.state.nodes[forest], 55.0, 0.5, "forest stock went down (it regrows a little meanwhile)")
 
 
-func test_gathering_stops_when_the_stockpile_is_full() -> void:
+func test_gathering_stops_when_the_bag_is_full() -> void:
 	var e := engine()
 	e.state.fuel = 1000.0
 	var forest := node_index("forest")
-	e.state.piles.wood = Economy.caps(e.state).wood - 2.0
 	put_meagan(e, MapData.START_NODES[forest].pos)
+	e.skip(6.0)
+	check_near(Economy.bag_total(e.state), Balance.BAG_BASE, 0.01, "full at 20")
+	check_eq(e.state.meagan_activity, "full", "she shrugs")
+
+
+func test_any_stockpile_takes_her_bag() -> void:
+	var e := engine()
+	e.state.fuel = 1000.0
+	e.state.bag = {"wood": 8.0, "food": 6.0, "materials": 2.0}
+	put_meagan(e, MapData.stockpile_pad(e.state, 0))
+	e.skip(1.2)
+	check_near(Economy.bag_total(e.state), 0.0, 0.01, "emptied at 20 a second")
+	check_near(e.state.piles.food, 6.0, 0.01, "into the store")
+	e.state.stockpiles.append({"pos": Vector2(40, 40), "tile": Vector2i(2, 2)})
+	e.state.bag = {"wood": 10.0, "food": 0.0, "materials": 0.0}
+	put_meagan(e, MapData.stockpile_pad(e.state, 1))
+	e.skip(0.1)
+	check_eq(e.state.meagan_activity, "store", "storing")
+	check_eq(e.state.meagan_target, 1, "at the small stockpile")
+	e.skip(1.0)
+	check_near(e.state.bag.wood, 0.0, 0.01, "a small stockpile takes it too")
+
+
+func test_the_store_fills_only_to_its_cap() -> void:
+	var e := engine()
+	e.state.fuel = 1000.0
+	e.state.piles.wood = Economy.caps(e.state).wood - 5.0
+	e.state.bag.wood = 12.0
+	put_meagan(e, MapData.stockpile_pad(e.state, 0))
 	e.skip(1.0)
 	check_near(e.state.piles.wood, Economy.caps(e.state).wood, 0.01, "filled to the cap")
-	check_near(e.state.nodes[forest], 58.0, 0.5, "only what fitted was taken")
-	check_eq(e.state.meagan_activity, "full", "she shrugs")
+	check_near(e.state.bag.wood, 7.0, 0.01, "the rest stays in her bag")
+
+
+func test_the_bag_grows_with_the_stockpile() -> void:
+	var e := engine()
+	e.state.stockpile_level = 3
+	check_near(Economy.bag_cap(e.state), 40.0, 0.001, "20 + 10 per level above the first")
 
 
 func test_nodes_regrow() -> void:
@@ -103,9 +138,11 @@ func test_activity_follows_what_she_does() -> void:
 	check_eq(e.state.meagan_activity, "gather", "gathering at the forest")
 	check_eq(e.state.meagan_target, forest, "targets the forest")
 	e.state.fuel = 1000.0
-	e.state.piles.wood = Economy.caps(e.state).wood
+	e.state.bag.wood = Balance.BAG_BASE
 	e.skip(0.1)
-	check_eq(e.state.meagan_activity, "full", "Stockpile full")
+	check_eq(e.state.meagan_activity, "full", "bag full")
+	e.state.bag.wood = 0.0
+	e.state.piles.wood = 50.0
 
 	put_meagan(e, Vector2(20, 35))
 	e.skip(0.1)
@@ -143,6 +180,20 @@ func test_building_pays_from_the_stockpile() -> void:
 	e.skip(3.0)
 	check_eq(e.state.sites[3].level, 1, "built from the bank alone")
 	check_near(e.state.piles.wood, 10.0, 0.5, "40 Wood taken from the Stockpile")
+
+
+func test_building_pays_from_her_bag_first() -> void:
+	var e := engine()
+	e.start_construction(3)
+	e.state.fuel = 1000.0
+	e.state.bag.wood = 10.0
+	e.state.piles.wood = 50.0
+	e.state.piles.materials = 5.0
+	put_meagan(e, MapData.pad_pos(e.state, 3))
+	e.skip(3.0)
+	check_eq(e.state.sites[3].level, 1, "built")
+	check_near(e.state.bag.wood, 0.0, 0.01, "her 10 Wood went first")
+	check_near(e.state.piles.wood, 20.0, 0.5, "the store made up the other 30")
 
 
 func test_the_furnace_feeds_from_the_stockpile() -> void:

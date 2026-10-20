@@ -87,8 +87,14 @@ const MEAGAN_WALK_SPEED := 6.0  # [proto] brisk, hypercasual
 const GATHER_RANGE := 3.0
 ## Hand-gathering per second by resource. [brief]
 const GATHER_RATE := {"wood": 5.0, "food": 3.0, "materials": 1.0}
-## No bag (agreed 2026-10-20): what she gathers goes straight into the Stockpile.
-## A build pad or gate she stands on takes what it needs from the Stockpile this fast. [f1] 20 units/s shared
+## Her bag (back since 2026-10-20): all resources together. [brief] Each Stockpile level above the
+## first adds to it. [proto, agreed 2026-10-20]
+const BAG_BASE := 20.0
+const BAG_PER_STOCKPILE_LEVEL := 10.0
+## On any stockpile's pad her bag empties this fast. [f1] 20 units/s
+const STORE_PER_SECOND := 20.0
+## A build pad or gate she stands on takes what it needs (from her bag, then the store) this fast.
+## [f1] 20 units/s shared
 const PAD_PAY_PER_SECOND := 20.0
 ## Construction and upgrades are paid only while she stands on the plot's pad. [proto]
 const PAD_RADIUS := 1.4

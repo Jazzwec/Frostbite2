@@ -1,10 +1,10 @@
 class_name MeaganRules
 extends RefCounted
-## What happens around Meagan: hand-gathering straight into the Stockpile, paying build pads and
-## gates from it, and thawing Jans. She has no bag (agreed 2026-10-20).
+## What happens around Meagan: hand-gathering into her bag, emptying it at any stockpile,
+## paying build pads and gates (from the bag, then the store), and thawing Jans.
 
 ## Which of her activities shows when several happen in one tick.
-const ACTIVITY_PRIORITY := {"": -1, "full": 0, "gather": 1, "build": 2, "fight": 3}
+const ACTIVITY_PRIORITY := {"": -1, "full": 0, "gather": 1, "store": 2, "build": 3, "fight": 4}
 
 
 ## Records what she's doing this tick, unless something more important already happened.
@@ -16,8 +16,8 @@ static func set_activity(s: GameState, activity: String, target: int, pos: Vecto
 	s.meagan_target_pos = pos
 
 
-## She gathers automatically at the nearest resource node in range, straight into the Stockpile,
-## and stops (a shrug) once its pile is full. [brief, no bag agreed 2026-10-20]
+## She gathers automatically at the nearest resource node in range, into her bag, and stops (a
+## shrug) once it's full. [brief; the bag came back 2026-10-20]
 static func gather(s: GameState, dt: float) -> void:
 	if s.meagan_injured:
 		return
@@ -31,13 +31,13 @@ static func gather(s: GameState, dt: float) -> void:
 	if nearest < 0:
 		return
 	var res: String = Balance.NODES[MapData.node_kind(s, nearest)].resource
-	var room: float = Economy.caps(s)[res] - s.piles[res]
+	var room := Economy.bag_cap(s) - Economy.bag_total(s)
 	var amount := minf(minf(Economy.gather_rate(s, res) * dt, s.nodes[nearest]), room)
 	var pos := MapData.node_pos(s, nearest)
 	if amount <= 0.0:
 		set_activity(s, "full", nearest, pos)
 		return
-	s.piles[res] += amount
+	s.bag[res] += amount
 	s.gathered[res] += amount
 	s.nodes[nearest] -= amount
 	set_activity(s, "gather", nearest, pos)
@@ -78,18 +78,39 @@ static func pay_pads(s: GameState, dt: float, events: Array) -> void:
 				WorldRules.open_tile(s, i, events)
 
 
-## Moves what `need` still lacks into `progress` from the Stockpile, within the tick's budget.
-## Returns the budget left.
+## Moves what `need` still lacks into `progress`, from her bag first, then from the store, within
+## the tick's budget. Returns the budget left. [agreed 2026-10-20]
 static func pay(s: GameState, need: Dictionary, progress: Dictionary, budget: float, activity: String, target: int, pos: Vector2) -> float:
 	for res in need:
-		var have: float = progress.get(res, 0.0)
-		var give := minf(minf(need[res] - have, s.piles[res]), budget)
-		if give > 0.0:
-			s.piles[res] -= give
-			progress[res] = have + give
-			budget -= give
-			set_activity(s, activity, target, pos)
+		for source in [s.bag, s.piles]:
+			var have: float = progress.get(res, 0.0)
+			var give := minf(minf(need[res] - have, source[res]), budget)
+			if give > 0.0:
+				source[res] -= give
+				progress[res] = have + give
+				budget -= give
+				set_activity(s, activity, target, pos)
 	return budget
+
+
+## On any stockpile's pad her bag empties into the town's store, up to its caps; what doesn't fit
+## stays in the bag. [agreed 2026-10-20]
+static func store(s: GameState, dt: float) -> void:
+	if s.meagan_injured or Economy.bag_total(s) <= 0.0:
+		return
+	for k in s.stockpiles.size():
+		if s.meagan_pos.distance_to(MapData.stockpile_pad(s, k)) > Balance.PAD_RADIUS:
+			continue
+		var budget := Balance.STORE_PER_SECOND * dt
+		var caps := Economy.caps(s)
+		for res in Economy.PILE_KEYS:
+			var into := minf(minf(s.bag[res], caps[res] - s.piles[res]), budget)
+			if into > 0.0:
+				s.bag[res] -= into
+				s.piles[res] += into
+				budget -= into
+				set_activity(s, "store", k, s.stockpiles[k].pos)
+		return
 
 
 static func is_paid(need: Dictionary, progress: Dictionary) -> bool:

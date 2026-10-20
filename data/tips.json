@@ -1,7 +1,8 @@
 {
   "hints": {
     "move": "Drag anywhere to move",
-    "chop": "Chop Wood for the Stockpile",
+    "chop": "Chop Wood into your bag",
+    "store": "Empty your bag at any Stockpile",
     "thaw": "Tap the frozen Jan",
     "open": "Open new ground at a stone ring"
   },
@@ -9,7 +10,7 @@
     "Wood burns. Jans don't. Keep it that way.",
     "A full furnace is a happy furnace.",
     "Jans work better warm and fed. So does everyone.",
-    "Your Jans' Wood goes to the Stockpile. The furnace helps itself.",
+    "Your bag empties at any Stockpile. The furnace helps itself from the store.",
     "Blizzards are always announced. Use the warning to stock up.",
     "Wolves hate guards with proper kit.",
     "The scrap heap behind the furnace has Materials in it. Probably.",

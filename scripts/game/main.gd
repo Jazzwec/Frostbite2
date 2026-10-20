@@ -36,7 +36,9 @@ var _dressing: SetDressing
 var _last_progress := {}
 var _drop_in := 0.0
 ## How much of her hand-gathering has been shown, by resource.
-var _gather_shown := {}
+var _last_bag := 0.0
+## Seconds since her last activity, for CARRY_GRACE.
+var _work_age := 0.0
 var _meagan: Meagan
 var _rig: CameraRig
 var _hud: Hud
@@ -99,7 +101,7 @@ func _ready() -> void:
 	_rig.ui_blocker = _hud.blocks
 	_rig.joystick = _hud.joystick
 	_hud.hints.setup(_rig.camera, _meagan, Game.tips.get("hints", {}))
-	_hud.full_readout.setup(_rig.camera, _meagan)
+	_hud.bag_readout.setup(_rig.camera, _meagan)
 	Audio.listener = _meagan
 	Game.engine_event.connect(_on_event)
 	_ink = InkLook.new(_env, _sun)
@@ -121,11 +123,10 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_refresh_views(delta)
-	_update_meagan_activity()
+	_update_meagan_activity(delta)
 	_update_pad_stop(delta)
 	_update_pad_payments(delta)
 	_update_ground_marks()
-	_update_gather_fx()
 	if _nav_dirty and not _baking:
 		_nav_dirty = false
 		_baking = true
@@ -628,14 +629,20 @@ func _update_pad_stop(delta: float) -> void:
 		_pad_opened = on
 
 
-## Building takes from the Stockpile: each piece flies out of its number in the top bar to the
-## building or gate, one at a time. [agreed 2026-10-20, from ChatGPT's review]
+## Building takes from her bag first (its pieces fly off her back, CarryStack), then from the
+## store: each piece of that flies out of its number in the top bar to the building or gate,
+## one at a time. [agreed 2026-10-20, from ChatGPT's review]
 const PAY_FX_EVERY := 0.15
 
 
 func _update_pad_payments(delta: float) -> void:
 	var s := Game.engine.state
 	_drop_in -= delta
+	var bag := Economy.bag_total(s)
+	if bag < _last_bag - 0.001:
+		# Paid from her bag this frame: her stack shows it.
+		_drop_in = maxf(_drop_in, 0.0001)
+	_last_bag = bag
 	for i in s.sites.size():
 		if s.sites[i].level == 0:
 			_send_from_stockpile("site %d" % i, s.sites[i].progress, _v3(MapData.site_pos(s, i)) + Vector3(0, 1.0, 0), i)
@@ -668,48 +675,52 @@ func _send_from_stockpile(key: String, progress: Dictionary, top: Vector3, site:
 			return
 
 
-## What she gathers goes straight into the Stockpile: every this much, a "+N" pops at the spot
-## and its icon flies up into the top bar's number. [agreed 2026-10-20]
-const GATHER_FX_UNIT := {"wood": 5.0, "food": 3.0, "materials": 1.0}
-const GATHER_COLORS := {"wood": Color(1.0, 0.85, 0.6), "food": Color(1.0, 0.7, 0.65), "materials": Color(0.8, 0.85, 0.95)}
-
-
-func _update_gather_fx() -> void:
-	var s := Game.engine.state
-	for res in GATHER_FX_UNIT:
-		var unit: float = GATHER_FX_UNIT[res]
-		var total: float = s.gathered[res]
-		var shown: float = _gather_shown.get(res, floorf(total / unit) * unit)
-		if total < shown:
-			shown = 0.0
-		_gather_shown[res] = shown
-		if total < shown + unit:
-			continue
-		_gather_shown[res] = shown + unit
-		if _work.get("activity", "") != "gather":
-			continue
-		var spot := _nodes[_work.target].focus_point(_meagan.global_position) + Vector3(0, 0.8, 0)
-		Fx.pop("+%d" % unit, spot, GATHER_COLORS[res])
-		Audio.play("pop", spot)
-		_hud.fly_to_counter(res, func() -> Vector2: return _rig.camera.unproject_position(spot))
+## Where her stack's pieces come from (gathering) or go to (a stockpile, a build pad). It keeps the
+## last activity's ends for a moment, since the stack catches up one piece at a time. Emptied
+## into a stockpile, each piece's icon flies on into its number in the top bar.
+func _update_carry() -> void:
+	if _work.is_empty() or _work_age > CARRY_GRACE:
+		_meagan.carry(Vector3.INF, Vector3.INF)
+		return
+	var target: int = _work.target
+	var me := _meagan.global_position
+	match _work.activity:
+		"gather":
+			_meagan.carry(_nodes[target].focus_point(me) + Vector3(0, 0.6, 0), Vector3.INF)
+		"store":
+			var drop := _stockpiles[target].drop_point()
+			var landed := func(res: String) -> void:
+				_hud.fly_to_counter(res, func() -> Vector2: return _rig.camera.unproject_position(drop))
+			_meagan.carry(Vector3.INF, drop, landed)
+		"build":
+			var top := _v3(MapData.site_pos(Game.engine.state, target)) if target >= 0 else _v3(_work.pos)
+			_meagan.carry(Vector3.INF, top + Vector3(0, 1.0, 0))
+		_:
+			_meagan.carry(Vector3.INF, Vector3.INF)
 
 
 # ---------- Meagan at work ----------
 
 const GATHER_CLIPS := {"forest": "chop", "hunting": "fish", "scrap": "scavenge"}
-const ACTIVITY_CLIPS := {"full": "full", "build": "build", "fight": "fight"}
+const ACTIVITY_CLIPS := {"full": "full", "store": "carry", "build": "build", "fight": "fight"}
+## How long after an activity stops its pieces still fly to or from the same place.
+const CARRY_GRACE := 0.8
 
 
-## Turns what the engine says she did this tick into a clip and a point to face.
-func _update_meagan_activity() -> void:
+## Turns what the engine says she did this tick into a clip, a point to face, and where her
+## stack's pieces come from or go to.
+func _update_meagan_activity(delta: float) -> void:
 	var s := Game.engine.state
 	var activity := s.meagan_activity
 	if activity == "full" and _work.get("activity", "") != "full":
 		Audio.play("full")
+	_work_age += delta
+	_update_carry()
 	if activity == "":
 		_meagan.set_activity("", Vector3.INF)
 		return
 	_work = {"activity": activity, "target": s.meagan_target, "pos": s.meagan_target_pos}
+	_work_age = 0.0
 	var face := _v3(s.meagan_target_pos)
 	if activity == "gather":
 		var view := _nodes[s.meagan_target]

@@ -19,7 +19,18 @@ func test_chopping() -> void:
 	var forest := node_index("forest")
 	put_meagan(e, MapData.START_NODES[forest].pos)
 	e.skip(1.0)
-	check(HintRules.is_done("chop", e.state, start), "Wood chopped into the Stockpile")
+	check(HintRules.is_done("chop", e.state, start), "Wood chopped into her bag")
+
+
+func test_storing() -> void:
+	var e := engine()
+	var start: Vector2 = e.state.meagan_pos
+	check(not HintRules.is_done("store", e.state, start), "nothing stored yet")
+	check_eq(HintRules.target("store", e.state), MapData.stockpile_pad(e.state, 0), "points at the Stockpile")
+	e.state.bag.wood = 5.0
+	put_meagan(e, MapData.stockpile_pad(e.state, 0))
+	e.skip(0.1)
+	check(HintRules.is_done("store", e.state, start), "done once she empties her bag")
 
 
 func test_thawing() -> void:
