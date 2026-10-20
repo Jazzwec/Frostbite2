@@ -11,6 +11,7 @@ static func update(s: GameState, dt: float, rng: RandomNumberGenerator, events: 
 		return
 	for wolf in s.wolves.duplicate():
 		_wolf(s, wolf, dt, events)
+	_spread(s, dt)
 	_guards_fight(s, dt)
 	_meagan_fights(s, dt)
 	_collect_dead(s, events)
@@ -61,6 +62,13 @@ static func _wolf(s: GameState, wolf: Dictionary, dt: float, events: Array) -> v
 	var foe := _nearest_foe(s, wolf.pos)
 	if not foe.is_empty():
 		wolf.mode = "fight"
+		# Hold just outside the foe, closing in or backing off; _spread() fans the pack out round them.
+		var foe_pos: Vector2 = s.meagan_pos if foe.kind == "meagan" else foe.jan.pos
+		var away: Vector2 = wolf.pos - foe_pos
+		var dir := away.normalized() if away.length() > 0.001 else Vector2.RIGHT.rotated(float(wolf.id))
+		wolf.pos = wolf.pos.move_toward(foe_pos + dir * Balance.WOLF_FIGHT_DISTANCE, Balance.WOLF_SPEED * dt)
+		# Where it's facing, for its view.
+		wolf.foe_pos = foe_pos
 		if foe.kind == "meagan":
 			s.meagan_hp -= wolf.damage * dt
 			if s.meagan_hp <= 0.0 and not s.meagan_injured:
@@ -124,6 +132,26 @@ static func _wolf(s: GameState, wolf: Dictionary, dt: float, events: Array) -> v
 		scared += 1
 	wolf.mode = "leave"
 	events.append({"type": "breakthrough", "wolf": wolf.id, "jans": scared, "pos": furnace})
+
+
+## Wolves at their target (fighting, or menacing a work site) step apart when too close, so the
+## pack spreads out round it. Travelling wolves aren't spread, so a pack still meets its foes
+## together. Each pair shares the step; wolves on the same spot part in a direction set by their ids.
+static func _spread(s: GameState, dt: float) -> void:
+	var pack := s.wolves.filter(func(w): return (w.mode == "fight" or w.mode == "jans") and w.hp > 0.0)
+	var most := Balance.WOLF_SPEED * dt
+	for i in pack.size():
+		for j in range(i + 1, pack.size()):
+			var a: Dictionary = pack[i]
+			var b: Dictionary = pack[j]
+			var apart: Vector2 = a.pos - b.pos
+			var d := apart.length()
+			if d >= Balance.WOLF_SPACING:
+				continue
+			var dir := apart / d if d > 0.001 else Vector2.RIGHT.rotated(float(a.id * 7 + b.id * 13))
+			var step := minf((Balance.WOLF_SPACING - d) / 2.0, most)
+			a.pos = (a.pos + dir * step).clamp(MapData.BOUNDS.position, MapData.BOUNDS.end)
+			b.pos = (b.pos - dir * step).clamp(MapData.BOUNDS.position, MapData.BOUNDS.end)
 
 
 static func _nearest_foe(s: GameState, pos: Vector2) -> Dictionary:

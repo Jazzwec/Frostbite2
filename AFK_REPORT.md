@@ -96,3 +96,18 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.
   - Applied: stronger fade (30% rather than 35%), no shadow while faded, quick out and slower in.
   - Not applied, your call: a warm cream outline on Meagan while she's hidden, which is an art-style change. Also a single-silhouette fade: overlapping parts of one tree still show faint layers, much less at 30%.
 - **Felt wrong / notes:** `GeometryInstance3D.transparency` silently does nothing in the mobile renderer, so the fade swaps in a per-mesh see-through material copy. Greybox and Shapes meshes fade; imported Poly Haven props (logs, crates) don't, since they have no material override.
+
+### 18. Wolves spread around their target
+- **Commits:** "Wolves spread round their target".
+- **What changed** (engine, `combat.gd`):
+  - Fighting wolves hold `WOLF_FIGHT_DISTANCE` (1.3 m) from their foe, closing in or backing off. Wolves at their target (fighting, or menacing a work site) keep `WOLF_SPACING` (1.3 m) from each other.
+  - Together that forms a ring round Meagan or a guard. Damage rules are unchanged.
+  - Travelling wolves aren't spread. A first version spread them on the way in too, and one wolf slipped past Meagan to the furnace.
+  - Views: wolves face whoever they're fighting (the engine records `foe_pos`), and each wolf's lunge starts at its own point in the cycle.
+- **Check in the game:** DEV → Wolves, then stand in their path.
+- **Tests:** two new ones in `tests/test_combat.gd`: three wolves on one spot spread at least a body apart and stay in the fight; four wolves all stay fighting and none ends up on top of her. 56 pass.
+- **New numbers:** `WOLF_FIGHT_DISTANCE` 1.3 m and `WOLF_SPACING` 1.3 m, both `[proto]`.
+- **ChatGPT feedback:**
+  - Applied: facing the foe, staggered lunges.
+  - Not applied, your call: health-bar styling. Meagan's bar could be green and wider so it's not confused with the wolves' red ones, with each bar centred higher over its wolf. Also darker wolf backs against blue shadows, which is art.
+- **Felt wrong:** with wolves 1.3 m from her, their health bars and hers overlap a little at the default zoom.

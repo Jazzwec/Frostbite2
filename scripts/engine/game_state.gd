@@ -55,7 +55,8 @@ var blizzard_active := false
 var blizzard_warned := false
 var blizzards_survived := 0
 
-## Wolves: {id, pos: Vector2, hp, max_hp, damage, loot_scale, mode, target, scare_timer, scared}.
+## Wolves: {id, pos: Vector2, hp, max_hp, damage, loot_scale, mode, target, scare_timer, scared},
+## plus foe_pos (who it's fighting) once it has fought.
 ## mode: "furnace" (heading in), "jans" (detouring to a site), "fight", "leave".
 var wolves: Array = []
 ## Time of the next attack, or -1 until the Furnace reaches Lv 2.

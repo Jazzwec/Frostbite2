@@ -113,6 +113,10 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - [ ] Walk into a forest: any tree between the camera and her fades to a see-through ghost (and drops its shadow) while she's behind it, then comes back when she steps out.
 - [ ] The same for a building she walks behind. The FPS doesn't change.
 
+**Wolves spread round their target (2026-10-20)** (DEV → Wolves, then stand in their way)
+- [ ] Wolves fighting Meagan or a guard stop just outside them and fan out a wolf's length apart, facing their foe, instead of piling onto one spot. Their lunges are out of step.
+- [ ] A pack still meets her together; no wolf slips past to the furnace because of the spreading.
+
 **Objective: keep the fire burning**
 - [ ] A winter starts at 100/100 heat. With no Wood it lasts about 2½ minutes.
 - [ ] Below 25%: the bar pulses red, banner and horn. Below 10%: "Fire out in 0:12" on the bar.

@@ -48,7 +48,7 @@ Polish and quality first, then new content.
   - **What:** tree crowns (and roofs, if any) between the camera and Meagan fade to about 35% opacity while she's behind them, and back when she leaves. From the ChatGPT review of her model.
   - **Done when:** a screenshot of her chopping inside a forest shows her clearly, and FPS stays the same.
 
-- [ ] **18. Wolves spread around their target (safe, polish).**
+- [x] **18. Wolves spread around their target (safe, polish).** Done 2026-10-20 (AFK).
   - **What:** attacking wolves take separate slots around whoever they fight (Meagan, a Jan or the furnace), about one wolf-body apart, instead of piling on one spot. From the ChatGPT review of the wolf (NOTES.md).
   - **How:** engine-side in `combat.gd`, with the slot spacing in `balance.gd` marked `[proto]`. Damage rules don't change.
   - **Done when:** a test shows three wolves on one target end up in different slots, and a screenshot shows them spread out.

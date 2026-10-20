@@ -161,6 +161,10 @@ const WOLF_REACH := 2.0
 const WOLF_SCARE_TIME := 3.0
 ## A wolf stops to fight a guard or Meagan within this range. [proto]
 const WOLF_ENGAGE_RANGE := 2.5
+## Fighting wolves close in to this far from their foe, and wolves keep this far from each
+## other, so a pack spreads round its target instead of piling up. About a wolf's length. [proto]
+const WOLF_FIGHT_DISTANCE := 1.3
+const WOLF_SPACING := 1.3
 ## A wolf reaching the furnace takes these fractions, scares off this many Jans, then leaves. [brief]
 const BREAKTHROUGH_WOOD := 0.15
 const BREAKTHROUGH_FOOD := 0.15

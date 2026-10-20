@@ -102,3 +102,40 @@ func test_fighting_shows_over_gathering() -> void:
 	e.skip(0.1)
 	check_eq(e.state.meagan_activity, "fight", "fighting wins")
 	check_eq(e.state.meagan_target, e.state.wolves[0].id, "targets the wolf")
+
+
+func test_a_pack_spreads_round_meagan_instead_of_piling_up() -> void:
+	var e := engine()
+	put_meagan(e, Vector2(-4, 8))
+	e.spawn_wolves(3)
+	for w in e.state.wolves:
+		w.pos = Vector2(-4, 10.2)
+		w.hp = 1000.0
+		w.max_hp = 1000.0
+	e.skip(2.0)
+	var wolves: Array = e.state.wolves
+	check_eq(wolves.size(), 3, "all three still fighting")
+	for w in wolves:
+		check_eq(w.mode, "fight", "wolf %d fights" % w.id)
+		check(w.pos.distance_to(e.state.meagan_pos) <= Balance.WOLF_ENGAGE_RANGE, "wolf %d stays in reach" % w.id)
+		check(w.pos.distance_to(e.state.meagan_pos) >= Balance.WOLF_FIGHT_DISTANCE - 0.3, "wolf %d isn't on top of her" % w.id)
+	for i in wolves.size():
+		for j in range(i + 1, wolves.size()):
+			var d: float = wolves[i].pos.distance_to(wolves[j].pos)
+			check(d >= Balance.WOLF_SPACING * 0.85, "wolves %d and %d are %.2f m apart" % [wolves[i].id, wolves[j].id, d])
+
+
+func test_spreading_doesnt_push_a_wolf_out_of_the_fight() -> void:
+	var e := engine()
+	put_meagan(e, Vector2(-4, 8))
+	e.spawn_wolves(4)
+	var i := 0
+	for w in e.state.wolves:
+		w.pos = Vector2(-4.0 + i * 0.3, 13.0)
+		w.hp = 1000.0
+		w.max_hp = 1000.0
+		i += 1
+	e.skip(4.0)
+	for w in e.state.wolves:
+		check_eq(w.mode, "fight", "wolf %d is still fighting" % w.id)
+		check(w.pos.distance_to(e.state.meagan_pos) >= Balance.WOLF_FIGHT_DISTANCE - 0.3, "wolf %d isn't on top of her" % w.id)

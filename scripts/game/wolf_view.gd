@@ -32,7 +32,7 @@ const ATTACK_RECOVER := 0.25
 var _model: Node3D
 var _hp_bar: HpBar
 var _t := 0.0
-var _attack := 0.0
+var _attack := -1.0
 var _flash: MeshInstance3D
 var _knock := 0.0
 ## The posed model, or null for the greybox wolf.
@@ -114,14 +114,21 @@ func hit() -> void:
 func sync(wolf: Dictionary, delta: float) -> void:
 	var target := Vector3(wolf.pos.x, 0, wolf.pos.y)
 	var step := target - global_position
+	var fighting: bool = wolf.mode == "fight"
+	if fighting and wolf.has("foe_pos"):
+		# Face whoever it's fighting, not the way it last stepped.
+		step = Vector3(wolf.foe_pos.x, 0, wolf.foe_pos.y) - global_position
 	if step.length() > 0.01:
 		_model.rotation.y = lerp_angle(_model.rotation.y, atan2(step.x, step.z), 10.0 * delta)
 	global_position = global_position.lerp(target, minf(1.0, 12.0 * delta))
-	var fighting: bool = wolf.mode == "fight"
+	if _attack < 0.0:
+		# Each wolf's lunge starts at its own point in the cycle, so a pack doesn't strike in unison.
+		_attack = fmod(float(wolf.id) * 0.37, ATTACK_PERIOD)
 	_knock = move_toward(_knock, 0.0, delta * 5.0)
 	if _pivot:
 		_t += delta * (14.0 if fighting else TROT_SPEED)
-		_attack = fmod(_attack + delta, ATTACK_PERIOD) if fighting else 0.0
+		if fighting:
+			_attack = fmod(_attack + delta, ATTACK_PERIOD)
 		_model.position = -_model.basis.z * 0.1 * _knock
 		_pose(fighting)
 		var flashing := _knock > 0.6
