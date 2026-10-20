@@ -132,7 +132,7 @@ The user committed to the ink & watercolour direction; the rules are in `docs/ar
   - **What:** 2–3 chunky pines under 1,500 triangles, with flat watercolour colours.
   - **Where:** `source_art/blender/trees.blend`, exported to `assets/models/blender/`, used in `NodeView` forests.
   - **Keep:** the stump/crown split (felling, toppling) and the crown fading.
-- [ ] **U1. Meagan's health bar** green and wider; the guards' bars blue.
+- [x] **U1. Meagan's health bar** green and wider; the guards' bars blue.
 - [ ] **U2. Meagan's outline** shown through whatever hides her.
 - [ ] **U3. Bubbles and stats:** chatter bubbles kept inside the screen; bigger game-over stats.
 - [ ] **U4. Milestone chime:** its own sound in `tools/audio/make_audio.py`.

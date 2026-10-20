@@ -61,7 +61,7 @@ func _ready() -> void:
 	_stack.position = Vector3(0, 0.45, -0.5) if _rig is GreyboxRig else Vector3(0, 0.55, -0.5)
 	_rig.body.add_child(_stack)
 	_rig.impact.connect(func(clip: String): worked.emit(clip))
-	_hp_bar = HpBar.new(Color(0.95, 0.3, 0.5))
+	_hp_bar = HpBar.new(HpBar.MEAGAN_GREEN, 1.8, 0.22)
 	_hp_bar.position = Vector3(0, 1.85, 0)
 	add_child(_hp_bar)
 

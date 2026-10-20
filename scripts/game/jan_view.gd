@@ -59,7 +59,7 @@ func setup(is_frozen: bool, arrival_id := -1) -> void:
 	_bubble.width = 600.0
 	_bubble.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(_bubble)
-	_hp_bar = HpBar.new(Color(0.3, 0.75, 0.35))
+	_hp_bar = HpBar.new(HpBar.GUARD_BLUE)
 	_hp_bar.position = Vector3(0, height + 0.35, 0)
 	add_child(_hp_bar)
 	if frozen:

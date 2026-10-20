@@ -53,7 +53,7 @@ func _init() -> void:
 		bar_height = 1.35
 	else:
 		_build_greybox()
-	_hp_bar = HpBar.new(Color(0.95, 0.25, 0.2))
+	_hp_bar = HpBar.new(HpBar.WOLF_RED)
 	_hp_bar.position = Vector3(0, bar_height, 0)
 	add_child(_hp_bar)
 
