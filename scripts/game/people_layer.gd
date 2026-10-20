@@ -27,6 +27,11 @@ func on_event(ev: Dictionary) -> void:
 				view.flee()
 
 
+## The rescued Jans' views, for their footprints.
+func jan_views() -> Array:
+	return _jans.values()
+
+
 func refresh(s: GameState, delta: float) -> void:
 	_sync_frozen(s)
 	_sync_jans(s, delta)

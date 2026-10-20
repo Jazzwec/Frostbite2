@@ -29,6 +29,7 @@ var _chests: Array[ChestView] = []
 const VEIL_COLOR := Color(0.6, 0.68, 0.82)
 const VEIL_HEIGHT := 1.2
 var _people: PeopleLayer
+var _footprints: Footprints
 var _stockpiles: Array[StockpileView] = []
 ## Woodpiles, fences, rocks and shrubs round the plots and over open snow. [ink_v3, 2026-10-20]
 var _dressing: SetDressing
@@ -85,6 +86,8 @@ func _ready() -> void:
 		_add_stockpile_view(k)
 	_people = PeopleLayer.new()
 	add_child(_people)
+	_footprints = Footprints.new()
+	add_child(_footprints)
 
 	_meagan = Meagan.new()
 	add_child(_meagan)
@@ -128,6 +131,9 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	_footprints.track(_meagan, _meagan.moving, true)
+	for v in _people.jan_views():
+		_footprints.track(v, v.is_walking())
 	_refresh_views(delta)
 	_update_meagan_activity(delta)
 	_update_pad_stop(delta)

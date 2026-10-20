@@ -182,7 +182,7 @@ Make the game and its animations match the agreed visual, `source_art/direction/
     - Then one "Stored +20 Wood" by the stockpile, one icon to the top bar and a 200 ms pulse of that counter.
     - No stacked "+N" numbers.
   - **Done when:** a screenshot sequence shows it cleanly.
-- [ ] **V6. Footsteps in the snow (safe, animation).**
+- [x] **V6. Footsteps in the snow (safe, animation).** Done 2026-10-20 (AFK).
   - **What:** a small snow puff on each step for Meagan and walking Jans, and short-lived footprint marks that fade, from a fixed pool.
   - **Done when:** a screenshot shows the prints, and FPS is unchanged with 20 Jans.
 - [ ] **V7. Smoke and lantern glow (safe, effects).**

@@ -15,6 +15,8 @@ const KINDS := {
 	"flame": {"color": Color(1.0, 0.55, 0.15), "amount": 14, "size": 0.16, "speed": Vector2(1.5, 3.0), "spread": 30.0, "gravity": 2.0, "life": 0.6},
 	"shards": {"color": Color(0.75, 0.9, 1.0), "amount": 16, "size": 0.14, "speed": Vector2(2.0, 4.5), "spread": 80.0, "gravity": -9.0, "life": 0.8},
 	"steam": {"color": Color(1.0, 1.0, 1.0, 0.7), "amount": 10, "size": 0.2, "speed": Vector2(0.8, 1.6), "spread": 15.0, "gravity": 0.5, "life": 0.9},
+	# A footstep's kick of snow (AFK V6).
+	"step": {"color": Color(0.95, 0.97, 1.0), "amount": 5, "size": 0.07, "speed": Vector2(0.4, 1.0), "spread": 60.0, "gravity": -2.0, "life": 0.2},
 	"dust": {"color": Color(0.82, 0.77, 0.68), "amount": 8, "size": 0.15, "speed": Vector2(0.5, 1.5), "spread": 80.0, "gravity": -1.0, "life": 0.6},
 	# A building finishing or levelling up.
 	"confetti": {"color": Color.WHITE, "amount": 44, "size": 0.32, "speed": Vector2(5.0, 9.0), "spread": 50.0, "gravity": -9.0, "life": 1.1,

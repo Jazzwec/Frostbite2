@@ -1,0 +1,7 @@
+1. **Give each print a boot-like silhouette.** Image 1 reads as small, sideways oval dots; Image 2 has elongated, uneven impressions forming recognizable trails. On a phone, the current marks can look like scattered pebbles. Use **0.24 × 0.12 m** prints, long axis aligned with travel, with a slightly narrower heel and a soft, irregular watercolour edge.
+
+2. **Increase definition without making dark stamps.** The current blue-grey marks disappear into the snow wash; the target’s prints retain a defined centre and softly broken edges. Use **#8798AD at 30–35% centre alpha**, feathering to zero around the perimeter. Keep the **7 s lifetime**, holding initial opacity for **1 s**, then fading smoothly. Avoid outlines.
+
+3. **Make the left/right walking rhythm clearer.** Image 1’s trail reads as a nearly straight dotted line; Image 2’s staggered marks suggest actual footsteps. Reduce spacing from **0.6 m to 0.45–0.50 m per step**, with **0.18 m between left/right track centres**. Place marks at foot contact, with only **±5° rotation variation**. Keep each snow puff brief—**0.15–0.20 s**—so it clears before obscuring the impression.
+
+Verdict: fix first — the colour family suits the style, but the tiny oval dots need a clearer footprint shape and walking rhythm at phone size.

@@ -70,6 +70,16 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 145 onwards (8 image
 - **Check in the game:** empty a mixed bag at the Stockpile.
 - **ChatGPT feedback** (`source_art/direction/hud_v1/review_v5.md`: "yes, it reads as one deposit"). Applied: the smaller summary, the shorter delay, the hidden label. Not done: pulsing each counter exactly when its icon lands (it pulses on arrival already).
 
+### V6. Footsteps in the snow
+- **What changed:**
+  - `Footprints` (`scripts/game/footprints.gd`, shader `ink/footprint.gdshader`): a fixed pool of 120 flat prints sharing one material, each with an instance-uniform fade. They're soft blue-grey (#8798AD) boot shapes with a broken watercolour edge, crisp for 1 s, then melting away over 7 s.
+  - Meagan and every walking Jan press one every 0.48 m, left and right 0.18 m apart, each turned a little.
+  - Meagan's steps also kick up a 0.2 s snow puff (`Fx` "step").
+- **Proto numbers:** `POOL` 120, `LIFE` 7 s, `STEP` 0.48 m, `FOOT_SIDE` 0.09 m, print 0.14 × 0.28 m.
+- **FPS:** 165 with and without them.
+- **Check in the game:** walk across open snow; watch Jans walk to work and haul.
+- **ChatGPT feedback** (`source_art/direction/hud_v1/review_v6.md`): all three points applied (boot-like shape and size, colour and fade, rhythm and spacing).
+
 ## Run 2026-10-20, 01:11 → 09:00
 
 ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.

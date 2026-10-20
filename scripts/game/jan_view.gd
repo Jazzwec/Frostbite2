@@ -151,6 +151,11 @@ func go_to(target: Vector3, nav_map: RID) -> void:
 		_path = PackedVector3Array([target])
 
 
+## Whether he's walking right now (for his footprints).
+func is_walking() -> bool:
+	return _moving and not frozen
+
+
 ## Carrying `resource` to a stockpile ("" for nothing): he walks with it hugged.
 func haul(resource: String) -> void:
 	if _hauling != "" and resource == "":
