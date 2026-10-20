@@ -33,7 +33,7 @@ PAL = {k: _linear(v) for k, v in {
     "ochre": "C9973F", "ochre_dark": "9E7330",
     "teal": "5E8A87", "teal_dark": "35666B",
     "snow": "EEF2F2", "snow_shade": "D3DDE5",
-    "ink": "2C3440", "fire": "F2B266",
+    "ink": "2C3440", "fire": "F2B266", "fire_light": "F8DCA4",
     "wood": "8A5E3C", "wood_dark": "5E3F2A", "wood_light": "B48D62",
     "stone": "8E8C88", "stone_dark": "6E6C6A",
     "iron": "45474E", "slate": "5B6470", "rope": "B39A6E",
@@ -100,19 +100,43 @@ class House:
         half = span / 2.0 + overhang
         angle = math.atan2(h, span / 2.0)
         length = half / math.cos(angle)
-        t = 0.12
+        t = 0.16
+        width = along + overhang * 2.0
         for side in (-1, 1):
             n = Vector((0.0, side * math.sin(angle), math.cos(angle)))
+            down = Vector((0.0, side * math.cos(angle), -math.sin(angle)))  # down the slope
             mid = Vector((0.0, side * half / 2.0, top + h - (half / 2.0) * math.tan(angle)))
-            self.box(turn @ (mid + n * (t / 2.0)), (along + overhang * 2.0, length, t), colour, rz=rz, rx=-side * angle)
-            if snow:
-                st = 0.3
-                self.box(turn @ (mid + n * (t + st / 2.0 - 0.02) + Vector((0, side * 0.04, 0))),
-                         (along + overhang * 2.0 + 0.1, length + 0.12, st), "snow_shade" if (side < 0) == front else "snow", rz=rz, rx=-side * angle,
-                         bevel=0.12, segments=2)
+            # The roof boards, a little past the ridge so the two sides meet; their dark edge is
+            # the fascia that shows under the snow at the eaves.
+            self.box(turn @ (mid + n * (t / 2.0) - down * 0.04), (width, length + 0.08, t), colour, rz=rz, rx=-side * angle)
+            if not snow:
+                continue
+            # The shaded side is a pale blue-grey, the lit side ivory white (ink_v3 review).
+            tone = "snow_shade" if (side < 0) == front else "snow"
+            st = 0.34
+            # Stops short of the eave so the fascia shows, and runs past the ridge (no seam roll).
+            self.box(turn @ (mid + n * (t + st / 2.0 - 0.03) - down * 0.1), (width + 0.06, length + 0.02, st), tone,
+                     rz=rz, rx=-side * angle, bevel=0.13, segments=2)
+            # A chunky lip of a few broad bulges along the eave, hanging just over the fascia.
+            eave = mid + down * (length / 2.0 - 0.12) + n * (t + st * 0.45)
+            count = 4
+            for i in range(count):
+                x = -width / 2.0 + width * (i + 0.5) / count
+                wobble = math.sin(i * 2.3 + side) * 0.05
+                self.blob(turn @ (eave + Vector((x, 0.0, wobble))), (width / count * 1.2, 0.42, 0.3 + wobble),
+                          tone, rz=rz, rx=-side * angle)
         if snow:
-            self.cyl((0.0, 0.0, top + h + t + 0.22), 0.24, along + overhang * 2.0 + 0.08, "snow",
-                     axis='Y' if front else 'X', segments=8, bevel=0.05)
+            # A soft cap over the ridge where the two snow slabs meet, so there's no dark seam.
+            ridge = Vector((0.0, 0.0, top + h + (t + 0.34) / math.cos(angle) - 0.2))
+            self.box(turn @ ridge, (width + 0.04, 0.42, 0.42), "snow", rz=rz, rx=math.pi / 4.0, bevel=0.12, segments=2)
+
+    def blob(self, c, s, colour, rz=0.0, rx=0.0):
+        """A soft lump (a squashed low-poly sphere): snow lips, drifts."""
+        bm = bmesh.new()
+        m = (Matrix.Translation(Vector(c)) @ Matrix.Rotation(rz, 4, 'Z') @ Matrix.Rotation(rx, 4, 'X')
+             @ Matrix.Diagonal((s[0] / 2.0, s[1] / 2.0, s[2] / 2.0, 1.0)))
+        bmesh.ops.create_uvsphere(bm, u_segments=8, v_segments=5, radius=1.0, matrix=m)
+        self._add(bm, colour)
 
     # ---------- Composite pieces ----------
 
@@ -143,11 +167,15 @@ class House:
 
     def window(self, x, z, d):
         """A glowing window on the front, with snow on its sill."""
+        # Bigger and warmer (ink_v3 review): a deep frame, an amber pane with a cream corner, a
+        # cross of glazing bars.
         y = -d / 2.0
-        self.box((x, y - 0.03, z), (0.66, 0.06, 0.58), "wood_light")
-        self.box((x, y - 0.05, z), (0.48, 0.06, 0.4), "fire")
-        self.box((x, y - 0.07, z), (0.05, 0.04, 0.42), "wood_light")
-        self.box((x, y - 0.1, z - 0.32), (0.74, 0.14, 0.06), "snow", bevel=0.02)  # snow on the sill
+        self.box((x, y - 0.03, z), (0.84, 0.06, 0.76), "wood_dark")
+        self.box((x, y - 0.05, z), (0.64, 0.06, 0.56), "fire")
+        self.box((x - 0.17, y - 0.06, z + 0.15), (0.2, 0.05, 0.16), "fire_light")
+        self.box((x, y - 0.07, z), (0.05, 0.04, 0.58), "wood_dark")
+        self.box((x, y - 0.07, z), (0.66, 0.04, 0.05), "wood_dark")
+        self.box((x, y - 0.1, z - 0.41), (0.92, 0.16, 0.07), "snow", bevel=0.025)  # snow on the sill
 
     def lantern(self, x, z, d):
         y = -d / 2.0 - 0.12
@@ -279,10 +307,10 @@ def hunting_lodge():
 
 
 def storehouse():
-    h = _house("house_storehouse", 3.2, 2.6, 2.5, 1.25, "ochre", "ochre_dark", "falu_dark", "falu", "sun", windows=(), wide=True)
-    h.crate(-2.05, -0.5, s=0.6, rz=0.2)
-    h.crate(-2.05, 0.3, s=0.55, rz=-0.1)
-    h.crate(-2.0, -0.1, z=0.66, s=0.5, rz=0.4)
+    h = _house("house_storehouse", 3.7, 2.6, 2.4, 1.3, "ochre", "ochre_dark", "falu_dark", "falu", "sun", windows=(), wide=True)
+    h.crate(-2.3, -0.5, s=0.6, rz=0.2)
+    h.crate(-2.3, 0.3, s=0.55, rz=-0.1)
+    h.crate(-2.25, -0.1, z=0.66, s=0.5, rz=0.4)
     return h
 
 
@@ -294,13 +322,13 @@ def workshop():
 
 
 def barracks():
-    h = _house("house_barracks", 3.3, 2.6, 2.4, 1.2, "falu", "falu_dark", "slate", "teal_dark", "shield", windows=(-1.05, 1.05))
+    h = _house("house_barracks", 2.8, 2.6, 2.8, 1.35, "falu", "falu_dark", "slate", "teal_dark", "shield", windows=(-0.75,), door_x=0.45)
     # A spear rack against the side wall.
-    h.box((2.0, 0.0, 0.5), (0.12, 1.4, 0.1), "wood_dark")
+    h.box((1.75, 0.0, 0.5), (0.12, 1.4, 0.1), "wood_dark")
     for i in range(4):
         y = -0.5 + i * 0.33
-        h.cyl((2.05, y, 0.95), 0.03, 1.9, "wood", segments=6, rx=0.12)
-        h.cyl((2.05, y - 0.11, 1.9), 0.07, 0.18, "iron", segments=6, r2=0.0, rx=0.12)
+        h.cyl((1.8, y, 0.95), 0.03, 1.9, "wood", segments=6, rx=0.12)
+        h.cyl((1.8, y - 0.11, 1.9), 0.07, 0.18, "iron", segments=6, r2=0.0, rx=0.12)
     return h
 
 
