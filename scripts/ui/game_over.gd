@@ -21,7 +21,7 @@ func _ready() -> void:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
 	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", UiTheme.panel_style(Color(0.1, 0.13, 0.22, 0.97)))
+	panel.add_theme_stylebox_override("panel", UiTheme.panel_style())
 	panel.custom_minimum_size = Vector2(860, 0)
 	center.add_child(panel)
 	var v := VBoxContainer.new()
@@ -29,10 +29,10 @@ func _ready() -> void:
 	panel.add_child(v)
 
 	var s := Game.engine.state
-	_add_line(v, "The fire went out", 64, UiTheme.ACCENT)
-	_add_line(v, "You kept the village warm for", 38, Color(0.85, 0.88, 0.95))
-	_add_line(v, Fmt.clock(time_survived), 110, Color.WHITE)
-	_add_line(v, "New best!" if new_best else "Best: %s" % Fmt.clock(best), 44, UiTheme.ACCENT if new_best else UiTheme.COLD)
+	_add_line(v, "The fire went out", 64, UiTheme.TITLE)
+	_add_line(v, "You kept the village warm for", 38, UiTheme.INK_SOFT)
+	_add_line(v, Fmt.clock(time_survived), 110, UiTheme.INK)
+	_add_line(v, "New best!" if new_best else "Best: %s" % Fmt.clock(best), 44, UiTheme.OCHRE_DEEP if new_best else UiTheme.COLD)
 	var built := s.sites.filter(func(site): return site.building != "" and site.level >= 1).size()
 	# The winter's numbers as four big tiles, each with its icon and what it counts.
 	var grid := GridContainer.new()
@@ -64,17 +64,17 @@ func _ready() -> void:
 
 func _add_stat(grid: GridContainer, icon: String, value: int, caption: String) -> void:
 	var tile := PanelContainer.new()
-	tile.add_theme_stylebox_override("panel", UiTheme.panel_style(Color(1, 1, 1, 0.06)))
+	tile.add_theme_stylebox_override("panel", UiTheme.panel_style(UiTheme.PAPER_SHADE))
 	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	grid.add_child(tile)
 	var t := VBoxContainer.new()
 	t.add_theme_constant_override("separation", 0)
 	tile.add_child(t)
-	var number := UiTheme.rich_label(72, Color.WHITE)
+	var number := UiTheme.rich_label(72, UiTheme.INK)
 	number.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	number.text = "%s %s" % [UiTheme.icon(icon, 72), Fmt.num(value)]
 	t.add_child(number)
-	var label := UiTheme.label(caption, 32, Color(0.8, 0.84, 0.95))
+	var label := UiTheme.label(caption, 32, UiTheme.INK_SOFT)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	t.add_child(label)
 

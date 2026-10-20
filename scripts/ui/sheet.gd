@@ -62,7 +62,7 @@ func open_gate(index: int) -> void:
 	_start(-1)
 	gate_tile = Game.engine.state.gates[index].tile
 	_title.text = "New area"
-	_body.add_child(UiTheme.label("Opening it lights a small furnace here. It burns from the town's heat: +%.2f heat/s to the drain, for good. What's out there is new every winter." % Balance.STOVE_DRAIN, 34, Color(0.8, 0.85, 0.95)))
+	_body.add_child(UiTheme.label("Opening it lights a small furnace here. It burns from the town's heat: +%.2f heat/s to the drain, for good. What's out there is new every winter." % Balance.STOVE_DRAIN, 34, UiTheme.INK_SOFT))
 	_status = UiTheme.label("", 38)
 	_body.add_child(_status)
 	_upgrade = UiTheme.button("", _open_gate)
@@ -88,7 +88,7 @@ func open_stockpile() -> void:
 	_start(-1)
 	stockpile = true
 	_title.text = "Stockpile"
-	_body.add_child(UiTheme.label("The town's store. Every stockpile is a door into it: Meagan empties her bag here and the Jans bring their work, and build pads, gates and the furnace draw from it. Its level is shared by them all and raises every cap.", 34, Color(0.8, 0.85, 0.95)))
+	_body.add_child(UiTheme.label("The town's store. Every stockpile is a door into it: Meagan empties her bag here and the Jans bring their work, and build pads, gates and the furnace draw from it. Its level is shared by them all and raises every cap.", 34, UiTheme.INK_SOFT))
 	_status = UiTheme.label("", 38)
 	_body.add_child(_status)
 	_upgrade = UiTheme.button("", func() -> void: Game.engine.start_upgrade_of("stockpile"))
@@ -125,9 +125,9 @@ func open_jans() -> void:
 	_auto_button = UiTheme.button("", func(): Game.engine.set_auto_assign(not Game.engine.state.auto_assign))
 	_body.add_child(_auto_button)
 	_auto_on_style = StyleBoxFlat.new()
-	_auto_on_style.bg_color = Color(0.2, 0.6, 0.35)
+	_auto_on_style.bg_color = UiTheme.TEAL_DEEP
 	_auto_on_style.set_corner_radius_all(20)
-	_auto_note = UiTheme.label("Balances jobs every 5 s. Moving a Jan by hand turns it off.", 30, Color(0.75, 0.8, 0.9))
+	_auto_note = UiTheme.label("Balances jobs every 5 s. Moving a Jan by hand turns it off.", 30, UiTheme.INK_SOFT)
 	_body.add_child(_auto_note)
 	visible = true
 	_refresh()
@@ -148,7 +148,7 @@ func _start(index: int) -> void:
 	add_child(_body)
 	var header := HBoxContainer.new()
 	_body.add_child(header)
-	_title = UiTheme.label("", 48, UiTheme.ACCENT)
+	_title = UiTheme.label("", 48, UiTheme.TITLE)
 	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(_title)
 	var close_button := UiTheme.button("Close", close)
@@ -160,14 +160,14 @@ func _start(index: int) -> void:
 func _open_plot() -> void:
 	var b: String = Game.engine.state.sites[site_index].type
 	_title.text = Balance.BUILDINGS[b].name
-	_body.add_child(UiTheme.label(Game.building_text(b).get("effect", ""), 34, Color(0.8, 0.85, 0.95)))
-	_body.add_child(UiTheme.label("Build it, then stand on its pad: it takes what it needs from her bag, then the Stockpile.", 34, Color(0.8, 0.85, 0.95)))
+	_body.add_child(UiTheme.label(Game.building_text(b).get("effect", ""), 34, UiTheme.INK_SOFT))
+	_body.add_child(UiTheme.label("Build it, then stand on its pad: it takes what it needs from her bag, then the Stockpile.", 34, UiTheme.INK_SOFT))
 	_build_button = UiTheme.button("", _build)
 	_body.add_child(_build_button)
 
 
 func _open_building(b: String) -> void:
-	_effect = UiTheme.label(Game.building_text(b).get("effect", ""), 34, Color(0.8, 0.85, 0.95))
+	_effect = UiTheme.label(Game.building_text(b).get("effect", ""), 34, UiTheme.INK_SOFT)
 	_body.add_child(_effect)
 	_status = UiTheme.label("", 38)
 	_body.add_child(_status)
@@ -314,7 +314,7 @@ func _refresh_jans(s: GameState) -> void:
 	var idle := Economy.idle_count(s)
 	_status.text = "%d idle  ·  %d of %d Jans" % [idle, s.jans.size(), Economy.jan_cap(s)]
 	# Idle Jans are worth noticing: put them to work.
-	_status.add_theme_color_override("font_color", UiTheme.ACCENT if idle > 0 else Color(0.95, 0.96, 1.0))
+	_status.add_theme_color_override("font_color", UiTheme.FALU if idle > 0 else UiTheme.INK)
 	for job in _jan_rows:
 		var row: Dictionary = _jan_rows[job]
 		var def: Dictionary = Balance.JOBS[job]
@@ -323,7 +323,7 @@ func _refresh_jans(s: GameState) -> void:
 		if not open:
 			row.label.text = "%s
 build a %s first" % [def.name, Balance.BUILDINGS[def.building].name]
-			row.label.add_theme_color_override("font_color", Color(0.62, 0.66, 0.74))
+			row.label.add_theme_color_override("font_color", Color(UiTheme.INK_SOFT, 0.7))
 		else:
 			var line := "%s  ·  %s" % [def.name, _jans_text(count)]
 			if def.resource != "":
@@ -335,7 +335,7 @@ build a %s first" % [def.name, Balance.BUILDINGS[def.building].name]
 				line += "
 guarding the furnace"
 			row.label.text = line
-			row.label.add_theme_color_override("font_color", Color(0.95, 0.96, 1.0))
+			row.label.add_theme_color_override("font_color", UiTheme.INK)
 		# A job without its building has nothing to press.
 		row.minus.visible = open
 		row.plus.visible = open
@@ -345,7 +345,7 @@ guarding the furnace"
 	var eaten := Economy.food_eaten_per_second(s)
 	var net := fished - eaten
 	_food_line.text = "Food %s%s/s  (%s fished, %s eaten)" % ["+" if net >= 0.0 else "−", "%.2f" % absf(net), "%.2f" % fished, "%.2f" % eaten]
-	_food_line.add_theme_color_override("font_color", Color(1.0, 0.55, 0.5) if net < 0.0 else Color(0.6, 0.9, 0.65))
+	_food_line.add_theme_color_override("font_color", UiTheme.FALU if net < 0.0 else UiTheme.TEAL_DEEP)
 	if Game.engine.can_auto_assign():
 		_auto_button.disabled = false
 		_auto_button.text = "Auto-assign: ON" if s.auto_assign else "Auto-assign: off"

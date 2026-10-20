@@ -1,5 +1,5 @@
 {
-  "furnace": { "name": "Furnace", "effect": "+100 heat cap, room for 4 more Jans and 5% more heat per Wood per level. Bigger fires draw bigger animals." },
+  "furnace": { "name": "Furnace", "effect": "Per level: +100 heat cap, +4 Jans, +5% heat per Wood. Bigger fires draw bigger animals." },
   "lumberYard": { "name": "Lumber Yard", "effect": "+15% Chopping and +50 Wood storage per level." },
   "huntingLodge": { "name": "Fishing Lodge", "effect": "+15% Fishing per level. Jans ice-fish here for Food." },
   "storehouse": { "name": "Storehouse", "effect": "Wood, Food and Materials storage ×1.25 per level." },

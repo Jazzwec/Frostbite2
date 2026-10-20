@@ -26,7 +26,7 @@ func setup(camera: Camera3D, meagan: Meagan) -> void:
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var style := UiTheme.panel_style(Color(0.08, 0.1, 0.16, 0.72))
+	var style := UiTheme.panel_style(Color(UiTheme.PAPER, 0.93))
 	style.set_corner_radius_all(18)
 	style.content_margin_left = 18
 	style.content_margin_right = 18
@@ -41,7 +41,7 @@ func _ready() -> void:
 	_count.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_count.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(_count)
-	_contents = UiTheme.rich_label(34, Color(0.96, 0.97, 1.0))
+	_contents = UiTheme.rich_label(34, UiTheme.INK)
 	_contents.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_contents.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(_contents)
@@ -61,7 +61,7 @@ func _process(delta: float) -> void:
 	var cap := Economy.bag_cap(s)
 	var full := total >= cap - 0.01
 	_count.text = "BAG FULL" if full else "Bag %s/%s" % [Fmt.num(floorf(total)), Fmt.num(cap)]
-	_count.add_theme_color_override("font_color", Color(1.0, 0.55, 0.45) if full else Color(0.95, 0.96, 1.0))
+	_count.add_theme_color_override("font_color", UiTheme.FALU if full else UiTheme.INK)
 	if full and not _was_full:
 		# A little pop the moment the bag fills up.
 		pivot_offset = size / 2.0

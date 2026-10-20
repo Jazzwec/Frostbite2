@@ -144,7 +144,7 @@ The user committed to the ink & watercolour direction; the rules are in `docs/ar
 
 Make the game and its animations match the agreed visual, `source_art/direction/round3/inked/gameplay.png`: a warm, cosy picture-book village. Scope agreed with the user on 2026-10-20 (plan: `~/.claude/plans/make-sure-there-is-ancient-avalanche.md`): a paper & ink HUD, cosier icons and softer snow and lines are allowed. **V3 may change InkLook** (the user approved it). No paid credits and no new 3D models. Each item gets before/after screenshots and a ChatGPT review.
 
-- [ ] **V1. Paper & ink HUD (safe).**
+- [x] **V1. Paper & ink HUD (safe).** Done 2026-10-20 (AFK).
   - **What:** the HUD's flat navy panels and bright blue buttons become part of the picture book:
     - warm paper cards (snow-cream to parchment) with a soft watercolour edge and a thin deep-ink (#2C3440) border;
     - ink-coloured text;

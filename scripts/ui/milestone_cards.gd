@@ -35,7 +35,7 @@ func setup(milestones: Array) -> void:
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_theme_stylebox_override("panel", UiTheme.panel_style(Color(0.14, 0.18, 0.27, 0.97)))
+	add_theme_stylebox_override("panel", UiTheme.panel_style())
 	set_anchors_preset(Control.PRESET_TOP_WIDE)
 	offset_left = 70
 	offset_right = -70
@@ -43,7 +43,7 @@ func _ready() -> void:
 	var v := VBoxContainer.new()
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(v)
-	_title = UiTheme.rich_label(44, UiTheme.ACCENT)
+	_title = UiTheme.rich_label(44, UiTheme.TITLE)
 	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(_title)
 	_message = UiTheme.label("", 34)

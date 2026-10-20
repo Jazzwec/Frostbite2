@@ -43,7 +43,7 @@ func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_pill = PanelContainer.new()
-	_pill.add_theme_stylebox_override("panel", UiTheme.panel_style(Color(0.1, 0.13, 0.2, 0.85)))
+	_pill.add_theme_stylebox_override("panel", UiTheme.panel_style(Color(UiTheme.PAPER, 0.94)))
 	_pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_pill.visible = false
 	add_child(_pill)
@@ -152,5 +152,5 @@ func _draw_arrow() -> void:
 		Vector2(a * 0.4, -a * 2.0), Vector2(a * 0.4, -a), Vector2(a, -a)])
 	var outline := shape.duplicate()
 	outline.append(shape[0])
-	_arrow.draw_colored_polygon(shape, Color(1.0, 0.78, 0.25))
-	_arrow.draw_polyline(outline, Color(0.12, 0.1, 0.1), 6.0, true)
+	_arrow.draw_colored_polygon(shape, UiTheme.FIRELIGHT)
+	_arrow.draw_polyline(outline, UiTheme.INK, 6.0, true)

@@ -105,8 +105,9 @@ func _build_top() -> void:
 	_heat_label.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_heat_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_heat_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_heat_label.add_theme_color_override("font_outline_color", Color(0.1, 0.05, 0.0))
-	_heat_label.add_theme_constant_override("outline_size", 10)
+	# Ink on the firelight wash, with a paper halo so it reads on the cold blue too.
+	_heat_label.add_theme_color_override("font_outline_color", Color(UiTheme.PAPER, 0.85))
+	_heat_label.add_theme_constant_override("outline_size", 8)
 	heat_box.add_child(_heat_label)
 	_stats = HBoxContainer.new()
 	_stats.add_theme_constant_override("separation", 22)
@@ -117,13 +118,13 @@ func _build_top() -> void:
 		l.autowrap_mode = TextServer.AUTOWRAP_OFF
 		_stats.add_child(l)
 		_stat_labels[key] = l
-	_forecast = UiTheme.rich_label(34, Color(0.9, 0.94, 1.0))
+	_forecast = UiTheme.rich_label(34, UiTheme.INK_SOFT)
 	v.add_child(_forecast)
 
 
 func _build_banner() -> void:
 	_banner = PanelContainer.new()
-	_banner.add_theme_stylebox_override("panel", UiTheme.panel_style(Color(0.55, 0.12, 0.1, 0.92)))
+	_banner.add_theme_stylebox_override("panel", UiTheme.panel_style(UiTheme.WARN_WASH))
 	_banner.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	_banner.offset_left = 60
 	_banner.offset_right = -60
@@ -131,13 +132,13 @@ func _build_banner() -> void:
 	_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_banner.visible = false
 	_root.add_child(_banner)
-	_banner_label = UiTheme.rich_label(42)
+	_banner_label = UiTheme.rich_label(42, UiTheme.PAPER_TEXT)
 	_banner_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_banner.add_child(_banner_label)
 
 
 ## A warning across the screen; `icon` (a UiTheme icon name) leads the text.
-func show_banner(text: String, seconds := 4.0, color := Color(0.55, 0.12, 0.1, 0.92), icon := "") -> void:
+func show_banner(text: String, seconds := 4.0, color := UiTheme.WARN_WASH, icon := "") -> void:
 	_banner.add_theme_stylebox_override("panel", UiTheme.panel_style(color))
 	_banner_label.text = (UiTheme.icon(icon, 60) + "  " if icon != "" else "") + text
 	_banner.visible = true
@@ -154,7 +155,7 @@ func _process(delta: float) -> void:
 	var frac := s.heat / maxf(cap, 1.0)
 	_heat_bar.max_value = cap
 	_heat_bar.value = s.heat
-	_heat_fill.bg_color = UiTheme.COLD.lerp(UiTheme.ACCENT, clampf(frac / Balance.COLD_THRESHOLD, 0.0, 1.0))
+	_heat_fill.bg_color = UiTheme.BLUE_SHADOW.lerp(UiTheme.FIRELIGHT, clampf(frac / Balance.COLD_THRESHOLD, 0.0, 1.0))
 	var drain := Economy.heat_drain(s)
 	_heat_label.text = "%s Heat %s / %s   (−%.1f/s)" % [UiTheme.icon("heat", 44), Fmt.num(s.heat), Fmt.num(cap), drain]
 	_warn_low_heat(s, frac)
@@ -284,10 +285,10 @@ func _warn_low_heat(s: GameState, frac: float) -> void:
 	if s.game_over:
 		return
 	if frac < Balance.LOW_HEAT_WARNING:
-		_heat_fill.bg_color = Color(0.85, 0.15, 0.12).lerp(Color(1.0, 0.55, 0.3), 0.5 + 0.5 * sin(_time * 9.0))
+		_heat_fill.bg_color = UiTheme.FALU.lerp(UiTheme.FIRELIGHT, 0.5 + 0.5 * sin(_time * 9.0))
 		if not _low_warned:
 			_low_warned = true
-			show_banner("The fire is dying! Chop Wood for the Stockpile.", 4.0, Color(0.55, 0.12, 0.1, 0.92), "heat")
+			show_banner("The fire is dying! Bring Wood to a Stockpile.", 4.0, UiTheme.WARN_WASH, "heat")
 			Audio.play("warning")
 	elif frac > Balance.LOW_HEAT_CLEAR:
 		_low_warned = false
@@ -336,7 +337,7 @@ func _forecast_text(s: GameState) -> String:
 		var left := maxf(s.attack_at - s.time, 0.0)
 		var line := "%s Wolves in %s" % [UiTheme.icon("wolves", 40), Fmt.clock(left)]
 		# Orange only for the last seconds, so it reads as urgent rather than routine.
-		parts.append("[color=#%s]%s[/color]" % [UiTheme.ACCENT.to_html(false), line] if left <= WOLVES_URGENT else line)
+		parts.append("[color=#%s]%s[/color]" % [UiTheme.FALU.to_html(false), line] if left <= WOLVES_URGENT else line)
 	if Game.engine.paused:
 		parts.append("PAUSED")
 	return "  ·  ".join(parts)
@@ -392,6 +393,7 @@ func _corner_button(slot: Array, on_press: Callable, text := "") -> Button:
 	b.offset_bottom = CORNER_TOP + UiTheme.BUTTON_HEIGHT
 	b.clip_text = true
 	b.add_theme_font_size_override("font_size", 30)
+	UiTheme.style_utility(b)
 	_root.add_child(b)
 	return b
 
@@ -399,8 +401,9 @@ func _corner_button(slot: Array, on_press: Callable, text := "") -> Button:
 func _label_sound_toggles() -> void:
 	_music_button.text = "Music" if Audio.music_on else "Music off"
 	_sound_button.text = "Sound" if Audio.sfx_on else "Sound off"
-	_music_button.modulate = Color.WHITE if Audio.music_on else Color(1, 1, 1, 0.55)
-	_sound_button.modulate = Color.WHITE if Audio.sfx_on else Color(1, 1, 1, 0.55)
+	# "Off" is an opaque muted fill, not faded, so it doesn't look unavailable (Astra review).
+	UiTheme.style_utility(_music_button, UiTheme.UTILITY if Audio.music_on else UiTheme.UTILITY_OFF)
+	UiTheme.style_utility(_sound_button, UiTheme.UTILITY if Audio.sfx_on else UiTheme.UTILITY_OFF)
 
 
 # ---------- Dev panel (debug builds) ----------

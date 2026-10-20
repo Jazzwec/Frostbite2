@@ -1,0 +1,13 @@
+**Before: 3/10. After: 6/10.** The HUD’s colours now belong to the picture book, but overlapping messages, inconsistent contrast and uniform button styling still make it feel separate from image 6.
+
+1. **Stop notifications stacking over each other.** Image 3 combines an old blue banner, “Weathered it,” “BAG FULL” and dialogue in the same area. On a phone, none has a clear reading order. Keep existing positions, but show **one event banner at a time**; remove the previous banner before the next fades in over **150–200 ms**. Hold achievements for **3 seconds**, defer dialogue, and temporarily hide the bag callout while a banner occupies that area. Give every banner an opaque paper background.
+
+2. **Fix the game-over contrast first.** In image 4, the white timer and white stat numbers disappear into cream cards. Use **deep ink `#303B46`** for the timer and all numbers, **muted ink `#59636B`** for descriptions, and reserve **Falu red `#B64230`** for the title. These are the results players should read immediately; colour should reinforce their importance.
+
+3. **Increase small-text readability without expanding the panels.** The furnace explanation and Jans details in images 2 and 5 are dense; the muted “Music off” label is especially weak against the scene. At a **360-logical-pixel phone width**, target **14 px body text, 16 px resource counts and button labels**, with **1.25× line height**. Shorten the furnace description to fit: “+100 heat capacity, +4 Jans, +5% heat per Wood. Bigger fires attract bigger animals.” Give Music off an opaque muted fill and readable ink text; “off” should not resemble unavailable.
+
+4. **Unify the outline treatment.** Images 2–5 mix thin card borders, bevel-like shadows and heavy white/black world-label outlines. That inconsistency makes the interface feel assembled from different styles. Use **1 logical px deep-ink borders** on cards and buttons, plus one restrained **0 px / 2 px / 3 px shadow at 15% opacity**. Reduce world-label strokes to **1–1.5 px**, with warm-paper lettering. Keep panel centres clean rather than adding grain beneath text.
+
+5. **Give firelight and actions distinct visual roles.** The heat bar is a flat orange strip, while navigation, DEV and “Play again” all carry similar teal weight. Keep **firelight `#F4B563`** for the heat fill, with a visible **warm-grey empty track `#DDD3BF`** so depletion reads immediately. Use **teal `#507F7D`** with paper text for primary actions; make the existing top utility buttons a lighter **`#D5E1DA` with ink text**. Keep the heat label in ink. This establishes priority through colour alone, without moving anything.
+
+**Verdict: fix first — overlapping notifications and pale result numbers still obstruct essential information on a phone.**

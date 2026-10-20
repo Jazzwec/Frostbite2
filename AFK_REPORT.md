@@ -8,6 +8,26 @@ What happened during unattended runs, newest run first. Each run starts with a h
 
 A "Needs you" list goes at the end.
 
+## Run 2026-10-20, 19:27 → 22:00 (visual polish)
+
+ChatGPT budget: counted from `tools/chatgpt/calls.log` line 145 onwards (8 images, 25 reviews).
+
+### V1. Paper & ink HUD
+- **What changed:**
+  - `UiTheme` has the palette as named colours (ink, paper, Falu, ochre, teal, firelight).
+  - **Cards:** every card (top bar, sheet, bag readout, hints, milestone and offer cards, game over) is cream paper with a thin deep-ink border and a soft 15% shadow, with ink text and Falu-red titles.
+  - **Buttons:** main actions are faded teal with an ink outline and paper text, and sink when pressed. The utility row (Jans, Music, Sound, DEV) is a light wash with ink text. "Off" is an opaque muted fill, not faded.
+  - **Banners:** washed in Falu red (warnings), cold blue (blizzards) or deep teal (good news).
+  - **Heat bar:** a firelight fill, turning blue-shadow when cold, on a warm-grey track.
+  - **Text:** the furnace's description is shorter. The dying-fire banner now says "Bring Wood to a Stockpile".
+  - **Fix:** a "+0" pop no longer shows for a tiny Jan delivery.
+- **Check in the game:** the top bar, a building's sheet, the Jans screen, the DEV panel, a blizzard banner, a milestone card, the game-over card.
+- **ChatGPT feedback** (`source_art/direction/hud_v1/review.md`; before 3/10, after 6/10). Applied: ink numbers on the game-over card, the lighter utility buttons, an opaque "off", a visible heat track, the softer shadow, the shorter furnace text. Not done:
+  - one banner at a time, with milestones, chatter and the bag readout held back while a banner shows (layout and behaviour);
+  - bigger body text (about 42 px);
+  - thinner world-label outlines.
+- **Note:** the test played a winter to its game-over card and then started a new one, so your saved winter was reset.
+
 ## Run 2026-10-20, 01:11 → 09:00
 
 ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.

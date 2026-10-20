@@ -4,7 +4,7 @@ extends Control
 ## 2 or 3 run-long boons to pick from, or a gear chest's item to equip or leave.
 
 const TIER_NAMES := {"common": "Common", "rare": "Rare", "epic": "Epic"}
-const TIER_COLORS := {"common": Color(0.85, 0.88, 0.95), "rare": Color(0.55, 0.85, 0.82), "epic": Color(0.95, 0.75, 0.35)}
+const TIER_COLORS := {"common": UiTheme.INK_SOFT, "rare": UiTheme.TEAL_DEEP, "epic": UiTheme.OCHRE_DEEP}
 
 var offer := {}
 
@@ -20,7 +20,7 @@ func _ready() -> void:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
 	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", UiTheme.panel_style(Color(0.1, 0.13, 0.22, 0.97)))
+	panel.add_theme_stylebox_override("panel", UiTheme.panel_style())
 	panel.custom_minimum_size = Vector2(900, 0)
 	center.add_child(panel)
 	var v := VBoxContainer.new()
@@ -43,7 +43,7 @@ func _ready() -> void:
 func _boons(v: VBoxContainer) -> void:
 	var rarity: String = Game.engine.state.chests[offer.chest].rarity
 	_line(v, "%s chest" % TIER_NAMES[rarity], 60, TIER_COLORS[rarity])
-	_line(v, "Pick one. It lasts all winter.", 36, Color(0.82, 0.86, 0.95))
+	_line(v, "Pick one. It lasts all winter.", 36, UiTheme.INK_SOFT)
 	for i in offer.options.size():
 		var boon: Dictionary = Balance.BOONS[offer.options[i]]
 		var button := UiTheme.button("%s\n%s" % [boon.name, boon.text], func(): Game.engine.choose_boon(i))
@@ -58,8 +58,8 @@ func _gear(v: VBoxContainer) -> void:
 	var def: Dictionary = Balance.GEAR[slot]
 	var have: String = Game.engine.state.gear[slot]
 	_line(v, "%s %s" % [TIER_NAMES[tier], def.name.to_lower()], 60, TIER_COLORS[tier])
-	_line(v, _gear_effect(slot, tier), 40, Color.WHITE)
-	_line(v, "Now: %s" % (("%s %s, %s" % [TIER_NAMES[have].to_lower(), def.name.to_lower(), _gear_effect(slot, have)]) if have != "" else "no %s" % def.name.to_lower()), 34, Color(0.75, 0.8, 0.9))
+	_line(v, _gear_effect(slot, tier), 40, UiTheme.INK)
+	_line(v, "Now: %s" % (("%s %s, %s" % [TIER_NAMES[have].to_lower(), def.name.to_lower(), _gear_effect(slot, have)]) if have != "" else "no %s" % def.name.to_lower()), 34, UiTheme.INK_SOFT)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 20)
 	v.add_child(row)

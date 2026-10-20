@@ -2,8 +2,8 @@ extends Node3D
 ## Builds the town from MapData, wires taps to Meagan and the sheet, and turns engine events
 ## into feedback (banners, floating text, bounces). Reads engine state; only calls engine actions.
 
-const BLIZZARD_BLUE := Color(0.15, 0.3, 0.55, 0.92)
-const GOOD_GREEN := Color(0.15, 0.45, 0.25, 0.92)
+const BLIZZARD_BLUE := UiTheme.COLD_WASH
+const GOOD_GREEN := UiTheme.GOOD_WASH
 const GROUND_SHADER := preload("res://scripts/game/ink/ink_ground.gdshader")
 const SNOW_WASH := preload("res://assets/textures/snow_wash.png")
 
@@ -788,6 +788,8 @@ func _on_event(ev: Dictionary) -> void:
 			# A Jan's load lands in the store: a small "+N" at the stockpile, kept local so it doesn't
 			# compete with Meagan's own feedback in the top bar (Astra review, 2026-10-20).
 			var drop: Vector3 = _stockpiles[ev.stockpile].drop_point()
+			if ev.amount < 0.5:
+				return
 			Fx.pop("+%d" % roundi(ev.amount), drop + Vector3(0, 0.4, 0), CarryStack.COLORS[ev.resource])
 			Audio.play("drop", drop, 1.0, -6.0)
 		"chest_opened":
@@ -845,10 +847,10 @@ func _on_event(ev: Dictionary) -> void:
 		"attack_warning":
 			Audio.play("warning")
 			# The countdown itself is in the forecast strip, so the banner can't disagree with it.
-			_hud.show_banner("The Watchtower spots wolves coming!", 5.0, Color(0.55, 0.12, 0.1, 0.92), "wolves")
+			_hud.show_banner("The Watchtower spots wolves coming!", 5.0, UiTheme.WARN_WASH, "wolves")
 		"wolves_arrived":
 			Audio.play("howl")
-			_hud.show_banner("%d wolves heading for the furnace!" % ev.count, 4.0, Color(0.55, 0.12, 0.1, 0.92), "wolves")
+			_hud.show_banner("%d wolves heading for the furnace!" % ev.count, 4.0, UiTheme.WARN_WASH, "wolves")
 		"breakthrough":
 			Audio.play("crash")
 			_float_text(Vector3(0, 3.5, 0), "Wolves raided the furnace!", Color(1, 0.5, 0.4))
