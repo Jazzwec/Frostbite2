@@ -21,6 +21,7 @@ var sheet: Control
 var _camera: Camera3D
 var _marks := []  # [screen position, direction, colour, badge amount or ""]
 var _disc: Texture2D
+var _bag: Texture2D
 var _font: Font
 var _time := 0.0
 
@@ -33,6 +34,7 @@ func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_disc = WolfView.badge_disc()
+	_bag = load(UiTheme.ICON_DIR + "bag.png")
 	var theme_font: Font = UiTheme.get_theme().default_font
 	_font = theme_font if theme_font else ThemeDB.fallback_font
 
@@ -101,3 +103,4 @@ func _draw() -> void:
 			draw_texture_rect(_disc, Rect2(c - Vector2.ONE * ICON_SIZE / 2.0, Vector2.ONE * ICON_SIZE), false)
 			var size := _font.get_string_size(mk[3], HORIZONTAL_ALIGNMENT_CENTER, -1, 34)
 			draw_string(_font, c + Vector2(-size.x / 2.0, 12.0), mk[3], HORIZONTAL_ALIGNMENT_CENTER, -1, 34, UiTheme.INK)
+			draw_texture_rect(_bag, Rect2(c + Vector2(-ICON_SIZE * 1.15, -ICON_SIZE * 0.3), Vector2.ONE * ICON_SIZE * 0.6), false)

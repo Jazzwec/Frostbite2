@@ -45,12 +45,19 @@ var _sweeps := {}  # "reach" -> crescent MeshInstance3D
 ## Impact marks: a cream star with a rust rim where a blow lands, for IMPACT_TIME, drawn over
 ## bodies and bars: the brightest thing in a fight (fight_v2 reviews 2 and 3: about 24 px on the
 ## phone, 30 px for a kill, 150 ms).
-const IMPACT_SIZE := 0.55
-const IMPACT_TIME := 0.15
+const IMPACT_SIZE := 0.72
+const IMPACT_TIME := 0.14
+## A counter (a hit while it recovers) gets ochre rays instead of terracotta (review 4).
+const IMPACT_RAYS := Color(0.66, 0.27, 0.16)
+const COUNTER_RAYS := Color(0.86, 0.62, 0.22)
+## A troll's slam: one broken ring of snow puffing out on the ground (review 4: 70-90 px, ~200 ms).
+const SLAM_PUFF_SIZE := 1.9
+const SLAM_PUFF_TIME := 0.2
 const IMPACT_POOL := 8
 var _impacts: Array[Sprite3D] = []
 var _next_impact := 0
-static var _star: Texture2D
+static var _stars := {}
+var _puff: MeshInstance3D
 var _pops: Array[Label3D] = []
 var _pop_tweens := {}  # Label3D -> its running Tween
 var _next_pop := 0
@@ -91,17 +98,17 @@ static func throw(item: String, from: Vector3, to: Vector3, seconds := 0.45, hei
 	t.tween_callback(land)
 
 
-## A blow's impact mark at `pos`, `size` times the usual size.
-static func impact(pos: Vector3, size := 1.0) -> void:
+## A blow's impact mark at `pos`, `size` times the usual size; a counter's has ochre rays.
+static func impact(pos: Vector3, size := 1.0, counter := false) -> void:
 	if instance:
-		instance._impact(pos, size)
+		instance._impact(pos, size, counter)
 
 
-func _impact(pos: Vector3, size: float) -> void:
+func _impact(pos: Vector3, size: float, counter := false) -> void:
 	if _impacts.is_empty():
 		for i in IMPACT_POOL:
 			var s := Sprite3D.new()
-			s.texture = _impact_star()
+			s.texture = _impact_star(IMPACT_RAYS)
 			s.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 			s.no_depth_test = true
 			s.render_priority = 30
@@ -112,6 +119,7 @@ func _impact(pos: Vector3, size: float) -> void:
 	var mark := _impacts[_next_impact]
 	_next_impact = (_next_impact + 1) % IMPACT_POOL
 	mark.global_position = pos
+	mark.texture = _impact_star(COUNTER_RAYS if counter else IMPACT_RAYS)
 	mark.pixel_size = IMPACT_SIZE * size / 128.0
 	mark.rotation.z = randf() * TAU
 	mark.modulate = Color.WHITE
@@ -123,9 +131,11 @@ func _impact(pos: Vector3, size: float) -> void:
 	t.chain().tween_callback(mark.hide)
 
 
-## The impact mark: a four-point star, cream with a rust rim, drawn once.
-static func _impact_star() -> Texture2D:
-	if _star == null:
+## The impact mark: an opaque cream centre with eight rays in `rays`, drawn once per colour
+## (review 4).
+static func _impact_star(rays: Color) -> Texture2D:
+	var key := rays.to_html()
+	if not _stars.has(key):
 		var size := 128
 		var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
 		var c := Vector2(size, size) / 2.0
@@ -133,16 +143,69 @@ static func _impact_star() -> Texture2D:
 			for x in size:
 				var v := Vector2(x + 0.5, y + 0.5) - c
 				var a := v.angle()
-				# Spiky: long points on the diagonals, short ones between.
-				var edge := 60.0 * (0.38 + 0.62 * pow(absf(cos(2.0 * a)), 4.0))
+				# Long rays on the diagonals, shorter ones between; a round cream centre.
+				var edge := 62.0 * (0.36 + 0.64 * pow(absf(cos(2.0 * a)), 3.0))
 				var d := v.length()
 				var col := Color(0, 0, 0, 0)
-				if d <= edge:
-					col = Color(0.62, 0.24, 0.15) if d > edge - 10.0 else Color(1.0, 0.95, 0.82)
+				if d <= 24.0:
+					col = Color(1.0, 0.96, 0.86)
+					col.a = clampf(24.5 - d, 0.0, 1.0) if d > 23.0 else 1.0
+				elif d <= edge:
+					col = rays
 					col.a = clampf(edge - d, 0.0, 1.0)
 				img.set_pixel(x, y, col)
-		_star = ImageTexture.create_from_image(img)
-	return _star
+		_stars[key] = ImageTexture.create_from_image(img)
+	return _stars[key]
+
+
+## A troll's slam on the snow at `pos`: one broken ring puffing out and fading.
+static func slam_puff(pos: Vector3) -> void:
+	if instance:
+		instance._slam_puff(pos)
+
+
+func _slam_puff(pos: Vector3) -> void:
+	if _puff == null:
+		_puff = MeshInstance3D.new()
+		var quad := QuadMesh.new()
+		quad.size = Vector2.ONE
+		quad.orientation = PlaneMesh.FACE_Y
+		_puff.mesh = quad
+		var m := StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.albedo_texture = _broken_ring()
+		_puff.material_override = m
+		_puff.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(_puff)
+	_puff.global_position = pos + Vector3(0, 0.06, 0)
+	_puff.scale = Vector3.ONE * SLAM_PUFF_SIZE * 0.5
+	_puff.visible = true
+	var m := _puff.material_override as StandardMaterial3D
+	m.albedo_color = Color.WHITE
+	var t := _puff.create_tween().set_parallel()
+	t.tween_property(_puff, "scale", Vector3.ONE * SLAM_PUFF_SIZE * 2.0, SLAM_PUFF_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	t.tween_property(m, "albedo_color:a", 0.0, SLAM_PUFF_TIME).set_ease(Tween.EASE_IN)
+	t.chain().tween_callback(_puff.hide)
+
+
+## A ring of snow broken into chunks, white with a blue-grey edge.
+static func _broken_ring() -> Texture2D:
+	var size := 128
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var c := Vector2(size, size) / 2.0
+	for y in size:
+		for x in size:
+			var v := Vector2(x + 0.5, y + 0.5) - c
+			var d := v.length() / 64.0
+			var a := v.angle()
+			var gap := absf(sin(a * 5.0 + 0.7)) < 0.22
+			var col := Color(0, 0, 0, 0)
+			if not gap and d > 0.62 and d < 0.98:
+				col = Color(0.62, 0.7, 0.8) if d > 0.9 or d < 0.68 else Color(0.97, 0.98, 1.0)
+				col.a = 0.95
+			img.set_pixel(x, y, col)
+	return ImageTexture.create_from_image(img)
 
 
 ## Her stick's sweep from `pos`, facing `dir` (on the ground), `reach` metres and `arc` degrees.

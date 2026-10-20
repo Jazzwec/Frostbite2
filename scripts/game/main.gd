@@ -973,12 +973,10 @@ func _on_event(ev: Dictionary) -> void:
 			Audio.play("warning")
 			# A short strip with what's coming; the countdown and the kinds stay in the forecast
 			# line, and edge arrows point at the sides (fight_v2 review 1). A troll is louder.
-			# What's in it is in the forecast line; the strip just says when (review 3).
+			# The strip counts down to it (Hud), the top panel lists what's in it (review 4); a
+			# troll gets a lower horn.
 			if ev.mix.get("troll", 0) > 0:
 				Audio.play("crash", Vector3.INF, 0.4, -4.0)
-				_hud.show_strip("Troll raid  ·  %ds" % roundi(ev.starts_in), "troll", Hud.TROLL_COMING_WASH, 2.5)
-			else:
-				_hud.show_strip("Next raid  ·  %ds" % roundi(ev.starts_in), "wolves")
 		"wolves_arrived":
 			Audio.play("howl")
 			_hud.show_strip("Wave %d is here!" % ev.wave, "wolves")
@@ -1025,7 +1023,10 @@ func _on_event(ev: Dictionary) -> void:
 				var from := _v3(ev.from)
 				var killing: bool = Game.engine.state.wolves.all(func(w): return w.id != ev.wolf or w.hp <= 0.0)
 				wolf.hit(from, "heavy" if killing else ("sweep" if ev.kind == "melee" else "light"))
-				Fx.impact(wolf.contact_point(from), 1.25 if killing else (1.12 if ev.get("exposed", false) else 1.0))
+				var counter: bool = ev.get("exposed", false)
+				Fx.impact(wolf.contact_point(from), 1.28 if killing else 1.0, counter)
+				if counter:
+					_show_counter(wolf.global_position)
 				# One secondary flourish: ink flecks flung away from the blow (fight_v2 review 1).
 				var away := (wolf.global_position - from)
 				away.y = 0.0
@@ -1036,7 +1037,7 @@ func _on_event(ev: Dictionary) -> void:
 			Audio.play("snap", _v3(ev.pos), STRIKE_PITCH.get(ev.kind, 1.0))
 			if ev.get("slam", false):
 				Audio.play("crash", _v3(ev.pos), 0.55, -2.0)
-				Fx.burst("snow_big", _v3(ev.pos) + Vector3(0, 0.2, 0))
+				Fx.slam_puff(_v3(ev.pos))
 				_rig.shake(0.06)
 				if -1 in ev.victims:
 					_meagan_hurt(0.0)
@@ -1050,6 +1051,10 @@ func _on_event(ev: Dictionary) -> void:
 			Audio.play("yelp", _v3(ev.pos), KILL_PITCH.get(ev.kind, 1.0))
 			Audio.play("coin")
 			_gather_loot(ev)
+		"meagan_up":
+			# Back up: if anything's being carried off, that's her job now (review 4).
+			if not ThreatArrows.nearest_thief(Game.engine.state).is_empty():
+				_hud.show_strip("Recover stolen supplies!", "bag", UiTheme.WARN_WASH, 2.0)
 		"meagan_injured":
 			Audio.play("hurt", Vector3.INF, 0.8)
 			_hud.show_strip("Meagan is down for %d s!" % roundi(ev.up_in), "", UiTheme.WARN_WASH, 2.0)
@@ -1074,19 +1079,34 @@ var _loot_at := Vector3.ZERO
 var _loot_n := 0
 
 
-## While she's down, "Up in 4" over her, counting down (fight_v2 review 2).
-var _down_label: Label3D
-
-
+## While she's down, "Up in 4s" on a cream card above her, counting down (fight_v2 reviews 2, 4).
 func _update_down_label() -> void:
 	var s := Game.engine.state
-	if _down_label == null:
-		_down_label = Shapes.label("", Vector3(0, 2.6, 0), 56, Color(1.0, 0.9, 0.85))
-		_down_label.pixel_size = 0.009
-		_meagan.add_child(_down_label)
-	_down_label.visible = s.meagan_injured and not s.game_over
-	if _down_label.visible:
-		_down_label.text = "Up in %d" % ceili(maxf(0.0, s.meagan_down_at + Balance.MEAGAN_DOWN_TIME - s.time))
+	if s.meagan_injured and not s.game_over:
+		var left := ceili(maxf(0.0, s.meagan_down_at + Balance.MEAGAN_DOWN_TIME - s.time))
+		_hud.callout("Up in %ds" % left, _rig.camera.unproject_position(_meagan.global_position + Vector3(0, 1.7, 0)))
+	else:
+		_hud.callout("", Vector2.ZERO)
+
+
+## A counter (a hit while it recovers) says so the first few times ever (review 4), then the
+## ochre star says it alone. Counted in settings.cfg.
+const COUNTER_LABELS := 3
+var _counters_shown := -1
+
+
+func _show_counter(at: Vector3) -> void:
+	var cfg := ConfigFile.new()
+	if _counters_shown < 0:
+		cfg.load(Game.SETTINGS_PATH)
+		_counters_shown = cfg.get_value("hints", "counters", 0)
+	if _counters_shown >= COUNTER_LABELS:
+		return
+	_counters_shown += 1
+	cfg.load(Game.SETTINGS_PATH)
+	cfg.set_value("hints", "counters", _counters_shown)
+	cfg.save(Game.SETTINGS_PATH)
+	Fx.pop("Counter!", at + Vector3(0, 2.4, 0), Color(0.98, 0.8, 0.4), 46)
 
 
 ## A beat of stillness on a kill or a heavy blow, and only then (review 2: 35-50 ms).

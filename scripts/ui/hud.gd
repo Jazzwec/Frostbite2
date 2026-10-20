@@ -57,6 +57,14 @@ var _banner_timer := 0.0
 var _strip: PanelContainer
 var _strip_label: RichTextLabel
 var _strip_timer := 0.0
+## Which look the countdown strip has (0 a wave, 1 a troll's, -1 something else), so its style is
+## only made when it changes.
+var _countdown_look := -1
+## The next wave's make-up, on its own row in the top panel while it's announced (review 4).
+var _mix_row: RichTextLabel
+## A small cream card over a point in the world ("Up in 4s" over Meagan while she's down).
+var _callout: PanelContainer
+var _callout_label: Label
 var _game_over: GameOverCard
 ## A chest's offer while it's waiting for her choice. [agreed 2026-10-20]
 var _offer_card: OfferCard
@@ -81,6 +89,7 @@ func _ready() -> void:
 	_build_top()
 	_build_banner()
 	_build_strip()
+	_build_callout()
 	milestone_cards = MilestoneCards.new()
 	_root.add_child(milestone_cards)
 	milestone_cards.setup(Game.milestones)
@@ -143,6 +152,9 @@ func _build_top() -> void:
 		_stat_labels[key] = l
 	_forecast = UiTheme.rich_label(36, UiTheme.INK_SOFT)
 	v.add_child(_forecast)
+	_mix_row = UiTheme.rich_label(36, UiTheme.INK)
+	_mix_row.visible = false
+	v.add_child(_mix_row)
 
 
 func _build_banner() -> void:
@@ -181,6 +193,33 @@ func _build_strip() -> void:
 	_strip.add_child(_strip_label)
 
 
+func _build_callout() -> void:
+	_callout = PanelContainer.new()
+	var style := UiTheme.panel_style(Color(UiTheme.PAPER, 0.96))
+	style.set_corner_radius_all(16)
+	style.content_margin_top = 4
+	style.content_margin_bottom = 4
+	style.content_margin_left = 14
+	style.content_margin_right = 14
+	_callout.add_theme_stylebox_override("panel", style)
+	_callout.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_callout.visible = false
+	_root.add_child(_callout)
+	_callout_label = UiTheme.label("", 44)
+	_callout_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_callout.add_child(_callout_label)
+
+
+## Shows `text` on a small card centred above screen point `at`; "" hides it.
+func callout(text: String, at: Vector2) -> void:
+	_callout.visible = text != ""
+	if text == "":
+		return
+	_callout_label.text = text
+	_callout.reset_size()
+	_callout.position = at - Vector2(_callout.size.x / 2.0, _callout.size.y)
+
+
 ## The strip's panel: the usual paper card's ink border, slimmer.
 func _strip_style(color: Color) -> StyleBoxFlat:
 	var style := UiTheme.panel_style(color)
@@ -198,6 +237,7 @@ func show_strip(text: String, icon := "", color := COMING_WASH, seconds := STRIP
 	if sheet.visible:
 		return
 	_strip.add_theme_stylebox_override("panel", _strip_style(color))
+	_countdown_look = -1
 	_strip_label.text = (UiTheme.icon(icon, 44) + "  " if icon != "" else "") + text
 	_strip.visible = true
 	_strip_timer = seconds
@@ -256,6 +296,17 @@ func _process(delta: float) -> void:
 		if _strip_timer <= 0.0 or sheet.visible:
 			_strip_timer = 0.0
 			_strip.visible = false
+	# Between news, a warned wave's countdown owns the strip (review 4).
+	if _strip_timer <= 0.0:
+		_strip.visible = s.attack_warned and not sheet.visible and not s.game_over
+		if _strip.visible:
+			var troll: bool = s.next_wave.get("mix", {}).get("troll", 0) > 0
+			var left := ceili(maxf(s.attack_at - s.time, 0.0))
+			if int(troll) != _countdown_look:
+				_countdown_look = int(troll)
+				_strip.add_theme_stylebox_override("panel", _strip_style(TROLL_COMING_WASH if troll else COMING_WASH))
+			_strip_label.text = "%s  %s  ·  %ds" % [UiTheme.icon("troll" if troll else "wolves", 44), "Troll raid" if troll else "Next raid", left]
+			_strip.modulate.a = 1.0
 
 
 ## The stats line steps down a size when big numbers would push it past the panel, and back up
@@ -428,17 +479,11 @@ func _forecast_text(s: GameState) -> String:
 	var raiders := s.wolves.filter(func(w): return w.outpost < 0).size() + s.wave_queue.size()
 	var wave_line := ""
 	if s.raid_on and raiders > 0:
-		wave_line = "%s Wave %d: %d left" % [UiTheme.icon("wolves", 44), s.wave, raiders]
-	if s.attack_warned:
-		if wave_line != "":
-			wave_line += "  ·  "
-		var left := maxf(s.attack_at - s.time, 0.0)
-		# What's coming, by kind, with a troll in red (fight_v2 review 1).
-		var next := "Wave %d in %s  %s" % [s.wave + 1, Fmt.clock(left), mix_icons(s.next_wave.get("mix", {}), 44)]
-		# Orange only for the last seconds, so it reads as urgent rather than routine.
-		if left <= WOLVES_URGENT:
-			next = "[color=#%s]%s[/color]" % [UiTheme.FALU.to_html(false), next]
-		wave_line += next
+		wave_line = "%s Wave %d  ·  %d left" % [UiTheme.icon("wolves", 44), s.wave, raiders]
+	# What's coming, by kind, on its own row (review 4); the strip has the countdown.
+	_mix_row.visible = s.attack_warned and not s.next_wave.is_empty()
+	if _mix_row.visible:
+		_mix_row.text = "Wave %d:  %s" % [s.wave + 1, mix_icons(s.next_wave.get("mix", {}), 48)]
 	if s.blizzard_active:
 		parts.append("%s BLIZZARD! %s left" % [UiTheme.icon("blizzard", 44), Fmt.clock(s.blizzard_ends_at - s.time)])
 	elif s.blizzard_warned:

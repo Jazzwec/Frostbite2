@@ -43,7 +43,7 @@ const TROT_SPEED := 13.0
 ## pose for most of their recovery, slumped, so the opening to step in reads (fight_v2 review 1;
 ## review 3: bear 0.35 s, troll 0.45 s).
 const ATTACK_HOLD := 0.05
-const HEAVY_HOLD := {"bear": 0.35, "troll": 0.45}
+const HEAVY_HOLD := {"bear": 0.42, "troll": 0.55}
 ## How far it leans back while crouching to strike, in degrees.
 const ATTACK_LEAN_BACK := 12.0
 ## Tells (fight_v2 reviews 1 and 2): one muted terracotta treatment (ink/tell.gdshader), a light
@@ -60,8 +60,10 @@ const TELL_LINE_WIDTH := 0.075
 ## spear, 7 px for her sweep, 10 px for a heavy blow), out and back over RECOIL_TIME.
 const FLASH_TIME := 0.08
 const FLASH_STRENGTH := 0.7
-const RECOIL := {"light": 0.09, "sweep": 0.16, "heavy": 0.23}
+const RECOIL := {"light": 0.11, "sweep": 0.14, "heavy": 0.16}
 const RECOIL_TIME := 0.17
+## Struck, it freezes this long (its own hit-stop; the game keeps running, review 4).
+const HIT_FREEZE := 0.06
 const RIM_FLASH := preload("res://scripts/game/ink/rim_flash.gdshader")
 ## Where each kind's health bar and sack sit, and how far back it stands from whoever it fights
 ## (so its front, not its middle, is at the engine's fight distance; view only). [proto]
@@ -89,6 +91,7 @@ var _flash := 0.0
 var _recoil := 0.0
 var _recoil_dir := Vector3.ZERO
 var _recoil_size := 0.0
+var _freeze := 0.0
 ## The posed wolf model (wolves and foxes), or null for a greybox body.
 var _pivot: Node3D
 var _skeleton: Skeleton3D
@@ -104,6 +107,11 @@ var _tell_zone: MeshInstance3D
 var _tell_zone_mat: ShaderMaterial
 var _tell_line_thin: MeshInstance3D
 var _tell_line: MeshInstance3D
+## Once locked, a cream keyline just outside the dark boundary (review 4: the lock reads as a
+## change of state, not a shade of the warning).
+var _tell_key: MeshInstance3D
+const TELL_KEY := Color(0.98, 0.94, 0.86, 1.0)
+const TELL_KEY_WIDTH := 0.07
 ## How far its health bar is raised to clear a neighbour's (PeopleLayer sets it; review 2), with a
 ## thin line down to its owner once it's lifted (review 3).
 var bar_lift := 0.0
@@ -123,6 +131,8 @@ static var _disc: Texture2D
 ## Whether this one wears the badge (PeopleLayer picks the nearest thief).
 var badge := false
 var _badge_amount: Label3D
+var _badge_bag: Sprite3D
+var _badge_stem: MeshInstance3D
 
 
 func _init(enemy_kind := "wolf") -> void:
@@ -159,7 +169,7 @@ func _init(enemy_kind := "wolf") -> void:
 	_hp_bar.position = Vector3(0, look.bar, 0)
 	_bar_link = MeshInstance3D.new()
 	var link := BoxMesh.new()
-	link.size = Vector3(0.035, 1.0, 0.035)
+	link.size = Vector3(0.045, 1.0, 0.045)
 	_bar_link.mesh = link
 	var link_mat := StandardMaterial3D.new()
 	link_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -195,6 +205,27 @@ func _init(enemy_kind := "wolf") -> void:
 	_badge_amount.render_priority = 12
 	_badge_amount.visible = false
 	add_child(_badge_amount)
+	_badge_bag = Sprite3D.new()
+	_badge_bag.texture = load("res://assets/ui/icons/bag.png")
+	_badge_bag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_badge_bag.no_depth_test = true
+	_badge_bag.render_priority = 11
+	_badge_bag.pixel_size = 0.0026
+	_badge_bag.visible = false
+	add_child(_badge_bag)
+	_badge_stem = MeshInstance3D.new()
+	var stem := BoxMesh.new()
+	stem.size = Vector3(0.045, 1.0, 0.045)
+	_badge_stem.mesh = stem
+	var stem_mat := StandardMaterial3D.new()
+	stem_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	stem_mat.albedo_color = Color(0.17, 0.2, 0.25)
+	stem_mat.no_depth_test = true
+	stem_mat.render_priority = 9
+	_badge_stem.material_override = stem_mat
+	_badge_stem.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_badge_stem.visible = false
+	add_child(_badge_stem)
 	_load = Node3D.new()
 	_load.visible = false
 	_model.add_child(_load)
@@ -311,7 +342,9 @@ func _build_bear() -> void:
 ## An ice troll: tall and stooped, a lopsided ridge of ice up its back, long arms with heavy
 ## fists it raises and brings down in a slam.
 func _build_troll() -> void:
+	# Three value groups: its hide, a darker hide for legs, fists and jaw, and the pale ice.
 	var hide := Color(0.52, 0.6, 0.68)
+	var dark := hide.darkened(0.22)
 	var ice := Color(0.8, 0.9, 0.98)
 	var body := Node3D.new()
 	body.scale = Vector3.ONE * TROLL_SCALE
@@ -320,7 +353,10 @@ func _build_troll() -> void:
 	trunk.rotation_degrees.x = 12.0
 	body.add_child(trunk)
 	body.add_child(Shapes.sphere(0.34, hide, Vector3(0, 2.6, 0.35)))
-	body.add_child(Shapes.box(Vector3(0.36, 0.14, 0.12), hide.darkened(0.35), Vector3(0, 2.48, 0.62)))
+	body.add_child(Shapes.box(Vector3(0.36, 0.14, 0.12), dark, Vector3(0, 2.48, 0.62)))
+	# Broad shoulders that run into the arms, so the joints don't read as separate balls.
+	for x in [-0.6, 0.6]:
+		body.add_child(Shapes.sphere(0.42, hide, Vector3(x, 2.2, 0.05)))
 	# The ice on its back, bigger on the left: its outline is lopsided from every side.
 	var spikes := [[Vector3(-0.3, 2.45, -0.45), 0.3, 0.9], [Vector3(-0.42, 2.0, -0.55), 0.25, 0.75],
 			[Vector3(0.22, 2.3, -0.48), 0.18, 0.5], [Vector3(-0.1, 2.75, -0.3), 0.2, 0.6]]
@@ -329,15 +365,15 @@ func _build_troll() -> void:
 		c.rotation_degrees.x = -40.0
 		body.add_child(c)
 	for x in [-0.32, 0.32]:
-		body.add_child(Shapes.cylinder(0.24, 0.8, hide.darkened(0.2), Vector3(x, 0.4, 0)))
+		body.add_child(Shapes.cylinder(0.26, 0.85, dark, Vector3(x, 0.42, 0)))
 	for x in [-0.82, 0.82]:
 		var arm := Node3D.new()
 		arm.position = Vector3(x, 2.25, 0.1)
 		body.add_child(arm)
 		# Oversized forearms and fists (review 1): its slam reads from its outline.
-		arm.add_child(Shapes.capsule(0.19, 0.8, hide, Vector3(0, -0.35, 0)))
-		arm.add_child(Shapes.capsule(0.32, 0.9, hide.darkened(0.08), Vector3(0, -1.0, 0.03)))
-		arm.add_child(Shapes.sphere(0.46, hide.darkened(0.15), Vector3(0, -1.48, 0.06)))
+		arm.add_child(Shapes.capsule(0.24, 0.9, hide, Vector3(0, -0.38, 0)))
+		arm.add_child(Shapes.capsule(0.33, 0.95, hide, Vector3(0, -1.0, 0.03)))
+		arm.add_child(Shapes.sphere(0.46, dark, Vector3(0, -1.48, 0.06)))
 		_parts["arm_r" if x > 0 else "arm_l"] = arm
 	_parts.body = body
 
@@ -387,11 +423,14 @@ func _build_tell() -> void:
 			full = sector(0.0, _def.reach, _def.arc)
 			thin = _wedge_outline(_def.reach, _def.arc, TELL_LINE_THIN)
 			line = _wedge_outline(_def.reach, _def.arc, TELL_LINE_WIDTH)
+			var widen: float = rad_to_deg(TELL_KEY_WIDTH * 1.4 / _def.reach) * 2.0
+			_tell_key = _ground_mesh(_wedge_outline(_def.reach + TELL_KEY_WIDTH, _def.arc + widen, TELL_KEY_WIDTH * 1.6), TELL_KEY)
 		_:
 			# A slam's ring round it, or a shard's target where it will land.
 			full = sector(0.0, _def.reach, 360.0)
 			thin = sector(_def.reach - TELL_LINE_THIN, _def.reach, 360.0)
 			line = sector(_def.reach - TELL_LINE_WIDTH, _def.reach, 360.0)
+			_tell_key = _ground_mesh(sector(_def.reach, _def.reach + TELL_KEY_WIDTH, 360.0), TELL_KEY)
 	_tell_zone = MeshInstance3D.new()
 	_tell_zone.mesh = full
 	_tell_zone_mat = ShaderMaterial.new()
@@ -402,8 +441,9 @@ func _build_tell() -> void:
 	_tell_zone.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_tell_line_thin = _ground_mesh(thin, TELL_LINE)
 	_tell_line = _ground_mesh(line, TELL_LINE)
-	for mi in [_tell_zone, _tell_line_thin, _tell_line]:
+	for mi in [_tell_zone, _tell_key, _tell_line_thin, _tell_line]:
 		_tell.add_child(mi)
+	_tell_key.position.y = 0.005
 	_tell_line_thin.position.y = 0.01
 	_tell_line.position.y = 0.01
 	if _def.shape == "shot":
@@ -484,9 +524,12 @@ func _update_tell(enemy: Dictionary) -> void:
 	var fade := clampf(t / 0.1, 0.0, 1.0)
 	var locked := t >= strike - Combat.lock_of(_def)
 	_tell_zone_mat.set_shader_parameter("fade", fade)
-	_tell_zone_mat.set_shader_parameter("progress", clampf(t / strike, 0.0, 1.0) * 1.25)
+	# The fill advances until the lock, then holds (review 4).
+	var lock_at: float = strike - Combat.lock_of(_def)
+	_tell_zone_mat.set_shader_parameter("progress", clampf(minf(t, lock_at) / strike, 0.0, 1.0) * 1.25)
 	_tell_line_thin.visible = not locked
 	_tell_line.visible = locked
+	_tell_key.visible = locked
 	(_tell_line_thin.material_override as StandardMaterial3D).albedo_color.a = 0.85 * fade
 	var from: Vector2 = enemy.get("tell_from", enemy.pos)
 	var at := Vector3(from.x, 0.04, from.y)
@@ -535,6 +578,7 @@ func hit(from := Vector3.INF, blow := "light") -> void:
 	_flash = FLASH_TIME
 	_recoil = RECOIL_TIME
 	_recoil_size = RECOIL[blow]
+	_freeze = HIT_FREEZE
 	var away := global_position - from if from != Vector3.INF else -_model.basis.z
 	away.y = 0.0
 	_recoil_dir = away.normalized() if away.length() > 0.01 else Vector3.BACK
@@ -547,6 +591,8 @@ func die() -> void:
 	_sack.visible = false
 	_sack_disc.visible = false
 	_badge_amount.visible = false
+	_badge_bag.visible = false
+	_badge_stem.visible = false
 	_load.visible = false
 	if _shot_line:
 		_shot_line.visible = false
@@ -561,6 +607,11 @@ func die() -> void:
 
 
 func sync(enemy: Dictionary, delta: float) -> void:
+	# Its hit-stop: a beat with nothing moving but the flash.
+	if _freeze > 0.0:
+		_freeze -= delta
+		_flash_mat.set_shader_parameter("strength", FLASH_STRENGTH)
+		return
 	var target := Vector3(enemy.pos.x, 0, enemy.pos.y)
 	var fighting: bool = enemy.mode == "fight"
 	if fighting and enemy.has("foe_pos"):
@@ -612,9 +663,12 @@ func sync(enemy: Dictionary, delta: float) -> void:
 	if _bar_link.visible:
 		_bar_link.position.y = _bar_height - 0.1 + lifted / 2.0
 		_bar_link.scale.y = lifted
-	# The thief's badge sits just above its bar, wherever the bar is.
-	_sack_disc.position.y = _hp_bar.position.y + 0.42
-	_badge_amount.position.y = _sack_disc.position.y
+	# The thief's badge hangs just above its bar on a short stem, a sack beside the amount.
+	_sack_disc.position = Vector3(0.14, _hp_bar.position.y + 0.5, 0)
+	_badge_amount.position = _sack_disc.position
+	_badge_bag.position = _sack_disc.position + Vector3(-0.5, 0, 0)
+	_badge_stem.position = Vector3(0, _hp_bar.position.y + 0.2, 0)
+	_badge_stem.scale.y = 0.28
 	_update_tell(enemy)
 	_update_sack(enemy)
 
@@ -630,6 +684,8 @@ func _update_sack(enemy: Dictionary) -> void:
 	_sack.visible = false
 	_sack_disc.visible = most != "" and badge
 	_badge_amount.visible = _sack_disc.visible
+	_badge_bag.visible = _sack_disc.visible
+	_badge_stem.visible = _sack_disc.visible
 	if _sack_disc.visible:
 		var total := 0.0
 		for res in carry:
@@ -731,9 +787,10 @@ func _pose_greybox(fighting: bool, lunge: float, moving: bool) -> void:
 			# The tell: it rears a little, twists its shoulders and draws its right paw well back
 			# (review 2: the swipe reads from the pose); then it comes down swiping across. Its
 			# recovery is its own shape: low, head down, the paw planted out in front.
-			_parts.rear.rotation_degrees.x = -24.0 * wound + 10.0 * strike + 12.0 * slump
+			# Recovering, head and shoulders right down (review 4: 8-10 px), the paw stays planted.
+			_parts.rear.rotation_degrees.x = -24.0 * wound + 10.0 * strike + 20.0 * slump
 			_parts.rear.rotation_degrees.y = 26.0 * wound - 18.0 * strike
-			_parts.rear.position.y = 0.04 * bob - 0.12 * slump
+			_parts.rear.position.y = 0.04 * bob - 0.22 * slump
 			_parts.paw_r.rotation_degrees.x = 60.0 * wound - 85.0 * strike + (0.0 if fighting else 18.0 * sin(_t))
 			_parts.paw_r.rotation_degrees.y = -30.0 * wound + 45.0 * strike
 			# Drawn out to the side, clear of its body (review 3: 15-20 px).
@@ -748,7 +805,7 @@ func _pose_greybox(fighting: bool, lunge: float, moving: bool) -> void:
 				var sway := 0.0 if fighting else 14.0 * sin(_t + (0.0 if arm == "arm_l" else PI))
 				_parts[arm].rotation_degrees.x = -160.0 * wound - 30.0 * strike + 45.0 * slump + sway
 				_parts[arm].rotation_degrees.z = side * (34.0 * wound + 26.0 * slump)
-			_parts.body.rotation_degrees.x = -8.0 * wound + 12.0 * strike + 16.0 * slump
+			_parts.body.rotation_degrees.x = -8.0 * wound + 12.0 * strike + 26.0 * slump
 			# Review 3: the slam drops it 12-16 px.
 			_parts.body.position.y = 0.05 * bob - 0.32 * strike - 0.08 * slump
 		"raider":
