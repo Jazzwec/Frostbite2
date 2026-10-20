@@ -69,7 +69,9 @@ void fragment() {
 	for (int i = 0; i < contact_count; i++) {
 		float r = contacts[i].z;
 		float dc = distance(p, contacts[i].xy) + (value_noise(p * 0.8 + float(i)) - 0.5) * r * 0.25;
-		shade = max(shade, 1.0 - smoothstep(r * 0.75, r * 1.45, dc));
+		// Tight and darkest at the foundation, fading quickly (ink_v3 review).
+		float s1 = 1.0 - smoothstep(r * 0.7, r * 1.15, dc);
+		shade = max(shade, s1 * s1);
 	}
 	c *= mix(vec3(1.0), contact_tint, shade * contact_strength);
 

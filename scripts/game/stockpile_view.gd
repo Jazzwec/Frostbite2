@@ -10,6 +10,8 @@ const PAD_COLOR := Color(0.45, 0.85, 0.5, 0.5)
 
 var _heaps := {}  # resource -> Array of Node3D, bottom first
 var _shown := {"wood": 0, "food": 0, "materials": 0}
+var _pad: MeshInstance3D
+var _pad_label: Label3D
 
 
 func setup() -> void:
@@ -31,15 +33,20 @@ func setup() -> void:
 		_heaps[res] = pieces
 
 	var pad_at := MapData.stockpile_pad() - MapData.STOCKPILE_POS
-	add_child(Shapes.cylinder(1.1, 0.03, PAD_COLOR, Vector3(pad_at.x, 0.02, pad_at.y)))
-	var pad_label := Shapes.label("Stockpile", Vector3(pad_at.x, 0.08, pad_at.y), 42)
-	pad_label.billboard = BaseMaterial3D.BILLBOARD_DISABLED
-	pad_label.rotation_degrees.x = -90.0
-	add_child(pad_label)
+	_pad = Shapes.cylinder(1.1, 0.03, PAD_COLOR, Vector3(pad_at.x, 0.02, pad_at.y))
+	add_child(_pad)
+	_pad_label = Shapes.label("Stockpile", Vector3(pad_at.x, 0.08, pad_at.y), 42)
+	_pad_label.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+	_pad_label.rotation_degrees.x = -90.0
+	add_child(_pad_label)
 	add_child(Shapes.tap_area(Vector3(3.4, 2.0, 3.8), "stockpile", 0, Vector3(0, 0, 0.9)))
 
 
 func refresh(s: GameState) -> void:
+	# Its pad and name show only as she comes near, like the plots' (ink_v3 review).
+	var d := s.meagan_pos.distance_to(MapData.stockpile_pad())
+	_pad.visible = d <= SiteView.PAD_SHOW
+	_pad_label.visible = d <= SiteView.LABEL_NEAR
 	var caps := Economy.caps(s)
 	for res in HEAPS:
 		var amount: float = s.piles[res]

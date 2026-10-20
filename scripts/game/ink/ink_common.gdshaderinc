@@ -11,6 +11,9 @@ uniform int warm_spot_count = 0;
 // A gentle firelight glow on near-white snow, not orange ground (ink_v3 paintover, 2026-10-20).
 uniform vec3 warm_tint : source_color = vec3(1.05, 0.985, 0.9);
 uniform vec3 cool_tint : source_color = vec3(0.9, 0.94, 1.0);
+uniform float pool_radius = 4.6;
+uniform vec3 pool_tint : source_color = vec3(1.09, 0.95, 0.84);
+uniform float pool_strength = 0.75;
 // How much of a point light's strength paints (the furnace's fire is a strong light).
 uniform float point_light_scale = 0.2;
 
@@ -38,7 +41,11 @@ vec3 warmth_tint(vec3 p) {
 		float ds = distance(p.xz, warm_spots[i].xy) + wander * 0.5;
 		warm = max(warm, 1.0 - smoothstep(warm_spots[i].z * 0.75, warm_spots[i].z, ds));
 	}
-	return mix(cool_tint, warm_tint, warm);
+	// A tighter peach pool of firelight right round the furnace, about a furnace-width past its
+	// base, that dims as the fire does (ink_v3 review).
+	float dp = distance(p.xz, warm_center.xz) + wander * 0.4;
+	float pool = (1.0 - smoothstep(pool_radius * 0.3, pool_radius, dp)) * clamp((warm_radius - 5.0) / 7.0, 0.2, 1.0);
+	return mix(mix(cool_tint, warm_tint, warm), pool_tint, pool * pool_strength);
 }
 
 void light() {

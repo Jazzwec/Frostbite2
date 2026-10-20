@@ -138,7 +138,8 @@ func _convert(mi: MeshInstance3D) -> void:
 		if ink == null:
 			continue
 		# Snow doesn't settle on people and wolves (their rigged meshes have a skin).
-		if mi.skin != null or mi.get_parent() is Skeleton3D:
+		# Nor on a warm furnace (its meshes carry the "no_snow" meta, set by SiteView).
+		if mi.skin != null or mi.get_parent() is Skeleton3D or mi.has_meta("no_snow"):
 			ink.set_shader_parameter("snow_caps", 0.0)
 		if not _restore.has(mi):
 			_restore[mi] = {}

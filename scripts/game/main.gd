@@ -162,7 +162,7 @@ func _refresh_views(delta: float) -> void:
 	_people.refresh(s, delta)
 	for g in _gates:
 		if g.index < s.gates.size():
-			g.refresh(s.gates[g.index])
+			g.refresh(s.gates[g.index], s.meagan_pos)
 	for v in _stoves:
 		v.refresh(s)
 	for v in _chests:

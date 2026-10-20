@@ -24,6 +24,8 @@ const PAD_COLORS := {
 	"paying": Color(1.0, 0.78, 0.3, 0.55), "maxed": Color(0.6, 0.6, 0.65, 0.35),
 }
 const RING_COLOR := Color(1.0, 0.92, 0.5)
+## Pads (plots, the Stockpile, gates) show within this distance of her. [ink_v3, 2026-10-20]
+const PAD_SHOW := 6.0
 ## Nameplates: the largest font, and the most of the building's width they may take.
 const PLATE_FONT := 36
 const PLATE_MIN_FONT := 24
@@ -330,6 +332,9 @@ func _build_furnace(level: int) -> void:
 		# The Meshy model (assets/models/meshy/furnace.meshy.json): the glow sits in its fire
 		# mouth and the embers rise from its chimney.
 		_shapes.add_child(model)
+		# A hot furnace holds no snow (the ink look's snow caps skip it).
+		for mi in model.find_children("*", "MeshInstance3D", true, false):
+			mi.set_meta("no_snow", true)
 		_fire = Shapes.sphere(0.52, Color(1.0, 0.55, 0.15), FURNACE_MOUTH, 4.0)
 		embers_at = FURNACE_CHIMNEY
 	else:
@@ -466,6 +471,9 @@ func _update_pad(s: GameState, site: Dictionary) -> void:
 		state = "idle"
 		_pad_label.text = "Lv %d\nUpgrade" % site.level
 	_pad.material_override = Shapes.material(PAD_COLORS[state])
+	# The disc shows only as she comes near or while it's being paid for; otherwise the building
+	# or staked plot is the cue (ink_v3 review: no placement circles all over the town).
+	_pad.visible = state == "paying" or s.meagan_pos.distance_to(MapData.pad_pos(s, index)) <= PAD_SHOW
 	_pad_label.font_size = 34 if state == "paying" else 46
 	if absf(frac - _ring_frac) > 0.004:
 		_ring_frac = frac

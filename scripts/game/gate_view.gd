@@ -42,7 +42,11 @@ func setup(gate_index: int, gate: Dictionary) -> void:
 	add_child(Shapes.tap_area(Vector3(3.5, 2.0, 3.5), "gate", index, Vector3(at.x / 2.0, 0, at.y / 2.0)))
 
 
-func refresh(gate: Dictionary) -> void:
+func refresh(gate: Dictionary, meagan: Vector2) -> void:
+	# The pad and its cost show as she comes near or while it's being paid for (ink_v3 review).
+	var near: bool = gate.paying or meagan.distance_to(gate.pad) <= SiteView.LABEL_NEAR
+	_label.visible = near
+	_pad.visible = gate.paying or meagan.distance_to(gate.pad) <= SiteView.PAD_SHOW
 	var frac := 0.0
 	var lines := []
 	var have := 0.0
