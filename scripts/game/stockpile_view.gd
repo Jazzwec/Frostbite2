@@ -12,6 +12,8 @@ var _heaps := {}  # resource -> Array of Node3D, bottom first
 var _shown := {"wood": 0, "food": 0, "materials": 0}
 var _pad: MeshInstance3D
 var _pad_label: Label3D
+## Whether the Stockpile is the one thing nearest Meagan, which alone shows its label (main.gd).
+var focused := false
 
 
 func setup() -> void:
@@ -46,7 +48,7 @@ func refresh(s: GameState) -> void:
 	# Its pad and name show only as she comes near, like the plots' (ink_v3 review).
 	var d := s.meagan_pos.distance_to(MapData.stockpile_pad())
 	_pad.visible = d <= SiteView.PAD_SHOW
-	_pad_label.visible = d <= SiteView.LABEL_NEAR
+	_pad_label.visible = focused
 	var caps := Economy.caps(s)
 	for res in HEAPS:
 		var amount: float = s.piles[res]

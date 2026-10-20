@@ -18,8 +18,8 @@ var _pieces: Array[Node3D] = []
 var _up: Array[bool] = []
 var _holes: Array[Vector3] = []
 var _label: Label3D
-## The stock label shows only within this distance of her. [ink_v3, 2026-10-20]
-const LABEL_NEAR := 11.0
+## Whether this spot is the one thing nearest Meagan, which alone shows its label (main.gd).
+var focused := false
 ## Whether any crown here is (still) faded for Meagan.
 var _faded := false
 
@@ -152,8 +152,7 @@ func refresh(s: GameState) -> void:
 	_label.text = "%s %s" % [str(node_def.resource).capitalize(), Fmt.num(s.nodes[index])]
 	# Only as she comes near (the town reads as a picture, ink_v3); while she works here her pops
 	# and readout are over her, so the spot's own label steps aside.
-	var d := s.meagan_pos.distance_to(MapData.node_pos(s, index))
-	_label.visible = d > Balance.GATHER_RANGE + 1.0 and d <= LABEL_NEAR
+	_label.visible = focused
 	_label.modulate = Color(1, 1, 1, 0.9) if frac > 0.05 else Color(0.7, 0.7, 0.75, 0.6)
 
 

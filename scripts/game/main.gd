@@ -148,6 +148,7 @@ func _refresh_views(delta: float) -> void:
 	var her := _meagan.global_position if _meagan else Vector3.INF
 	var hidden := false
 	_dressing.refresh(s)
+	_update_label_focus(s)
 	for v in _sites:
 		v.refresh(s)
 		if _rig:
@@ -264,6 +265,39 @@ func _set_contacts(m: ShaderMaterial) -> void:
 	contacts.resize(mini(contacts.size(), CONTACT_LIMIT))
 	m.set_shader_parameter("contacts", contacts)
 	m.set_shader_parameter("contact_count", contacts.size())
+
+
+## One label at a time (ink_v3 review): only the labelled thing nearest Meagan within
+## SiteView.LABEL_NEAR shows its text (a plot by its pad, a resource spot she isn't working at,
+## the Stockpile, a gate).
+func _update_label_focus(s: GameState) -> void:
+	var me := s.meagan_pos
+	var best := SiteView.LABEL_NEAR
+	var focus: Node = null
+	for v in _sites:
+		var d := me.distance_to(MapData.pad_pos(s, v.index))
+		if d < best:
+			best = d
+			focus = v
+	for v in _nodes:
+		var d := me.distance_to(MapData.node_pos(s, v.index))
+		if d > Balance.GATHER_RANGE + 1.0 and d < best:
+			best = d
+			focus = v
+	if me.distance_to(MapData.stockpile_pad()) < best:
+		best = me.distance_to(MapData.stockpile_pad())
+		focus = _stockpile
+	for g in _gates:
+		if g.index < s.gates.size() and me.distance_to(s.gates[g.index].pad) < best:
+			best = me.distance_to(s.gates[g.index].pad)
+			focus = g
+	for v in _sites:
+		v.focused = v == focus
+	for v in _nodes:
+		v.focused = v == focus
+	_stockpile.focused = _stockpile == focus
+	for g in _gates:
+		g.focused = g == focus
 
 
 ## The ground's marks change when something is built or a tile opens.

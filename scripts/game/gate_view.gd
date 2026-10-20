@@ -11,6 +11,8 @@ var _pad: MeshInstance3D
 var _ring: MeshInstance3D
 var _ring_frac := -1.0
 var _label: Label3D
+## Whether this gate is the one thing nearest Meagan, which alone shows its cost (main.gd).
+var focused := false
 
 
 func setup(gate_index: int, gate: Dictionary) -> void:
@@ -44,8 +46,7 @@ func setup(gate_index: int, gate: Dictionary) -> void:
 
 func refresh(gate: Dictionary, meagan: Vector2) -> void:
 	# The pad and its cost show as she comes near or while it's being paid for (ink_v3 review).
-	var near: bool = gate.paying or meagan.distance_to(gate.pad) <= SiteView.LABEL_NEAR
-	_label.visible = near
+	_label.visible = focused
 	_pad.visible = gate.paying or meagan.distance_to(gate.pad) <= SiteView.PAD_SHOW
 	var frac := 0.0
 	var lines := []

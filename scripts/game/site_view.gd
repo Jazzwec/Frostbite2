@@ -54,6 +54,8 @@ var _ring: MeshInstance3D
 var _ring_frac := -1.0
 ## Whether the building is (still) faded because Meagan is behind it.
 var _faded := false
+## Whether this plot is the one thing nearest Meagan, which alone shows its labels (main.gd).
+var focused := false
 ## The nameplate steps aside for a moment while the level-up line has the stage.
 var _resting := false
 
@@ -406,21 +408,21 @@ var _label_alpha := 0.0
 func _update_labels(s: GameState, site: Dictionary) -> void:
 	var b: String = site.building
 	_update_pad(s, site)
-	var show: bool = site.upgrading or s.meagan_pos.distance_to(MapData.pad_pos(s, index)) <= LABEL_NEAR
+	# Only the one thing nearest her shows its labels (main.gd sets `focused`), so unrelated labels
+	# never stack (ink_v3 review).
+	var show := focused
 	_label_alpha = move_toward(_label_alpha, 1.0 if show else 0.0, get_process_delta_time() * LABEL_FADE)
 	for label: Label3D in [_title, _pad_label]:
 		label.modulate.a = _label_alpha
 		label.outline_modulate.a = _label_alpha
 		label.visible = _label_alpha > 0.01 and (label != _title or not _resting)
-	if b == "":
-		_title.text = ""
-		return
-	# Just the name and level; numbers (fuel, stores, costs) are in the building's sheet.
-	var name: String = Balance.BUILDINGS[b].name
-	var text := name if site.level == 0 else "%s\nLv %d" % [name, site.level]
+	# One compact line: the name and level (an empty plot shows what it will hold). Numbers
+	# (fuel, stores, costs) are in the building's sheet.
+	var name: String = Balance.BUILDINGS[site.type if b == "" else b].name
+	var text := name if site.level == 0 else "%s · Lv %d" % [name, site.level]
 	if text != _title.text:
 		_title.text = text
-		_title.font_size = fit_font(name, PLATE_FONT, PLATE_MIN_FONT, PLATE_WIDTH, _title.pixel_size)
+		_title.font_size = fit_font(text, PLATE_FONT, PLATE_MIN_FONT, PLATE_WIDTH, _title.pixel_size)
 
 
 ## Fades the building while it stands between the camera and Meagan.
@@ -450,7 +452,7 @@ func _update_pad(s: GameState, site: Dictionary) -> void:
 		# The plot's own building (the game decides, agreed 2026-10-20), or what it waits for.
 		var plot: String = site.type
 		var name: String = Balance.BUILDINGS[plot].name
-		_pad_label.text = ("+ %s" % name) if Economy.is_unlocked(s, plot) else ("%s\nFurnace Lv %d" % [name, Balance.BUILDINGS[plot].unlock])
+		_pad_label.text = "+ Build" if Economy.is_unlocked(s, plot) else ("Needs Furnace Lv %d" % Balance.BUILDINGS[plot].unlock)
 	elif site.upgrading:
 		state = "paying"
 		var need := Economy.site_cost(s, index)
@@ -469,7 +471,7 @@ func _update_pad(s: GameState, site: Dictionary) -> void:
 		_pad_label.text = "Max"
 	else:
 		state = "idle"
-		_pad_label.text = "Lv %d\nUpgrade" % site.level
+		_pad_label.text = "Upgrade"
 	_pad.material_override = Shapes.material(PAD_COLORS[state])
 	# The disc shows only as she comes near or while it's being paid for; otherwise the building
 	# or staked plot is the cue (ink_v3 review: no placement circles all over the town).
