@@ -72,6 +72,13 @@ static func make(id: String) -> Node3D:
 			n.get_child(-1).rotation_degrees.z = 90.0
 			n.add_child(Shapes.cone(0.08, 0.12, Color(0.45, 0.6, 0.72), Vector3(-0.22, 0, 0)))
 			n.get_child(-1).rotation_degrees.z = -90.0
+		# Meagan's walking stick, for her melee sweep (agreed 2026-10-20).
+		"stick":
+			n.add_child(Shapes.cylinder(0.035, 1.1, Color(0.42, 0.27, 0.15), Vector3(0, -0.45, 0), 0.03))
+			n.add_child(Shapes.sphere(0.06, Color(0.36, 0.22, 0.12), Vector3(0, 0.08, 0)))
+		# A snowball in her mitten, for her throw.
+		"snowball":
+			n.add_child(Shapes.sphere(0.11, Color(0.95, 0.97, 1.0), Vector3(0, -0.08, 0)))
 		# A Jan's load on the way to a stockpile (AFK V4, 2026-10-20): big, distinct shapes held
 		# clear of his chest, about a third of his height, so a hauler reads at a glance.
 		"bundle":

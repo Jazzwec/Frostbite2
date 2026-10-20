@@ -111,6 +111,29 @@ const RESCUE_RANGE := 2.0
 const MEAGAN_HP := 100.0
 const MEAGAN_DAMAGE_PER_SECOND := 10.0
 const MEAGAN_ATTACK_RANGE := 2.5  # [proto]
+## Hypercasual fighting (agreed 2026-10-20, numbers from Astra's steer, all [proto]): she
+## fights on her own, two ways. Snowballs at range; a walking-stick sweep up close. She swaps to
+## melee as soon as a wolf is within reach, and back to snowballs only once none has been within
+## the exit distance for a moment (so it doesn't flicker). One shared cooldown.
+const MEAGAN_MELEE_REACH := 2.5
+const MEAGAN_MELEE_DAMAGE := 10.0
+const MEAGAN_MELEE_EVERY := 0.8
+## From the start of the sweep to its hit.
+const MEAGAN_MELEE_IMPACT := 0.24
+const MEAGAN_MELEE_KNOCK := 0.25
+const MEAGAN_MELEE_EXIT := 3.0
+const MEAGAN_MELEE_EXIT_TIME := 0.3
+const MEAGAN_RANGED_RANGE := 7.0
+const MEAGAN_RANGED_DAMAGE := 6.0
+const MEAGAN_RANGED_EVERY := 0.75
+## From the start of the throw to the snowball leaving her hand, and how fast it flies (m/s).
+const MEAGAN_RANGED_RELEASE := 0.18
+const SNOWBALL_SPEED := 18.0
+const MEAGAN_RANGED_KNOCK := 0.1
+## With a wolf this close she stops gathering, building and storing, and goes back to them this
+## long after the last one has gone.
+const FIGHT_PAUSE_RANGE := 7.0
+const FIGHT_RESUME := 1.0
 
 # ---------- Resource nodes ----------
 
@@ -191,11 +214,24 @@ const WOLF_DETOUR_RANGE := 7.0
 const WOLF_REACH := 2.0
 const WOLF_SCARE_TIME := 3.0
 ## A wolf stops to fight a guard or Meagan within this range. [proto]
-const WOLF_ENGAGE_RANGE := 2.5
+const WOLF_ENGAGE_RANGE := 5.0
 ## Fighting wolves close in to this far from their foe, and wolves keep this far from each
 ## other, so a pack spreads round its target instead of piling up. About a wolf's length. [proto]
 const WOLF_FIGHT_DISTANCE := 1.3
 const WOLF_SPACING := 1.3
+## A wolf bites (agreed 2026-10-20, from Astra's steer, [proto]): it starts within BITE_START of
+## its victim, crouches (the telegraph), lunges, and the bite lands only if the victim is still
+## within BITE_REACH; then it recovers and waits. Damage per bite keeps its damage per second.
+## At most WOLF_MAX_WINDUPS wolves wind up at once, their starts at least WOLF_WINDUP_GAP apart.
+const WOLF_BITE_START := 1.6
+const WOLF_BITE_REACH := 1.9
+const WOLF_BITE_WINDUP := 0.4
+const WOLF_BITE_LUNGE := 0.12
+const WOLF_BITE_LUNGE_DISTANCE := 0.6
+const WOLF_BITE_RECOVER := 0.28
+const WOLF_BITE_EVERY := 1.5
+const WOLF_MAX_WINDUPS := 2
+const WOLF_WINDUP_GAP := 0.25
 ## A wolf reaching the furnace takes these fractions, scares off this many Jans, then leaves. [brief]
 const BREAKTHROUGH_WOOD := 0.15
 const BREAKTHROUGH_FOOD := 0.15
@@ -212,6 +248,11 @@ const GUARD_SPEED := 4.0  # [proto]
 const GUARD_RANGE := 1.6  # [proto]
 ## Guards wait in a ring this far from the furnace. [proto]
 const GUARD_RING_RADIUS := 4.0
+## Guards strike once every this many seconds at the nearest wolf they can see, and don't chase
+## further than the leash from their post. [proto, Astra's steer]
+const GUARD_STRIKE_EVERY := 1.0
+const GUARD_SIGHT := 6.0
+const GUARD_LEASH := 8.0
 
 # ---------- The world: tiles and small furnaces (agreed 2026-10-20) ----------
 

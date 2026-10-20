@@ -244,6 +244,38 @@ const CLIPS := {
 			{"t": 0.8, "arm_r": Vector3(18, 0, 6), "arm_l": Vector3(18, 0, 6), "turn": -30.0, "head": -6.0},
 		],
 	},
+	# Meagan in a fight, between attacks: stick in hand, a little crouched (agreed 2026-10-20).
+	"ready": {
+		"length": 1.2, "loop": true, "tool": "stick", "impact": -1.0,
+		"keys": [
+			{"t": 0.0, "arm_r": Vector3(-38, 0, 10), "arm_l": Vector3(-30, 0, -14), "lean": 6.0, "rise": -0.05, "tool": Vector3(-30, 0, 0)},
+			{"t": 0.5, "arm_r": Vector3(-42, 0, 10), "arm_l": Vector3(-32, 0, -14), "lean": 7.0, "rise": -0.07, "tool": Vector3(-30, 0, 0)},
+		],
+	},
+	# Her stick sweep (Astra's steer): 0.16 s wind-up, a 0.08 s sweep to the hit at 0.24 s, 0.2 s
+	# recovery, rest. Played over her legs, so she can swing while she walks.
+	"sweep": {
+		"length": 0.8, "loop": false, "tool": "stick", "impact": 0.3,
+		"keys": [
+			{"t": 0.0, "arm_r": Vector3(-45, 0, 10), "arm_l": Vector3(-35, 0, -14), "turn": 0.0, "tool": Vector3(0, 90, 0)},
+			{"t": 0.2, "arm_r": Vector3(-72, 0, -50), "arm_l": Vector3(-60, 0, -40), "turn": 45.0, "lean": -4.0, "tool": Vector3(0, 90, 0), "ease": "out"},
+			{"t": 0.3, "arm_r": Vector3(-78, 0, 34), "arm_l": Vector3(-64, 0, 24), "turn": -40.0, "lean": 8.0, "tool": Vector3(0, 90, 0), "ease": "in"},
+			{"t": 0.55, "arm_r": Vector3(-55, 0, 20), "arm_l": Vector3(-45, 0, 10), "turn": -15.0, "lean": 4.0, "tool": Vector3(0, 90, 0)},
+			{"t": 1.0, "arm_r": Vector3(-40, 0, 10), "arm_l": Vector3(-32, 0, -14), "turn": 0.0, "tool": Vector3(0, 90, 0)},
+		],
+	},
+	# Her snowball throw: 0.12 s hand back and up, a 0.06 s throw to the release at 0.18 s, 0.18 s
+	# recovery, rest. The snowball leaves her hand at the release.
+	"throw": {
+		"length": 0.75, "loop": false, "tool": "snowball", "impact": 0.24, "throws": true,
+		"keys": [
+			{"t": 0.0, "arm_r": Vector3(-30, 0, 10), "arm_l": Vector3(-30, 0, -12), "turn": 0.0},
+			{"t": 0.16, "arm_r": Vector3(-160, 0, 16), "arm_l": Vector3(-70, 0, -10), "turn": 28.0, "lean": -6.0, "ease": "out"},
+			{"t": 0.24, "arm_r": Vector3(-70, 0, 4), "arm_l": Vector3(-30, 0, -12), "turn": -18.0, "lean": 10.0, "ease": "in"},
+			{"t": 0.48, "arm_r": Vector3(-40, 0, 8), "arm_l": Vector3(-28, 0, -12), "turn": -6.0, "lean": 4.0},
+			{"t": 1.0, "arm_r": Vector3(-30, 0, 10), "arm_l": Vector3(-30, 0, -12), "turn": 0.0},
+		],
+	},
 	# A guard at rest, spear upright.
 	"guard_idle": {
 		"length": 3.0, "loop": true, "tool": "spear", "impact": -1.0,

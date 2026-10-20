@@ -47,7 +47,13 @@ var _time := 0.0
 const HIT_STOP := 0.05
 const SQUASH_TIME := 0.09
 const SQUASH := 0.05
-const HEAVY_CLIPS := ["chop", "split", "scavenge", "build", "fight", "guard_attack"]
+const HEAVY_CLIPS := ["chop", "split", "scavenge", "build", "fight", "guard_attack", "sweep"]
+## An attack played over whatever the legs are doing (agreed 2026-10-20: she fights while she
+## walks): it takes the arms, the tool, the head and the turn and lean of the body.
+const OVERLAY_JOINTS := ["arm_r", "arm_l", "tool", "turn", "head", "lean"]
+var _over := ""
+var _over_phase := 0.0
+var _over_thrown := false
 var _hold := 0.0
 var _squash := 0.0
 var _base_scale := Vector3.ZERO
@@ -148,6 +154,7 @@ func _process(delta: float) -> void:
 	if _hold > 0.0:
 		_hold -= delta
 		return
+	_advance_overlay(delta)
 	var c: Dictionary = Clips.CLIPS[clip]
 	var before := _phase
 	_phase += delta * speed / c.length
@@ -176,6 +183,12 @@ func _process(delta: float) -> void:
 	if not _screen.is_on_screen():
 		return
 	var target := _sample(clip, _phase)
+	if _over != "":
+		# In over a tenth of the clip and out over the last tenth.
+		var o := _sample(_over, _over_phase)
+		var ow := smoothstep(0.0, 0.1, _over_phase) * (1.0 - smoothstep(0.9, 1.0, _over_phase))
+		for joint in OVERLAY_JOINTS:
+			target[joint] = lerp(target[joint], o[joint], ow)
 	var w := smoothstep(0.0, 1.0, _blend)
 	for joint in target:
 		_pose[joint] = lerp(_from_pose[joint], target[joint], w)
@@ -187,8 +200,42 @@ func _process(delta: float) -> void:
 		_apply_pose(_pose, sin(_time * 55.0) * 2.0 * shiver)
 	if _tool:
 		_tool.rotation_degrees = _pose.tool
-		_tool.visible = not _thrown
+		_tool.visible = not (_over_thrown if _over != "" else _thrown)
 	_update_line()
+
+
+## Plays `next` once over the current clip's legs (an attack while walking or standing).
+func play_overlay(next: String) -> void:
+	_over = next
+	_over_phase = 0.0
+	_over_thrown = false
+	var c: Dictionary = Clips.CLIPS[next]
+	_show_tool(c.tool, c.get("socket", "hand"))
+
+
+func _advance_overlay(delta: float) -> void:
+	if _over == "":
+		return
+	var c: Dictionary = Clips.CLIPS[_over]
+	var before := _over_phase
+	_over_phase += delta / c.length
+	var hit: float = c.impact
+	if hit >= 0.0 and before < hit and _over_phase >= hit:
+		if c.get("throws", false):
+			_over_thrown = true
+		if _over in HEAVY_CLIPS and _screen.is_on_screen():
+			_hold = HIT_STOP
+			_squash = SQUASH_TIME
+		impact.emit(_over)
+	if _over_phase >= 1.0:
+		_over = ""
+		var base: Dictionary = Clips.CLIPS[clip]
+		_show_tool(base.tool, base.get("socket", "hand"))
+
+
+## A hit taken: a quick squash, without stopping what it's doing.
+func flinch() -> void:
+	_squash = SQUASH_TIME
 
 
 ## A quick dip of `degrees` forward that eases out over about 0.12 s (a piece set down).

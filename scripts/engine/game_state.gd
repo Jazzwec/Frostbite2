@@ -104,7 +104,8 @@ var blizzard_warned := false
 var blizzards_survived := 0
 
 ## Wolves: {id, pos: Vector2, hp, max_hp, damage, loot_scale, mode, target, scare_timer, scared},
-## plus foe_pos (who it's fighting) once it has fought.
+## plus foe_pos (who it's fighting) once it has fought, and its bite: bite_t (seconds into it,
+## -1 for none), bite_cd, victim (-1 for Meagan, else a guard's id).
 ## mode: "furnace" (heading in), "jans" (detouring to a site), "fight", "leave".
 var wolves: Array = []
 ## Time of the next attack, or -1 until the Furnace reaches Lv 2.
@@ -112,6 +113,16 @@ var attack_at := -1.0
 ## Whether the coming attack has been announced (only a Watchtower does that).
 var attack_warned := false
 var attacks_repelled := 0
+## Hypercasual fighting (agreed 2026-10-20): Meagan's mode ("ranged" | "melee"), her cooldown,
+## how long no wolf has been within the melee exit distance, and when a wolf was last close
+## enough to pause her work. Her hits on their way: {wolf, in (seconds), damage, knock, from,
+## kind}. When a wolf last started winding up a bite.
+var meagan_mode := "ranged"
+var meagan_attack_in := 0.0
+var meagan_melee_clear := 0.0
+var meagan_fight_at := -10.0
+var shots: Array = []
+var wolf_windup_at := -10.0
 
 var next_id := 1
 

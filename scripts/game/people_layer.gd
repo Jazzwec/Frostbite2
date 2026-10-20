@@ -8,6 +8,7 @@ var _jans := {}  # jan id -> JanView
 var _wolves := {}  # wolf id -> WolfView
 var _chatter_in := 20.0
 var _guard_foes := {}  # JanView -> id of the wolf he's fighting
+var _beaten := {}  # ids of wolves killed, so their views tumble away rather than vanish
 
 
 func on_event(ev: Dictionary) -> void:
@@ -19,6 +20,17 @@ func on_event(ev: Dictionary) -> void:
 				view = _new_jan(Vector3(ev.pos.x, 0, ev.pos.y), false)
 			view.thaw(ev.jan, Game.random_rescue_line())
 			_jans[ev.jan] = view
+		"wolf_killed":
+			_beaten[ev.wolf] = true
+		"guard_strike":
+			var guard: JanView = _jans.get(ev.jan)
+			if guard:
+				guard.strike()
+		"wolf_bite":
+			if ev.hit and ev.victim >= 0:
+				var bitten: JanView = _jans.get(ev.victim)
+				if bitten:
+					bitten.hurt()
 		"jan_scared":
 			var view: JanView = _jans.get(ev.jan)
 			_jans.erase(ev.jan)
@@ -158,8 +170,23 @@ func _sync_wolves(s: GameState, delta: float) -> void:
 	_nudge_wolves(s, delta)
 	for id in _wolves.keys():
 		if not seen.has(id):
-			_wolves[id].queue_free()
+			# Beaten ones tumble and run off; ones that left just go.
+			if _beaten.has(id):
+				_wolves[id].die()
+				_beaten.erase(id)
+			else:
+				_wolves[id].queue_free()
 			_wolves.erase(id)
+
+
+## A wolf view, if it's on the map.
+func wolf_view(id: int) -> WolfView:
+	return _wolves.get(id)
+
+
+## A Jan's view, if he's on the map.
+func jan_view(id: int) -> JanView:
+	return _jans.get(id)
 
 
 ## Where hauler `id` drops his load at stockpile `k`: one of a row of spots along its front,

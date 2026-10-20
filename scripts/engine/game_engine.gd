@@ -8,8 +8,8 @@ extends RefCounted
 ## producer; 5: chests, boons and gear; 6: camps, the frontier and dens; 7: no bag, gathering
 ## goes to the Stockpile; 8: no Sled Shed plot; 9: the tighter town layout; 10: global building
 ## levels, upgrades in `upgrades`; 11: a stockpile per opened tile, the Stockpile's level; 12: the
-## bag is back; 13: Jans haul their work (2026-10-20).
-const SAVE_VERSION := 13
+## bag is back; 13: Jans haul their work; 14: hypercasual fighting (2026-10-20).
+const SAVE_VERSION := 14
 
 var state: GameState
 var rng := RandomNumberGenerator.new()

@@ -23,13 +23,12 @@ const KNEE_LIFT := 35.0
 const TAIL_WAG := 18.0
 ## Trot cycle speed (radians per second): one full stride in about half a second.
 const TROT_SPEED := 13.0
-## One attack every this many seconds: a readable crouch back (anticipation), a quick thrust, a
-## few frames held at the bite, recover, then wait (Astra animation review, 2026-10-20).
-const ATTACK_PERIOD := 1.1
-const ATTACK_CROUCH := 0.25
-const ATTACK_THRUST := 0.1
+## Its bite follows the engine's (Combat._bite, agreed 2026-10-20): a readable crouch back (the
+## telegraph), a quick lunge, a few frames held at the bite, then recover.
+const ATTACK_CROUCH := Balance.WOLF_BITE_WINDUP
+const ATTACK_THRUST := Balance.WOLF_BITE_LUNGE
 const ATTACK_HOLD := 0.05
-const ATTACK_RECOVER := 0.22
+const ATTACK_RECOVER := Balance.WOLF_BITE_RECOVER - 0.05
 ## How far it leans back while crouching to strike, in degrees.
 const ATTACK_LEAN_BACK := 12.0
 
@@ -121,6 +120,19 @@ func hit() -> void:
 	Fx.burst("snow", global_position + Vector3(0, 0.6, 0))
 
 
+## Beaten (agreed 2026-10-20): it tumbles, scrambles up and runs off, fading. No corpse.
+func die() -> void:
+	_hp_bar.visible = false
+	Fx.burst("snow_big", global_position + Vector3(0, 0.4, 0))
+	var away := -_model.basis.z
+	var t := create_tween()
+	t.tween_property(_model, "rotation:z", 1.4, 0.18).set_ease(Tween.EASE_OUT)
+	t.tween_property(_model, "rotation:z", 0.0, 0.3).set_delay(0.1)
+	t.tween_property(self, "global_position", global_position + away * 4.0, 0.6)
+	t.parallel().tween_property(self, "scale", Vector3.ONE * 0.2, 0.6).set_ease(Tween.EASE_IN)
+	t.tween_callback(queue_free)
+
+
 func sync(wolf: Dictionary, delta: float) -> void:
 	var target := Vector3(wolf.pos.x, 0, wolf.pos.y)
 	var fighting: bool = wolf.mode == "fight"
@@ -135,16 +147,13 @@ func sync(wolf: Dictionary, delta: float) -> void:
 	if step.length() > 0.01:
 		_model.rotation.y = lerp_angle(_model.rotation.y, atan2(step.x, step.z), 10.0 * delta)
 	global_position = global_position.lerp(target + nudge, minf(1.0, 12.0 * delta))
-	if _attack < 0.0:
-		# Each wolf's lunge and stride start at their own point in the cycle, so a pack doesn't
-		# strike or trot in unison.
-		_attack = fmod(float(wolf.id) * 0.37, ATTACK_PERIOD)
+	if _attack < 0.0 and _t == 0.0:
+		# Each wolf's stride starts at its own point in the cycle, so a pack doesn't trot in unison.
 		_t = float(wolf.id) * 1.7
+	_attack = wolf.get("bite_t", -1.0)
 	_knock = move_toward(_knock, 0.0, delta * 5.0)
 	if _pivot:
 		_t += delta * (14.0 if fighting else TROT_SPEED)
-		if fighting:
-			_attack = fmod(_attack + delta, ATTACK_PERIOD)
 		_model.position = -_model.basis.z * 0.1 * _knock
 		_pose(fighting)
 		var flashing := _knock > 0.6
@@ -197,6 +206,8 @@ func _pose(fighting: bool) -> void:
 ## How far into an attack it is: -0.4 crouched back, 1 at full stretch, 0 at rest.
 func _lunge() -> float:
 	var t := _attack
+	if t < 0.0:
+		return 0.0
 	if t < ATTACK_CROUCH:
 		return -0.4 * smoothstep(0.0, 1.0, t / ATTACK_CROUCH)
 	t -= ATTACK_CROUCH

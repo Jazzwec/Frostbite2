@@ -19,7 +19,7 @@ static func set_activity(s: GameState, activity: String, target: int, pos: Vecto
 ## She gathers automatically at the nearest resource node in range, into her bag, and stops (a
 ## shrug) once it's full. [brief; the bag came back 2026-10-20]
 static func gather(s: GameState, dt: float) -> void:
-	if s.meagan_injured:
+	if s.meagan_injured or Combat.meagan_busy(s):
 		return
 	var nearest := -1
 	var nearest_d := Balance.GATHER_RANGE
@@ -54,7 +54,7 @@ static func regrow(s: GameState, dt: float) -> void:
 ## agreed 2026-10-19, no bag 2026-10-20]. A building's upgrade is global and can be paid on the pad
 ## of any of its plots (the furnace's on any small furnace's too). [agreed 2026-10-20]
 static func pay_pads(s: GameState, dt: float, events: Array) -> void:
-	if s.meagan_injured:
+	if s.meagan_injured or Combat.meagan_busy(s):
 		return
 	var budget := Economy.pay_rate(s) * dt
 	for i in s.sites.size():
@@ -96,7 +96,7 @@ static func pay(s: GameState, need: Dictionary, progress: Dictionary, budget: fl
 ## On any stockpile's pad her bag empties into the town's store, up to its caps; what doesn't fit
 ## stays in the bag. [agreed 2026-10-20]
 static func store(s: GameState, dt: float) -> void:
-	if s.meagan_injured or Economy.bag_total(s) <= 0.0:
+	if s.meagan_injured or Combat.meagan_busy(s) or Economy.bag_total(s) <= 0.0:
 		return
 	for k in s.stockpiles.size():
 		if s.meagan_pos.distance_to(MapData.stockpile_pad(s, k)) > Balance.PAD_RADIUS:

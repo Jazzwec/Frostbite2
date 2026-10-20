@@ -138,6 +138,7 @@ func _process(delta: float) -> void:
 	_update_meagan_activity(delta)
 	_update_pad_stop(delta)
 	_update_pad_payments(delta)
+	_update_target_ring()
 	_update_ground_marks()
 	if _nav_dirty and not _baking:
 		_nav_dirty = false
@@ -785,7 +786,7 @@ func _sum_up_store() -> void:
 # ---------- Meagan at work ----------
 
 const GATHER_CLIPS := {"forest": "chop", "hunting": "fish", "scrap": "scavenge"}
-const ACTIVITY_CLIPS := {"full": "full", "store": "carry", "build": "build", "fight": "fight"}
+const ACTIVITY_CLIPS := {"full": "full", "store": "carry", "build": "build", "fight": "ready"}
 ## How long after an activity stops its pieces still fly to or from the same place.
 const CARRY_GRACE := 0.8
 
@@ -955,6 +956,25 @@ func _on_event(ev: Dictionary) -> void:
 		"wolves_arrived":
 			Audio.play("howl")
 			_hud.show_banner("%d wolves heading for the furnace!" % ev.count, 4.0, UiTheme.WARN_WASH, "wolves")
+		"meagan_attack":
+			var wolf := _people.wolf_view(ev.wolf)
+			var at := wolf.global_position if wolf else _v3(ev.pos)
+			_meagan.attack(ev.mode, at)
+			if ev.mode == "ranged":
+				_throw_snowball(ev.wolf, ev.flight)
+			else:
+				Audio.play("whoosh", _meagan.global_position, 1.2, -4.0)
+		"wolf_hit":
+			var wolf := _people.wolf_view(ev.wolf)
+			if wolf:
+				wolf.hit()
+				Fx.burst("snow", wolf.global_position + Vector3(0, 0.6, 0), (wolf.global_position - _v3(ev.from)).normalized() + Vector3.UP)
+				Audio.play("swing_hit", wolf.global_position, 1.0 if ev.kind == "melee" else 1.3, 0.0 if ev.kind == "melee" else -6.0)
+		"wolf_bite":
+			if ev.victim < 0 and ev.hit:
+				_meagan.hurt()
+				_rig.shake(0.08)
+				Audio.play("yelp", _meagan.global_position, 1.5, -6.0)
 		"breakthrough":
 			Audio.play("crash")
 			# High over the furnace and smaller, clear of the fight round it (AFK N7).
@@ -962,12 +982,49 @@ func _on_event(ev: Dictionary) -> void:
 		"wolf_killed":
 			Audio.play("yelp", _v3(ev.pos))
 			Audio.play("coin")
-			_float_text(_v3(ev.pos) + Vector3(0, 1.5, 0), "+%s Food  +%s Mat" % [Fmt.num(ev.food), Fmt.num(ev.materials)], Color(0.7, 1, 0.7))
+			# A small pop, not a banner over the fight (Astra's steer: medium juice, readable).
+			Fx.pop("+%s Food · +%s Mat" % [Fmt.num(ev.food), Fmt.num(ev.materials)], _v3(ev.pos) + Vector3(0, 1.4, 0), Color(0.75, 1.0, 0.75), 34)
 		"meagan_injured":
 			Audio.play("yelp", Vector3.INF, 1.6)
 			_hud.show_banner("Meagan is hurt! She'll be back up when the wolves are gone.", 4.0)
 		"attack_over":
 			_hud.show_banner("The wolves are gone.", 3.0, GOOD_GREEN)
+
+
+## A snowball arcs from her hand to the wolf, landing as the engine's hit does.
+func _throw_snowball(wolf_id: int, flight: float) -> void:
+	await get_tree().create_timer(Balance.MEAGAN_RANGED_RELEASE).timeout
+	var wolf := _people.wolf_view(wolf_id)
+	if wolf == null:
+		return
+	Audio.play("whoosh", _meagan.global_position, 1.4, -6.0)
+	var to := wolf.global_position + Vector3(0, 0.6, 0)
+	Fx.throw("snowball", _meagan.throw_point(), to, maxf(flight, 0.12), 0.6, func() -> void:
+		Fx.burst("snow", to))
+
+
+## Meagan's target in a fight gets a broken ink ring under it (Astra's steer: only hers).
+var _target_ring: MeshInstance3D
+
+
+func _update_target_ring() -> void:
+	var s := Game.engine.state
+	if _target_ring == null:
+		var torus := TorusMesh.new()
+		torus.inner_radius = 0.62
+		torus.outer_radius = 0.72
+		torus.rings = 24
+		_target_ring = MeshInstance3D.new()
+		_target_ring.mesh = torus
+		_target_ring.material_override = Shapes.material(Color(UiTheme.INK, 0.55))
+		_target_ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_target_ring.scale = Vector3(1, 0.05, 1)
+		add_child(_target_ring)
+	var wolf: WolfView = _people.wolf_view(s.meagan_target) if s.meagan_activity == "fight" else null
+	_target_ring.visible = wolf != null
+	if wolf:
+		_target_ring.global_position = wolf.global_position + Vector3(0, 0.04, 0)
+		_target_ring.rotation.y += get_process_delta_time() * 0.6
 
 
 func _v3(p: Vector2) -> Vector3:

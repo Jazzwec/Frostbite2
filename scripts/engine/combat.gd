@@ -1,7 +1,9 @@
 class_name Combat
 extends RefCounted
 ## Wolf attacks. [brief] Packs come from the edge to the furnace, detour to working Jans,
-## and stop to fight guards or Meagan. Everyone autofights whatever is in range.
+## and stop to fight guards or Meagan. Hypercasual fighting (agreed 2026-10-20): everyone fights
+## on their own, each going for the nearest opponent, in discrete telegraphed attacks: Meagan
+## throws snowballs at range and sweeps her stick up close; guards strike; wolves bite.
 
 
 static func update(s: GameState, dt: float, rng: RandomNumberGenerator, events: Array) -> void:
@@ -12,8 +14,9 @@ static func update(s: GameState, dt: float, rng: RandomNumberGenerator, events: 
 	for wolf in s.wolves.duplicate():
 		_wolf(s, wolf, dt, events)
 	_spread(s, dt)
-	_guards_fight(s, dt)
-	_meagan_fights(s, dt)
+	_guards_fight(s, dt, events)
+	_meagan_fights(s, dt, events)
+	_land_shots(s, dt, events)
 	_collect_dead(s, events)
 	if s.wolves.is_empty():
 		_attack_over(s, events)
@@ -75,23 +78,18 @@ static func _wolf(s: GameState, wolf: Dictionary, dt: float, events: Array) -> v
 		var foe_pos: Vector2 = s.meagan_pos if foe.kind == "meagan" else foe.jan.pos
 		var away: Vector2 = wolf.pos - foe_pos
 		var dir := away.normalized() if away.length() > 0.001 else Vector2.RIGHT.rotated(float(wolf.id))
-		wolf.pos = wolf.pos.move_toward(foe_pos + dir * Balance.WOLF_FIGHT_DISTANCE, Balance.WOLF_SPEED * dt)
+		var t: float = wolf.get("bite_t", -1.0)
+		if t < 0.0:
+			wolf.pos = wolf.pos.move_toward(foe_pos + dir * Balance.WOLF_FIGHT_DISTANCE, Balance.WOLF_SPEED * dt)
+		elif t >= Balance.WOLF_BITE_WINDUP and t < Balance.WOLF_BITE_WINDUP + Balance.WOLF_BITE_LUNGE:
+			# Crouched it holds still (the window to step away); then it lunges a short way.
+			var lunge_to: Vector2 = foe_pos + dir * (Balance.WOLF_FIGHT_DISTANCE - 0.3)
+			wolf.pos = wolf.pos.move_toward(lunge_to, Balance.WOLF_BITE_LUNGE_DISTANCE / Balance.WOLF_BITE_LUNGE * dt)
 		# Where it's facing, for its view.
 		wolf.foe_pos = foe_pos
-		if foe.kind == "meagan":
-			s.meagan_hp -= wolf.damage * dt
-			if s.meagan_hp <= 0.0 and not s.meagan_injured:
-				s.meagan_hp = 0.0
-				s.meagan_injured = true
-				events.append({"type": "meagan_injured"})
-		else:
-			var guard: Dictionary = foe.jan
-			guard.hp -= wolf.damage * dt
-			if guard.hp <= 0.0:
-				guard.hp = 0.0
-				guard.ko = true
-				events.append({"type": "guard_down", "jan": guard.id})
+		_bite(s, wolf, foe, foe_pos, dt, events)
 		return
+	wolf.bite_t = -1.0
 	if wolf.mode == "fight":
 		wolf.mode = "furnace"
 
@@ -214,27 +212,144 @@ static func _guards_return(s: GameState, dt: float) -> void:
 		guards[i].pos = guards[i].pos.move_toward(guard_post(i, guards.size()), Balance.GUARD_SPEED * dt)
 
 
-static func _guards_fight(s: GameState, dt: float) -> void:
-	var damage := Economy.guard_damage(s)
-	for guard in _guards(s):
+static func _guards_fight(s: GameState, dt: float, events: Array) -> void:
+	var guards := _guards(s)
+	var damage := Economy.guard_damage(s) * Balance.GUARD_STRIKE_EVERY
+	for i in guards.size():
+		var guard: Dictionary = guards[i]
 		if guard.ko:
 			continue
-		var target := _nearest_wolf(s, guard.pos)
+		guard.strike_in = maxf(0.0, guard.get("strike_in", 0.0) - dt)
+		var post := guard_post(i, guards.size())
+		# The nearest wolf it can see and may chase.
+		var target := {}
+		var best := Balance.GUARD_SIGHT
+		for wolf in s.wolves:
+			if wolf.mode == "leave" or wolf.hp <= 0.0 or wolf.pos.distance_to(post) > Balance.GUARD_LEASH:
+				continue
+			var d: float = guard.pos.distance_to(wolf.pos)
+			if d <= best:
+				best = d
+				target = wolf
 		if target.is_empty():
+			guard.pos = guard.pos.move_toward(post, Balance.GUARD_SPEED * dt)
 			continue
 		if guard.pos.distance_to(target.pos) > Balance.GUARD_RANGE:
 			guard.pos = guard.pos.move_toward(target.pos, Balance.GUARD_SPEED * dt)
-		else:
-			target.hp -= damage * dt
+		elif guard.strike_in <= 0.0:
+			guard.strike_in = Balance.GUARD_STRIKE_EVERY
+			target.hp -= damage
+			events.append({"type": "guard_strike", "jan": guard.id, "wolf": target.id, "pos": target.pos})
 
 
-static func _meagan_fights(s: GameState, dt: float) -> void:
+## Meagan fights on her own: snowballs at range, a stick sweep up close, swapping with
+## hysteresis; each attack lands its hit a moment later (_land_shots). [agreed 2026-10-20]
+static func _meagan_fights(s: GameState, dt: float, events: Array) -> void:
 	if s.meagan_injured:
 		return
+	s.meagan_attack_in = maxf(0.0, s.meagan_attack_in - dt)
 	var target := _nearest_wolf(s, s.meagan_pos)
-	if not target.is_empty() and s.meagan_pos.distance_to(target.pos) <= Balance.MEAGAN_ATTACK_RANGE:
-		target.hp -= Balance.MEAGAN_DAMAGE_PER_SECOND * dt
-		MeaganRules.set_activity(s, "fight", target.id, target.pos)
+	var d := INF if target.is_empty() else s.meagan_pos.distance_to(target.pos)
+	if d <= Balance.FIGHT_PAUSE_RANGE:
+		s.meagan_fight_at = s.time
+	if d <= Balance.MEAGAN_MELEE_REACH:
+		s.meagan_mode = "melee"
+		s.meagan_melee_clear = 0.0
+	elif s.meagan_mode == "melee":
+		s.meagan_melee_clear = s.meagan_melee_clear + dt if d > Balance.MEAGAN_MELEE_EXIT else 0.0
+		if s.meagan_melee_clear >= Balance.MEAGAN_MELEE_EXIT_TIME:
+			s.meagan_mode = "ranged"
+	var melee := s.meagan_mode == "melee"
+	if d > (Balance.MEAGAN_MELEE_REACH if melee else Balance.MEAGAN_RANGED_RANGE):
+		return
+	MeaganRules.set_activity(s, "fight", target.id, target.pos)
+	if s.meagan_attack_in > 0.0:
+		return
+	s.meagan_attack_in = Balance.MEAGAN_MELEE_EVERY if melee else Balance.MEAGAN_RANGED_EVERY
+	var flight := 0.0 if melee else d / Balance.SNOWBALL_SPEED
+	s.shots.append({
+		"wolf": target.id, "from": s.meagan_pos, "kind": s.meagan_mode,
+		"in": Balance.MEAGAN_MELEE_IMPACT if melee else Balance.MEAGAN_RANGED_RELEASE + flight,
+		"damage": Balance.MEAGAN_MELEE_DAMAGE if melee else Balance.MEAGAN_RANGED_DAMAGE,
+		"knock": Balance.MEAGAN_MELEE_KNOCK if melee else Balance.MEAGAN_RANGED_KNOCK,
+	})
+	events.append({"type": "meagan_attack", "mode": s.meagan_mode, "wolf": target.id, "pos": target.pos, "flight": flight})
+
+
+## Her hits arrive: the wolf loses health and is knocked back a little. A wolf that has gone
+## (killed or left) is missed.
+static func _land_shots(s: GameState, dt: float, events: Array) -> void:
+	for shot in s.shots.duplicate():
+		shot.in -= dt
+		if shot.in > 0.0:
+			continue
+		s.shots.erase(shot)
+		for wolf in s.wolves:
+			if wolf.id != shot.wolf or wolf.hp <= 0.0 or wolf.mode == "leave":
+				continue
+			wolf.hp -= shot.damage
+			var away: Vector2 = wolf.pos - shot.from
+			if away.length() > 0.001:
+				wolf.pos = (wolf.pos + away.normalized() * shot.knock).clamp(s.bounds.position, s.bounds.end)
+			events.append({"type": "wolf_hit", "wolf": wolf.id, "kind": shot.kind, "pos": wolf.pos, "from": shot.from})
+
+
+## Whether a fight keeps Meagan from working (gathering, storing, paying pads). [agreed 2026-10-20]
+static func meagan_busy(s: GameState) -> bool:
+	return s.time - s.meagan_fight_at < Balance.FIGHT_RESUME
+
+
+## A wolf's bite: crouch (the telegraph), lunge, land if the victim is still in reach, recover,
+## wait. At most a couple wind up at once, their starts a little apart, so each reads.
+static func _bite(s: GameState, wolf: Dictionary, foe: Dictionary, foe_pos: Vector2, dt: float, events: Array) -> void:
+	var t: float = wolf.get("bite_t", -1.0)
+	wolf.bite_cd = maxf(0.0, wolf.get("bite_cd", 0.0) - dt)
+	if t < 0.0:
+		var winding := s.wolves.filter(func(w): return w.get("bite_t", -1.0) >= 0.0 and w.get("bite_t", -1.0) < Balance.WOLF_BITE_WINDUP + Balance.WOLF_BITE_LUNGE).size()
+		if wolf.bite_cd > 0.0 or wolf.pos.distance_to(foe_pos) > Balance.WOLF_BITE_START:
+			return
+		if winding >= Balance.WOLF_MAX_WINDUPS or s.time - s.wolf_windup_at < Balance.WOLF_WINDUP_GAP:
+			return
+		wolf.bite_t = 0.0
+		wolf.victim = -1 if foe.kind == "meagan" else foe.jan.id
+		s.wolf_windup_at = s.time
+		events.append({"type": "wolf_windup", "wolf": wolf.id, "pos": wolf.pos})
+		return
+	var strike := Balance.WOLF_BITE_WINDUP + Balance.WOLF_BITE_LUNGE
+	wolf.bite_t = t + dt
+	if t < strike and wolf.bite_t >= strike:
+		_bite_lands(s, wolf, events)
+	if wolf.bite_t >= strike + Balance.WOLF_BITE_RECOVER:
+		wolf.bite_t = -1.0
+		wolf.bite_cd = Balance.WOLF_BITE_EVERY - strike - Balance.WOLF_BITE_RECOVER
+
+
+static func _bite_lands(s: GameState, wolf: Dictionary, events: Array) -> void:
+	var bite: float = wolf.damage * Balance.WOLF_BITE_EVERY
+	var victim: int = wolf.get("victim", -1)
+	if victim < 0:
+		var hit: bool = not s.meagan_injured and wolf.pos.distance_to(s.meagan_pos) <= Balance.WOLF_BITE_REACH
+		events.append({"type": "wolf_bite", "wolf": wolf.id, "victim": -1, "hit": hit, "pos": s.meagan_pos})
+		if not hit:
+			return
+		s.meagan_hp -= bite
+		if s.meagan_hp <= 0.0 and not s.meagan_injured:
+			s.meagan_hp = 0.0
+			s.meagan_injured = true
+			events.append({"type": "meagan_injured"})
+		return
+	for guard in _guards(s):
+		if guard.id != victim:
+			continue
+		var hit: bool = not guard.ko and wolf.pos.distance_to(guard.pos) <= Balance.WOLF_BITE_REACH
+		events.append({"type": "wolf_bite", "wolf": wolf.id, "victim": guard.id, "hit": hit, "pos": guard.pos})
+		if hit:
+			guard.hp -= bite
+			if guard.hp <= 0.0:
+				guard.hp = 0.0
+				guard.ko = true
+				events.append({"type": "guard_down", "jan": guard.id})
+		return
 
 
 static func _nearest_wolf(s: GameState, pos: Vector2) -> Dictionary:

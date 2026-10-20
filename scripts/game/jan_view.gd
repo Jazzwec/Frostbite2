@@ -203,12 +203,23 @@ func guard(hp_fraction: float, knocked_out: bool, foe := Vector3.INF) -> void:
 	if knocked_out:
 		_rig.play("down")
 	elif foe != Vector3.INF:
+		# Ready between strikes; each strike (strike()) is the engine's beat (agreed 2026-10-20).
 		_face(foe - global_position)
-		_rig.play("guard_attack")
+		_rig.play("guard_idle")
 	elif _moving:
 		_rig.play("walk")
 	else:
 		_rig.play("guard_idle")
+
+
+## A guard's strike at the wolf he's fighting, over his stance.
+func strike() -> void:
+	_rig.play_overlay("guard_attack")
+
+
+## A bite landed on him.
+func hurt() -> void:
+	_rig.flinch()
 
 
 func set_cold(cold: bool) -> void:

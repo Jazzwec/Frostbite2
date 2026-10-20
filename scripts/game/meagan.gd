@@ -33,6 +33,9 @@ var moving := false
 var _step_in := 0.0
 ## Seconds to her next breath puff while it's cold (AFK V8).
 var _breath_in := 0.0
+## Her attack's target, turned to for a moment even while she walks (agreed 2026-10-20).
+var _aim := Vector3.INF
+var _aim_left := 0.0
 ## How full her bag must be for the loaded walk.
 const HEAVY_BAG := 0.6
 const BREATH_EVERY := 2.4
@@ -137,6 +140,23 @@ func tip_position() -> Vector3:
 	return _rig.tip_position()
 
 
+## An attack: the sweep or the throw over whatever her legs are doing, turned to the wolf.
+func attack(mode: String, at: Vector3) -> void:
+	_aim = at
+	_aim_left = 0.45
+	_rig.play_overlay("sweep" if mode == "melee" else "throw")
+
+
+## Where a thrown snowball leaves from: her raised hand, about.
+func throw_point() -> Vector3:
+	return global_position + Vector3(0, 1.7, 0) + forward() * 0.3
+
+
+## A bite landed on her.
+func hurt() -> void:
+	_rig.flinch()
+
+
 ## Where her load is going and coming from this frame (Vector3.INF for nowhere). `landed(res)`
 ## runs as each delivered piece arrives.
 func carry(source: Vector3, dest: Vector3, landed := Callable()) -> void:
@@ -181,7 +201,8 @@ func _physics_process(delta: float) -> void:
 		velocity = dir.normalized() * Economy.walk_speed(s) * _steer.length()
 		move_and_slide()
 		moving = true
-		_turn_towards(dir, delta)
+		if _aim_left <= 0.0:
+			_turn_towards(dir, delta)
 		# Steering replaces any tap-walk in progress.
 		_agent.target_position = global_position
 	elif can_move and not _agent.is_navigation_finished():
@@ -192,7 +213,11 @@ func _physics_process(delta: float) -> void:
 			velocity = dir.normalized() * Economy.walk_speed(s)
 			move_and_slide()
 			moving = true
-			_turn_towards(dir, delta)
+			if _aim_left <= 0.0:
+				_turn_towards(dir, delta)
+	if _aim_left > 0.0:
+		_aim_left -= delta
+		_turn_towards(_aim - global_position, delta * 2.0)
 	if not moving:
 		velocity = Vector3.ZERO
 	# Closed tiles are deep snow: she stays on the open ones, sliding along their edge.
