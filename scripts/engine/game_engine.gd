@@ -358,6 +358,12 @@ func force_blizzard() -> void:
 	_events.append({"type": "blizzard_warning", "starts_in": Balance.BLIZZARD_FORCED_DELAY})
 
 
+## The next wave now.
+func dev_wave() -> void:
+	state.attack_at = state.time
+	state.attack_warned = true
+
+
 func spawn_wolves(count := -1, kind := "wolf") -> void:
 	Combat.spawn_pack(state, rng, _events, count, kind)
 

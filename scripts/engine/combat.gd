@@ -358,12 +358,12 @@ static func _wedge_lands(s: GameState, e: Dictionary, def: Dictionary, events: A
 
 ## A troll's slam hits every defender within its reach.
 static func _ring_lands(s: GameState, e: Dictionary, def: Dictionary, events: Array) -> void:
-	var hit := false
+	var victims := []
 	for foe in _defenders(s):
 		if foe.pos.distance_to(e.pos) <= def.reach:
 			_hurt(s, foe, e.damage, events)
-			hit = true
-	events.append({"type": "wolf_bite", "wolf": e.id, "kind": e.kind, "victim": e.victim, "hit": hit, "pos": e.pos, "slam": true})
+			victims.append(foe.id)
+	events.append({"type": "wolf_bite", "wolf": e.id, "kind": e.kind, "victim": e.victim, "hit": not victims.is_empty(), "pos": e.pos, "slam": true, "victims": victims})
 
 
 ## Thrown shards land where they were aimed: whoever is still that close is hit.
@@ -373,13 +373,13 @@ static func _land_enemy_shots(s: GameState, dt: float, events: Array) -> void:
 		if shot.in > 0.0:
 			continue
 		s.enemy_shots.erase(shot)
-		var hit := false
+		var victim := -2
 		for foe in _defenders(s):
 			if foe.pos.distance_to(shot.to) <= shot.reach:
 				_hurt(s, foe, shot.damage, events)
-				hit = true
+				victim = foe.id
 				break
-		events.append({"type": "shard_landed", "wolf": shot.wolf, "pos": shot.to, "hit": hit})
+		events.append({"type": "shard_landed", "wolf": shot.wolf, "pos": shot.to, "hit": victim != -2, "victim": victim})
 
 
 ## Meagan and the guards who can be hurt: {id (-1 for Meagan), pos}.

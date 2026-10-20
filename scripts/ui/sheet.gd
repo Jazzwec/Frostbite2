@@ -169,6 +169,8 @@ func _open_plot() -> void:
 func _open_building(b: String) -> void:
 	_effect = UiTheme.label(Game.building_text(b).get("effect", ""), 34, UiTheme.INK_SOFT)
 	_body.add_child(_effect)
+	if b == "armory":
+		_body.add_child(UiTheme.label(_armory_stats(), 34))
 	_status = UiTheme.label("", 38)
 	_body.add_child(_status)
 	_upgrade = UiTheme.button("", _start_upgrade)
@@ -197,6 +199,20 @@ func _open_building(b: String) -> void:
 func _build() -> void:
 	Game.engine.start_construction(site_index)
 	close()
+
+
+## "Snowball 6 → 7 · Stick 10 → 12 · Guards 3 → 4": damage now and at the next level.
+func _armory_stats() -> String:
+	var s := Game.engine.state
+	var lv := maxi(Economy.level(s, "armory"), 1)
+	var now := Economy.meagan_weapon(s, lv)
+	var kit_now: Array = Economy.armory_row(s, lv).guard
+	if lv >= Balance.ARMORY_LEVELS.size():
+		return "Snowball %d (%.1f m) · Stick %d · Guards %d, %d HP" % [now.snow_damage, now.range, now.stick_damage, kit_now[0], kit_now[1]]
+	var next := Economy.meagan_weapon(s, lv + 1)
+	var kit_next: Array = Economy.armory_row(s, lv + 1).guard
+	return "Snowball %d → %d · Stick %d → %d\nGuards %d → %d, %d → %d HP" % [now.snow_damage, next.snow_damage, now.stick_damage, next.stick_damage,
+			kit_now[0], kit_next[0], kit_now[1], kit_next[1]]
 
 
 func _start_upgrade() -> void:

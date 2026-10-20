@@ -1,13 +1,22 @@
 class_name WolfView
 extends Node3D
-## A wolf drawn where the engine says it is.
+## An enemy drawn where the engine says it is: any of `Balance.ENEMIES` (the class keeps the
+## wolf's name, as `state.wolves` does).
 ##
-## It uses the Tripo wolf (`wolf.glb`) when it's there, posed bone by bone: a trot while it runs
-## and a lunge while it fights. Otherwise it's the greybox wolf, which only bobs.
+## Wolves use the Tripo wolf (`wolf.glb`) when it's there, posed bone by bone: a trot while it runs
+## and a lunge while it fights. Foxes are the same wolf, smaller and recoloured, with a big tail.
+## Bears, trolls and raiders are greybox until their models are made, each built silhouette first
+## (ChatGPT's steer, fight_v2: broad shoulders, a tall lopsided ice back, an upright hood and
+## satchel) and posed by its attack. Every attack shows its tell on the snow while it winds up: a
+## wedge for a bite or swipe, a ring for a slam, a target where a shard will land.
 
 const MODEL_PATH := "res://assets/models/blender/wolf.glb"
 ## Drawn larger than life (1.3 m long in the file), so it reads from the game camera.
 const MODEL_SCALE := 1.5
+## A fox is a smaller wolf, painted rust-orange over the wolf's grey.
+const FOX_SCALE := 0.72
+const FOX_TINT := Color(1.0, 0.58, 0.32)
+const FOX_FUR := Color(0.85, 0.45, 0.2)
 ## The bones the trot and lunge move, by the end of their names (Tripo's auto-rig names them
 ## `tripo::…` or `bone_N`; Godot turns the colons into underscores). The model faces +Z.
 const BONES := {
@@ -23,58 +32,98 @@ const KNEE_LIFT := 35.0
 const TAIL_WAG := 18.0
 ## Trot cycle speed (radians per second): one full stride in about half a second.
 const TROT_SPEED := 13.0
-## Its bite follows the engine's (Combat._bite, agreed 2026-10-20): a readable crouch back (the
-## telegraph), a quick lunge, a few frames held at the bite, then recover.
-const ATTACK_CROUCH := Balance.WOLF_BITE_WINDUP
-const ATTACK_THRUST := Balance.WOLF_BITE_LUNGE
+## An attack follows the engine's (Combat._attack): its tell (a crouch or a wind-up, the time to
+## step away), a quick strike, a few frames held, then recover.
 const ATTACK_HOLD := 0.05
-const ATTACK_RECOVER := Balance.WOLF_BITE_RECOVER - 0.05
 ## How far it leans back while crouching to strike, in degrees.
 const ATTACK_LEAN_BACK := 12.0
+## Tells: a 25% wash with a firm outline, in muted rust (the steer's readability rule 2).
+const TELL_FILL := Color(0.62, 0.3, 0.22, 0.25)
+const TELL_LINE := Color(0.55, 0.24, 0.16, 0.85)
+const TELL_LINE_WIDTH := 0.07
+## Where each kind's health bar and sack sit, and how far back it stands from whoever it fights
+## (so its front, not its middle, is at the engine's fight distance; view only). [proto]
+const LOOK := {
+	"fox": {"bar": 0.95, "back_off": 0.3},
+	"wolf": {"bar": 1.62, "back_off": 0.5},
+	"bear": {"bar": 2.0, "back_off": 0.7},
+	"troll": {"bar": 3.4, "back_off": 0.6},
+	"raider": {"bar": 2.1, "back_off": 0.0},
+}
 
+var kind := "wolf"
+var _def: Dictionary
 var _model: Node3D
 var _hp_bar: HpBar
 var _t := 0.0
-## A visual nudge apart from wolves standing too close (PeopleLayer sets it), so a pack never
+## A visual nudge apart from enemies standing too close (PeopleLayer sets it), so a pack never
 ## reads as one dark mass; the engine's positions don't change (Astra animation review).
 var nudge := Vector3.ZERO
-## A fighting wolf stands back by about half its body, so its snout, not its middle, is at the
-## engine's fight distance and it doesn't lie over whoever it fights (view only). [proto]
-const FIGHT_BACK_OFF := 0.5
 var _attack := -1.0
-var _flash: MeshInstance3D
 var _knock := 0.0
-## The posed model, or null for the greybox wolf.
+## The posed wolf model (wolves and foxes), or null for a greybox body.
 var _pivot: Node3D
 var _skeleton: Skeleton3D
 var _bone := {}  # key -> bone index
 var _rest := {}  # bone index -> rest Basis in skeleton space
 var _skins: Array[MeshInstance3D] = []
 var _flash_mat: StandardMaterial3D
-var _wedge: MeshInstance3D
-const WEDGE_ANGLE := 70.0
-const WEDGE_COLOR := Color(0.62, 0.3, 0.22, 0.38)
+## Greybox bodies' moving parts, by name.
+var _parts := {}
+var _tail: Node3D
+var _tell: Node3D
+var _tell_fill: MeshInstance3D
+var _shot_line: MeshInstance3D
+var _sack: Sprite3D
+var _sack_res := ""
 
 
-func _init() -> void:
+func _init(enemy_kind := "wolf") -> void:
+	kind = enemy_kind
+	_def = Balance.ENEMIES[kind]
 	_model = Node3D.new()
 	add_child(_model)
-	var bar_height := 1.5
-	if ResourceLoader.exists(MODEL_PATH):
-		_build_model()
-		bar_height = 1.08 * MODEL_SCALE
-	else:
-		_build_greybox()
-	_wedge = _make_wedge()
-	add_child(_wedge)
+	_flash_mat = StandardMaterial3D.new()
+	_flash_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_flash_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_flash_mat.albedo_color = Color(1, 1, 1, 0.75)
+	match kind:
+		"wolf", "fox":
+			if ResourceLoader.exists(MODEL_PATH):
+				_build_model()
+			else:
+				_build_greybox_wolf()
+			if kind == "fox":
+				_add_fox_tail()
+		"bear":
+			_build_bear()
+		"troll":
+			_build_troll()
+		"raider":
+			_build_raider()
+	if _skins.is_empty():
+		for mesh in _model.find_children("*", "MeshInstance3D", true, false):
+			_skins.append(mesh)
+	_build_tell()
+	var look: Dictionary = LOOK[kind]
 	_hp_bar = HpBar.new(HpBar.WOLF_RED)
-	_hp_bar.position = Vector3(0, bar_height, 0)
+	_hp_bar.position = Vector3(0, look.bar, 0)
 	add_child(_hp_bar)
+	_sack = Sprite3D.new()
+	_sack.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_sack.no_depth_test = true
+	_sack.render_priority = 10
+	_sack.pixel_size = 0.0045
+	_sack.position = Vector3(0, look.bar + 0.45, 0)
+	_sack.visible = false
+	add_child(_sack)
 
+
+# ---------- Bodies ----------
 
 func _build_model() -> void:
 	_pivot = Node3D.new()
-	_pivot.scale = Vector3.ONE * MODEL_SCALE
+	_pivot.scale = Vector3.ONE * MODEL_SCALE * (FOX_SCALE if kind == "fox" else 1.0)
 	_model.add_child(_pivot)
 	var model: Node3D = load(MODEL_PATH).instantiate()
 	_pivot.add_child(model)
@@ -92,32 +141,258 @@ func _build_model() -> void:
 		_rest[i] = _skeleton.get_bone_global_rest(i).basis.orthonormalized()
 	for mesh in model.find_children("*", "MeshInstance3D", true, false):
 		_skins.append(mesh)
-	# A white overlay, shown for a moment when it's hit.
-	_flash_mat = StandardMaterial3D.new()
-	_flash_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_flash_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_flash_mat.albedo_color = Color(1, 1, 1, 0.75)
+		if kind == "fox":
+			_tint(mesh, FOX_TINT)
 
 
-func _build_greybox() -> void:
-	var fur := Color(0.42, 0.42, 0.46)
-	_model.add_child(Shapes.capsule(0.28, 1.2, fur, Vector3(0, 0.55, 0)))
-	_model.get_child(-1).rotation_degrees.x = 90.0
-	_model.add_child(Shapes.sphere(0.24, fur, Vector3(0, 0.75, 0.6)))
-	_model.add_child(Shapes.box(Vector3(0.14, 0.12, 0.3), Color(0.3, 0.3, 0.33), Vector3(0, 0.7, 0.85)))
-	_model.add_child(Shapes.cone(0.08, 0.22, fur, Vector3(-0.12, 1.0, 0.55)))
-	_model.add_child(Shapes.cone(0.08, 0.22, fur, Vector3(0.12, 1.0, 0.55)))
-	_model.add_child(Shapes.sphere(0.04, Color(1, 0.85, 0.2), Vector3(-0.1, 0.8, 0.8), 3.0))
-	_model.add_child(Shapes.sphere(0.04, Color(1, 0.85, 0.2), Vector3(0.1, 0.8, 0.8), 3.0))
+## Its own copy of each material, the colour multiplied by `tint` (the ink look keeps it).
+func _tint(mesh: MeshInstance3D, tint: Color) -> void:
+	for i in mesh.mesh.get_surface_count():
+		var m := mesh.mesh.surface_get_material(i) as BaseMaterial3D
+		if m == null:
+			continue
+		var copy := m.duplicate() as BaseMaterial3D
+		copy.albedo_color = m.albedo_color * tint
+		mesh.set_surface_override_material(i, copy)
+
+
+func _build_greybox_wolf() -> void:
+	var fur := FOX_FUR if kind == "fox" else Color(0.42, 0.42, 0.46)
+	var body := Node3D.new()
+	body.scale = Vector3.ONE * (FOX_SCALE if kind == "fox" else 1.0)
+	_model.add_child(body)
+	body.add_child(Shapes.capsule(0.28, 1.2, fur, Vector3(0, 0.55, 0)))
+	body.get_child(-1).rotation_degrees.x = 90.0
+	body.add_child(Shapes.sphere(0.24, fur, Vector3(0, 0.75, 0.6)))
+	body.add_child(Shapes.box(Vector3(0.14, 0.12, 0.3), fur.darkened(0.3), Vector3(0, 0.7, 0.85)))
+	body.add_child(Shapes.cone(0.08, 0.22, fur, Vector3(-0.12, 1.0, 0.55)))
+	body.add_child(Shapes.cone(0.08, 0.22, fur, Vector3(0.12, 1.0, 0.55)))
 	for x in [-0.15, 0.15]:
 		for z in [-0.35, 0.35]:
-			_model.add_child(Shapes.cylinder(0.06, 0.35, fur.darkened(0.2), Vector3(x, 0.17, z)))
-	# A white shell over the body, shown for a moment when it's hit.
-	_flash = Shapes.capsule(0.32, 1.3, Color(1, 1, 1, 0.8), Vector3(0, 0.55, 0))
-	_flash.rotation_degrees.x = 90.0
-	_flash.visible = false
-	_model.add_child(_flash)
+			body.add_child(Shapes.cylinder(0.06, 0.35, fur.darkened(0.2), Vector3(x, 0.17, z)))
+	_parts.body = body
 
+
+## The fox's silhouette is its tail: big, bushy, white-tipped, held up behind it.
+func _add_fox_tail() -> void:
+	_tail = Node3D.new()
+	_tail.position = Vector3(0, 0.55, -0.62)
+	_model.add_child(_tail)
+	var brush := Shapes.capsule(0.17, 0.85, FOX_FUR, Vector3(0, 0.12, -0.34))
+	brush.rotation_degrees.x = 60.0
+	_tail.add_child(brush)
+	_tail.add_child(Shapes.sphere(0.15, Color(0.96, 0.94, 0.9), Vector3(0, 0.33, -0.72)))
+
+
+## A bear: broad, humped shoulders over a low heavy body; it rears up to swipe.
+func _build_bear() -> void:
+	var fur := Color(0.4, 0.29, 0.22)
+	var dark := fur.darkened(0.3)
+	# It rears about its hind legs, so the body hangs off a pivot there.
+	var rear := Node3D.new()
+	rear.position = Vector3(0, 0, -0.55)
+	_model.add_child(rear)
+	var body := Node3D.new()
+	body.position = Vector3(0, 0, 0.55)
+	rear.add_child(body)
+	var trunk := Shapes.capsule(0.58, 1.8, fur, Vector3(0, 0.82, 0))
+	trunk.rotation_degrees.x = 90.0
+	body.add_child(trunk)
+	body.add_child(Shapes.sphere(0.6, fur, Vector3(0, 1.22, 0.32)))
+	body.add_child(Shapes.sphere(0.36, fur, Vector3(0, 1.1, 1.0)))
+	body.add_child(Shapes.box(Vector3(0.26, 0.2, 0.3), Color(0.62, 0.5, 0.4), Vector3(0, 1.0, 1.32)))
+	body.add_child(Shapes.sphere(0.07, Color(0.1, 0.08, 0.08), Vector3(0, 1.04, 1.48)))
+	for x in [-0.22, 0.22]:
+		body.add_child(Shapes.sphere(0.11, dark, Vector3(x, 1.42, 0.92)))
+	for z in [-0.55]:
+		for x in [-0.34, 0.34]:
+			rear.add_child(Shapes.cylinder(0.18, 0.62, dark, Vector3(x, 0.31, 0.55 + z)))
+	for x in [-0.36, 0.36]:
+		var paw := Node3D.new()
+		paw.position = Vector3(x, 0.75, 0.55)
+		body.add_child(paw)
+		paw.add_child(Shapes.cylinder(0.19, 0.75, dark, Vector3(0, -0.37, 0)))
+		_parts["paw_r" if x > 0 else "paw_l"] = paw
+	_parts.rear = rear
+
+
+## An ice troll: tall and stooped, a lopsided ridge of ice up its back, long arms with heavy
+## fists it raises and brings down in a slam.
+func _build_troll() -> void:
+	var hide := Color(0.52, 0.6, 0.68)
+	var ice := Color(0.8, 0.9, 0.98)
+	var body := Node3D.new()
+	_model.add_child(body)
+	var trunk := Shapes.capsule(0.62, 1.9, hide, Vector3(0, 1.55, -0.05))
+	trunk.rotation_degrees.x = 12.0
+	body.add_child(trunk)
+	body.add_child(Shapes.sphere(0.34, hide, Vector3(0, 2.6, 0.35)))
+	body.add_child(Shapes.box(Vector3(0.36, 0.14, 0.12), hide.darkened(0.35), Vector3(0, 2.48, 0.62)))
+	# The ice on its back, bigger on the left: its outline is lopsided from every side.
+	var spikes := [[Vector3(-0.3, 2.45, -0.45), 0.3, 0.9], [Vector3(-0.42, 2.0, -0.55), 0.25, 0.75],
+			[Vector3(0.22, 2.3, -0.48), 0.18, 0.5], [Vector3(-0.1, 2.75, -0.3), 0.2, 0.6]]
+	for sp in spikes:
+		var c := Shapes.cone(sp[1], sp[2], ice, sp[0])
+		c.rotation_degrees.x = -40.0
+		body.add_child(c)
+	for x in [-0.32, 0.32]:
+		body.add_child(Shapes.cylinder(0.24, 0.8, hide.darkened(0.2), Vector3(x, 0.4, 0)))
+	for x in [-0.82, 0.82]:
+		var arm := Node3D.new()
+		arm.position = Vector3(x, 2.25, 0.1)
+		body.add_child(arm)
+		arm.add_child(Shapes.capsule(0.21, 1.4, hide, Vector3(0, -0.65, 0)))
+		arm.add_child(Shapes.sphere(0.34, hide.darkened(0.15), Vector3(0, -1.4, 0.05)))
+		_parts["arm_r" if x > 0 else "arm_l"] = arm
+	_parts.body = body
+
+
+## A raider: upright, hooded, a satchel at the hip for what it steals; it raises an ice shard
+## behind its head and throws.
+func _build_raider() -> void:
+	var coat := Color(0.27, 0.29, 0.38)
+	var hood := Color(0.2, 0.21, 0.28)
+	var body := Node3D.new()
+	_model.add_child(body)
+	body.add_child(Shapes.capsule(0.3, 1.25, coat, Vector3(0, 0.92, 0)))
+	body.add_child(Shapes.cylinder(0.32, 0.12, Color(0.78, 0.6, 0.25), Vector3(0, 1.38, 0)))
+	body.add_child(Shapes.sphere(0.22, Color(0.85, 0.72, 0.6), Vector3(0, 1.66, 0.04)))
+	var cowl := Shapes.cone(0.3, 0.55, hood, Vector3(0, 1.82, -0.04))
+	body.add_child(cowl)
+	body.add_child(Shapes.box(Vector3(0.34, 0.3, 0.16), Color(0.5, 0.36, 0.22), Vector3(-0.34, 0.85, 0.02)))
+	for x in [-0.13, 0.13]:
+		body.add_child(Shapes.cylinder(0.1, 0.4, hood, Vector3(x, 0.2, 0)))
+	var arm := Node3D.new()
+	arm.position = Vector3(0.36, 1.35, 0)
+	body.add_child(arm)
+	arm.add_child(Shapes.capsule(0.09, 0.62, coat, Vector3(0, -0.3, 0)))
+	var shard := Shapes.cone(0.08, 0.32, Color(0.78, 0.9, 1.0), Vector3(0, -0.68, 0))
+	shard.rotation_degrees.x = 180.0
+	shard.visible = false
+	arm.add_child(shard)
+	_parts.arm_r = arm
+	_parts.shard = shard
+	_parts.body = body
+
+
+# ---------- Tells ----------
+
+func _build_tell() -> void:
+	_tell = Node3D.new()
+	_tell.position.y = 0.03
+	_tell.visible = false
+	add_child(_tell)
+	match _def.shape:
+		"wedge":
+			_tell_fill = _ground_mesh(_sector(0.0, _def.reach, _def.arc), TELL_FILL)
+			_tell.add_child(_tell_fill)
+			_tell.add_child(_ground_mesh(_wedge_outline(_def.reach, _def.arc), TELL_LINE))
+		"ring":
+			_tell_fill = _ground_mesh(_sector(0.0, _def.reach, 360.0), TELL_FILL)
+			_tell.add_child(_tell_fill)
+			_tell.add_child(_ground_mesh(_sector(_def.reach - TELL_LINE_WIDTH, _def.reach, 360.0), TELL_LINE))
+		"shot":
+			# Where the shard will land, pinned to the snow there, and a faint line to it.
+			_tell.top_level = true
+			_tell_fill = _ground_mesh(_sector(0.0, _def.reach, 360.0), TELL_FILL)
+			_tell.add_child(_tell_fill)
+			_tell.add_child(_ground_mesh(_sector(_def.reach - TELL_LINE_WIDTH, _def.reach, 360.0), TELL_LINE))
+			var box := BoxMesh.new()
+			box.size = Vector3(0.05, 0.01, 1.0)
+			_shot_line = _ground_mesh(box, Color(TELL_LINE, 0.35))
+			_shot_line.top_level = true
+			_shot_line.visible = false
+			add_child(_shot_line)
+
+
+## A flat ring sector on the snow (radius `inner` to `outer`, `arc` degrees about +Z).
+func _sector(inner: float, outer: float, arc: float) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var steps := maxi(10, int(arc / 8.0))
+	for i in steps:
+		var a0 := deg_to_rad(-arc / 2.0 + arc * i / steps)
+		var a1 := deg_to_rad(-arc / 2.0 + arc * (i + 1) / steps)
+		var d0 := Vector3(sin(a0), 0, cos(a0))
+		var d1 := Vector3(sin(a1), 0, cos(a1))
+		st.add_vertex(d0 * inner)
+		st.add_vertex(d1 * outer)
+		st.add_vertex(d0 * outer)
+		if inner > 0.0:
+			st.add_vertex(d0 * inner)
+			st.add_vertex(d1 * inner)
+			st.add_vertex(d1 * outer)
+	return st.commit()
+
+
+## A wedge's outline: its arc and its two straight sides.
+func _wedge_outline(reach: float, arc: float) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var w := TELL_LINE_WIDTH
+	var steps := maxi(10, int(arc / 8.0))
+	for i in steps:
+		var a0 := deg_to_rad(-arc / 2.0 + arc * i / steps)
+		var a1 := deg_to_rad(-arc / 2.0 + arc * (i + 1) / steps)
+		var d0 := Vector3(sin(a0), 0, cos(a0))
+		var d1 := Vector3(sin(a1), 0, cos(a1))
+		for tri in [[d0 * (reach - w), d1 * reach, d0 * reach], [d0 * (reach - w), d1 * (reach - w), d1 * reach]]:
+			for v in tri:
+				st.add_vertex(v)
+	for sgn in [-1.0, 1.0]:
+		var a := deg_to_rad(sgn * arc / 2.0)
+		var d := Vector3(sin(a), 0, cos(a))
+		var side := d.cross(Vector3.UP) * w * 0.5
+		for v in [-side, d * reach - side, d * reach + side, -side, d * reach + side, side]:
+			st.add_vertex(v)
+	return st.commit()
+
+
+func _ground_mesh(mesh: Mesh, color: Color) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	m.albedo_color = color
+	mi.material_override = m
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return mi
+
+
+## Shown while it winds up, fading in; a wedge points at whoever it's attacking, a ring's wash
+## fills out to its edge as the slam comes, a shard's target sits where it will land.
+func _update_tell(enemy: Dictionary) -> void:
+	var t: float = enemy.get("bite_t", -1.0)
+	var on: bool = t >= 0.0 and t < _def.tell + (Balance.ENEMY_LUNGE if _def.shape == "wedge" else 0.0) and enemy.has("aim")
+	_tell.visible = on
+	if _shot_line:
+		_shot_line.visible = on
+	if not on:
+		return
+	var fade := clampf(t / 0.12, 0.0, 1.0)
+	for mi in _tell.get_children():
+		var m := (mi as MeshInstance3D).material_override as StandardMaterial3D
+		var base := TELL_FILL if mi == _tell_fill else TELL_LINE
+		m.albedo_color.a = base.a * fade
+	match _def.shape:
+		"wedge":
+			var to := Vector3(enemy.aim.x, 0, enemy.aim.y) - global_position
+			_tell.rotation.y = atan2(to.x, to.z)
+		"ring":
+			_tell_fill.scale = Vector3.ONE * lerpf(0.25, 1.0, clampf(t / _def.tell, 0.0, 1.0))
+		"shot":
+			var at := Vector3(enemy.aim.x, 0.03, enemy.aim.y)
+			_tell.global_position = at
+			var from := global_position + Vector3(0, 0.03, 0)
+			_shot_line.global_position = (from + at) / 2.0
+			_shot_line.scale = Vector3(1, 1, maxf(0.01, from.distance_to(at)))
+			if from.distance_to(at) > 0.05:
+				_shot_line.look_at(at, Vector3.UP)
+
+
+# ---------- Life ----------
 
 ## Struck: a white flash and a small hop back.
 func hit() -> void:
@@ -125,48 +400,13 @@ func hit() -> void:
 	Fx.burst("snow", global_position + Vector3(0, 0.6, 0))
 
 
-func _make_wedge() -> MeshInstance3D:
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var steps := 10
-	var reach := Balance.WOLF_BITE_REACH
-	for i in steps:
-		var a0 := deg_to_rad(-WEDGE_ANGLE / 2.0 + WEDGE_ANGLE * i / steps)
-		var a1 := deg_to_rad(-WEDGE_ANGLE / 2.0 + WEDGE_ANGLE * (i + 1) / steps)
-		st.add_vertex(Vector3.ZERO)
-		st.add_vertex(Vector3(sin(a1), 0, cos(a1)) * reach)
-		st.add_vertex(Vector3(sin(a0), 0, cos(a0)) * reach)
-	var mi := MeshInstance3D.new()
-	mi.mesh = st.commit()
-	var m := StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.cull_mode = BaseMaterial3D.CULL_DISABLED
-	m.albedo_color = WEDGE_COLOR
-	mi.material_override = m
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	mi.position.y = 0.03
-	mi.visible = false
-	return mi
-
-
-## Shown while it crouches to bite, fading in, aimed at whoever it's biting.
-func _update_wedge(wolf: Dictionary) -> void:
-	var t: float = wolf.get("bite_t", -1.0)
-	var on := t >= 0.0 and t < Balance.WOLF_BITE_WINDUP + Balance.WOLF_BITE_LUNGE and wolf.has("foe_pos")
-	_wedge.visible = on
-	if not on:
-		return
-	var to := Vector3(wolf.foe_pos.x, 0, wolf.foe_pos.y) - global_position
-	_wedge.rotation.y = atan2(to.x, to.z)
-	var m := _wedge.material_override as StandardMaterial3D
-	m.albedo_color.a = WEDGE_COLOR.a * clampf(t / 0.15, 0.0, 1.0)
-
-
 ## Beaten (agreed 2026-10-20): it tumbles, scrambles up and runs off, fading. No corpse.
 func die() -> void:
 	_hp_bar.visible = false
-	_wedge.visible = false
+	_tell.visible = false
+	_sack.visible = false
+	if _shot_line:
+		_shot_line.visible = false
 	Fx.burst("snow_big", global_position + Vector3(0, 0.4, 0))
 	var away := -_model.basis.z
 	var t := create_tween()
@@ -177,44 +417,61 @@ func die() -> void:
 	t.tween_callback(queue_free)
 
 
-func sync(wolf: Dictionary, delta: float) -> void:
-	var target := Vector3(wolf.pos.x, 0, wolf.pos.y)
-	var fighting: bool = wolf.mode == "fight"
-	if fighting and wolf.has("foe_pos"):
-		var away := Vector3(wolf.pos.x - wolf.foe_pos.x, 0, wolf.pos.y - wolf.foe_pos.y)
+func sync(enemy: Dictionary, delta: float) -> void:
+	var target := Vector3(enemy.pos.x, 0, enemy.pos.y)
+	var fighting: bool = enemy.mode == "fight"
+	if fighting and enemy.has("foe_pos"):
+		var away := Vector3(enemy.pos.x - enemy.foe_pos.x, 0, enemy.pos.y - enemy.foe_pos.y)
 		if away.length() > 0.01:
-			target += away.normalized() * FIGHT_BACK_OFF
+			target += away.normalized() * LOOK[kind].back_off
 	var step := target - global_position
-	if fighting and wolf.has("foe_pos"):
+	if fighting and enemy.has("foe_pos"):
 		# Face whoever it's fighting, not the way it last stepped.
-		step = Vector3(wolf.foe_pos.x, 0, wolf.foe_pos.y) - global_position
+		step = Vector3(enemy.foe_pos.x, 0, enemy.foe_pos.y) - global_position
+	var moving := step.length() > 0.02
 	if step.length() > 0.01:
 		_model.rotation.y = lerp_angle(_model.rotation.y, atan2(step.x, step.z), 10.0 * delta)
 	global_position = global_position.lerp(target + nudge, minf(1.0, 12.0 * delta))
 	if _attack < 0.0 and _t == 0.0:
-		# Each wolf's stride starts at its own point in the cycle, so a pack doesn't trot in unison.
-		_t = float(wolf.id) * 1.7
-	_attack = wolf.get("bite_t", -1.0)
+		# Each one's stride starts at its own point in the cycle, so a pack doesn't trot in unison.
+		_t = float(enemy.id) * 1.7
+	_attack = enemy.get("bite_t", -1.0)
 	_knock = move_toward(_knock, 0.0, delta * 5.0)
-	if _pivot:
-		_t += delta * (14.0 if fighting else TROT_SPEED)
-		_model.position = -_model.basis.z * 0.1 * _knock
-		_pose(fighting)
-		var flashing := _knock > 0.6
-		for mesh in _skins:
-			mesh.material_overlay = _flash_mat if flashing else null
-	else:
-		_t += delta * (14.0 if fighting else 9.0)
-		_model.position = -_model.basis.z * 0.25 * _knock
-		_flash.visible = _knock > 0.6
-		_model.position.y = absf(sin(_t)) * (0.05 if fighting else 0.12)
-	_hp_bar.set_value(wolf.hp / wolf.max_hp)
-	_update_wedge(wolf)
-
-
-## Poses the model: a trot while it runs, a lunge and snap while it fights.
-func _pose(fighting: bool) -> void:
+	var asleep: bool = enemy.get("outpost", -1) >= 0 and not moving and not fighting
+	_t += delta * (0.0 if asleep else (14.0 if fighting else TROT_SPEED * _def.speed / 2.5))
 	var lunge := _lunge() if fighting else 0.0
+	if _pivot:
+		_model.position = -_model.basis.z * 0.1 * _knock
+		_pose(fighting, lunge)
+	else:
+		_model.position = -_model.basis.z * 0.25 * _knock
+		_pose_greybox(fighting, lunge, moving)
+	if _tail:
+		_tail.rotation.y = deg_to_rad(16.0 * sin(_t)) if not fighting else deg_to_rad(5.0 * sin(_t))
+		_tail.rotation.x = deg_to_rad(-12.0 if fighting else 0.0)
+	var flashing := _knock > 0.6
+	for mesh in _skins:
+		mesh.material_overlay = _flash_mat if flashing else null
+	_hp_bar.set_value(enemy.hp / enemy.max_hp)
+	_update_tell(enemy)
+	_update_sack(enemy)
+
+
+## A carrier shows what it took: a sack-sized icon of the resource it carries most of.
+func _update_sack(enemy: Dictionary) -> void:
+	var carry: Dictionary = enemy.get("carry", {})
+	var most := ""
+	for res in carry:
+		if most == "" or carry[res] > carry[most]:
+			most = res
+	_sack.visible = most != ""
+	if most != "" and most != _sack_res:
+		_sack_res = most
+		_sack.texture = load("res://assets/ui/icons/%s.png" % most)
+
+
+## Poses the wolf model: a trot while it runs, a lunge and snap while it fights.
+func _pose(fighting: bool, lunge: float) -> void:
 	for leg in GAIT_PHASE:
 		var swing := 0.0
 		var lift := 0.0
@@ -248,22 +505,56 @@ func _pose(fighting: bool) -> void:
 		_pivot.rotation_degrees.x = 0.0
 
 
-## How far into an attack it is: -0.4 crouched back, 1 at full stretch, 0 at rest.
+## Poses a greybox body by its attack: `lunge` is -0.4 wound up, 1 at the strike, 0 at rest.
+func _pose_greybox(fighting: bool, lunge: float, moving: bool) -> void:
+	var bob := absf(sin(_t)) if moving or fighting else 0.0
+	var wound := maxf(0.0, -lunge) / 0.4
+	var strike := maxf(0.0, lunge)
+	match kind:
+		"bear":
+			# Rears up on its hind legs (the tell), then comes down swiping.
+			_parts.rear.rotation_degrees.x = -38.0 * wound + 6.0 * strike
+			_parts.rear.position.y = 0.04 * bob
+			_parts.paw_r.rotation_degrees.x = -70.0 * wound - 30.0 * strike + (0.0 if fighting else 18.0 * sin(_t))
+			_parts.paw_l.rotation_degrees.x = -50.0 * wound + (0.0 if fighting else -18.0 * sin(_t))
+			_parts.paw_r.rotation_degrees.y = 40.0 * strike
+		"troll":
+			# Both fists go up over its head (the tell), then down in the slam.
+			for arm in ["arm_l", "arm_r"]:
+				var sway := 0.0 if fighting else 14.0 * sin(_t + (0.0 if arm == "arm_l" else PI))
+				_parts[arm].rotation_degrees.x = -165.0 * wound - 35.0 * strike + sway
+			_parts.body.rotation_degrees.x = -8.0 * wound + 14.0 * strike
+			_parts.body.position.y = 0.05 * bob - 0.12 * strike
+		"raider":
+			# The shard goes up behind its head (the tell), then forward in the throw.
+			_parts.arm_r.rotation_degrees.x = 150.0 * wound - 70.0 * strike + (0.0 if fighting else 20.0 * sin(_t))
+			_parts.shard.visible = wound > 0.05
+			_parts.body.rotation_degrees.x = -6.0 * wound + 8.0 * strike
+			_parts.body.position.y = 0.05 * bob
+		_:
+			_parts.body.position.y = absf(sin(_t)) * (0.05 if fighting else 0.12)
+			_parts.body.rotation_degrees.x = 10.0 * lunge
+
+
+## How far into an attack it is: -0.4 wound up, 1 at the strike, 0 at rest.
 func _lunge() -> float:
 	var t := _attack
 	if t < 0.0:
 		return 0.0
-	if t < ATTACK_CROUCH:
-		return -0.4 * smoothstep(0.0, 1.0, t / ATTACK_CROUCH)
-	t -= ATTACK_CROUCH
-	if t < ATTACK_THRUST:
-		return lerpf(-0.4, 1.0, smoothstep(0.0, 1.0, t / ATTACK_THRUST))
-	t -= ATTACK_THRUST
+	var tell: float = _def.tell
+	var thrust := Balance.ENEMY_LUNGE
+	if t < tell:
+		return -0.4 * smoothstep(0.0, 1.0, t / tell)
+	t -= tell
+	if t < thrust:
+		return lerpf(-0.4, 1.0, smoothstep(0.0, 1.0, t / thrust))
+	t -= thrust
 	if t < ATTACK_HOLD:
 		return 1.0
 	t -= ATTACK_HOLD
-	if t < ATTACK_RECOVER:
-		return 1.0 - smoothstep(0.0, 1.0, t / ATTACK_RECOVER)
+	var recover := Balance.ENEMY_RECOVER - ATTACK_HOLD
+	if t < recover:
+		return 1.0 - smoothstep(0.0, 1.0, t / recover)
 	return 0.0
 
 

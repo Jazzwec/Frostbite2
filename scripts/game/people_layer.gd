@@ -31,11 +31,11 @@ func on_event(ev: Dictionary) -> void:
 				var bitten: JanView = _jans.get(ev.victim)
 				if bitten:
 					bitten.hurt()
-		"jan_scared":
+		"jan_scared", "jan_starved":
 			var view: JanView = _jans.get(ev.jan)
 			_jans.erase(ev.jan)
 			if view:
-				view.say("Wolf!!", 2.0)
+				view.say("Wolf!!" if ev.type == "jan_scared" else "No food...", 2.0)
 				view.flee()
 
 
@@ -162,7 +162,7 @@ func _sync_wolves(s: GameState, delta: float) -> void:
 		seen[wolf.id] = true
 		var view: WolfView = _wolves.get(wolf.id)
 		if view == null:
-			view = WolfView.new()
+			view = WolfView.new(wolf.kind)
 			add_child(view)
 			view.global_position = Vector3(wolf.pos.x, 0, wolf.pos.y)
 			_wolves[wolf.id] = view

@@ -323,7 +323,7 @@ static func blizzard_warning(s: GameState) -> float:
 
 ## How long before an attack it's announced: never without a Watchtower, 15 s per level. [brief]
 static func attack_warning(s: GameState) -> float:
-	return Balance.WATCHTOWER_ATTACK_WARNING_PER_LEVEL * level(s, "watchtower")
+	return Balance.WAVE_WARNING + Balance.WATCHTOWER_ATTACK_WARNING_PER_LEVEL * level(s, "watchtower")
 
 
 ## The Armory's row for its level (an Armory not built yet gives level 1). [agreed 2026-10-20]

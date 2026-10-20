@@ -76,6 +76,11 @@ static func make(id: String) -> Node3D:
 		"stick":
 			n.add_child(Shapes.cylinder(0.035, 1.1, Color(0.42, 0.27, 0.15), Vector3(0, -0.45, 0), 0.03))
 			n.add_child(Shapes.sphere(0.06, Color(0.36, 0.22, 0.12), Vector3(0, 0.08, 0)))
+		# A raider's thrown ice shard.
+		"shard":
+			var c := Shapes.cone(0.1, 0.4, Color(0.78, 0.9, 1.0))
+			c.rotation_degrees.x = 90.0
+			n.add_child(c)
 		# A snowball in her mitten, for her throw.
 		"snowball":
 			n.add_child(Shapes.sphere(0.16, Color(0.97, 0.97, 0.95), Vector3(0, -0.1, 0)))

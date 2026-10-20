@@ -15,6 +15,7 @@ const LOOKS := {
 	"kitchen": {"wall": Color(0.93, 0.88, 0.76), "roof": Color(0.78, 0.38, 0.16)},
 	"watchtower": {"wall": Color(0.5, 0.42, 0.34), "roof": Color(0.28, 0.33, 0.42)},
 	"hot_springs": {"wall": Color(0.62, 0.66, 0.7), "roof": Color(0.3, 0.5, 0.55)},
+	"armory": {"wall": Color(0.55, 0.5, 0.46), "roof": Color(0.36, 0.3, 0.42)},
 }
 const SNOW := Color(0.94, 0.96, 1.0)
 ## The build pad's look: its disc colour by state, and the progress ring.
@@ -306,6 +307,15 @@ func _build_house(b: String, level: int) -> void:
 			_shapes.add_child(Shapes.box(Vector3(0.75, 0.42, 0.04), Color(0.95, 0.15, 0.15), Vector3(1.5, top + 2.4, 1.2)))
 		"hot_springs":
 			_add_pool()
+		"armory":
+			# A rack of walking sticks and a pile of snowballs out front (greybox until its model).
+			for k in 4:
+				var stick := Shapes.cylinder(0.05, 1.6, Color(0.45, 0.3, 0.18), Vector3(1.0 + k * 0.25, 0.8, 1.7))
+				stick.rotation_degrees.z = 12.0
+				_shapes.add_child(stick)
+			_shapes.add_child(Shapes.box(Vector3(1.3, 0.1, 0.1), Color(0.4, 0.28, 0.18), Vector3(1.4, 1.2, 1.7)))
+			for p in [Vector3(-1.0, 0.18, 1.8), Vector3(-0.7, 0.18, 1.9), Vector3(-0.85, 0.45, 1.85)]:
+				_shapes.add_child(Shapes.sphere(0.2, Color(0.97, 0.97, 0.95), p))
 		"barracks":
 			_shapes.add_child(Shapes.cylinder(0.04, 2.6, Color(0.4, 0.3, 0.2), Vector3(1.5, 1.3, 1.7)))
 			_shapes.add_child(Shapes.box(Vector3(0.7, 0.45, 0.04), Color(0.8, 0.2, 0.2), Vector3(1.85, 2.3, 1.7)))

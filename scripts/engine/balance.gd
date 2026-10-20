@@ -202,6 +202,8 @@ const BLIZZARD_FORCED_DELAY := 10.0
 const ATTACK_MIN_FURNACE_LEVEL := 2
 ## Only a Watchtower warns of attacks: this many seconds ahead per level. [brief]
 const WATCHTOWER_ATTACK_WARNING_PER_LEVEL := 15.0
+## Every wave is announced this long ahead, Watchtower or not (ChatGPT's steer, fight_v2). [proto]
+const WAVE_WARNING := 15.0
 const ATTACK_GAP_MIN := 8.0 * 60.0
 const ATTACK_GAP_MAX := 15.0 * 60.0
 const WOLF_PACK_MIN := 2  # [brief]

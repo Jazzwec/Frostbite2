@@ -331,11 +331,12 @@ func _forecast_text(s: GameState) -> String:
 		parts.append("%s Blizzard in %s" % [UiTheme.icon("blizzard", 44), Fmt.clock(s.blizzard_at - s.time)])
 	else:
 		parts.append("Clear skies")
-	if not s.wolves.is_empty():
-		parts.append("%s Wolves: %d" % [UiTheme.icon("wolves", 44), s.wolves.size()])
+	var raiders := s.wolves.filter(func(w): return w.outpost < 0).size() + s.wave_queue.size()
+	if s.raid_on and raiders > 0:
+		parts.append("%s Wave %d: %d left" % [UiTheme.icon("wolves", 44), s.wave, raiders])
 	elif s.attack_warned:
 		var left := maxf(s.attack_at - s.time, 0.0)
-		var line := "%s Wolves in %s" % [UiTheme.icon("wolves", 44), Fmt.clock(left)]
+		var line := "%s Wave %d in %s" % [UiTheme.icon("wolves", 44), s.wave + 1, Fmt.clock(left)]
 		# Orange only for the last seconds, so it reads as urgent rather than routine.
 		parts.append("[color=#%s]%s[/color]" % [UiTheme.FALU.to_html(false), line] if left <= WOLVES_URGENT else line)
 	if Game.engine.paused:
@@ -425,8 +426,21 @@ func _build_dev() -> void:
 	v.add_child(UiTheme.button("Add a Jan", e.dev_add_jan))
 	v.add_child(UiTheme.button("Furnace +1", func(): e.dev_level_up(0)))
 	v.add_child(UiTheme.button("Blizzard", e.force_blizzard))
-	v.add_child(UiTheme.button("Wolves", func(): e.spawn_wolves()))
+	v.add_child(UiTheme.button("Next wave", e.dev_wave))
+	v.add_child(UiTheme.button("Armory +1", func(): _dev_armory(e)))
 	v.add_child(UiTheme.button("Ink look", ink_toggled.emit))
+
+
+## Builds the Armory, or raises it a level.
+func _dev_armory(e: GameEngine) -> void:
+	var i := MapData.site_of_building(e.state.sites, "armory")
+	if i < 0:
+		for k in e.state.sites.size():
+			if e.state.sites[k].type == "armory":
+				e.start_construction(k)
+				i = k
+	if i >= 0:
+		e.dev_level_up(i)
 
 
 func _toggle_dev() -> void:

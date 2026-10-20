@@ -25,6 +25,7 @@ var _frontier: Node3D
 var _gates: Array[GateView] = []
 var _stoves: Array[StoveView] = []
 var _chests: Array[ChestView] = []
+var _outposts: Array[OutpostView] = []
 ## Closed tiles are deep, cold drifts: cooler than the trodden snow and raised above it.
 const VEIL_COLOR := Color(0.6, 0.68, 0.82)
 const VEIL_HEIGHT := 1.2
@@ -81,6 +82,8 @@ func _ready() -> void:
 		_add_chest_view(i)
 	for den in Game.engine.state.dens:
 		_add_den_view(den.pos)
+	for i in Game.engine.state.outposts.size():
+		_add_outpost_view(i)
 	_rebuild_frontier()
 	for k in Game.engine.state.stockpiles.size():
 		_add_stockpile_view(k)
@@ -182,6 +185,8 @@ func _refresh_views(delta: float) -> void:
 		v.refresh(s)
 	for v in _chests:
 		v.refresh(s.chests[v.index])
+	for v in _outposts:
+		v.refresh(s.outposts[v.index])
 
 
 # ---------- World ----------
@@ -396,6 +401,13 @@ func _add_den_view(pos: Vector2) -> void:
 	view.setup(pos)
 
 
+func _add_outpost_view(i: int) -> void:
+	var view := OutpostView.new()
+	add_child(view)
+	view.setup(i, Game.engine.state.outposts[i])
+	_outposts.append(view)
+
+
 func _add_chest_view(i: int) -> void:
 	var view := ChestView.new()
 	add_child(view)
@@ -495,6 +507,8 @@ func _open_tile(ev: Dictionary) -> void:
 		_add_chest_view(i)
 	for i in ev.dens:
 		_add_den_view(Game.engine.state.dens[i].pos)
+	for i in ev.get("outposts", []):
+		_add_outpost_view(i)
 	_add_stove_view(Game.engine.state.stoves.size() - 1)
 	_add_stockpile_view(ev.stockpile)
 	# The town's fire carries out to the new small furnace, which lights as it lands (AFK V9,
@@ -952,10 +966,38 @@ func _on_event(ev: Dictionary) -> void:
 		"attack_warning":
 			Audio.play("warning")
 			# The countdown itself is in the forecast strip, so the banner can't disagree with it.
-			_hud.show_banner("The Watchtower spots wolves coming!", 5.0, UiTheme.WARN_WASH, "wolves")
+			_hud.show_banner("Wave %d is coming!" % ev.wave, 4.0, UiTheme.WARN_WASH, "wolves")
 		"wolves_arrived":
 			Audio.play("howl")
-			_hud.show_banner("%d wolves heading for the furnace!" % ev.count, 4.0, UiTheme.WARN_WASH, "wolves")
+			_hud.show_banner("Wave %d: %s, after the store!" % [ev.wave, _mix_text(ev.mix)], 4.0, UiTheme.WARN_WASH, "wolves")
+		"wolf_windup":
+			# Each kind's wind-up has its own sound (the steer's readability rule 2).
+			var sound: Array = WINDUP_SOUNDS[ev.kind]
+			Audio.play(sound[0], _v3(ev.pos), sound[1], sound[2])
+		"enemy_throw":
+			var thrower := _people.wolf_view(ev.wolf)
+			var from := (thrower.global_position if thrower else _v3(ev.from)) + Vector3(0, 1.9, 0)
+			Audio.play("whoosh", from, 0.8, -4.0)
+			Fx.throw("shard", from, _v3(ev.to) + Vector3(0, 0.3, 0), maxf(ev.flight, 0.15), 0.9)
+		"shard_landed":
+			Fx.burst("shards", _v3(ev.pos) + Vector3(0, 0.2, 0))
+			if ev.victim == -1:
+				_meagan.hurt()
+				_rig.shake(0.04)
+				Audio.play("yelp", _meagan.global_position, 1.5, -6.0)
+		"theft":
+			Audio.play("pick", _v3(ev.pos), 0.6)
+			Fx.pop(_amounts(ev.carry, "−"), _v3(ev.pos) + Vector3(0, 1.6, 0), Color(1.0, 0.55, 0.45), 40)
+		"jan_starved":
+			Audio.play("warning")
+			_hud.show_banner("A Jan left: there's no Food!", 4.0, UiTheme.WARN_WASH, "food")
+		"outpost_cleared":
+			Audio.play("milestone")
+			Fx.burst("confetti", _v3(ev.pos) + Vector3(0, 1.0, 0))
+			Fx.pop("Cleared!" if ev.chest else "Cleared! " + _amounts(ev.pay, "+"), _v3(ev.pos) + Vector3(0, 2.4, 0), UiTheme.ACCENT, 44)
+		"spoils":
+			Audio.play("coin")
+			Fx.pop(_amounts(ev.pay, "+"), _v3(ev.pos) + Vector3(0, 1.6, 0), Color(0.75, 1.0, 0.75), 40)
 		"meagan_attack":
 			var wolf := _people.wolf_view(ev.wolf)
 			var at := wolf.global_position if wolf else _v3(ev.pos)
@@ -971,24 +1013,62 @@ func _on_event(ev: Dictionary) -> void:
 				Fx.burst("snow", wolf.global_position + Vector3(0, 0.6, 0), (wolf.global_position - _v3(ev.from)).normalized() + Vector3.UP)
 				Audio.play("swing_hit", wolf.global_position, 1.0 if ev.kind == "melee" else 1.3, 0.0 if ev.kind == "melee" else -6.0)
 		"wolf_bite":
-			if ev.victim < 0 and ev.hit:
+			if ev.get("slam", false):
+				Audio.play("crash", _v3(ev.pos), 0.55, -2.0)
+				Fx.burst("snow_big", _v3(ev.pos) + Vector3(0, 0.2, 0))
+				_rig.shake(0.06)
+				if -1 in ev.victims:
+					_meagan.hurt()
+			elif ev.victim < 0 and ev.hit:
 				_meagan.hurt()
-				_rig.shake(0.08)
+				_rig.shake(0.05 if ev.kind == "bear" else 0.03)
 				Audio.play("yelp", _meagan.global_position, 1.5, -6.0)
-		"breakthrough":
-			Audio.play("crash")
-			# High over the furnace and smaller, clear of the fight round it (AFK N7).
-			_float_text(Vector3(0, 6.0, 0), "Wolves raided the furnace!", Color(1, 0.5, 0.4), true)
 		"wolf_killed":
-			Audio.play("yelp", _v3(ev.pos))
+			Audio.play("yelp", _v3(ev.pos), KILL_PITCH.get(ev.kind, 1.0))
 			Audio.play("coin")
-			# A small pop, not a banner over the fight (Astra's steer: medium juice, readable).
-			Fx.pop("+%s Food · +%s Mat" % [Fmt.num(ev.food), Fmt.num(ev.materials)], _v3(ev.pos) + Vector3(0, 1.4, 0), Color(0.75, 1.0, 0.75), 34)
+			# A small pop, not a banner over the fight (Astra's steer: medium juice, readable); what
+			# it stole comes back with it.
+			var got := {"materials": ev.materials}
+			for res in ev.carry:
+				got[res] = got.get(res, 0.0) + ev.carry[res]
+			Fx.pop(_amounts(got, "+"), _v3(ev.pos) + Vector3(0, 1.4, 0), Color(0.75, 1.0, 0.75), 34)
 		"meagan_injured":
 			Audio.play("yelp", Vector3.INF, 1.6)
-			_hud.show_banner("Meagan is hurt! She'll be back up when the wolves are gone.", 4.0)
+			_hud.show_banner("Meagan is hurt! She'll be back up when the raid is over.", 4.0)
 		"attack_over":
-			_hud.show_banner("The wolves are gone.", 3.0, GOOD_GREEN)
+			_hud.show_banner("Wave %d held!" % ev.wave, 3.0, GOOD_GREEN)
+
+
+## Each kind's wind-up sound: [sound, pitch, volume dB].
+const WINDUP_SOUNDS := {
+	"fox": ["breath", 1.6, -6.0], "wolf": ["breath", 0.9, -4.0], "bear": ["howl", 0.45, -6.0],
+	"troll": ["crash", 0.4, -8.0], "raider": ["whoosh", 0.6, -8.0],
+}
+const KILL_PITCH := {"fox": 1.5, "wolf": 1.0, "bear": 0.6, "troll": 0.45, "raider": 1.2}
+const ENEMY_NAMES := {"fox": ["a fox", "foxes"], "wolf": ["a wolf", "wolves"], "bear": ["a bear", "bears"],
+	"troll": ["an ice troll", "ice trolls"], "raider": ["a raider", "raiders"]}
+
+
+## "4 foxes, 2 wolves and a bear".
+func _mix_text(mix: Dictionary) -> String:
+	var parts := []
+	for kind in ["troll", "bear", "raider", "wolf", "fox"]:
+		var n: int = mix.get(kind, 0)
+		if n > 0:
+			parts.append(ENEMY_NAMES[kind][0] if n == 1 else "%d %s" % [n, ENEMY_NAMES[kind][1]])
+	if parts.size() < 2:
+		return "".join(parts)
+	return ", ".join(parts.slice(0, -1)) + " and " + parts[-1]
+
+
+## "+8 Food · +1 Mat" for a dictionary of amounts.
+func _amounts(amounts: Dictionary, sign: String) -> String:
+	var names := {"food": "Food", "wood": "Wood", "materials": "Mat"}
+	var parts := []
+	for res in ["food", "wood", "materials"]:
+		if amounts.get(res, 0.0) >= 0.5:
+			parts.append("%s%s %s" % [sign, Fmt.num(amounts[res]), names[res]])
+	return " · ".join(parts)
 
 
 ## A snowball arcs from her hand to the wolf, landing as the engine's hit does.
