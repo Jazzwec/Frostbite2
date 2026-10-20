@@ -2,39 +2,48 @@
 
 What felt wrong while playing, and what's still open. This file is the prompt for the next session.
 
-## Handover (end of session, 2026-10-19)
+## Handover (end of session, 2026-10-20)
 
-**Where things stand.** Frostbite2 is a playable hypercasual prototype, with everything committed and pushed to `Jazzwec/Frostbite2` and 38 tests passing. `CLAUDE.md` describes the architecture.
-- **Controls:** a drag-anywhere joystick and a close follow camera; Meagan walks at 6 m/s.
-- **Carrying:** her carry stack with a "12/20" or "MAX" counter and "+N" pops; pieces fly in and out one by one.
-- **Stockpile** by the furnace, the town bank:
-  - she drops everything off there
-  - build pads pay from her bag first, then from the Stockpile
-  - the furnace feeds itself from the Stockpile's Wood
-  - Jans' output goes into it
-- **Build pads:** stop on one to open its panel, stand on it to pay.
-- **The objective:** the furnace starts full; heat 0 ends the game, with a game-over card showing time survived and the best time. Low-heat warnings come first.
-- **Pressure:** blizzards; wolves from Furnace Lv 2, fought by guards and Meagan.
-- **Animations:** chop, fish (the Fishing Lodge and fishing ponds), scavenge, fuel, build, carry, warm, fight, down.
-- **Audio:** synthesized music and sound effects (`tools/audio/make_audio.py`, the `Audio` autoload), with Music and Sound toggles.
-- **Models:** Meagan and the Jan are Tripo models with Mixamo-style rigs. They're prepared in Blender (`source_art/blender/*.blend` → `assets/models/blender/*.glb`) and animated by `ModelRig`, which drives bones from the same clips as the greybox.
-- **ChatGPT through the Codex CLI:** `tools/chatgpt/chatgpt.py` does `review`, `ask` and `image`; the `chatgpt` skill explains its use. The Tripo reference images and prompts are in `source_art/concept/`.
-- **Unattended runs:** `AFK.md`, `BACKLOG.md`, `AFK_REPORT.md` and `.claude/settings.json`. Start one with `/loop Work through BACKLOG.md for Frostbite2 until HH:MM. Follow AFK.md.`
+**Where things stand.** Frostbite2 is a playable hypercasual prototype in the agreed **ink & watercolour** style. Everything is committed and pushed to `Jazzwec/Frostbite2` (last commit `138d0ea`), and the 91 tests pass. `CLAUDE.md` describes the architecture; `docs/art-direction.md` is the art rulebook (pillars, palette, characters, the prompt template).
+- **Game:** a drag joystick, the carry stack, the Stockpile, build pads, the furnace objective with a game-over card, blizzards, wolves, save and continue, first-minute hints, milestones, auto-assign, the Jans screen, zoom (16–34 m) and synthesized audio.
+- **The look (on by default; DEV → Ink look, or `-- --no-ink`, to compare):** banded watercolour light, wobbly ink lines, a paper pass, and a warm wash round the furnace that shrinks with the heat. The snowfield is painted (`ink_ground`), with paths to every pad.
+- **Assets:**
+  - Meagan, the Jan (recoloured to deep teal #35666B) and the wolf are Tripo models cleaned up in Blender.
+  - Three low-poly Blender pines make the forests.
+  - Watercolour icons are in `assets/ui/icons/`.
+  - The buildings and furnace are still greybox shapes in code.
+- **UI from the last pass:** Meagan's green health bar (the guards' are blue), her red silhouette through whatever hides her, one Jan bubble at a time kept on screen, the game-over stat tiles and the milestone chime.
+- **Before and after:** `source_art/direction/before_after.png`.
 
-**Done since (2026-10-19, later):** the wolf. `source_art/blender/wolf.blend` (scene `FB2_Wolf`, saved on its own) → `assets/models/blender/wolf.glb`: 3.6k tris, 1024 texture, 1.3 m long, drawn ×1.25. It has Tripo's quadruped auto-rig, and `WolfView` poses it in code: a trot, and an attack loop of crouch, thrust and recover, with a white flash when hit.
+**Waiting on the user:**
+- **Try the zoom range** (16–34 m) and sign off the `[proto]` numbers in `balance.gd`.
+- **A real-phone performance check.** On desktop the busy scene runs at about 400 FPS with the ink look on.
+- **`assets/models/tripo/Meagan.glb`** has an uncommitted change by the user. Leave it alone: don't stage or process it until they say so.
+- **The open review items** below (under Open questions → Art direction): greybox buildings and plots, bubbles under the top buttons, small icon sizes, and whether the warm disc becomes a gameplay rule.
 
 **Next, in order:**
-1. **The Furnace and Lumber Yard models,** when the user makes them in Tripo. Buildings need no rig; they replace the greybox parts in `SiteView`, keeping the fire light, embers and pad.
-2. **`BACKLOG.md` items 1b onwards:** HUD icons, the snow texture, save and continue, first-minute hints, zoom… These can also run as an AFK `/loop`.
+1. **Building and character models from the ink references** in `source_art/concept/ink/` (Meagan, a Jan, the furnace, the Bunkhouse, the Lumber Yard).
+   - Either the user makes them in Tripo Studio and drops the files in, or they're made with **Meshy** (below), which spends credits.
+   - Buildings need no rig; they replace the greybox parts in `SiteView`, keeping the fire light, embers and pad.
+2. **The rest of `BACKLOG.md`.** It can also run as an AFK `/loop` (see `AFK.md`).
 
-**Gotchas learned this session:**
-- **The Godot editor** must be restarted once so it recognises the `Audio` autoload. Until then, `script validate` and the editor show "Identifier not found: Audio", but the game itself runs fine.
-- **Swallowtail input coordinates differ.** Touch events injected in `runtime eval` with `Input.parse_input_event` use window coordinates (540×960), while `swallowtail input click` uses viewport coordinates (1080×1920).
-- **Blender's glTF exporter** exports every scene in the open file unless you pass `use_active_scene=True` and `use_active_collection=True`. Keep each model in its own scene and collection, and switch the window back to the user's "Scene" afterwards.
-- **Tripo exports** come with 4k textures and about 50k triangles: always decimate and shrink them. Raw files live in `assets/models/tripo/`, which is `.gdignore`d. Mixamo bone names arrive in Godot as `mixamorig_*`.
-- **Writing files from Python on Windows:** use `newline='\n'`, because text mode writes CRLF.
-- **Screenshot helpers** used this session lived in the session scratchpad (`shots.sh`, `pose.sh`) and are gone. They're easy to rebuild: one recentres the camera with `m._rig.set_process(false)` and sets `get_viewport().get_camera_3d().size`; the other adds a temporary `Camera3D` side view.
-- **`user://settings.cfg`** holds the Music and Sound toggles, the best time and (later) hint progress. Remove any test values written there.
+**Meshy (new, 2026-10-20).** The user installed the Meshy MCP server (`meshy-mcp-server`, user scope, npm `@meshy-ai/meshy-mcp-server` 0.6.4, key in its env).
+- **It loads from the next session on.** It was tested by hand and has 28 tools: image/multi-image/text to 3D, retexture, remesh, rig, animate, convert and resize.
+- **Credits:** the balance was 3,100 monthly credits, refreshing on 2026-11-20.
+- **It costs real credits:** say the cost and ask before every paid call. `meshy_check_balance`, `meshy_list_tasks`, `meshy_list_models` and `meshy_list_animations` are free.
+- **Output** goes through the same Blender cleanup as the Tripo models (decimate, 1024 texture, metres, export the active scene only).
+
+**Gotchas:**
+- **The class cache.** After adding a `class_name` file, run `godot --headless --path . --import` and `swallowtail editor reload`. If the game still stops at "Identifier not found", call `EditorInterface.get_resource_filesystem().update_file("res://…")` via `swallowtail editor run_script` (details are in CLAUDE.md).
+- **Headless tests have no autoloads.** Pure helpers go in classes that don't touch `Game`, `Audio` or `UiTheme` (e.g. `CameraRig.keep_on_screen`, `HpBar`, `FadeCover`).
+- **Ink-painted meshes** use `ShaderMaterial`s (`ink_toon`, with `ink_toon_fade` for fading). Code that recolours or fades materials must handle them as well as `StandardMaterial3D`.
+- **Swallowtail input:** `swallowtail input click` uses viewport coordinates (1080×1920); `Input.parse_input_event` in `runtime eval` uses window coordinates (540×960). Drive it from Bash, not PowerShell.
+- **Blender's glTF exporter** needs `use_active_scene=True` and `use_active_collection=True`. Keep each model in its own `FB2_<Name>` scene.
+- **Writing files from Python on Windows:** use `newline='
+'`.
+- **Big Python edits:** write them to a script file with the Write tool, not a bash heredoc.
+- **`user://settings.cfg`** should be `[audio] music=false sfx=true` after tests. Delete `user://save.json` and any `[hints]`/`[milestones]` test values.
+- **ChatGPT budget this session:** 8 images and 6 reviews through the Codex CLI. These are free on the user's plan, but keep batches modest.
 
 ## Felt wrong while playing
 
@@ -158,7 +167,7 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 
 - **Numbers marked `[proto]` in `scripts/engine/balance.gd`** need your sign-off: walk 6 m/s, build pad 1.4 m, low-heat warning 25% (clears at 40%) and countdown 10%, furnace feed from the Stockpile 5 Wood/s, gather range 3 m, building reach 4.5 m, rescue range 2 m, first Jan after 5 s, wolf detour 7 m, guard ring 4 m.
 - **Guards are weak:** by the brief, without kits they deal half damage (1.5/s), so 2 guards struggle against 3 wolves. Kits and gear aren't in the prototype yet.
-- **Trees:** Poly Haven's trees are far too heavy for phones, so forests are greybox cones. Real trees will need Tripo or Blender low-poly models.
+- **Trees:** done (2026-10-20): three low-poly Blender pines replace the greybox cones.
 - **ChatGPT feedback on the Jans (not done yet):**
   - World labels are wider than the buildings: use smaller nameplates, with level and upgrade in the tap panel.
   - Simplify the Jan texture into three colour blocks for phone size; this needs a Tripo or texture pass.
