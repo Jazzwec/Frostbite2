@@ -36,7 +36,7 @@ Polish and quality first, then new content.
   - **How:** zoom the camera between `VIEW_HEIGHT` 16 and 34 (default 22). One-finger drag stays the joystick.
   - **Done when:** both zoom inputs work in the running game and the joystick is unaffected. Pinch is checked by injecting two touch events through `runtime eval`.
 
-- [ ] **15. One readout above Meagan (safe, polish).**
+- [x] **15. One readout above Meagan (safe, polish).** Done 2026-10-20 (AFK).
   - **What:** the labels stacked over her (the node's stock, "12/20", "12 Wood") become one compact readout: the bag count, with "MAX" in red when full and the carried resources on one short line under it. From the ChatGPT review of her model (NOTES.md).
   - **Done when:** a screenshot shows a single readout that never overlaps her head or the furnace labels, and the "+N" pops still show.
 

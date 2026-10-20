@@ -101,6 +101,10 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - [ ] The mouse wheel zooms in and out in steps, smoothly, between a close view and a wide one (16 to 34 m tall; it starts at 22).
 - [ ] On a phone: two fingers pinch to zoom. While pinching, Meagan doesn't move and the joystick doesn't show; one finger still steers as before.
 
+**One readout above Meagan (2026-10-20)**
+- [ ] With anything in her bag, one small dark pill floats above her load: "14/20" with "9 Wood · 5 Mat" under it. It's the same size at any zoom and follows her smoothly.
+- [ ] When the bag fills it turns into a red "MAX" with a little pop. The spot she's gathering at hides its own "Materials 12" label until she walks off.
+
 **Objective: keep the fire burning**
 - [ ] A winter starts at 100/100 heat. With no Wood it lasts about 2½ minutes.
 - [ ] Below 25%: the bar pulses red, banner and horn. Below 10%: "Fire out in 0:12" on the bar.

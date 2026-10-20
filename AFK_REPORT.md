@@ -59,3 +59,15 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.
 - **Tests:** `tests/test_camera.gd` (pinch and wheel maths and the limits).
 - **New numbers:** none beyond the backlog's (16 / 34 / 22 m). The 10% wheel step and the easing speed are camera feel, in `CameraRig`.
 - **ChatGPT feedback (not applied, your call):** it would tighten the range to 18–30 m and default to about 25 m. At 22 m nearby buildings clip at the screen edges; at 32 m Meagan gets hard to spot. The backlog gave 16–34 / 22, so I kept those. Label clutter is item 16.
+
+### 15. One readout above Meagan
+- **Commits:** "One readout above Meagan".
+- **What changed:**
+  - Her world-space counter (a big two-line Label3D that collided with the furnace labels) is replaced by `BagReadout`, a small screen-space pill in the HUD above her load: "14/20", or "MAX" in red with a pop when it fills, and "9 Wood · 5 Mat" under it.
+  - It's the same size at every zoom, follows her smoothly, and never takes touches.
+  - The resource spot she's gathering at hides its own stock label until she's left. The "+N" pops are unchanged.
+- **Check in the game:** gather at the scrap heap behind the furnace, then fill the bag.
+- **ChatGPT feedback:**
+  - Applied: bigger, near-white text (44 / 34 px), more gap above her, smoothed position, a pop when full.
+  - Not applied: "FULL 20/20" instead of "MAX", because the backlog asks for "MAX".
+- **Felt wrong:** standing on a build pad, the pill sits over the pad's own "Lv 1 / Upgrade" ground label. Item 16 (smaller nameplates) should ease it.

@@ -17,7 +17,6 @@ const MODEL_SCALE := 1.2
 var _agent: NavigationAgent3D
 var _rig: CharacterRig
 var _stack: CarryStack
-var _count: Label3D
 var _hp_bar: HpBar
 var _clip := ""
 var _face := Vector3.INF
@@ -57,13 +56,10 @@ func _ready() -> void:
 		_rig.head.add_child(Shapes.cylinder(0.32, 0.25, white, Vector3(0, 0.42, 0), 0.22))
 		_rig.head.add_child(Shapes.sphere(0.12, white, Vector3(0, 0.62, 0)))
 		_rig.body.add_child(Shapes.box(Vector3(0.7, 0.12, 0.12), Color(0.9, 0.75, 0.2), Vector3(0, 1.12, 0.2)))
-	# Her load stacks up on her back, with a counter above it.
+	# Her load stacks up on her back; the HUD's BagReadout shows how much above it.
 	_stack = CarryStack.new()
 	_stack.position = Vector3(0, 0.45, -0.5) if _rig is GreyboxRig else Vector3(0, 0.55, -0.5)
 	_rig.body.add_child(_stack)
-	_count = Shapes.label("", Vector3(0, 2.6, 0), 44)
-	_count.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
-	add_child(_count)
 	_rig.impact.connect(func(clip: String): worked.emit(clip))
 	_hp_bar = HpBar.new(Color(0.95, 0.3, 0.5))
 	_hp_bar.position = Vector3(0, 1.85, 0)
@@ -183,25 +179,9 @@ func _physics_process(delta: float) -> void:
 
 	var cap := Economy.bag_cap(s)
 	_stack.sync(s.bag, cap, _source, _dest, _landed, 1.0 if moving else 0.0, delta)
-	_update_counter(s, cap)
 	# Health only matters in a fight.
 	_hp_bar.visible = not s.wolves.is_empty() or s.meagan_hp < Balance.MEAGAN_HP
 	_hp_bar.set_value(s.meagan_hp / Balance.MEAGAN_HP)
-
-
-## "12/20" above her load, "MAX" in red when the bag is full, and what's in it underneath.
-func _update_counter(s: GameState, cap: float) -> void:
-	var total := Economy.bag_total(s)
-	_count.position.y = maxf(2.3, _stack.top_position().y - global_position.y + 0.3)
-	_count.visible = total > 0.01
-	var full := total >= cap - 0.01
-	var parts := []
-	for res in CarryStack.ORDER:
-		if s.bag[res] >= 1.0:
-			parts.append("%s %s" % [Fmt.num(floorf(s.bag[res])), {"wood": "Wood", "food": "Food", "materials": "Mat"}[res]])
-	var head := "MAX" if full else "%s/%s" % [Fmt.num(floorf(total)), Fmt.num(cap)]
-	_count.text = "%s\n%s" % [head, " · ".join(parts)]
-	_count.modulate = Color(1.0, 0.45, 0.4) if full else Color.WHITE
 
 
 func _turn_towards(dir: Vector3, delta: float) -> void:

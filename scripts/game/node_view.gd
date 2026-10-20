@@ -106,6 +106,8 @@ func refresh(s: GameState) -> void:
 			else:
 				_fall(_pieces[i])
 	_label.text = "%s %s" % [str(node_def.resource).capitalize(), Fmt.num(s.nodes[index])]
+	# While Meagan works here her bag readout is over her; the spot's own label steps aside.
+	_label.visible = s.meagan_pos.distance_to(MapData.RESOURCE_NODES[index].pos) > Balance.GATHER_RANGE + 1.0
 	_label.modulate = Color(1, 1, 1, 0.9) if frac > 0.05 else Color(0.7, 0.7, 0.75, 0.6)
 
 

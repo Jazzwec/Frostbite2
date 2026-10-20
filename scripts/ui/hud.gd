@@ -9,6 +9,7 @@ signal ink_toggled
 var sheet: Sheet
 var joystick: Joystick
 var hints: Hints
+var bag_readout: BagReadout
 
 var _root: Control
 var _top: PanelContainer
@@ -39,6 +40,8 @@ func _ready() -> void:
 	add_child(_root)
 	_build_top()
 	_build_banner()
+	bag_readout = BagReadout.new()
+	_root.add_child(bag_readout)
 	hints = Hints.new()
 	_root.add_child(hints)
 	joystick = Joystick.new()
