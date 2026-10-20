@@ -1,6 +1,7 @@
 class_name Props
 extends RefCounted
-## Imported models (Poly Haven props, and pines modelled in Blender: source_art/blender/trees.blend).
+## Imported models (Poly Haven props, pines modelled in Blender: source_art/blender/trees.blend, and
+## generated models made game-ready by the asset pipeline, e.g. the furnace).
 ## Returns null when a model is missing, so callers keep their greybox shape.
 
 const PATHS := {
@@ -10,6 +11,7 @@ const PATHS := {
 	"pine_a": "res://assets/models/blender/pine_a.glb",
 	"pine_b": "res://assets/models/blender/pine_b.glb",
 	"pine_c": "res://assets/models/blender/pine_c.glb",
+	"furnace": "res://assets/models/blender/furnace.glb",
 }
 ## The pines' own height in metres (base of the trunk to the tip), to scale them to a tree's height.
 const PINE_HEIGHTS := {"pine_a": 3.45, "pine_b": 3.55, "pine_c": 2.55}

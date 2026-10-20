@@ -43,6 +43,9 @@ var _flare := 0.0
 const STEAM_EVERY := 2.0
 ## Where the Hot Springs' pool sits, beside the hut and clear of the build pad.
 const HOT_SPRINGS_POOL := Vector3(2.5, 0, 0.7)
+## On the furnace model (assets/models/blender/furnace.glb): its fire mouth and chimney top.
+const FURNACE_MOUTH := Vector3(0.23, 0.82, 0.64)
+const FURNACE_CHIMNEY := Vector3(0.29, 4.37, 0.0)
 var _steam_in := 0.0
 var _pad: MeshInstance3D
 var _pad_label: Label3D
@@ -261,12 +264,21 @@ func _build_construction() -> void:
 
 
 func _build_furnace(level: int) -> void:
-	var r := MapData.FURNACE_RADIUS
-	_shapes.add_child(Shapes.cylinder(r, 1.3, Color(0.32, 0.3, 0.32), Vector3(0, 0.65, 0), r * 0.85))
-	_shapes.add_child(Shapes.cylinder(r * 0.9, 0.25, Color(0.2, 0.18, 0.2), Vector3(0, 1.4, 0)))
-	var chimney_h := 1.5 + 0.25 * level
-	_shapes.add_child(Shapes.cylinder(0.35, chimney_h, Color(0.25, 0.23, 0.25), Vector3(0.9, 1.3 + chimney_h / 2.0, -0.6)))
-	_fire = Shapes.sphere(0.9, Color(1.0, 0.55, 0.15), Vector3(0, 1.5, 0), 4.0)
+	var model := Props.make("furnace")
+	var embers_at := Vector3(0, 1.7, 0)
+	if model != null:
+		# The Meshy model (assets/models/meshy/furnace.meshy.json): the glow sits in its fire
+		# mouth and the embers rise from its chimney.
+		_shapes.add_child(model)
+		_fire = Shapes.sphere(0.52, Color(1.0, 0.55, 0.15), FURNACE_MOUTH, 4.0)
+		embers_at = FURNACE_CHIMNEY
+	else:
+		var r := MapData.FURNACE_RADIUS
+		_shapes.add_child(Shapes.cylinder(r, 1.3, Color(0.32, 0.3, 0.32), Vector3(0, 0.65, 0), r * 0.85))
+		_shapes.add_child(Shapes.cylinder(r * 0.9, 0.25, Color(0.2, 0.18, 0.2), Vector3(0, 1.4, 0)))
+		var chimney_h := 1.5 + 0.25 * level
+		_shapes.add_child(Shapes.cylinder(0.35, chimney_h, Color(0.25, 0.23, 0.25), Vector3(0.9, 1.3 + chimney_h / 2.0, -0.6)))
+		_fire = Shapes.sphere(0.9, Color(1.0, 0.55, 0.15), Vector3(0, 1.5, 0), 4.0)
 	_shapes.add_child(_fire)
 	if _light == null:
 		_light = OmniLight3D.new()
@@ -277,13 +289,13 @@ func _build_furnace(level: int) -> void:
 		add_child(_light)
 		_embers = _make_embers()
 		add_child(_embers)
+	_embers.position = embers_at
 
 
 func _make_embers() -> GPUParticles3D:
 	var p := GPUParticles3D.new()
 	p.amount = 40
 	p.lifetime = 1.6
-	p.position = Vector3(0, 1.7, 0)
 	var pm := ParticleProcessMaterial.new()
 	pm.direction = Vector3.UP
 	pm.spread = 25.0

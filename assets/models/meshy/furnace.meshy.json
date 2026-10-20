@@ -1,0 +1,29 @@
+{
+  "asset": "furnace",
+  "date": "2026-10-20",
+  "reference": "source_art/concept/ink/furnace.png (padded to 1536x1536)",
+  "chosen": "furnace_meshy6.glb",
+  "runs": [
+    {
+      "file": "furnace_meshy6.glb",
+      "task_id": "01a15906-4937-72d8-9a93-15a01361a3ae",
+      "tool": "meshy_image_to_3d",
+      "credits": 30,
+      "params": {"model_type": "standard", "ai_model": "meshy-6", "remove_lighting": true, "image_enhancement": false,
+                 "should_remesh": true, "topology": "triangle", "target_polycount": 10000, "should_texture": true,
+                 "enable_pbr": false, "texture_resolution": "2k", "auto_size": true, "origin_at": "bottom",
+                 "target_formats": ["glb"]},
+      "result": "10,208 tris; flat even washes, clean fire mouth"
+    },
+    {
+      "file": "furnace_t2.5.glb",
+      "task_id": "01a15906-42b2-77c6-9ce9-4813cce98a54",
+      "tool": "meshy_image_to_3d",
+      "credits": 15,
+      "params": {"model_type": "smart-topology", "ai_model": "meshy-t2.5", "target_polycount": 8000, "should_texture": true,
+                 "enable_pbr": false, "texture_resolution": "2k", "auto_size": true, "origin_at": "bottom",
+                 "target_formats": ["glb"]},
+      "result": "8,259 tris; darker, muddier texture with baked shading (pilot comparison, not used)"
+    }
+  ]
+}

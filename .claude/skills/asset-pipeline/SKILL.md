@@ -32,9 +32,8 @@ python tools/chatgpt/chatgpt.py image "<subject: what it is, its parts, material
 ## 2. Generate (Meshy)
 1. `meshy_check_balance` (free). Tell the user the model, the cost and what they get, and wait for an OK.
 2. `meshy_image_to_3d` with `file_path` = the absolute path of the reference and:
-   - The default model is set by the furnace pilot (see "Pilot results"); until then, offer both.
-   - **`meshy-6`, 30 credits:** `ai_model: "meshy-6"`, `remove_lighting: true` (the only model that strips baked light and shadow), `image_enhancement: false` (keeps the ink look), `should_remesh: true`, `topology: "triangle"`, `target_polycount` about the budget.
-   - **`meshy-t2.5` Smart Topology, 15 credits:** `model_type: "smart-topology"`, `ai_model: "meshy-t2.5"`, `target_polycount` = the budget. Cleaner game topology, but light and shadow stay in the texture.
+   - **Default: `meshy-6`, 30 credits** (won the furnace pilot, see "Pilot results"): `ai_model: "meshy-6"`, `remove_lighting: true` (the only model that strips baked light and shadow), `image_enhancement: false` (keeps the ink look), `should_remesh: true`, `topology: "triangle"`, `target_polycount` about the budget.
+   - **Cheaper: `meshy-t2.5` Smart Topology, 15 credits,** for small props where baked shading matters less: `model_type: "smart-topology"`, `ai_model: "meshy-t2.5"`, `target_polycount` = the budget. Cleaner game topology, but light and shadow stay in the texture.
    - Always: `should_texture: true`, `enable_pbr: false` (the ink shader only uses base colour), `texture_resolution: "2k"`, `auto_size: true`, `origin_at: "bottom"`, `target_formats: ["glb"]`. Characters: `pose_mode: "t-pose"`.
    - Not: `lowpoly` (retires 2026-10-30), 4k/8k textures, `geometry_resolution` (Ultra), PBR.
 3. `meshy_get_task_status` until it succeeds, then `meshy_download_model` with `format: "glb"`, `save_to: <project>/assets/models/meshy/<name>_<model>.glb`.
@@ -72,4 +71,9 @@ Then `look` with `mode: "angles"`, `shading: "material"`, and from the game's an
 - Mobile limits: one material per model where possible, textures ≤ 1024, budgets above. At the Android port, turn on `rendering/textures/vram_compression/import_etc2_astc` and profile on a real phone.
 
 ## Pilot results
-_The furnace pilot (2026-10-20) fills this in: which model won and why._
+**Furnace, 2026-10-20** (`assets/models/meshy/furnace.meshy.json`, 45 credits): the same square reference through both models, cleaned with `cleanup.py` (8k triangles, 4.2 m footprint).
+- **meshy-6 + `remove_lighting` won:** flat, even washes, a clean fire mouth and furnace-mouth mark, close to the reference. 10.2k triangles from the remesh.
+- **meshy-t2.5** was darker and muddier, with shading baked into the stones, though its topology was fine.
+- Reading `look` front, back, three-quarter and from the game angle was enough to choose.
+- **ChatGPT review in game** (`source_art/direction/furnace_meshy/review.md`): it read too small at 3.6 m (re-exported at 4.2 m). The fire mouth reads flat, and the stonework is busier and muddier than the art direction. These are texture problems: next time, ask the reference for fewer, larger stones and broad washes, or try `meshy_retexture` (10 credits) with a style prompt.
+- **Anchors:** a model's spots the code needs (the furnace's mouth and chimney top) were measured on the imported mesh (vertex positions, texture colour at each vertex's UV), not guessed.

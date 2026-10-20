@@ -11,7 +11,7 @@ What felt wrong while playing, and what's still open. This file is the prompt fo
   - Meagan, the Jan (recoloured to deep teal #35666B) and the wolf are Tripo models cleaned up in Blender.
   - Three low-poly Blender pines make the forests.
   - Watercolour icons are in `assets/ui/icons/`.
-  - The buildings and furnace are still greybox shapes in code.
+  - The furnace is a Meshy model (meshy-6, 45 credits for the pilot), made through the new **asset pipeline**: the `asset-pipeline` skill, `tools/blender/cleanup.py`, `chatgpt.py image --for-3d` and `tests/test_assets.gd`. The other buildings are still greybox shapes in code.
 - **UI from the last pass:** Meagan's green health bar (the guards' are blue), her red silhouette through whatever hides her, one Jan bubble at a time kept on screen, the game-over stat tiles and the milestone chime.
 - **Before and after:** `source_art/direction/before_after.png`.
 
@@ -22,7 +22,9 @@ What felt wrong while playing, and what's still open. This file is the prompt fo
 - **The open review items** below (under Open questions → Art direction): greybox buildings and plots, bubbles under the top buttons, small icon sizes, and whether the warm disc becomes a gameplay rule.
 
 **Next, in order:**
-1. **Building and character models from the ink references** in `source_art/concept/ink/` (Meagan, a Jan, the furnace, the Bunkhouse, the Lumber Yard).
+1. **Building and character models from the ink references** in `source_art/concept/ink/` (Meagan, a Jan, the Bunkhouse, the Lumber Yard; the furnace is done), following the `asset-pipeline` skill.
+   - The furnace's ChatGPT review (`source_art/direction/furnace_meshy/review.md`) says its fire mouth reads flat and its stonework is busy and muddy. Options: a simpler reference (fewer, larger stones, broad washes), a `meshy_retexture` (10 credits), or a brighter animated glow in `SiteView`.
+   - Before a Meshy character: check whether Meshy's rig bone names fit `ModelRig` (Mixamo `mixamorig_*`).
    - Either the user makes them in Tripo Studio and drops the files in, or they're made with **Meshy** (below), which spends credits.
    - Buildings need no rig; they replace the greybox parts in `SiteView`, keeping the fire light, embers and pad.
 2. **The rest of `BACKLOG.md`.** It can also run as an AFK `/loop` (see `AFK.md`).
