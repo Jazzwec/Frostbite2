@@ -249,8 +249,8 @@ const CLIPS := {
 	"ready": {
 		"length": 1.2, "loop": true, "tool": "stick", "impact": -1.0,
 		"keys": [
-			{"t": 0.0, "arm_r": Vector3(-95, 0, 18), "arm_l": Vector3(-60, 0, -20), "lean": 6.0, "rise": -0.06, "tool": Vector3(-60, 0, 0)},
-			{"t": 0.5, "arm_r": Vector3(-100, 0, 18), "arm_l": Vector3(-62, 0, -20), "lean": 7.0, "rise": -0.08, "tool": Vector3(-60, 0, 0)},
+			{"t": 0.0, "arm_r": Vector3(-120, 0, 28), "arm_l": Vector3(-60, 0, -20), "lean": 6.0, "rise": -0.06, "tool": Vector3(150, 0, 0)},
+			{"t": 0.5, "arm_r": Vector3(-126, 0, 28), "arm_l": Vector3(-62, 0, -20), "lean": 7.0, "rise": -0.08, "tool": Vector3(150, 0, 0)},
 		],
 	},
 	# ...at range a snowball held up by her ear, ready to throw.

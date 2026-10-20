@@ -664,21 +664,29 @@ func _pose_greybox(fighting: bool, lunge: float, moving: bool) -> void:
 	var bob := absf(sin(_t)) if moving or fighting else 0.0
 	var wound := maxf(0.0, -lunge) / 0.4
 	var strike := maxf(0.0, lunge)
+	var slump := _slump()
 	match kind:
 		"bear":
-			# Rears up on its hind legs (the tell), then comes down swiping.
-			_parts.rear.rotation_degrees.x = -38.0 * wound + 6.0 * strike
-			_parts.rear.position.y = 0.04 * bob
-			_parts.paw_r.rotation_degrees.x = -70.0 * wound - 30.0 * strike + (0.0 if fighting else 18.0 * sin(_t))
-			_parts.paw_l.rotation_degrees.x = -50.0 * wound + (0.0 if fighting else -18.0 * sin(_t))
-			_parts.paw_r.rotation_degrees.y = 40.0 * strike
+			# The tell: it rears a little, twists its shoulders and draws its right paw well back
+			# (review 2: the swipe reads from the pose); then it comes down swiping across. Its
+			# recovery is its own shape: low, head down, the paw planted out in front.
+			_parts.rear.rotation_degrees.x = -24.0 * wound + 10.0 * strike + 12.0 * slump
+			_parts.rear.rotation_degrees.y = 26.0 * wound - 18.0 * strike
+			_parts.rear.position.y = 0.04 * bob - 0.12 * slump
+			_parts.paw_r.rotation_degrees.x = 60.0 * wound - 85.0 * strike + (0.0 if fighting else 18.0 * sin(_t))
+			_parts.paw_r.rotation_degrees.y = -30.0 * wound + 45.0 * strike
+			_parts.paw_l.rotation_degrees.x = -35.0 * wound + (0.0 if fighting else -18.0 * sin(_t))
 		"troll":
-			# Both fists go up over its head (the tell), then down in the slam.
+			# The tell: both fists up over its head and spread apart, clear of its head (review 2);
+			# the slam brings them down and drops its whole body; its recovery is hunched over,
+			# fists on the ground.
 			for arm in ["arm_l", "arm_r"]:
+				var side := -1.0 if arm == "arm_l" else 1.0
 				var sway := 0.0 if fighting else 14.0 * sin(_t + (0.0 if arm == "arm_l" else PI))
-				_parts[arm].rotation_degrees.x = -165.0 * wound - 35.0 * strike + sway
-			_parts.body.rotation_degrees.x = -8.0 * wound + 14.0 * strike
-			_parts.body.position.y = 0.05 * bob - 0.12 * strike
+				_parts[arm].rotation_degrees.x = -160.0 * wound - 30.0 * strike + 45.0 * slump + sway
+				_parts[arm].rotation_degrees.z = side * (34.0 * wound + 8.0 * slump)
+			_parts.body.rotation_degrees.x = -8.0 * wound + 12.0 * strike + 16.0 * slump
+			_parts.body.position.y = 0.05 * bob - 0.22 * strike - 0.1 * slump
 		"raider":
 			# The shard goes up behind its head (the tell), then forward in the throw.
 			_parts.arm_r.rotation_degrees.x = 150.0 * wound - 70.0 * strike + (0.0 if fighting else 20.0 * sin(_t))
@@ -688,6 +696,23 @@ func _pose_greybox(fighting: bool, lunge: float, moving: bool) -> void:
 		_:
 			_parts.body.position.y = absf(sin(_t)) * (0.05 if fighting else 0.12)
 			_parts.body.rotation_degrees.x = 10.0 * lunge
+
+
+## How far into a heavy hitter's recovery slump it is: 0 until the strike, 1 through most of
+## the recovery (HEAVY_HOLD), easing back to 0 by its end.
+func _slump() -> float:
+	var t := _attack
+	if t < 0.0 or (kind != "bear" and kind != "troll"):
+		return 0.0
+	var after: float = t - _def.tell - (Balance.ENEMY_LUNGE if _def.shape == "wedge" else 0.0)
+	if after < 0.0:
+		return 0.0
+	var hold: float = _def.recover * HEAVY_HOLD
+	if after < 0.1:
+		return smoothstep(0.0, 1.0, after / 0.1)
+	if after < hold:
+		return 1.0
+	return 1.0 - smoothstep(0.0, 1.0, (after - hold) / maxf(0.01, _def.recover - hold))
 
 
 ## How far into an attack it is: -0.4 wound up, 1 at the strike, 0 at rest.
