@@ -24,8 +24,8 @@ const BUDGETS := {
 	"house_barracks": [6500, 2.5, 5.6],
 	"house_bunkhouse": [6500, 2.5, 5.6],
 	"house_kitchen": [6500, 2.5, 5.6],
-	"house_watchtower": [3000, 6.0, 9.0],
-	"house_hot_springs": [3000, 2.5, 5.0],
+	"house_watchtower": [6500, 6.0, 9.0],
+	"house_hot_springs": [6500, 2.5, 5.0],
 	"prop_rock_a": [1600, 0.3, 1.2],
 	"prop_rock_b": [800, 0.3, 1.2],
 	"prop_fence": [600, 0.8, 1.5],
@@ -36,9 +36,9 @@ const BUDGETS := {
 	"prop_bench": [400, 0.4, 0.9],
 	"prop_boat": [600, 0.4, 1.0],
 	"prop_jetty": [800, 0.4, 1.0],
-	"prop_stockpile": [800, 0.8, 1.8],
-	"prop_stove": [1200, 1.2, 2.4],
-	"prop_den": [1000, 1.0, 2.2],
+	"prop_stockpile": [3200, 0.8, 1.8],
+	"prop_stove": [3200, 1.2, 2.4],
+	"prop_den": [3200, 1.0, 2.2],
 }
 ## Rigged characters posed by ModelRig: they need its bones under Mixamo names (tools/blender/rig_names.py
 ## renames a Meshy rig's).

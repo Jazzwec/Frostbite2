@@ -35,7 +35,9 @@ def _tris(obj):
 
 
 def _world_bounds(obj):
-    corners = [obj.matrix_world @ Vector(c) for c in obj.bound_box]
+    # From the vertices themselves: bound_box can lag behind a mesh transform.
+    corners = [obj.matrix_world @ v.co for v in obj.data.vertices] if obj.type == "MESH" and obj.data.vertices \
+        else [obj.matrix_world @ Vector(c) for c in obj.bound_box]
     lo = Vector((min(c.x for c in corners), min(c.y for c in corners), min(c.z for c in corners)))
     hi = Vector((max(c.x for c in corners), max(c.y for c in corners), max(c.z for c in corners)))
     return lo, hi

@@ -27,13 +27,15 @@ func setup() -> void:
 		add_child(Shapes.box(Vector3(3.3, 0.14, 1.3), Color(0.55, 0.4, 0.24), Vector3(0, 0.07, 0)))
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 4242
+	# The heaps start on the deck: the Meshy platform's is about 0.31 m up (measured on the mesh).
+	var base := 0.44 if model and model.scene_file_path.contains("/models/blender/") else 0.26
 	for res in HEAPS:
 		var pieces := []
 		for i in HEAP_PIECES:
 			var piece := Tools.make(ITEMS[res])
 			if res == "materials":
 				piece.scale = Vector3.ONE * 0.75
-			piece.position = Vector3(HEAPS[res] + (i % 2 - 0.5) * 0.4, 0.26 + (i / 2) * 0.22, rng.randf_range(-0.15, 0.15))
+			piece.position = Vector3(HEAPS[res] + (i % 2 - 0.5) * 0.4, base + (i / 2) * 0.22, rng.randf_range(-0.15, 0.15))
 			piece.rotation.y = rng.randf_range(-0.3, 0.3)
 			piece.visible = false
 			add_child(piece)

@@ -13,5 +13,5 @@
   "prop_stove": ["01a15a06-744d-73cf-9383-566a476f6bc6", "meshy-6", 30, 3000],
   "prop_den": ["01a15a06-793b-7671-abd9-d718d7a2df5b", "meshy-6", 30, 3000],
   "prop_stockpile": ["01a15a06-7ead-74bb-a007-0790a07693e0", "meshy-6", 30, 3000],
-  "furnace": ["01a15a07-fb3e-75b9-b84b-10fe4741df22", "meshy-6", 30, 10000]
+  "furnace_v2": ["01a15a07-fb3e-75b9-b84b-10fe4741df22", "meshy-6", 30, 10000]
 }

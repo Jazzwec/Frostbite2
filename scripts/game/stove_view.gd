@@ -11,6 +11,8 @@ const FIRE := Color(1.0, 0.55, 0.15)
 var _glow: MeshInstance3D
 var _light: OmniLight3D
 var _embers: GPUParticles3D
+## Where its embers rise: the model's chimney top (measured on the mesh), or the greybox one.
+var _chimney := Vector3(0.25, 1.75, -0.2)
 
 
 func setup(pos: Vector2) -> void:
@@ -20,7 +22,8 @@ func setup(pos: Vector2) -> void:
 	if model:
 		Props.use_vertex_colours(model)
 		add_child(model)
-		_glow = Shapes.sphere(0.2, FIRE, Vector3(0, 0.42, 0.56), 4.0)
+		_glow = Shapes.sphere(0.24, FIRE, Vector3(0, 0.55, 0.62), 4.0)
+		_chimney = Vector3(-0.1, 1.9, -0.21)
 	else:
 		add_child(Shapes.cylinder(0.75, 0.9, STONE, Vector3(0, 0.45, 0), 0.6))
 		add_child(Shapes.cylinder(0.68, 0.14, IRON, Vector3(0, 0.95, 0)))
@@ -62,7 +65,7 @@ func _make_embers() -> GPUParticles3D:
 	var p := GPUParticles3D.new()
 	p.amount = 10
 	p.lifetime = 1.4
-	p.position = Vector3(0.25, 1.75, -0.2)
+	p.position = _chimney
 	var pm := ParticleProcessMaterial.new()
 	pm.direction = Vector3.UP
 	pm.spread = 20.0

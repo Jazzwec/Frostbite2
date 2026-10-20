@@ -57,6 +57,10 @@ static func make(id: String, scale := 1.0, yaw_degrees := 0.0) -> Node3D:
 	if scene == null:
 		return null
 	var node := scene.instantiate() as Node3D
+	# The pipeline's models carry their own painted snow, so the ink look's snow caps skip them.
+	if scene.resource_path.contains("/models/blender/"):
+		for mi in node.find_children("*", "MeshInstance3D", true, false):
+			mi.set_meta("no_snow", true)
 	node.scale = Vector3.ONE * scale
 	node.rotation_degrees.y = yaw_degrees
 	return node
