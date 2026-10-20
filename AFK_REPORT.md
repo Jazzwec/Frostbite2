@@ -285,3 +285,50 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.
   - Applied: a short state label, green when on, the rule as a note under it, clearer locked text.
   - Not applied: a toggle-switch widget and a lock icon (styling and icons are on hold), and highlighting the counts that changed.
 - **Note:** the class cache went stale again after adding `JobRules`. CLAUDE.md now says to run `--import` before `editor reload`.
+
+### Closing summary (02:46)
+Every **safe** item in BACKLOG.md is done, so the run stopped early instead of waiting for 09:00. The three remaining items are on hold for the art direction: 1b HUD icons, 1c snow texture and 14 low-poly trees.
+
+**Done tonight, in order:**
+1. Save and continue
+2. First-minute hints
+3. Zoom
+15. One readout above Meagan
+16. Smaller nameplates, plus the Stockpile sheet
+17. Fading trees and buildings over Meagan
+18. Wolves spread round their target
+10. Building-complete juice
+11. Phone UI audit
+12. Performance pass
+13. Test coverage, plus a stricter test runner
+4. Kitchen
+5. Watchtower and attack warnings
+6. Hot Springs
+7. Jans screen
+8. Milestones
+9. Auto-assign
+
+That's 17 items, one commit each, all pushed. Tests went from 38 to 83, all passing. A final clean-profile run had no runtime errors at 164 FPS.
+
+**ChatGPT budget:** 14 reviews and asks, no images (budget: 25 and 8).
+
+**Left as I found it:** your uncommitted `assets/models/tripo/Meagan.glb` (never staged), the art style (the ink look is still off), and `user://settings.cfg` (your Music off / Sound on restored; no save, no test hints or milestones).
+
+**Needs you:**
+- **New numbers to sign off** (all `[proto]` or from the backlog): `AUTOSAVE_INTERVAL` 10 s, `HINT_MOVED_ENOUGH` 2 m, `WOLF_FIGHT_DISTANCE` and `WOLF_SPACING` 1.3 m. Also the zoom range: the backlog's 16–34 m (default 22), where ChatGPT suggested 18–30 m (default about 25).
+- **Text:** the Kitchen and Watchtower descriptions dropped "Chef Jans start turning up" and "shoots arrows from Lv 5" until those exist. The milestone and tip texts are still Frostbite 1 drafts.
+- **UI calls ChatGPT raised that touch the style:**
+  - Meagan's health bar green and wider, so it isn't confused with the wolves'.
+  - An outline on Meagan while she's hidden behind something.
+  - Chatter bubbles clipping at the screen edge.
+  - Bigger game-over stats.
+  - Icons in warnings and on milestone cards.
+  - A dedicated milestone chime (the card uses the existing `coin` sound).
+- **Phone check:** the performance pass measured on a desktop RTX 3060 Ti. On a real phone the CPU side (character rigs, per-frame label refreshes) is the thing to watch.
+- **Art direction:** still open (see `source_art/direction/board.html`). Items 1b, 1c and 14 are waiting on it.
+
+**Gotchas learned:**
+- After adding a `class_name`, run `godot --headless --path . --import` and then `swallowtail editor reload`; otherwise the game can stop at "Identifier not found" (now in CLAUDE.md).
+- `GeometryInstance3D.transparency` does nothing in the mobile renderer, so fading uses per-mesh material copies.
+- Headless tests have no autoloads, so code they test must not use `Game`, `Audio` or `UiTheme`.
+- The OS ignores window resizes from `runtime eval`, so tall-phone layouts were emulated by letterboxing the root viewport.
