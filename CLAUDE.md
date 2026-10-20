@@ -19,6 +19,11 @@ Frostbite2 is a fresh rebuild in Godot of Frostbite 1 (a finished Vite + Phaser 
 - Not built yet: Research, Watchtower arrows, Expedition Post, Signal Beacon, caravans, gear and guard kits, bears, Jan variants, the Build/Collection screens, variant/research milestones, prestige, and the save export/import code.
 - Characters animate: Meagan chops, ice-fishes at the fishing ponds, scavenges, fuels the furnace, hammers, carries, warms frozen Jans and fights wolves; Jans chop, fish and hammer at their stations, and guards thrust spears. The clips are keyframed in code (`Clips`), on the Meshy models.
 - Art (2026-10-20): every model comes through the `asset-pipeline` skill (ChatGPT gpt-6-astra reference → Meshy → Blender cleanup) into `assets/models/blender/`. That covers the buildings, the furnace, small furnaces, the den and the Stockpile, the set dressing, the pines, the chests (body plus a hinged `<name>_lid`), Meagan, the Jans and the held tools (`tool_<id>.glb`). The hand-built kit (`tools/blender/house_kit.py`, the Blender pines) is in `assets/models/kit/`, and the Poly Haven props are in `polyhaven/`; `Props.make()` falls back blender → kit → polyhaven → greybox. `SiteView` puts the furnace's glow in its fire mouth and its embers at the chimney (`FURNACE_MOUTH`/`FURNACE_CHIMNEY`, measured on the mesh). The wolf is still the Tripo model until the user remakes it from `source_art/concept/ink/wolf_v2.png`.
+- **Look and life (AFK, 2026-10-20):**
+  - The HUD is paper and ink: `UiTheme`'s palette colours, cream cards with an ink border, and teal buttons.
+  - Icons come from `source_art/icons/v2/sheet.png`, cut by `tools/chatgpt/cut_icons.py`.
+  - `Footprints` (a pooled print trail behind walkers) and `Smoke` (scripted billboard puffs; see-through GPU particles with a colour ramp didn't draw) add life to the snow and chimneys.
+  - Held tools and loads carry the `no_snow` meta; `InkLook` gives such meshes their own snow-free copy of the shared ink material.
 - `NOTES.md` has the play checklist and the open design questions.
 
 ## Source of truth

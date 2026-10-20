@@ -109,6 +109,23 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 145 onwards (8 image
 - **Not quite as planned:** the backlog said the readout would add the words. I put them in the hint line instead, so the small readout over her doesn't grow. It reads more clearly and overlaps nothing.
 - **Check in the game:** chop until the bag is full, away from a stockpile.
 
+### Closing summary (20:14)
+- **All ten visual-polish items are done** (V1–V10), one commit each, all pushed. The run finished well before 22:00, so the loop stopped early because no safe item was left. Tests: 140, all passing. No runtime errors, and FPS stayed at 162–165 on the town view.
+- **ChatGPT budget:** 1 image and 6 reviews (limits 8 and 25).
+- **No paid credits** (no Meshy or Tripo). Your `assets/models/tripo/Meagan.glb` was never staged.
+- **Your saved data:**
+  - Your saved winter was reset: a test played one to the game-over card and started a new one.
+  - Your best time now reads 3:32, which came from that test run.
+  - I took "store" back out of your done hints, so you'll see the new store hint.
+  - Music off and Sound on are as you had them.
+- **Needs you:**
+  - From the reviews: one banner at a time, with milestone cards, chatter and the bag readout held back while a banner shows; body text about 42 px; thinner world-label outlines.
+  - Second-round icons: simpler small-size Fish, Materials and Wood, and a stronger wind and thermometer (another image).
+  - Shader work for the snow: rounded snow caps with a shaded lower band, and selective lines (break sunlit snow-rim lines).
+  - A wider, waist-height carry pose and fish poking out of the basket.
+  - The `[proto]` numbers listed under V6.
+  - Still waiting from before: Meagan carrying in her arms, one settings button, the camera angle and character size, a hand-lettered font.
+
 ## Run 2026-10-20, 01:11 → 09:00
 
 ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.

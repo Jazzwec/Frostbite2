@@ -2,6 +2,22 @@
 
 What felt wrong while playing, and what's still open. This file is the prompt for the next session.
 
+## Visual polish AFK run (2026-10-20, 19:27–20:14)
+
+All ten items of BACKLOG.md "Visual polish" are in; details and what to check are in `AFK_REPORT.md`:
+- the paper and ink HUD;
+- cosy watercolour icons (`tools/chatgpt/cut_icons.py` cuts a sheet);
+- softer blue-grey snow and lines;
+- Jans' hauled loads (bundle, basket, crate);
+- one summary when storing;
+- footprints;
+- furnace smoke and lantern halos;
+- a seated ice-fishing Jan, split logs at the stump, varied resting idles, and Meagan's breath in the cold;
+- the flame trail to a new small furnace;
+- the bag-full nudge.
+
+The reviews' leftovers are under "Needs you" in the report.
+
 ## The bag, small stockpiles, global levels, hauling Jans (2026-10-20, night)
 
 The user changed their mind about the bag. Plan: `~/.claude/plans/make-sure-there-is-ancient-avalanche.md`. All four parts are in and tested (140 tests), one commit each:
