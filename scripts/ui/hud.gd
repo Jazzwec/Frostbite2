@@ -11,11 +11,14 @@ const STATS_FONT := 36
 const STATS_FONT_SMALL := 31
 ## The wolves countdown turns orange for its last this many seconds.
 const WOLVES_URGENT := 10.0
-## Fight news (a wave announced or arriving, Meagan down, a theft) is a one-line strip under the
-## buttons for this long, then lives on in the forecast line (fight_v2 review 1: give the middle
-## of the screen back to the fight).
+## Fight news (a wave announced or arriving, Meagan down, a theft) is a one-line strip for this
+## long, right under the top panel beside the buttons, then lives on in the forecast line (fight_v2
+## reviews 1 and 2: give the middle of the screen back to the fight). Amber for what's coming,
+## red only for a theft or Meagan down.
 const STRIP_TIME := 1.5
-const STRIP_FONT := 34
+const STRIP_FONT := 32
+const COMING_WASH := Color(UiTheme.OCHRE, 0.97)
+const TROLL_COMING_WASH := Color(UiTheme.OCHRE_DEEP, 0.97)
 ## Resources fly between their number in the top bar and the world (into it as she gathers, out
 ## of it as a pad or gate takes them) as icons this big, along a curve this wide, in this long.
 ## [agreed 2026-10-20, from ChatGPT's review]
@@ -138,7 +141,7 @@ func _build_top() -> void:
 		l.autowrap_mode = TextServer.AUTOWRAP_OFF
 		_stats.add_child(l)
 		_stat_labels[key] = l
-	_forecast = UiTheme.rich_label(34, UiTheme.INK_SOFT)
+	_forecast = UiTheme.rich_label(36, UiTheme.INK_SOFT)
 	v.add_child(_forecast)
 
 
@@ -160,26 +163,41 @@ func _build_banner() -> void:
 ## The strip for fight news: one short line high up, under the buttons, gone in `seconds`.
 func _build_strip() -> void:
 	_strip = PanelContainer.new()
-	_strip.add_theme_stylebox_override("panel", UiTheme.panel_style(UiTheme.WARN_WASH))
+	_strip.add_theme_stylebox_override("panel", _strip_style(COMING_WASH))
 	_strip.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	_strip.offset_left = 40
-	_strip.offset_right = -40
-	_strip.offset_top = CORNER_TOP + UiTheme.BUTTON_HEIGHT + 14
+	_strip.offset_left = 20
+	# Up to the buttons, on their row.
+	_strip.offset_right = CORNER_SLOTS.jans[0] - 16
+	_strip.offset_top = CORNER_TOP
+	_strip.offset_bottom = CORNER_TOP + CORNER_HEIGHT
 	_strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_strip.visible = false
 	_root.add_child(_strip)
 	_strip_label = UiTheme.rich_label(STRIP_FONT, UiTheme.PAPER_TEXT)
 	_strip_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_strip_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_strip_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_strip_label.fit_content = false
 	_strip.add_child(_strip_label)
+
+
+## The strip's panel: the usual paper card's ink border, slimmer.
+func _strip_style(color: Color) -> StyleBoxFlat:
+	var style := UiTheme.panel_style(color)
+	style.set_corner_radius_all(20)
+	style.content_margin_top = 6
+	style.content_margin_bottom = 6
+	style.content_margin_left = 16
+	style.content_margin_right = 16
+	return style
 
 
 ## Fight news in the strip; `icon` (a UiTheme icon name) leads it. Not while a sheet is open:
 ## the forecast line still has it (fight_v2 review 1).
-func show_strip(text: String, icon := "", color := UiTheme.WARN_WASH, seconds := STRIP_TIME) -> void:
+func show_strip(text: String, icon := "", color := COMING_WASH, seconds := STRIP_TIME) -> void:
 	if sheet.visible:
 		return
-	_strip.add_theme_stylebox_override("panel", UiTheme.panel_style(color))
+	_strip.add_theme_stylebox_override("panel", _strip_style(color))
 	_strip_label.text = (UiTheme.icon(icon, 44) + "  " if icon != "" else "") + text
 	_strip.visible = true
 	_strip_timer = seconds
@@ -228,6 +246,7 @@ func _process(delta: float) -> void:
 		note = "   Hungry!"
 	_forecast.text = _forecast_text(s) + note
 	_update_offer_card(s)
+	_place_row()
 	if _banner_timer > 0.0:
 		_banner_timer -= delta
 		if _banner_timer <= 0.0:
@@ -415,7 +434,7 @@ func _forecast_text(s: GameState) -> String:
 			wave_line += "  ·  "
 		var left := maxf(s.attack_at - s.time, 0.0)
 		# What's coming, by kind, with a troll in red (fight_v2 review 1).
-		var next := "Wave %d in %s  %s" % [s.wave + 1, Fmt.clock(left), mix_icons(s.next_wave.get("mix", {}), 40)]
+		var next := "Wave %d in %s  %s" % [s.wave + 1, Fmt.clock(left), mix_icons(s.next_wave.get("mix", {}), 44)]
 		# Orange only for the last seconds, so it reads as urgent rather than routine.
 		if left <= WOLVES_URGENT:
 			next = "[color=#%s]%s[/color]" % [UiTheme.FALU.to_html(false), next]
@@ -460,10 +479,23 @@ func blocks(pos: Vector2) -> bool:
 
 # ---------- The button row: Jans and Menu ----------
 
-## The row of small buttons under the top bar, from the right: Menu, Jans. Each has its own slot
-## (in pixels from the right edge).
-const CORNER_TOP := 360
-const CORNER_SLOTS := {"menu": [-194, -24], "jans": [-380, -214]}
+## The row under the top bar: Menu and Jans side by side at the right, 48 px high on the phone
+## (review 2), the fight strip to their left. Each button has its own slot (in pixels from the
+## right edge).
+const CORNER_TOP := 268
+const CORNER_HEIGHT := 96
+const CORNER_SLOTS := {"menu": [-194, -24], "jans": [-380, -210]}
+
+
+## The row follows the top panel's bottom edge, which grows if the forecast wraps.
+func _place_row() -> void:
+	var top := maxf(CORNER_TOP, _top.get_rect().end.y + 12.0)
+	for c in [_jans_button, _menu_button, _strip]:
+		c.offset_top = top
+		c.offset_bottom = top + CORNER_HEIGHT
+	for c in [_menu_panel, _dev_panel]:
+		if c:
+			c.offset_top = top + CORNER_HEIGHT + 14
 
 
 ## Menu opens a small panel of Music, Sound and (debug builds) DEV.
@@ -474,7 +506,7 @@ func _build_menu() -> void:
 	_menu_panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	_menu_panel.offset_left = -380
 	_menu_panel.offset_right = -24
-	_menu_panel.offset_top = CORNER_TOP + UiTheme.BUTTON_HEIGHT + 16
+	_menu_panel.offset_top = CORNER_TOP + CORNER_HEIGHT + 14
 	_menu_panel.visible = false
 	_root.add_child(_menu_panel)
 	var v := VBoxContainer.new()
@@ -524,7 +556,8 @@ func _corner_button(slot: Array, on_press: Callable, text := "") -> Button:
 	b.offset_left = slot[0]
 	b.offset_right = slot[1]
 	b.offset_top = CORNER_TOP
-	b.offset_bottom = CORNER_TOP + UiTheme.BUTTON_HEIGHT
+	b.offset_bottom = CORNER_TOP + CORNER_HEIGHT
+	b.custom_minimum_size.y = CORNER_HEIGHT
 	b.clip_text = true
 	b.add_theme_font_size_override("font_size", 30)
 	UiTheme.style_utility(b)
@@ -547,7 +580,7 @@ func _build_dev() -> void:
 	_dev_panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	_dev_panel.offset_left = -520
 	_dev_panel.offset_right = -24
-	_dev_panel.offset_top = CORNER_TOP + UiTheme.BUTTON_HEIGHT + 20
+	_dev_panel.offset_top = CORNER_TOP + CORNER_HEIGHT + 14
 	_dev_panel.visible = false
 	_root.add_child(_dev_panel)
 	var v := VBoxContainer.new()

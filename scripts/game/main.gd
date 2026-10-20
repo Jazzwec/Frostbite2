@@ -281,7 +281,7 @@ func _update_label_focus(s: GameState) -> void:
 	var me := s.meagan_pos
 	# No labels while she fights or lies hurt in a raid: nothing like "Upgrade" over a theft
 	# (fight_v2 review 1).
-	var best := 0.0 if Combat.meagan_busy(s) or (s.raid_on and s.meagan_injured) else SiteView.LABEL_NEAR
+	var best := 0.0 if Combat.meagan_busy(s) or s.raid_on or _hud.sheet.visible else SiteView.LABEL_NEAR
 	var focus: Node = null
 	for v in _sites:
 		var d := me.distance_to(MapData.pad_pos(s, v.index))
@@ -974,9 +974,9 @@ func _on_event(ev: Dictionary) -> void:
 			# line, and edge arrows point at the sides (fight_v2 review 1). A troll is louder.
 			if ev.mix.get("troll", 0) > 0:
 				Audio.play("crash", Vector3.INF, 0.4, -4.0)
-				_hud.show_strip("An ice troll comes with wave %d!  %s" % [ev.wave, Hud.mix_icons(ev.mix, 40)], "", TROLL_WASH, 2.5)
+				_hud.show_strip("Troll in wave %d!  %s" % [ev.wave, Hud.mix_icons(ev.mix, 40)], "", Hud.TROLL_COMING_WASH, 2.5)
 			else:
-				_hud.show_strip("Wave %d soon  %s" % [ev.wave, Hud.mix_icons(ev.mix, 40)], "wolves")
+				_hud.show_strip("Wave %d soon  %s" % [ev.wave, Hud.mix_icons(ev.mix, 40)])
 		"wolves_arrived":
 			Audio.play("howl")
 			_hud.show_strip("Wave %d is here!" % ev.wave, "wolves")
@@ -1050,7 +1050,7 @@ func _on_event(ev: Dictionary) -> void:
 			_gather_loot(ev)
 		"meagan_injured":
 			Audio.play("hurt", Vector3.INF, 0.8)
-			_hud.show_strip("Meagan is down until the raid is over", "", UiTheme.WARN_WASH, 2.5)
+			_hud.show_strip("Meagan is down!", "", UiTheme.WARN_WASH, 2.5)
 		"attack_over":
 			_hud.show_strip("Wave %d held!" % ev.wave, "", GOOD_GREEN)
 
@@ -1060,8 +1060,6 @@ const WINDUP_SOUNDS := {
 	"fox": ["breath", 1.6, -6.0], "wolf": ["breath", 0.9, -4.0], "bear": ["howl", 0.45, -6.0],
 	"troll": ["crash", 0.4, -8.0], "raider": ["whoosh", 0.6, -8.0],
 }
-## A troll's warning strip: a deeper rust than the usual warning.
-const TROLL_WASH := Color(0.5, 0.17, 0.12)
 const KILL_PITCH := {"fox": 1.5, "wolf": 1.0, "bear": 0.6, "troll": 0.45, "raider": 1.2}
 const STRIKE_PITCH := {"fox": 1.3, "wolf": 1.0, "bear": 0.7, "troll": 0.5, "raider": 1.1}
 ## Loot from kills close together is added up for this long, then shown once, above the fight's
