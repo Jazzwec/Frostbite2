@@ -239,7 +239,7 @@ func _add_drifts() -> void:
 
 ## Where the Kitchen model's chimney top is (tools/blender/house_kit.py, after its centring), for
 ## the steam.
-const KITCHEN_CHIMNEY := Vector3(-0.93, 4.9, -0.89)
+const KITCHEN_CHIMNEY := Vector3(0.7, 4.95, -0.89)
 ## Where the Kitchen's steam rises from: its model's chimney, or the greybox one.
 var _chimney := Vector3.ZERO
 

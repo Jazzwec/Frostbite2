@@ -1,0 +1,25 @@
+{
+  "task_id": "01a159ff-c2bf-71f8-89b2-bb8d7cba3884",
+  "date": "2026-10-20",
+  "ai_model": "meshy-6",
+  "endpoint": "image-to-3d",
+  "credits": 30,
+  "params": {
+    "remove_lighting": true,
+    "image_enhancement": false,
+    "should_remesh": true,
+    "topology": "triangle",
+    "should_texture": true,
+    "enable_pbr": false,
+    "texture_resolution": "2k",
+    "auto_size": true,
+    "origin_at": "bottom",
+    "target_formats": [
+      "glb"
+    ],
+    "target_polycount": 8000
+  },
+  "reference": "source_art/concept/ink/house_workshop.png",
+  "reference_model": "gpt-6-astra (tools/chatgpt/chatgpt.py image --for-3d)",
+  "download": "assets/models/meshy/house_workshop_meshy6.glb"
+}

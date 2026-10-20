@@ -1,0 +1,17 @@
+{
+  "_note": "Model pipeline (plan: every model through GPT -> Meshy -> Blender), 2026-10-20. Approved cap 1,200 credits. name -> [task id, ai_model, credits, target_polycount].",
+  "house_storehouse": ["01a159f0-72da-72ba-9a5c-48b4b51c2698", "meshy-6", 30, 8000],
+  "prop_rock_a": ["01a159f2-a515-70b5-a8ae-2427aa88e839", "meshy-6", 30, 2000],
+  "house_lumber_yard": ["01a159ff-b512-748d-8045-6905c15d9eae", "meshy-6", 30, 8000],
+  "house_hunting_lodge": ["01a159ff-bc93-70d2-96b1-40f1f73f33eb", "meshy-6", 30, 8000],
+  "house_workshop": ["01a159ff-c2bf-71f8-89b2-bb8d7cba3884", "meshy-6", 30, 8000],
+  "house_barracks": ["01a159ff-c878-7426-b3d5-c8a0752d614b", "meshy-6", 30, 8000],
+  "house_bunkhouse": ["01a159ff-cef3-7721-9a0d-3908a8f75a05", "meshy-6", 30, 8000],
+  "house_kitchen": ["01a159ff-d52d-70ae-a857-ea37bd8a633a", "meshy-6", 30, 8000],
+  "house_watchtower": ["01a15a06-6926-775b-aef0-635a4bac8504", "meshy-6", 30, 8000],
+  "house_hot_springs": ["01a15a06-6eeb-7186-9ea9-1b1e07799696", "meshy-6", 30, 8000],
+  "prop_stove": ["01a15a06-744d-73cf-9383-566a476f6bc6", "meshy-6", 30, 3000],
+  "prop_den": ["01a15a06-793b-7671-abd9-d718d7a2df5b", "meshy-6", 30, 3000],
+  "prop_stockpile": ["01a15a06-7ead-74bb-a007-0790a07693e0", "meshy-6", 30, 3000],
+  "furnace": ["01a15a07-fb3e-75b9-b84b-10fe4741df22", "meshy-6", 30, 10000]
+}
