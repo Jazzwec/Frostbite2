@@ -45,6 +45,10 @@ var _pinch_from_size := 0.0
 var _pinch_from_spread := 0.0
 ## The view height the camera eases to.
 var _zoom := VIEW_HEIGHT
+## A shake in progress: how hard (metres), and how long it has left of how long.
+var _shake_strength := 0.0
+var _shake_left := 0.0
+var _shake_time := 0.0
 
 
 func _ready() -> void:
@@ -62,6 +66,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	camera.size = lerpf(camera.size, _zoom, minf(1.0, ZOOM_EASE * delta))
+	_update_shake(delta)
 	if follow_target:
 		var t := follow_target.global_position
 		global_position = global_position.lerp(Vector3(t.x, 0, t.z), minf(1.0, 9.0 * delta))
@@ -83,6 +88,25 @@ static func wheel_size(size: float, notches: int) -> float:
 ## The view height the camera is easing to.
 func zoom() -> float:
 	return _zoom
+
+
+## A short camera shake, `strength` metres at first and dying away over `seconds`.
+func shake(strength: float, seconds := 0.35) -> void:
+	if strength >= _shake_strength * _shake_left / maxf(_shake_time, 0.001):
+		_shake_strength = strength
+		_shake_time = seconds
+		_shake_left = seconds
+
+
+func _update_shake(delta: float) -> void:
+	if _shake_left <= 0.0:
+		camera.h_offset = 0.0
+		camera.v_offset = 0.0
+		return
+	_shake_left = maxf(0.0, _shake_left - delta)
+	var k := _shake_strength * _shake_left / _shake_time
+	camera.h_offset = randf_range(-k, k)
+	camera.v_offset = randf_range(-k, k)
 
 
 func _unhandled_input(event: InputEvent) -> void:

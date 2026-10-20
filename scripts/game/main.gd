@@ -443,11 +443,12 @@ func _on_event(ev: Dictionary) -> void:
 		"thawed":
 			_meagan.play_once("warm", _v3(ev.pos))
 		"built", "levelled":
-			_sites[ev.site].bounce()
+			_sites[ev.site].celebrate()
+			_rig.shake(0.3 if ev.site == 0 else 0.14)
 			Audio.play("build_done")
 			var p: Vector2 = MapData.SITES[ev.site].pos
 			var name: String = Balance.BUILDINGS[ev.building].name
-			_float_text(Vector3(p.x, 3, p.y), ("%s built!" % name) if ev.type == "built" else ("%s Lv %d!" % [name, ev.level]), UiTheme.ACCENT)
+			_float_text(Vector3(p.x, 5.0, p.y), ("%s built!" % name) if ev.type == "built" else ("%s Lv %d!" % [name, ev.level]), UiTheme.ACCENT, true)
 		"no_room":
 			Audio.play("error")
 			_float_text(_v3(ev.pos) + Vector3(0, 2.5, 0), "No room! Upgrade the Furnace\nor build a Bunkhouse", Color(1, 0.8, 0.5))
@@ -479,10 +480,16 @@ func _v3(p: Vector2) -> Vector3:
 	return Vector3(p.x, 0, p.y)
 
 
-func _float_text(pos: Vector3, text: String, color := Color.WHITE) -> void:
-	var l := Shapes.label(text, pos, 52, color)
+func _float_text(pos: Vector3, text: String, color := Color.WHITE, pop := false) -> void:
+	var l := Shapes.label(text, pos, 40 if pop else 52, color)
 	add_child(l)
 	var t := create_tween().set_parallel(true)
+	if pop:
+		# Bursts in big, then settles, for a level-up.
+		l.scale = Vector3.ONE * 0.4
+		t.tween_property(l, "scale", Vector3.ONE * 1.25, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		t.chain().tween_property(l, "scale", Vector3.ONE, 0.2)
+		t.set_parallel(true)
 	t.tween_property(l, "position:y", pos.y + 2.0, 1.8)
 	t.tween_property(l, "modulate:a", 0.0, 1.8).set_delay(0.6)
 	t.chain().tween_callback(l.queue_free)

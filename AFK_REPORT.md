@@ -111,3 +111,17 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.
   - Applied: facing the foe, staggered lunges.
   - Not applied, your call: health-bar styling. Meagan's bar could be green and wider so it's not confused with the wolves' red ones, with each bar centred higher over its wolf. Also darker wolf backs against blue shadows, which is art.
 - **Felt wrong:** with wolves 1.3 m from her, their health bars and hers overlap a little at the default zoom.
+
+### 10. Building-complete juice
+- **Commits:** "Building-complete juice".
+- **What changed:**
+  - On "built"/"levelled", `SiteView.celebrate()` bounces the building, bursts confetti (a new multicolour `Fx` kind) and a big snow puff, and hides the nameplate for a second.
+  - `main.gd` pops the "Lumber Yard Lv 2!" line in big above the roof.
+  - `CameraRig.shake()` gives a short decaying shake (0.14 m, or 0.3 m for the furnace).
+  - The furnace also flares at twice the strength and sends out an expanding ring of warm light.
+- **Check in the game:** DEV → Furnace +1, and finish a Sled Shed.
+- **FPS:** 156–164 during the effects, against 165 before.
+- **ChatGPT feedback:**
+  - Applied: nameplate hidden during the burst, the level line raised above the roof and smaller, a fainter and quicker furnace ring, fewer but bigger confetti pieces.
+  - Not applied: an orange rim and white-hot centre for the furnace flare (fire art, on hold with the style), and a single banner replacing the world text.
+- **Felt wrong:** the confetti still reads a little pastel against the snow under the current lighting.

@@ -117,6 +117,10 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - [ ] Wolves fighting Meagan or a guard stop just outside them and fan out a wolf's length apart, facing their foe, instead of piling onto one spot. Their lunges are out of step.
 - [ ] A pack still meets her together; no wolf slips past to the furnace because of the spreading.
 
+**Building-complete juice (2026-10-20)** (DEV → Furnace +1, or finish any building)
+- [ ] A building that finishes or levels up bounces, shoots coloured confetti from its roof with a snow puff at its base, and the camera gives a short shake. "Lumber Yard Lv 2!" pops in big above the roof and floats away, while the nameplate steps aside for a second.
+- [ ] The furnace levelling up flares twice as hard, shakes harder, and sends a soft ring of warm light out across the ground. FPS stays high.
+
 **Objective: keep the fire burning**
 - [ ] A winter starts at 100/100 heat. With no Wood it lasts about 2½ minutes.
 - [ ] Below 25%: the bar pulses red, banner and horn. Below 10%: "Fire out in 0:12" on the bar.

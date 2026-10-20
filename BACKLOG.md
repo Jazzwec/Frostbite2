@@ -53,7 +53,7 @@ Polish and quality first, then new content.
   - **How:** engine-side in `combat.gd`, with the slot spacing in `balance.gd` marked `[proto]`. Damage rules don't change.
   - **Done when:** a test shows three wolves on one target end up in different slots, and a screenshot shows them spread out.
 
-- [ ] **10. Building-complete juice (safe).**
+- [x] **10. Building-complete juice (safe).** Done 2026-10-20 (AFK).
   - **What:** a confetti and snow burst, a short camera shake and a level-up pop number when a building finishes or levels up. The furnace levelling up gets a bigger flare and a ring of light.
   - **Done when:** screenshots show it, and FPS stays high.
 

@@ -102,6 +102,46 @@ func bounce() -> void:
 	t.tween_property(_shapes, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 
 
+## A building finished or levelled up: it bounces and confetti and snow fly (main.gd pops the
+## "Lumber Yard Lv 2!" line). The furnace also flares twice as hard and sends out a ring of
+## warm light.
+func celebrate() -> void:
+	bounce()
+	# The nameplate steps aside while the level-up line has the stage.
+	_title.visible = false
+	get_tree().create_timer(1.0).timeout.connect(func(): _title.visible = true)
+	Fx.burst("confetti", global_position + Vector3(0, 3.6, 0))
+	Fx.burst("snow_big", global_position + Vector3(0, 0.4, 0))
+	if index == 0:
+		_flare = 2.0
+		_light_ring()
+
+
+## A ring of warm light that spreads out from the furnace and fades.
+func _light_ring() -> void:
+	var ring := MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 0.82
+	torus.outer_radius = 1.0
+	torus.rings = 48
+	torus.ring_segments = 6
+	ring.mesh = torus
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	m.albedo_color = Color(1.0, 0.72, 0.3, 0.45)
+	ring.material_override = m
+	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	ring.position = Vector3(0, 0.3, 0)
+	ring.scale = Vector3(1.5, 0.4, 1.5)
+	add_child(ring)
+	var t := create_tween().set_parallel(true)
+	t.tween_property(ring, "scale", Vector3(7.0, 0.4, 7.0), 0.7).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	t.tween_property(m, "albedo_color:a", 0.0, 0.7).set_ease(Tween.EASE_IN)
+	t.chain().tween_callback(ring.queue_free)
+
+
 ## A small knock, for each hammer blow on a construction site.
 func knock() -> void:
 	var t := create_tween()

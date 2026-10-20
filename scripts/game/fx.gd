@@ -16,6 +16,10 @@ const KINDS := {
 	"shards": {"color": Color(0.75, 0.9, 1.0), "amount": 16, "size": 0.14, "speed": Vector2(2.0, 4.5), "spread": 80.0, "gravity": -9.0, "life": 0.8},
 	"steam": {"color": Color(1.0, 1.0, 1.0, 0.7), "amount": 10, "size": 0.2, "speed": Vector2(0.8, 1.6), "spread": 15.0, "gravity": 0.5, "life": 0.9},
 	"dust": {"color": Color(0.82, 0.77, 0.68), "amount": 8, "size": 0.15, "speed": Vector2(0.5, 1.5), "spread": 80.0, "gravity": -1.0, "life": 0.6},
+	# A building finishing or levelling up.
+	"confetti": {"color": Color.WHITE, "amount": 44, "size": 0.32, "speed": Vector2(5.0, 9.0), "spread": 50.0, "gravity": -9.0, "life": 1.1,
+		"colors": [Color(1.0, 0.72, 0.1), Color(0.92, 0.2, 0.25), Color(0.15, 0.55, 1.0), Color(0.25, 0.8, 0.3), Color(0.95, 0.35, 0.8)]},
+	"snow_big": {"color": Color(0.95, 0.97, 1.0), "amount": 34, "size": 0.18, "speed": Vector2(2.0, 4.5), "spread": 85.0, "gravity": -3.0, "life": 0.9},
 }
 
 static var instance: Fx
@@ -127,6 +131,14 @@ func _make(def: Dictionary) -> CPUParticles3D:
 	ramp.set_color(0, c)
 	ramp.set_color(1, Color(c, 0.0))
 	e.color_ramp = ramp
+	if def.has("colors"):
+		# Each piece picks one of these colours (the ramp above then fades it out).
+		var pick := Gradient.new()
+		pick.interpolation_mode = Gradient.GRADIENT_INTERPOLATE_CONSTANT
+		var colors: Array = def.colors
+		pick.offsets = PackedFloat32Array(range(colors.size()).map(func(i): return float(i) / colors.size()))
+		pick.colors = PackedColorArray(colors)
+		e.color_initial_ramp = pick
 	var mesh := BoxMesh.new()
 	mesh.size = Vector3.ONE * def.size
 	var m := StandardMaterial3D.new()
