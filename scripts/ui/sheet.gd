@@ -1,12 +1,17 @@
 class_name Sheet
 extends PanelContainer
 ## The bottom sheet: the build list for an empty plot, a building's panel
-## (level, what the next level costs, Upgrade, and −/+ for its Jans), or the Stockpile's stores.
+## (level, what the next level costs, Upgrade, and −/+ for its Jans), the Stockpile's stores, or
+## the Jans screen (every job with −/+, and Food fished against eaten).
 ## Built once when opened; texts and buttons update in place so a press is never interrupted.
 
 var site_index := -1
 ## Open on the Stockpile rather than a plot.
 var stockpile := false
+## Open as the Jans screen.
+var jans := false
+var _jan_rows := {}  # job -> {label, minus, plus}
+var _food_line: Label
 
 var _title: Label
 var _effect: Label
@@ -32,6 +37,7 @@ func close() -> void:
 	visible = false
 	site_index = -1
 	stockpile = false
+	jans = false
 
 
 func open_site(index: int) -> void:
@@ -57,10 +63,40 @@ func open_stockpile() -> void:
 	_refresh()
 
 
+## The Jans screen: every job's Jans and output, −/+ to move Jans, and Food in against out.
+func open_jans() -> void:
+	_start(-1)
+	jans = true
+	_title.text = "Jans"
+	_status = UiTheme.label("", 38)
+	_body.add_child(_status)
+	_jan_rows.clear()
+	for job in Balance.JOBS:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 16)
+		_body.add_child(row)
+		var label := UiTheme.label("", 36)
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(label)
+		var buttons := []
+		for spec in [["−", Game.engine.remove_from_job], ["+", Game.engine.add_to_job]]:
+			var button := UiTheme.button(spec[0], spec[1].bind(job))
+			button.custom_minimum_size = Vector2(140, UiTheme.BUTTON_HEIGHT)
+			button.add_theme_font_size_override("font_size", 56)
+			row.add_child(button)
+			buttons.append(button)
+		_jan_rows[job] = {"label": label, "minus": buttons[0], "plus": buttons[1]}
+	_food_line = UiTheme.label("", 34)
+	_body.add_child(_food_line)
+	visible = true
+	_refresh()
+
+
 ## Clears the sheet and builds its header (title and Close).
 func _start(index: int) -> void:
 	site_index = index
 	stockpile = false
+	jans = false
 	for c in get_children():
 		c.queue_free()
 	_build_buttons.clear()
@@ -132,6 +168,9 @@ func _process(_delta: float) -> void:
 
 func _refresh() -> void:
 	var s := Game.engine.state
+	if jans:
+		_refresh_jans(s)
+		return
 	if stockpile:
 		var caps := Economy.caps(s)
 		var lines := []
@@ -178,10 +217,51 @@ func _refresh() -> void:
 	if _job != "":
 		_job_row.visible = site.level >= 1
 		var def: Dictionary = Balance.JOBS[_job]
-		var line := "%s: %d Jans" % [def.name, Economy.job_count(s, _job)]
+		var line := "%s: %s" % [def.name, _jans_text(Economy.job_count(s, _job))]
 		if def.resource != "":
 			line += "  ·  %s %s/s" % [str(def.resource).capitalize(), "%.1f" % Economy.job_rate(s, _job)]
 		_job_label.text = line + "\nIdle Jans: %d" % Economy.idle_count(s)
+
+
+func _refresh_jans(s: GameState) -> void:
+	var idle := Economy.idle_count(s)
+	_status.text = "%d idle  ·  %d of %d Jans" % [idle, s.jans.size(), Economy.jan_cap(s)]
+	# Idle Jans are worth noticing: put them to work.
+	_status.add_theme_color_override("font_color", UiTheme.ACCENT if idle > 0 else Color(0.95, 0.96, 1.0))
+	for job in _jan_rows:
+		var row: Dictionary = _jan_rows[job]
+		var def: Dictionary = Balance.JOBS[job]
+		var count := Economy.job_count(s, job)
+		var open := Economy.job_open(s, job)
+		if not open:
+			row.label.text = "%s
+build a %s first" % [def.name, Balance.BUILDINGS[def.building].name]
+			row.label.add_theme_color_override("font_color", Color(0.62, 0.66, 0.74))
+		else:
+			var line := "%s  ·  %s" % [def.name, _jans_text(count)]
+			if def.resource != "":
+				line += "
+%s %s/s" % [str(def.resource).capitalize(), "%.1f" % Economy.job_rate(s, job)]
+			else:
+				line += "
+guarding the furnace"
+			row.label.text = line
+			row.label.add_theme_color_override("font_color", Color(0.95, 0.96, 1.0))
+		# A job without its building has nothing to press.
+		row.minus.visible = open
+		row.plus.visible = open
+		row.minus.disabled = count == 0
+		row.plus.disabled = s.jans.size() == count
+	var fished := Economy.job_rate(s, "hunt")
+	var eaten := Economy.food_eaten_per_second(s)
+	var net := fished - eaten
+	_food_line.text = "Food %s%s/s  (%s fished, %s eaten)" % ["+" if net >= 0.0 else "−", "%.2f" % absf(net), "%.2f" % fished, "%.2f" % eaten]
+	_food_line.add_theme_color_override("font_color", Color(1.0, 0.55, 0.5) if net < 0.0 else Color(0.6, 0.9, 0.65))
+
+
+## "1 Jan", "3 Jans".
+static func _jans_text(n: int) -> String:
+	return "%d Jan%s" % [n, "" if n == 1 else "s"]
 
 
 func _summary(s: GameState, b: String) -> String:

@@ -30,6 +30,7 @@ var _time := 0.0
 var _music_button: Button
 var _sound_button: Button
 var _dev_panel: PanelContainer
+var _jans_button: Button
 
 
 func _ready() -> void:
@@ -50,6 +51,7 @@ func _ready() -> void:
 	_root.add_child(sheet)
 	hints.sheet = sheet
 	_build_sound_toggles()
+	_jans_button = _corner_button(CORNER_SLOTS.jans, _toggle_jans, "Jans")
 	if OS.is_debug_build():
 		_build_dev()
 
@@ -186,7 +188,7 @@ func _forecast_text(s: GameState) -> String:
 
 ## True when a screen point is over UI, so the world shouldn't get the touch.
 func blocks(pos: Vector2) -> bool:
-	for c in [_top, sheet, _dev_button, _dev_panel, _music_button, _sound_button, _game_over]:
+	for c in [_top, sheet, _dev_button, _dev_panel, _music_button, _sound_button, _jans_button, _game_over]:
 		if c and c.is_visible_in_tree() and c.get_global_rect().has_point(pos):
 			return true
 	return false
@@ -197,13 +199,21 @@ func blocks(pos: Vector2) -> bool:
 ## The row of small buttons under the top bar, from the right: DEV, Sound, Music. Each has its
 ## own slot (in pixels from the right edge) so longer labels like "Music off" never overlap.
 const CORNER_TOP := 360
-const CORNER_SLOTS := {"dev": [-174, -24], "sound": [-380, -190], "music": [-586, -396]}
+const CORNER_SLOTS := {"dev": [-174, -24], "sound": [-380, -190], "music": [-586, -396], "jans": [-772, -602]}
 
 
 func _build_sound_toggles() -> void:
 	_music_button = _corner_button(CORNER_SLOTS.music, _toggle_music)
 	_sound_button = _corner_button(CORNER_SLOTS.sound, _toggle_sound)
 	_label_sound_toggles()
+
+
+## The Jans button opens the Jans screen, or closes it again.
+func _toggle_jans() -> void:
+	if sheet.visible and sheet.jans:
+		sheet.close()
+	else:
+		sheet.open_jans()
 
 
 func _toggle_music() -> void:

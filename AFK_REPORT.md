@@ -237,3 +237,20 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.
 - **ChatGPT feedback:**
   - Applied: a bigger, deeper pool with a pale rim, and steam every second.
   - Not applied: a curved roof with timber posts (building art, on hold with the style).
+
+### 7. Jans screen
+- **Commits:** "Jans screen".
+- **What changed:**
+  - A "Jans" button joins the row under the top bar. It opens the bottom sheet as the Jans screen (`Sheet.open_jans()`) and closes it again.
+  - The screen shows:
+    - the idle count, in amber when it's above 0, and the Jans against the cap
+    - one row per job: its Jans and output per second, with −/+ using the engine's existing `add_to_job`/`remove_from_job`
+    - for jobs without their building, "build a Workshop first" and no buttons
+    - Food: net per second with fished and eaten, red when eating wins
+  - "1 Jans" is now "1 Jan" here and in the building sheet.
+- **Checked in the game:** real taps (Swallowtail input clicks) on Fishing − and Chopping + changed the counts (Fishing 2 → 1, Chopping 4 → 5), and Meagan didn't move.
+- **Tests:** none new. No engine logic changed, and the job actions are already covered by `test_add_and_remove_jobs`.
+- **ChatGPT feedback:**
+  - Applied: the idle count highlighted, two-line rows, locked rows without controls, a net food line.
+  - Not applied: a scrolling list (not needed with four jobs), and lock icons (icons are on hold).
+- **Left out:** the auto-assign switch, which is item 9.

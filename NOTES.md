@@ -137,6 +137,10 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - [ ] At Furnace Lv 7, Hot Springs can be built (120 Wood + 30 Materials): a bath house with a steaming turquoise pool ringed with pale stones beside it.
 - [ ] Each level lowers the heat drain by 10% (Lv 5 halves it); its sheet shows the cut and the drain now. The −/s in the top bar drops when it's built.
 
+**Jans screen (2026-10-20)**
+- [ ] The Jans button (row under the top bar) opens a sheet: idle Jans in amber, then one row per job with its Jans and output and −/+ to move Jans; jobs without their building say what to build. Food at the bottom: net per second, fished and eaten, red when eating outpaces fishing.
+- [ ] Tapping −/+ changes the job counts at once (and Meagan doesn't move); the Jans button again closes it.
+
 **Objective: keep the fire burning**
 - [ ] A winter starts at 100/100 heat. With no Wood it lasts about 2½ minutes.
 - [ ] Below 25%: the bar pulses red, banner and horn. Below 10%: "Fire out in 0:12" on the bar.

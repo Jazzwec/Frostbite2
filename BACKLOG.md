@@ -84,7 +84,7 @@ Polish and quality first, then new content.
   - **What:** a new building from the brief: heat drain −10% per level, Tier 3 (Furnace Lv 7). The cost comes from the brief's economy table.
   - **Done when:** a test covers the drain reduction, and it's in the build list at Furnace Lv 7.
 
-- [ ] **7. Jans screen (safe).**
+- [x] **7. Jans screen (safe).** Done 2026-10-20 (AFK).
   - **What:** the brief's Jans screen. It opens from a HUD button and has one row per job: the job's output per second, its Jans, and −/+ buttons (as the building sheet does), plus food hunted vs eaten.
   - **Leave out:** the auto-assign switch, which is item 9.
   - **Done when:** the job counts in the game change from the screen.
