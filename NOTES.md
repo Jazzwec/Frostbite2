@@ -2,6 +2,32 @@
 
 What felt wrong while playing, and what's still open. This file is the prompt for the next session.
 
+## Model pipeline: every model through GPT -> Meshy -> Blender (2026-10-20, evening)
+
+Plan: `~/.claude/plans/make-sure-there-is-ancient-avalanche.md`. The user approved a 1,200-credit Meshy cap; **780 spent** (`assets/models/meshy/ledger.json`, one `<name>.meshy.json` per model). References come from ChatGPT on **gpt-6-astra** (`tools/chatgpt/refs_buildings.py` holds every subject).
+
+**Done and in the game:**
+- all nine buildings;
+- the furnace (30% taller);
+- the small furnace, wolf den and Stockpile;
+- rocks a and b, the boulder and the fence;
+- the woodpile, boat and jetty;
+- the shrub, lantern post, sled and bench;
+- the crate, the log and `pine_a`.
+
+The hand-built kit stays as the fallback (`assets/models/kit/`, `Props.make` falls back blender -> kit -> polyhaven).
+
+**Stopped:** ChatGPT hit the plan's usage limit at 17:23 ("try again at 7:16 PM").
+
+**Still to do, in order:**
+1. **Pines and chests:** references for `pine_b`, `pine_c` and the three chests (`python tools/chatgpt/refs_buildings.py pine_b pine_c chest_cache chest_boon chest_gear`), then Meshy (pines meshy-6 30, chests 30 each, `split_lid_at` in cleanup). `ChestView` already loads `chest_<kind>`.
+2. **Phase E, characters:** front, side and back T-pose references for Meagan and the Jan, then `meshy_multi_image_to_3d` and `meshy_rig` (about 70).
+3. **Phase F, the wolf:** an ink reference for the user to make in Tripo Studio.
+4. **Phase G, held tools:** about 90, if the budget allows.
+5. **Reviews:** the ChatGPT reviews for Phases D and E.
+
+**Open from the Phase C review (5/10):** roofs still dominate at the game camera, and the snow wants a warm-ivory lit side and a pale-lavender shaded side.
+
 ## Ink look v3 (2026-10-20, late)
 
 Making the game look like `source_art/direction/round3/inked/gameplay.png`, aimed at a ChatGPT paintover of our own layout (`source_art/direction/ink_v3/paintover.png`). Plan: `~/.claude/plans/make-sure-there-is-ancient-avalanche.md`. All four phases are in:
