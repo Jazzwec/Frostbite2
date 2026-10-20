@@ -7,7 +7,7 @@ extends PanelContainer
 ## bag is empty; it never takes touches.
 
 ## Gap between the top of her load (or her head) and the readout, in pixels.
-const GAP := 28.0
+const GAP := 34.0
 ## How quickly the readout follows her (per second), so it doesn't bob with her walk.
 const FOLLOW := 18.0
 
@@ -37,11 +37,11 @@ func _ready() -> void:
 	v.add_theme_constant_override("separation", -4)
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(v)
-	_count = UiTheme.label("", 44)
+	_count = UiTheme.label("", 34)
 	_count.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_count.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(_count)
-	_contents = UiTheme.rich_label(34, UiTheme.INK)
+	_contents = UiTheme.rich_label(28, UiTheme.INK)
 	_contents.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_contents.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(_contents)
@@ -71,7 +71,7 @@ func _process(delta: float) -> void:
 	var parts := []
 	for res in CarryStack.ORDER:
 		if s.bag[res] >= 1.0:
-			parts.append("%s %s" % [UiTheme.icon(res, 36), Fmt.num(floorf(s.bag[res]))])
+			parts.append("%s %s" % [UiTheme.icon(res, 30), Fmt.num(floorf(s.bag[res]))])
 	_contents.text = "  ".join(parts)
 	_contents.visible = not parts.is_empty()
 	reset_size()

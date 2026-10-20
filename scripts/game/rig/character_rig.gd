@@ -41,6 +41,18 @@ var _once := ""
 var _after_once := "idle"
 var _after_once_speed := 1.0
 var _time := 0.0
+## Impacts with weight (AFK N3, from Astra's animation review and the usual game-feel practice):
+## on a blow's hit moment the clip holds still a few frames (hit-stop) and the body squashes a
+## little and springs back, keeping its volume.
+const HIT_STOP := 0.05
+const SQUASH_TIME := 0.09
+const SQUASH := 0.05
+const HEAVY_CLIPS := ["chop", "scavenge", "build", "fight", "guard_attack"]
+var _hold := 0.0
+var _squash := 0.0
+var _base_scale := Vector3.ZERO
+## The float dips when a fish bites (1 at the bite, easing back to 0).
+var _dip := 0.0
 ## Whether the character is on screen: off it, the clip keeps time (and its impacts still fire)
 ## but the body isn't posed, which is most of a rig's cost.
 var _screen: VisibleOnScreenNotifier3D
@@ -128,6 +140,11 @@ func _show_tool(id: String, socket: String) -> void:
 
 func _process(delta: float) -> void:
 	_time += delta
+	_update_squash(delta)
+	_dip = move_toward(_dip, 0.0, delta * 3.0)
+	if _hold > 0.0:
+		_hold -= delta
+		return
 	var c: Dictionary = Clips.CLIPS[clip]
 	var before := _phase
 	_phase += delta * speed / c.length
@@ -135,6 +152,11 @@ func _process(delta: float) -> void:
 	if hit >= 0.0 and ((before < hit and _phase >= hit) or (_phase >= 1.0 and _phase - 1.0 >= hit)):
 		if c.get("throws", false):
 			_thrown = true
+		if clip in HEAVY_CLIPS and _screen.is_on_screen():
+			_hold = HIT_STOP
+			_squash = SQUASH_TIME
+		if clip == "fish" or clip == "fish_sit":
+			_dip = 1.0
 		impact.emit(clip)
 	if _phase >= 1.0:
 		if c.loop:
@@ -161,6 +183,19 @@ func _process(delta: float) -> void:
 	_update_line()
 
 
+## The squash after a blow: down and out, springing back, volume kept.
+func _update_squash(delta: float) -> void:
+	if _squash <= 0.0:
+		return
+	if _base_scale == Vector3.ZERO:
+		_base_scale = scale
+	_squash = maxf(0.0, _squash - delta)
+	var k := sin(PI * (1.0 - _squash / SQUASH_TIME)) * SQUASH
+	scale = _base_scale * Vector3(1.0 + k * 0.5, 1.0 - k, 1.0 + k * 0.5)
+	if _squash <= 0.0:
+		scale = _base_scale
+
+
 ## The fishing line runs from the rod's tip to the hole.
 func _update_line() -> void:
 	var fishing := _tool != null and _tool.name == "rod" and _tool.visible
@@ -176,7 +211,8 @@ func _update_line() -> void:
 	var y := d.normalized()
 	var x := y.cross(Vector3.RIGHT if absf(y.x) < 0.9 else Vector3.FORWARD).normalized()
 	_line.global_transform = Transform3D(Basis(x, d, x.cross(y)), (from + to) / 2.0)
-	_bobber.global_position = to + Vector3(0, 0.04 + sin(_time * 5.0) * 0.03, 0)
+	# A gentle bob while waiting (about a second a cycle), a quick dip at the bite (AFK N5).
+	_bobber.global_position = to + Vector3(0, 0.04 + sin(_time * 6.0) * 0.02 - 0.06 * _dip, 0)
 
 
 ## The pose at `phase` (0..1) of a clip, eased between its keys.

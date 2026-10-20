@@ -92,8 +92,7 @@ func _place(res: String, unit: float, pop: bool) -> void:
 	if pop:
 		# The pop climbs in pitch as the stack grows, which feels great to fill up.
 		Audio.play("pop", top_position(), 0.85 + 0.04 * _pieces.size())
-		# Off to the side, clear of the counter above her.
-		Fx.pop("+%d" % unit, top_position() + Vector3(0.9, 0.0, 0.3), COLORS[res])
+		# The "+N" comes with each blow instead (main.gd, AFK N5): one per catch or chop.
 
 
 func _remove(res: String, unit: float, dest: Vector3, landed: Callable) -> void:

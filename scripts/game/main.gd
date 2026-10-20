@@ -826,6 +826,8 @@ func _on_meagan_worked(clip: String) -> void:
 	var target: int = _work.target
 	var me := _meagan.global_position
 	var tip := _meagan.tip_position()
+	if clip in ["chop", "scavenge", "fish"]:
+		_pop_gathered(target, me)
 	match clip:
 		"chop":
 			var tree := _nodes[target].hit(me)
@@ -849,6 +851,24 @@ func _on_meagan_worked(clip: String) -> void:
 			_people.wolf_hit(target)
 			Fx.burst("snow", tip, Vector3.UP)
 			Audio.play("swing_hit", tip)
+
+
+## One "+N" per blow or catch, what she gathered since the last one, beside the spot rather than
+## over her (Astra animation review, AFK N5/N7).
+var _gathered_at_blow := -1.0
+
+
+func _pop_gathered(node: int, me: Vector3) -> void:
+	var s := Game.engine.state
+	var total: float = s.gathered.wood + s.gathered.food + s.gathered.materials
+	var got := total - _gathered_at_blow if _gathered_at_blow >= 0.0 else 0.0
+	_gathered_at_blow = total
+	if got < 0.5 or node < 0 or node >= _nodes.size():
+		return
+	var spot := _nodes[node].focus_point(me)
+	var res: String = Balance.NODES[_nodes[node].kind].resource
+	var side := (spot - me).cross(Vector3.UP).normalized()
+	Fx.pop("+%d" % roundi(got), spot + side * 0.9 + Vector3(0, 1.0, 0), CarryStack.COLORS[res], 40)
 
 
 # ---------- Engine events ----------
@@ -933,7 +953,8 @@ func _on_event(ev: Dictionary) -> void:
 			_hud.show_banner("%d wolves heading for the furnace!" % ev.count, 4.0, UiTheme.WARN_WASH, "wolves")
 		"breakthrough":
 			Audio.play("crash")
-			_float_text(Vector3(0, 3.5, 0), "Wolves raided the furnace!", Color(1, 0.5, 0.4))
+			# High over the furnace and smaller, clear of the fight round it (AFK N7).
+			_float_text(Vector3(0, 6.0, 0), "Wolves raided the furnace!", Color(1, 0.5, 0.4), true)
 		"wolf_killed":
 			Audio.play("yelp", _v3(ev.pos))
 			Audio.play("coin")

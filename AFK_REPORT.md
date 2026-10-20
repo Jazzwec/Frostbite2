@@ -28,6 +28,17 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 152 onwards.
   - Stockpiles now have an obstacle body, so Jans and Meagan walk round them instead of across the deck (the navmesh bakes round it).
 - **Check in the game:** several Jans delivering at once.
 
+### N3, N5 and N7 (first part). Impacts, fishing and overlays
+- **Impacts with weight (N3):** every blow (chop, scavenge, hammer, Meagan's and the guards' strikes) holds the clip still for 0.05 s (3 frames of hit-stop) and squashes the character 5% down and out, springing back over 0.09 s with volume kept. This is in `CharacterRig`, so Meagan and every Jan get it. Off-screen rigs skip it.
+- **Fishing that reads (N5):**
+  - The float bobs gently (about a second a cycle) and dips at the bite.
+  - The rod lift and lean back at the bite were already in the clip.
+  - There's one "+N" per blow or catch, for what she gathered since the last one, beside the spot rather than over her. Her stack no longer pops a number per piece.
+- **Overlays (N7):**
+  - The bag readout is about 25% smaller and sits a little higher.
+  - "Wolves raided the furnace!" floats higher over the furnace, as a pop, clear of the fight.
+- **Check in the game:** chop and fish, and watch the "+N" and the small squash on each blow.
+
 ## Run 2026-10-20, 19:27 → 22:00 (visual polish)
 
 ChatGPT budget: counted from `tools/chatgpt/calls.log` line 145 onwards (8 images, 25 reviews).
