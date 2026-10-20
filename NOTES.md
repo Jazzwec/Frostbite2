@@ -145,6 +145,10 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - [ ] The first rescue, Furnace Lv 2, five Jans, the first Sled Shed/Storehouse/Workshop, the first blizzard survived, the first attack repelled… each pops a card under the button row for 3 s with a chime, one after another, never over a warning banner.
 - [ ] They never show twice, not after Play again or a restart.
 
+**Auto-assign (2026-10-20)** (DEV → Furnace +1 three times)
+- [ ] At the bottom of the Jans screen: greyed "Auto-assign unlocks at Furnace Lv 4" before, then a switch. On (green), idle Jans go to work and every 5 s at most one Jan moves towards the job shares, then it settles. Guards are left alone.
+- [ ] Tapping any −/+ by hand turns it off.
+
 **Objective: keep the fire burning**
 - [ ] A winter starts at 100/100 heat. With no Wood it lasts about 2½ minutes.
 - [ ] Below 25%: the bar pulses red, banner and horn. Below 10%: "Fire out in 0:12" on the bar.

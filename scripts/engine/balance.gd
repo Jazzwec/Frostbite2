@@ -71,6 +71,9 @@ const ARRIVAL_MAX_WAITING := 3
 const FIRST_ARRIVAL_DELAY := 5.0
 ## Job shares used to place a new Jan once Chopping and Fishing are covered. [brief] 3 : 2 : 2
 const JOB_SHARES := {"chop": 3.0, "hunt": 2.0, "build": 2.0}
+## Auto-assign unlocks at this Furnace level and rebalances this often. [brief] + [f1] AUTO_JOB
+const AUTO_ASSIGN_FURNACE_LEVEL := 4
+const AUTO_ASSIGN_EVERY := 5.0
 
 # ---------- Meagan ----------
 

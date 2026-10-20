@@ -103,9 +103,23 @@ func _tick(dt: float) -> void:
 		s.game_over = true
 		_events.append({"type": "game_over", "time": s.time})
 		return
+	_auto_assign(dt)
 	WorldEvents.arrivals(s, dt, rng, _events)
 	WorldEvents.blizzard(s, rng, _events)
 	Combat.update(s, dt, rng, _events)
+
+
+## While auto-assign is on, Jans are rebalanced every few seconds. [brief]
+func _auto_assign(dt: float) -> void:
+	var s := state
+	if not s.auto_assign:
+		return
+	s.auto_assign_in -= dt
+	if s.auto_assign_in > 0.0:
+		return
+	s.auto_assign_in = Balance.AUTO_ASSIGN_EVERY
+	if JobRules.rebalance(s) > 0:
+		_events.append({"type": "jobs_changed"})
 
 
 ## Jans' output goes into the Stockpile. [agreed 2026-10-19]
@@ -180,9 +194,25 @@ func start_upgrade(site_index: int) -> bool:
 
 
 ## Puts one more Jan on `job`: an idle one first, else one from the job most over its share.
+## Whether the auto-assign switch is available yet. [brief] Furnace Lv 4.
+func can_auto_assign() -> bool:
+	return Economy.furnace_level(state) >= Balance.AUTO_ASSIGN_FURNACE_LEVEL
+
+
+## Turns auto-assign on (it rebalances straight away) or off.
+func set_auto_assign(on: bool) -> bool:
+	if on and not can_auto_assign():
+		return false
+	state.auto_assign = on
+	state.auto_assign_in = 0.0
+	return true
+
+
+## The player puts a Jan on `job` by hand (which switches auto-assign off). [brief]
 func add_to_job(job: String) -> bool:
 	if not Economy.job_open(state, job):
 		return false
+	state.auto_assign = false
 	var jan := {}
 	for j in state.jans:
 		if j.job == "":
@@ -213,8 +243,9 @@ func add_to_job(job: String) -> bool:
 	return true
 
 
-## Takes one Jan off `job`; he goes idle.
+## Takes one Jan off `job` by hand; he goes idle (and auto-assign switches off). [brief]
 func remove_from_job(job: String) -> bool:
+	state.auto_assign = false
 	for i in range(state.jans.size() - 1, -1, -1):
 		if state.jans[i].job == job:
 			state.jans[i].job = ""

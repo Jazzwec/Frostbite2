@@ -12,6 +12,9 @@ var stockpile := false
 var jans := false
 var _jan_rows := {}  # job -> {label, minus, plus}
 var _food_line: Label
+var _auto_button: Button
+var _auto_note: Label
+var _auto_on_style: StyleBoxFlat
 
 var _title: Label
 var _effect: Label
@@ -88,6 +91,13 @@ func open_jans() -> void:
 		_jan_rows[job] = {"label": label, "minus": buttons[0], "plus": buttons[1]}
 	_food_line = UiTheme.label("", 34)
 	_body.add_child(_food_line)
+	_auto_button = UiTheme.button("", func(): Game.engine.set_auto_assign(not Game.engine.state.auto_assign))
+	_body.add_child(_auto_button)
+	_auto_on_style = StyleBoxFlat.new()
+	_auto_on_style.bg_color = Color(0.2, 0.6, 0.35)
+	_auto_on_style.set_corner_radius_all(20)
+	_auto_note = UiTheme.label("Balances jobs every 5 s. Moving a Jan by hand turns it off.", 30, Color(0.75, 0.8, 0.9))
+	_body.add_child(_auto_note)
 	visible = true
 	_refresh()
 
@@ -257,6 +267,20 @@ guarding the furnace"
 	var net := fished - eaten
 	_food_line.text = "Food %s%s/s  (%s fished, %s eaten)" % ["+" if net >= 0.0 else "−", "%.2f" % absf(net), "%.2f" % fished, "%.2f" % eaten]
 	_food_line.add_theme_color_override("font_color", Color(1.0, 0.55, 0.5) if net < 0.0 else Color(0.6, 0.9, 0.65))
+	if Game.engine.can_auto_assign():
+		_auto_button.disabled = false
+		_auto_button.text = "Auto-assign: ON" if s.auto_assign else "Auto-assign: off"
+		_auto_note.visible = true
+	else:
+		_auto_button.disabled = true
+		_auto_button.text = "Auto-assign unlocks at Furnace Lv %d" % Balance.AUTO_ASSIGN_FURNACE_LEVEL
+		_auto_note.visible = false
+	# Green while it's on, so the state reads at a glance.
+	for state in ["normal", "hover", "pressed"]:
+		if s.auto_assign:
+			_auto_button.add_theme_stylebox_override(state, _auto_on_style)
+		else:
+			_auto_button.remove_theme_stylebox_override(state)
 
 
 ## "1 Jan", "3 Jans".

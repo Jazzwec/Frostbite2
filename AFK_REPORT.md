@@ -270,3 +270,18 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.
 - **Notes:**
   - The "chime" is the existing `coin` sound. A dedicated chime could be added to `tools/audio/make_audio.py`, but I didn't regenerate the audio unattended.
   - The editor's class cache went stale once after a headless test run ("Could not find type MilestoneCards"); `--import` plus `swallowtail editor reload` fixed it.
+
+### 9. Auto-assign
+- **Commits:** "Auto-assign".
+- **What changed:**
+  - `JobRules.rebalance` follows the brief's rule. It unlocks at Furnace Lv 4 and runs every 5 s (Frostbite 1's `AUTO_JOB`).
+  - Idle Jans go to the neediest job (the same rule as a newly thawed Jan). Then at most one Jan moves, from the job most over its share to the neediest. That move only happens when it's urgent (no choppers, or Food eaten faster than fished) or it leaves the donor no worse off than the target, so it settles instead of shuttling. The last chopper is never taken.
+  - Guards are never touched. Any hand move switches it off.
+  - It's a switch at the bottom of the Jans screen: green "Auto-assign: ON", with a note on the hand-move rule. Before Furnace Lv 4 it's greyed out with "unlocks at Furnace Lv 4".
+- **Checked in the game:** six choppers → tap Auto-assign → 3 Chopping, 2 Fishing, 1 Building within 16 s; a hand tap on Fishing − turned it off.
+- **Tests:** `tests/test_auto_assign.gd` (unlock, idle Jans to work, one move per rebalance towards the shares, settles over four rebalances, guards untouched, a hand move switches it off). 83 pass.
+- **New numbers:** `AUTO_ASSIGN_FURNACE_LEVEL` 4 and `AUTO_ASSIGN_EVERY` 5 s, both from the brief and Frostbite 1.
+- **ChatGPT feedback:**
+  - Applied: a short state label, green when on, the rule as a note under it, clearer locked text.
+  - Not applied: a toggle-switch widget and a lock icon (styling and icons are on hold), and highlighting the counts that changed.
+- **Note:** the class cache went stale again after adding `JobRules`. CLAUDE.md now says to run `--import` before `editor reload`.

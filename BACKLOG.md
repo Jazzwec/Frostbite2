@@ -95,7 +95,7 @@ Polish and quality first, then new content.
   - **Showing them:** each pops a card for 3 s with a chime once, and they're stored in `user://settings.cfg`.
   - **Done when:** tests cover the trigger checks, and a card shows in the game.
 
-- [ ] **9. Auto-assign (safe).**
+- [x] **9. Auto-assign (safe).** Done 2026-10-20 (AFK).
   - **What:** the brief's rule. It unlocks at Furnace Lv 4 and rebalances every 5 s to the neediest-job rule, moving as few Jans as possible. It never moves guards and switches off when the player moves a Jan by hand.
   - **Where:** a toggle on the Jans screen.
   - **Done when:** there are engine tests for the rebalancing.

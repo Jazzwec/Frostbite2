@@ -47,6 +47,9 @@ var rescued_total := 0
 ## Jans lost to the cold or to wolves.
 var lost_total := 0
 var hungry := false
+## Auto-assign: on or off, and seconds until its next rebalance.
+var auto_assign := false
+var auto_assign_in := 0.0
 
 ## Blizzards: the next one starts at blizzard_at; it is active until blizzard_ends_at.
 var blizzard_at := Balance.BLIZZARD_FIRST_AT
