@@ -78,7 +78,7 @@ static func make(id: String) -> Node3D:
 			n.add_child(Shapes.sphere(0.06, Color(0.36, 0.22, 0.12), Vector3(0, 0.08, 0)))
 		# A snowball in her mitten, for her throw.
 		"snowball":
-			n.add_child(Shapes.sphere(0.11, Color(0.95, 0.97, 1.0), Vector3(0, -0.08, 0)))
+			n.add_child(Shapes.sphere(0.16, Color(0.97, 0.97, 0.95), Vector3(0, -0.1, 0)))
 		# A Jan's load on the way to a stockpile (AFK V4, 2026-10-20): big, distinct shapes held
 		# clear of his chest, about a third of his height, so a hauler reads at a glance.
 		"bundle":

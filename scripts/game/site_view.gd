@@ -415,7 +415,8 @@ func _update_labels(s: GameState, site: Dictionary) -> void:
 	_update_pad(s, site)
 	# Only the one thing nearest her shows its labels (main.gd sets `focused`), so unrelated labels
 	# never stack (ink_v3 review).
-	var show := focused
+	# During a fight they step back, so they don't cover the action (fighting review).
+	var show := focused and s.meagan_activity != "fight"
 	_label_alpha = move_toward(_label_alpha, 1.0 if show else 0.0, get_process_delta_time() * LABEL_FADE)
 	for label: Label3D in [_title, _pad_label]:
 		label.modulate.a = _label_alpha

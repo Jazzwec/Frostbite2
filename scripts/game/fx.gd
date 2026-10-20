@@ -148,12 +148,16 @@ func _make(def: Dictionary) -> CPUParticles3D:
 		pick.offsets = PackedFloat32Array(range(colors.size()).map(func(i): return float(i) / colors.size()))
 		pick.colors = PackedColorArray(colors)
 		e.color_initial_ramp = pick
-	var mesh := BoxMesh.new()
-	mesh.size = Vector3.ONE * def.size
+	# Soft round flecks, like dabs of paint, facing the camera (fighting review, 2026-10-20: square
+	# bursts erased the wolves' shapes).
+	var mesh := QuadMesh.new()
+	mesh.size = Vector2.ONE * def.size * 1.4
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m.vertex_color_use_as_albedo = true
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	m.albedo_texture = Smoke.soft_puff()
 	mesh.material = m
 	e.mesh = mesh
 	add_child(e)

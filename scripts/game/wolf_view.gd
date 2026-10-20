@@ -51,6 +51,9 @@ var _bone := {}  # key -> bone index
 var _rest := {}  # bone index -> rest Basis in skeleton space
 var _skins: Array[MeshInstance3D] = []
 var _flash_mat: StandardMaterial3D
+var _wedge: MeshInstance3D
+const WEDGE_ANGLE := 70.0
+const WEDGE_COLOR := Color(0.62, 0.3, 0.22, 0.38)
 
 
 func _init() -> void:
@@ -62,6 +65,8 @@ func _init() -> void:
 		bar_height = 1.08 * MODEL_SCALE
 	else:
 		_build_greybox()
+	_wedge = _make_wedge()
+	add_child(_wedge)
 	_hp_bar = HpBar.new(HpBar.WOLF_RED)
 	_hp_bar.position = Vector3(0, bar_height, 0)
 	add_child(_hp_bar)
@@ -120,9 +125,48 @@ func hit() -> void:
 	Fx.burst("snow", global_position + Vector3(0, 0.6, 0))
 
 
+func _make_wedge() -> MeshInstance3D:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var steps := 10
+	var reach := Balance.WOLF_BITE_REACH
+	for i in steps:
+		var a0 := deg_to_rad(-WEDGE_ANGLE / 2.0 + WEDGE_ANGLE * i / steps)
+		var a1 := deg_to_rad(-WEDGE_ANGLE / 2.0 + WEDGE_ANGLE * (i + 1) / steps)
+		st.add_vertex(Vector3.ZERO)
+		st.add_vertex(Vector3(sin(a1), 0, cos(a1)) * reach)
+		st.add_vertex(Vector3(sin(a0), 0, cos(a0)) * reach)
+	var mi := MeshInstance3D.new()
+	mi.mesh = st.commit()
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	m.albedo_color = WEDGE_COLOR
+	mi.material_override = m
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.position.y = 0.03
+	mi.visible = false
+	return mi
+
+
+## Shown while it crouches to bite, fading in, aimed at whoever it's biting.
+func _update_wedge(wolf: Dictionary) -> void:
+	var t: float = wolf.get("bite_t", -1.0)
+	var on := t >= 0.0 and t < Balance.WOLF_BITE_WINDUP + Balance.WOLF_BITE_LUNGE and wolf.has("foe_pos")
+	_wedge.visible = on
+	if not on:
+		return
+	var to := Vector3(wolf.foe_pos.x, 0, wolf.foe_pos.y) - global_position
+	_wedge.rotation.y = atan2(to.x, to.z)
+	var m := _wedge.material_override as StandardMaterial3D
+	m.albedo_color.a = WEDGE_COLOR.a * clampf(t / 0.15, 0.0, 1.0)
+
+
 ## Beaten (agreed 2026-10-20): it tumbles, scrambles up and runs off, fading. No corpse.
 func die() -> void:
 	_hp_bar.visible = false
+	_wedge.visible = false
 	Fx.burst("snow_big", global_position + Vector3(0, 0.4, 0))
 	var away := -_model.basis.z
 	var t := create_tween()
@@ -165,6 +209,7 @@ func sync(wolf: Dictionary, delta: float) -> void:
 		_flash.visible = _knock > 0.6
 		_model.position.y = absf(sin(_t)) * (0.05 if fighting else 0.12)
 	_hp_bar.set_value(wolf.hp / wolf.max_hp)
+	_update_wedge(wolf)
 
 
 ## Poses the model: a trot while it runs, a lunge and snap while it fights.

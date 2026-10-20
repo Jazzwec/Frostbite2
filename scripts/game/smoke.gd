@@ -82,13 +82,13 @@ static func _billboard(color: Color) -> StandardMaterial3D:
 	m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
 	m.billboard_keep_scale = true
 	m.albedo_color = color
-	m.albedo_texture = _soft_puff()
+	m.albedo_texture = soft_puff()
 	m.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
 	return m
 
 
 ## A radial wash: full in the middle, soft to nothing at the edge.
-static func _soft_puff() -> GradientTexture2D:
+static func soft_puff() -> GradientTexture2D:
 	if _puff_tex:
 		return _puff_tex
 	var g := Gradient.new()

@@ -258,8 +258,8 @@ const CLIPS := {
 		"length": 0.8, "loop": false, "tool": "stick", "impact": 0.3,
 		"keys": [
 			{"t": 0.0, "arm_r": Vector3(-45, 0, 10), "arm_l": Vector3(-35, 0, -14), "turn": 0.0, "tool": Vector3(0, 90, 0)},
-			{"t": 0.2, "arm_r": Vector3(-72, 0, -50), "arm_l": Vector3(-60, 0, -40), "turn": 45.0, "lean": -4.0, "tool": Vector3(0, 90, 0), "ease": "out"},
-			{"t": 0.3, "arm_r": Vector3(-78, 0, 34), "arm_l": Vector3(-64, 0, 24), "turn": -40.0, "lean": 8.0, "tool": Vector3(0, 90, 0), "ease": "in"},
+			{"t": 0.2, "arm_r": Vector3(-72, 0, -36), "arm_l": Vector3(-60, 0, -30), "turn": 32.0, "lean": -4.0, "tool": Vector3(0, 90, 0), "ease": "out"},
+			{"t": 0.3, "arm_r": Vector3(-78, 0, 24), "arm_l": Vector3(-64, 0, 18), "turn": -28.0, "lean": 8.0, "tool": Vector3(0, 90, 0), "ease": "in"},
 			{"t": 0.55, "arm_r": Vector3(-55, 0, 20), "arm_l": Vector3(-45, 0, 10), "turn": -15.0, "lean": 4.0, "tool": Vector3(0, 90, 0)},
 			{"t": 1.0, "arm_r": Vector3(-40, 0, 10), "arm_l": Vector3(-32, 0, -14), "turn": 0.0, "tool": Vector3(0, 90, 0)},
 		],
