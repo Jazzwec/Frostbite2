@@ -44,6 +44,16 @@ const BUDGETS := {
 	"chest_boon": [2500, 0.3, 1.2],
 	"chest_gear": [2500, 0.3, 1.2],
 }
+## Held tools and carried things (rig/tools.gd), in their hand's space with the origin at the hand
+## (cleanup.py hold=...), so no ground or centring check: [max triangles, min length m, max length m].
+const HELD := {
+	"tool_axe": [1600, 0.8, 1.2],
+	"tool_pickaxe": [1600, 0.8, 1.2],
+	"tool_hammer": [1600, 0.4, 0.7],
+	"tool_rod": [1600, 1.2, 1.8],
+	"tool_spear": [1600, 1.6, 2.3],
+	"tool_fish": [1600, 0.3, 0.6],
+}
 ## Rigged characters posed by ModelRig: they need its bones under Mixamo names (tools/blender/rig_names.py
 ## renames a Meshy rig's).
 const HUMANOIDS := ["jan", "meagan"]
@@ -75,7 +85,8 @@ func _to_root(node: Node3D, root: Node3D) -> Transform3D:
 
 func test_every_model_has_a_budget() -> void:
 	for path in _models():
-		check(BUDGETS.has(path.get_file().get_basename()), "%s has no row in BUDGETS" % path)
+		var name := path.get_file().get_basename()
+		check(BUDGETS.has(name) or HELD.has(name), "%s has no row in BUDGETS or HELD" % path)
 
 
 func test_humanoids_have_the_rig_bones() -> void:
@@ -94,7 +105,7 @@ func test_humanoids_have_the_rig_bones() -> void:
 func test_models_keep_the_pipeline_rules() -> void:
 	for path in _models():
 		var name := path.get_file().get_basename()
-		if not BUDGETS.has(name):
+		if not BUDGETS.has(name) and not HELD.has(name):
 			continue
 		var scene := load(path) as PackedScene
 		check(scene != null, "%s doesn't load" % path)
@@ -116,14 +127,21 @@ func test_models_keep_the_pipeline_rules() -> void:
 				tris += (index.size() if not index.is_empty() else (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()) / 3
 				materials[m.get_active_material(s)] = true
 		root.free()
-		var budget: Array = BUDGETS[name]
-		check(tris > 0 and tris <= budget[0], "%s has %d triangles, budget %d" % [name, tris, budget[0]])
-		check_near(box.position.y, 0.0, GROUND_TOLERANCE, "%s base height" % name)
-		check(box.size.y >= budget[1] and box.size.y <= budget[2],
-				"%s is %.2f m tall, expected %.1f-%.1f" % [name, box.size.y, budget[1], budget[2]])
-		var centre := box.get_center()
-		check(absf(centre.x) <= CENTRE_TOLERANCE and absf(centre.z) <= CENTRE_TOLERANCE,
-				"%s isn't centred on its origin (centre %.2f, %.2f)" % [name, centre.x, centre.z])
+		if HELD.has(name):
+			var held: Array = HELD[name]
+			var length := maxf(box.size.x, maxf(box.size.y, box.size.z))
+			check(tris > 0 and tris <= held[0], "%s has %d triangles, budget %d" % [name, tris, held[0]])
+			check(length >= held[1] and length <= held[2], "%s is %.2f m long, expected %.1f-%.1f" % [name, length, held[1], held[2]])
+			check(box.grow(0.05).has_point(Vector3.ZERO), "%s doesn't have its hand (origin) on it" % name)
+		else:
+			var budget: Array = BUDGETS[name]
+			check(tris > 0 and tris <= budget[0], "%s has %d triangles, budget %d" % [name, tris, budget[0]])
+			check_near(box.position.y, 0.0, GROUND_TOLERANCE, "%s base height" % name)
+			check(box.size.y >= budget[1] and box.size.y <= budget[2],
+					"%s is %.2f m tall, expected %.1f-%.1f" % [name, box.size.y, budget[1], budget[2]])
+			var centre := box.get_center()
+			check(absf(centre.x) <= CENTRE_TOLERANCE and absf(centre.z) <= CENTRE_TOLERANCE,
+					"%s isn't centred on its origin (centre %.2f, %.2f)" % [name, centre.x, centre.z])
 		check(materials.size() <= MAX_MATERIALS, "%s has %d materials" % [name, materials.size()])
 		for mat in materials:
 			check(mat is BaseMaterial3D, "%s has a material that isn't a BaseMaterial3D" % name)

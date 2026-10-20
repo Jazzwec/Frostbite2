@@ -34,6 +34,13 @@ PROP = (
     "two or three tones, thick soft snow, no fine texture, no nails, no grain, no scratches. A small game prop "
     "that must read at phone size from a high camera."
 )
+TOOL = (
+    " A single hand tool held by a character in the same world as the attached buildings: chunky stylised "
+    "proportions with a thick handle so it reads at phone size, broad flat watercolour colour areas in two or "
+    "three tones, no snow, no fine texture, no grain, no scratches. Shown STANDING PERFECTLY UPRIGHT, the "
+    "handle vertical with its butt at the bottom and the head at the top, seen exactly from the side, the "
+    "whole tool visible and centred, nothing else in the picture."
+)
 SUBJECTS = {
     "house_lumber_yard": "the LUMBER YARD: an open-fronted Nordic woodshed, dark-stained timber, packed full of neatly stacked round log ends facing the viewer, a chopping stump with an axe in front to one side, a snowy roof on chunky posts. About 3.2 m wide, 2.4 m deep, 3.4 m tall." + HOUSE,
     "house_hunting_lodge": "the FISHING LODGE: a faded-teal (#5E8A87) timber cottage with an ochre-brown door, two warm glowing windows, a hanging sign with a simple painted fish motif, two wooden barrels and a coil of rope by the side wall, a short rack with two hanging fish. About 3 m wide, 2.6 m deep." + HOUSE,
@@ -67,6 +74,14 @@ SUBJECTS = {
     "chest_cache": "a ROPE-TIED SUPPLY CRATE for a treasure cache: a chunky wooden crate with a flat lid, tied with thick rope crossing over the lid, snow on the lid corners. About 1 m wide, 0.7 m deep, 0.75 m tall. The lid is a separate flat slab on top." + PROP,
     "chest_boon": "a TREASURE CHEST: a chunky faded-teal (#5E8A87) wooden chest with broad ochre (#C9973F) metal bands, a rounded barrel lid and a big ochre lock plate on the front, a little snow on the lid. About 1 m wide, 0.65 m deep, 0.85 m tall. The rounded lid sits on top of the box." + PROP,
     "chest_gear": "an IRON-BANDED GEAR CHEST: a chunky dark charcoal-brown wooden chest with broad pale-grey iron bands and corner plates, a flat lid, a heavy iron hasp on the front, a little snow on the lid. About 1 m wide, 0.65 m deep, 0.75 m tall. The lid is a separate slab on top." + PROP,
+    # Phase G: held tools. Upright, head on top, side-on, so cleanup(grip=...) can turn them into
+    # the hand's space mechanically.
+    "tool_axe": "a WOODCUTTER'S AXE: a thick straight light-brown wooden handle and a broad chunky grey steel axe head with one curved blade edge pointing to the RIGHT, a dark steel back. About 1 m long." + TOOL,
+    "tool_pickaxe": "a PICKAXE: a thick straight light-brown wooden handle and a chunky dark-grey iron pick head across the top, curving slightly down to a point at each side. About 1 m long, the head 0.8 m across." + TOOL,
+    "tool_hammer": "a BUILDER'S HAMMER: a short thick light-brown wooden handle and a big chunky dark-grey iron hammer head across the top, a flat striking face on the RIGHT. About 0.55 m long." + TOOL,
+    "tool_rod": "an ICE-FISHING ROD: a slim tapering light-brown wooden rod with a small dark iron reel near the bottom and a cork grip at the butt, no line. About 1.5 m long." + TOOL,
+    "tool_spear": "a GUARD'S SPEAR: a long straight light-brown wooden shaft with a chunky leaf-shaped grey steel spearhead on top and a small ochre wrapping below the head. About 2 m long." + TOOL,
+    "tool_fish": "ONE WHOLE FISH lying horizontally, seen exactly from the side with its head to the LEFT: a plump blue-grey char with a pale belly, a few broad darker spots, a simple dot eye and a forked tail. About 0.45 m long. Nothing else." + PROP,
 }
 
 

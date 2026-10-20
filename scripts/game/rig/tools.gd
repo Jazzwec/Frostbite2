@@ -8,9 +8,24 @@ const STEEL := Color(0.8, 0.83, 0.88)
 const DARK_STEEL := Color(0.35, 0.37, 0.42)
 
 
+## The ones with a pipeline model (assets/models/blender/tool_<id>.glb, cleanup.py hold=...), each
+## built in the same hand space as its greybox below, and which way its working end points.
+const MODELS := {"axe": Vector3.DOWN, "pickaxe": Vector3.DOWN, "hammer": Vector3.DOWN, "spear": Vector3.DOWN,
+		"rod": Vector3.BACK, "fish": Vector3.ZERO}
+
+
 static func make(id: String) -> Node3D:
 	var n := Node3D.new()
 	n.name = id
+	var model := Props.make("tool_" + id) if MODELS.has(id) else null
+	if model:
+		n.add_child(model)
+		if MODELS[id] != Vector3.ZERO:
+			var tip := Marker3D.new()
+			tip.name = "Tip"
+			tip.position = _far_end(model, MODELS[id])
+			n.add_child(tip)
+		return n
 	match id:
 		"axe":
 			# Chunky, so it reads at phone size.
@@ -63,3 +78,23 @@ static func tip(tool: Node3D) -> Vector3:
 	if marker:
 		return marker.global_position
 	return tool.global_transform * Vector3(0, -0.8, 0)
+
+
+## The middle of a model's end furthest along `dir` (its head or tip), in the model's parent's space.
+static func _far_end(model: Node3D, dir: Vector3) -> Vector3:
+	var box := AABB()
+	var first := true
+	for mi in model.find_children("*", "MeshInstance3D", true, false):
+		var m := mi as MeshInstance3D
+		var t := model.transform
+		var n: Node = m
+		var local := Transform3D.IDENTITY
+		while n != model:
+			local = (n as Node3D).transform * local
+			n = n.get_parent()
+		var b := t * local * m.mesh.get_aabb()
+		box = b if first else box.merge(b)
+		first = false
+	var c := box.get_center()
+	var half := box.size / 2.0
+	return c + dir * Vector3(half.x, half.y, half.z).dot(dir.abs())

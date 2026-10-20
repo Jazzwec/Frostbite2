@@ -36,5 +36,11 @@
   "meagan_v2": ["01a15a33-6143-7549-a5dd-9ff819db28e0", "meshy-6", 30, 10000, "source_art/concept/ink/meagan_v2_front.png (+ _side, _back; multi-image-to-3d, t-pose)"],
   "jan_v2": ["01a15a33-6e90-75e1-a34f-5fa5e52b2dcf", "meshy-6", 30, 8000, "source_art/concept/ink/jan_v2_front.png (+ _side, _back; multi-image-to-3d, t-pose)"],
   "meagan_v2_rig": ["01a15a37-7542-7714-984f-a46bfbb3c494", "rig", 5, 0, "meshy_rig of meagan_v2, height 1.7 m"],
-  "jan_v2_rig": ["01a15a37-82c6-75f2-a0a2-079b3c39bb92", "rig", 5, 0, "meshy_rig of jan_v2, height 1.6 m"]
+  "jan_v2_rig": ["01a15a37-82c6-75f2-a0a2-079b3c39bb92", "rig", 5, 0, "meshy_rig of jan_v2, height 1.6 m"],
+  "tool_axe": ["01a15a47-2eb7-74d0-b656-10d4e7150324", "meshy-t2.5", 15, 1200],
+  "tool_pickaxe": ["01a15a47-34b8-75fa-aeb5-4d20f1589c3b", "meshy-t2.5", 15, 1200],
+  "tool_hammer": ["01a15a48-1334-7492-a832-adb8a3c76909", "meshy-t2.5", 15, 1200],
+  "tool_rod": ["01a15a4a-2c1c-710e-b46e-805e99004f4e", "meshy-t2.5", 15, 1200],
+  "tool_spear": ["01a15a4a-3176-733a-b9e3-f4ef77f2fe7f", "meshy-t2.5", 15, 1200],
+  "tool_fish": ["01a15a4a-3686-7027-b0a9-4a713a4bb358", "meshy-t2.5", 15, 1200]
 }

@@ -1,0 +1,25 @@
+{
+  "task_id": "01a15a48-1334-7492-a832-adb8a3c76909",
+  "date": "2026-10-20",
+  "ai_model": "meshy-t2.5",
+  "endpoint": "image-to-3d",
+  "credits": 15,
+  "params": {
+    "image_enhancement": false,
+    "should_remesh": true,
+    "topology": "triangle",
+    "should_texture": true,
+    "enable_pbr": false,
+    "texture_resolution": "2k",
+    "auto_size": true,
+    "origin_at": "bottom",
+    "target_formats": [
+      "glb"
+    ],
+    "target_polycount": 1200,
+    "model_type": "smart-topology"
+  },
+  "reference": "source_art/concept/ink/tool_hammer.png",
+  "reference_model": "gpt-6-astra (tools/chatgpt/chatgpt.py image --for-3d)",
+  "download": "assets/models/meshy/tool_hammer_t2.5.glb"
+}

@@ -42,6 +42,13 @@ const PATHS := {
 	"chest_cache": "res://assets/models/blender/chest_cache.glb",
 	"chest_boon": "res://assets/models/blender/chest_boon.glb",
 	"chest_gear": "res://assets/models/blender/chest_gear.glb",
+	# Held tools and carried things (Tools.make), in their hand's space.
+	"tool_axe": "res://assets/models/blender/tool_axe.glb",
+	"tool_pickaxe": "res://assets/models/blender/tool_pickaxe.glb",
+	"tool_hammer": "res://assets/models/blender/tool_hammer.glb",
+	"tool_rod": "res://assets/models/blender/tool_rod.glb",
+	"tool_spear": "res://assets/models/blender/tool_spear.glb",
+	"tool_fish": "res://assets/models/blender/tool_fish.glb",
 }
 ## The pines' own height in metres (base of the trunk to the tip), to scale them to a tree's height.
 const PINE_HEIGHTS := {"pine_a": 3.45, "pine_b": 3.55, "pine_c": 2.55}

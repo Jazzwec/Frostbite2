@@ -230,14 +230,51 @@ def _drop_scene(scene_name):
         bpy.data.objects.remove(o, do_unlink=True)
 
 
+def _hold(obj, hold, grip):
+    """A held tool, modelled upright with its butt at z = 0, into its hand's space with the origin
+    on the handle, `grip` of its length up from the butt. "down" hangs the head along Godot -Y
+    with the side of the head furthest from the handle (an axe's blade), or the length of a head
+    even about it (a pickaxe), towards the swing, Godot -Z; "forward" points the tip along Godot
+    +Z (the rod); "centre" puts a carried thing's middle on the origin. Blender +Y is Godot -Z (the exporter's Y-up conversion). Meshy mirrors a
+    picture's left and right, so the head's side is measured rather than assumed."""
+    h = _world_bounds(obj)[1].z
+    if hold == "centre":
+        obj.data.transform(Matrix.Translation((0, 0, -h / 2)))
+        return
+    if hold not in ("down", "forward"):
+        raise ValueError(f"hold: {hold}")
+    vs = [v.co for v in obj.data.vertices]
+    handle = [v for v in vs if v.z < 0.4 * h]
+    cx = sum(v.x for v in handle) / len(handle)
+    cy = sum(v.y for v in handle) / len(handle)
+    obj.data.transform(Matrix.Translation((-cx, -cy, 0)))
+    head = [v.co for v in obj.data.vertices if v.co.z > 0.75 * h]
+    mx = (min(v.x for v in head) + max(v.x for v in head)) / 2
+    my = (min(v.y for v in head) + max(v.y for v in head)) / 2
+    if hold == "down":
+        # Head down (x stays, y and z flip), then its far side to +Y.
+        obj.data.transform(Matrix.Rotation(math.pi, 4, "X"))
+        my = -my
+        if math.hypot(mx, my) > 0.05 * h:
+            obj.data.transform(Matrix.Rotation(math.atan2(mx, my), 4, "Z"))
+        elif (max(v.x for v in head) - min(v.x for v in head)) > (max(v.y for v in head) - min(v.y for v in head)):
+            # A head even about the handle (a pickaxe, a hammer): its length along the swing.
+            obj.data.transform(Matrix.Rotation(math.radians(90), 4, "Z"))
+        obj.data.transform(Matrix.Translation((0, 0, grip * h)))
+    else:
+        obj.data.transform(Matrix.Translation((0, grip * h, 0)) @ Matrix.Rotation(math.radians(90), 4, "X"))
+
+
 def cleanup(name, source, height=None, footprint=None, max_tris=8000, tex_size=1024,
             weld=0.0005, yaw=0.0, export=True, palette=0.0, split_lid_at=None, stretch=(1.0, 1.0, 1.0),
-            strip_rig=False):
+            strip_rig=False, hold=None, grip=0.1):
     """See the module docstring. `height` or `footprint` (the larger of width and depth) in metres.
     `palette` (0 to 1) pulls the texture towards the art-direction palette (palette_snap);
     `split_lid_at` (metres, after scaling) cuts a chest into a body and a hinged lid;
     `stretch` scales width, depth and height before sizing (a building shallower front to back
-    and a little taller shows more wall under the 52° game camera)."""
+    and a little taller shows more wall under the 52° game camera).
+    `hold` turns a held tool, modelled upright with its head on top, into its hand's space
+    (scripts/game/rig/tools.gd): see _hold."""
     if (height is None) == (footprint is None):
         raise ValueError("give exactly one of height or footprint")
     scene_name = "FB2_" + "".join(w.capitalize() for w in name.split("_"))
@@ -329,6 +366,8 @@ def cleanup(name, source, height=None, footprint=None, max_tris=8000, tex_size=1
     lo, hi = _world_bounds(obj)
     obj.data.transform(Matrix.Translation(Vector(((lo.x + hi.x) / -2, (lo.y + hi.y) / -2, -lo.z))))
     obj.location = (0, 0, 0)
+    if hold is not None:
+        _hold(obj, hold, grip)
 
     # Materials: the first one carries the base colour; the game wants one opaque material.
     images = [_flatten_material(slot.material, tex_size) for slot in obj.material_slots if slot.material]
