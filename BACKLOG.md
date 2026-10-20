@@ -201,7 +201,7 @@ Make the game and its animations match the agreed visual, `source_art/direction/
 - [x] **V9. Tile-opening flame trail (safe, effects).** Done 2026-10-20 (AFK).
   - **What:** when a tile opens, an ember trail runs from the main furnace to the new small furnace, which then flares alight.
   - **Done when:** a screenshot sequence shows it.
-- [ ] **V10. Bag-full nudge (safe, feedback).**
+- [x] **V10. Bag-full nudge (safe, feedback).** Done 2026-10-20 (AFK).
   - **What:** while the bag is full, the readout adds "Take it to a Stockpile" and an edge-clamped arrow points at the nearest stockpile, reusing the `Hints` arrow code.
   - **Done when:** a screenshot shows both.
 

@@ -104,6 +104,11 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 145 onwards (8 image
 - **Check in the game:** open a gate and watch the furnace and the new tile.
 - **No ChatGPT review** (budget).
 
+### V10. Bag-full nudge
+- **What changed:** once the first-minute hints are done, a full bag still gets a nudge every time: the hint line "Bag full: take it to a Stockpile" (`data/tips.json` `hints.bag_full`) with the hint arrow pointing at the nearest stockpile, over it or at the screen edge.
+- **Not quite as planned:** the backlog said the readout would add the words. I put them in the hint line instead, so the small readout over her doesn't grow. It reads more clearly and overlaps nothing.
+- **Check in the game:** chop until the bag is full, away from a stockpile.
+
 ## Run 2026-10-20, 01:11 → 09:00
 
 ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.

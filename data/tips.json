@@ -3,6 +3,7 @@
     "move": "Drag anywhere to move",
     "chop": "Chop Wood into your bag",
     "store": "Empty your bag at any Stockpile",
+    "bag_full": "Bag full: take it to a Stockpile",
     "thaw": "Tap the frozen Jan",
     "open": "Open new ground at a stone ring"
   },
