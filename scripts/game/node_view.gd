@@ -33,7 +33,7 @@ func setup(node_index: int) -> void:
 		_build_pond()
 	for i in PIECES:
 		var angle := TAU * i / PIECES + rng.randf_range(-0.3, 0.3)
-		var dist := rng.randf_range(2.3, 2.8) if kind == "hunting" else rng.randf_range(1.2, 2.4)
+		var dist := rng.randf_range(2.3, 2.8) if kind == "hunting" else rng.randf_range(1.4, 2.8)
 		var piece := _make_piece(rng)
 		piece.position = Vector3(cos(angle) * dist, 0, sin(angle) * dist)
 		add_child(piece)
@@ -69,10 +69,19 @@ func _make_piece(rng: RandomNumberGenerator) -> Node3D:
 			crown.name = "Crown"
 			crown.set_meta("height", 0.6 + h)
 			n.add_child(crown)
-			crown.add_child(Shapes.cylinder(0.15, 0.6, Color(0.4, 0.27, 0.15), Vector3(0, 0.3, 0)))
-			crown.add_child(Shapes.cone(0.9, h * 0.6, Color(0.18, 0.38, 0.26), Vector3(0, 0.6 + h * 0.3, 0)))
-			crown.add_child(Shapes.cone(0.65, h * 0.45, Color(0.2, 0.42, 0.29), Vector3(0, 0.6 + h * 0.6, 0)))
-			crown.add_child(Shapes.cone(0.35, h * 0.25, Shapes.SNOW_COLOR, Vector3(0, 0.6 + h * 0.85, 0)))
+			# One of the low-poly pines, sized to the tree's height (the squat one stays squat).
+			var pine_id: String = Props.PINE_HEIGHTS.keys()[rng.randi() % Props.PINE_HEIGHTS.size()]
+			var pine_scale := (0.6 + h) / 3.4
+			var pine := Props.make(pine_id, pine_scale, rng.randf_range(0, 360))
+			if pine:
+				Props.use_vertex_colours(pine)
+				crown.add_child(pine)
+				crown.set_meta("height", Props.PINE_HEIGHTS[pine_id] * pine_scale)
+			else:
+				crown.add_child(Shapes.cylinder(0.15, 0.6, Color(0.4, 0.27, 0.15), Vector3(0, 0.3, 0)))
+				crown.add_child(Shapes.cone(0.9, h * 0.6, Color(0.18, 0.38, 0.26), Vector3(0, 0.6 + h * 0.3, 0)))
+				crown.add_child(Shapes.cone(0.65, h * 0.45, Color(0.2, 0.42, 0.29), Vector3(0, 0.6 + h * 0.6, 0)))
+				crown.add_child(Shapes.cone(0.35, h * 0.25, Shapes.SNOW_COLOR, Vector3(0, 0.6 + h * 0.85, 0)))
 		"hunting":
 			# Reeds and snowy rocks round the pond's shore.
 			var rock := Props.make("boulder", rng.randf_range(0.35, 0.55), rng.randf_range(0, 360)) if rng.randf() < 0.35 else null
@@ -114,7 +123,8 @@ func refresh(s: GameState) -> void:
 	_label.modulate = Color(1, 1, 1, 0.9) if frac > 0.05 else Color(0.7, 0.7, 0.75, 0.6)
 
 
-## Fades the tree crowns that stand between the camera and Meagan.
+## Fades the tree crowns that stand between the camera and Meagan. A felled tree comes back to
+## solid as it falls, so the topple reads as the reward for chopping.
 func fade_covers(camera: Transform3D, meagan: Vector3, delta: float) -> void:
 	if kind != "forest":
 		return
@@ -122,11 +132,12 @@ func fade_covers(camera: Transform3D, meagan: Vector3, delta: float) -> void:
 	if not near and not _faded:
 		return
 	_faded = false
-	for piece in _pieces:
+	for i in _pieces.size():
+		var piece := _pieces[i]
 		var crown := piece.get_node_or_null("Crown") as Node3D
 		if crown == null:
 			continue
-		var cover := near and FadeCover.covers(camera, meagan, piece.global_position, crown.get_meta("height", 3.0), 0.9)
+		var cover := near and _up[i] and FadeCover.covers(camera, meagan, piece.global_position, crown.get_meta("height", 3.0), 0.9)
 		_faded = FadeCover.fade(crown, cover, delta) or _faded
 
 

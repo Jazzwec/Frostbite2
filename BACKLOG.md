@@ -128,7 +128,7 @@ The user committed to the ink & watercolour direction; the rules are in `docs/ar
     - In `assets/ui/icons/`.
     - Shown in the top bar, `BagReadout`, the sheets, the warning banners and the milestone cards.
   - **Rule:** the text still says what each number is the first time it's seen.
-- [ ] **14. Low-poly pines (Blender).**
+- [x] **14. Low-poly pines (Blender).**
   - **What:** 2–3 chunky pines under 1,500 triangles, with flat watercolour colours.
   - **Where:** `source_art/blender/trees.blend`, exported to `assets/models/blender/`, used in `NodeView` forests.
   - **Keep:** the stump/crown split (felling, toppling) and the crown fading.
