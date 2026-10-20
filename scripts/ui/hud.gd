@@ -32,6 +32,8 @@ var _banner_label: RichTextLabel
 var _banner_timer := 0.0
 var _dev_button: Button
 var _game_over: GameOverCard
+## A chest's offer while it's waiting for her choice. [agreed 2026-10-20]
+var _offer_card: OfferCard
 ## Whether the low-heat warning has fired; it re-arms once heat recovers.
 var _low_warned := false
 var _time := 0.0
@@ -160,6 +162,7 @@ func _process(delta: float) -> void:
 			parts.append("%s %s" % [RESOURCE_NAMES[res], Fmt.num(floorf(s.bag[res]))])
 	_bag.text = " · ".join(parts) + note
 	_forecast.text = _forecast_text(s)
+	_update_offer_card(s)
 	if _banner_timer > 0.0:
 		_banner_timer -= delta
 		if _banner_timer <= 0.0:
@@ -195,6 +198,21 @@ func _warn_low_heat(s: GameState, frac: float) -> void:
 		_heat_label.text = "Fire out in %s!" % Fmt.clock(left)
 
 
+## Shows a chest's offer while one is waiting, and takes it away once she's chosen.
+func _update_offer_card(s: GameState) -> void:
+	hints.visible = s.offer.is_empty()
+	if s.offer.is_empty():
+		if _offer_card:
+			_offer_card.queue_free()
+			_offer_card = null
+		return
+	if _offer_card == null:
+		sheet.close()
+		_offer_card = OfferCard.new()
+		_offer_card.offer = s.offer
+		_root.add_child(_offer_card)
+
+
 ## The fire went out: the end-of-winter card over everything.
 func show_game_over(time_survived: float, best: float, new_best: bool) -> void:
 	sheet.close()
@@ -228,7 +246,7 @@ func _forecast_text(s: GameState) -> String:
 
 ## True when a screen point is over UI, so the world shouldn't get the touch.
 func blocks(pos: Vector2) -> bool:
-	for c in [_top, sheet, _dev_button, _dev_panel, _music_button, _sound_button, _jans_button, _game_over]:
+	for c in [_top, sheet, _dev_button, _dev_panel, _music_button, _sound_button, _jans_button, _game_over, _offer_card]:
 		if c and c.is_visible_in_tree() and c.get_global_rect().has_point(pos):
 			return true
 	return false

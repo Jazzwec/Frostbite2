@@ -179,6 +179,7 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
     - a pulse to the heat bar when the drain rises;
     - a picture-book small-furnace model that echoes the main one (a Meshy job, about 30 credits);
     - an "open an area" hint.
+  - **Chests are in (Phase 5, greybox).** They are caches, boon chests (2 or 3 to choose from) and gear (axe, boots, sled). The boon and gear lists and their numbers are `[proto]` in `balance.gd`. Screens are in `source_art/direction/treasures/`.
   - Still to design together: what carries over between runs (content unlocks plus a currency, maybe tokens from defeated enemies), and the boon and gear lists.
 - **Numbers marked `[proto]` in `scripts/engine/balance.gd`** need your sign-off: walk 6 m/s, build pad 1.4 m, low-heat warning 25% (clears at 40%) and countdown 10%, furnace feed from the Stockpile 5 Wood/s, gather range 3 m, building reach 4.5 m, rescue range 2 m, first Jan after 5 s, wolf detour 7 m, guard ring 4 m.
 - **Guards are weak:** by the brief, without kits they deal half damage (1.5/s), so 2 guards struggle against 3 wolves. Kits and gear aren't in the prototype yet.

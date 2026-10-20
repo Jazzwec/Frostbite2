@@ -31,7 +31,7 @@ static func gather(s: GameState, dt: float) -> void:
 		return
 	var def: Dictionary = Balance.NODES[MapData.node_kind(s, nearest)]
 	var room := Economy.bag_cap(s) - Economy.bag_total(s)
-	var amount := minf(minf(Balance.GATHER_RATE[def.resource] * dt, s.nodes[nearest]), room)
+	var amount := minf(minf(Economy.gather_rate(s, def.resource) * dt, s.nodes[nearest]), room)
 	var pos := MapData.node_pos(s, nearest)
 	if amount <= 0.0:
 		set_activity(s, "full", nearest, pos)

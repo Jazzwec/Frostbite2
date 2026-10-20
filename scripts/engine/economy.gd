@@ -5,6 +5,25 @@ extends RefCounted
 const PILE_KEYS := ["wood", "food", "materials"]
 
 
+## A run-long modifier: what boons and gear add to `key` this winter. [agreed 2026-10-20]
+static func mod(s: GameState, key: String) -> float:
+	var total: float = s.mods.get(key, 0.0)
+	for slot in s.gear:
+		if Balance.GEAR[slot].mod == key:
+			total += TreasureRules.gear_value(slot, s.gear[slot])
+	return total
+
+
+## How fast Meagan walks, in m/s.
+static func walk_speed(s: GameState) -> float:
+	return Balance.MEAGAN_WALK_SPEED * (1.0 + mod(s, "walk_mult"))
+
+
+## How fast she gathers `resource` by hand, per second.
+static func gather_rate(s: GameState, resource: String) -> float:
+	return Balance.GATHER_RATE[resource] * (1.0 + mod(s, "gather_mult"))
+
+
 ## Level of a building: the highest of its plots, 0 if none is built yet (a first-time
 ## construction site is level 0).
 static func level(s: GameState, building: String) -> int:
@@ -60,7 +79,7 @@ static func heat_per_wood(s: GameState) -> float:
 
 
 static func bag_cap(s: GameState) -> float:
-	return Balance.BAG_BASE + Balance.BAG_PER_SLED_SHED_LEVEL * level(s, "sled_shed")
+	return Balance.BAG_BASE + Balance.BAG_PER_SLED_SHED_LEVEL * level(s, "sled_shed") + mod(s, "bag_add")
 
 
 static func bag_total(s: GameState) -> float:
@@ -68,7 +87,7 @@ static func bag_total(s: GameState) -> float:
 
 
 static func caps(s: GameState) -> Dictionary:
-	var store := pow(Balance.STOREHOUSE_CAP_GROWTH, level(s, "storehouse"))
+	var store := pow(Balance.STOREHOUSE_CAP_GROWTH, level(s, "storehouse")) * (1.0 + mod(s, "cap_mult"))
 	# Every Lumber Yard level above the first adds Wood room, across all the Lumber Yards.
 	var lumber := 0
 	for site in s.sites:
@@ -99,6 +118,7 @@ static func heat_drain(s: GameState, extra_stoves := 0) -> float:
 	drain += Balance.STOVE_DRAIN * (s.stoves.size() + extra_stoves)
 	if s.blizzard_active:
 		drain *= Balance.BLIZZARD_DRAIN_MULT
+	drain *= 1.0 - minf(mod(s, "drain_cut"), Balance.DRAIN_CUT_MAX)
 	return drain * (1.0 - hot_springs_cut(s))
 
 
@@ -120,7 +140,7 @@ static func is_cold(s: GameState) -> bool:
 
 ## Cold and hunger slow every job.
 static func output_mult(s: GameState) -> float:
-	var m := 1.0
+	var m := 1.0 + mod(s, "work_mult")
 	if is_cold(s):
 		m *= Balance.COLD_OUTPUT_MULT
 	if s.hungry:
@@ -173,8 +193,8 @@ static func site_jans(s: GameState, i: int) -> int:
 
 
 ## How many Jans a producer holds. [agreed 2026-10-20]
-static func site_slots(_s: GameState, _i: int) -> int:
-	return Balance.PRODUCER_JAN_CAP
+static func site_slots(s: GameState, _i: int) -> int:
+	return Balance.PRODUCER_JAN_CAP + int(mod(s, "producer_slots"))
 
 
 ## The producer of `job` with room for one more Jan (the emptiest), or -1.

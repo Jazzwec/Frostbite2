@@ -24,6 +24,7 @@ var _tiles_root: Node3D
 var _frontier: Node3D
 var _gates: Array[GateView] = []
 var _stoves: Array[StoveView] = []
+var _chests: Array[ChestView] = []
 ## Closed tiles are deep, cold drifts: cooler than the trodden snow and raised above it.
 const VEIL_COLOR := Color(0.6, 0.68, 0.82)
 const VEIL_HEIGHT := 1.2
@@ -63,6 +64,8 @@ func _ready() -> void:
 		_add_node_view(i)
 	for i in Game.engine.state.stoves.size():
 		_add_stove_view(i)
+	for i in Game.engine.state.chests.size():
+		_add_chest_view(i)
 	_rebuild_frontier()
 	_stockpile = StockpileView.new()
 	add_child(_stockpile)
@@ -153,6 +156,8 @@ func _refresh_views(delta: float) -> void:
 			g.refresh(s.gates[g.index])
 	for v in _stoves:
 		v.refresh(s)
+	for v in _chests:
+		v.refresh(s.chests[v.index])
 
 
 # ---------- World ----------
@@ -294,6 +299,13 @@ func _add_node_view(i: int) -> void:
 	_nodes.append(view)
 
 
+func _add_chest_view(i: int) -> void:
+	var view := ChestView.new()
+	add_child(view)
+	view.setup(i, Game.engine.state.chests[i])
+	_chests.append(view)
+
+
 func _add_stove_view(i: int) -> void:
 	var view := StoveView.new()
 	_nav.add_child(view)
@@ -338,6 +350,8 @@ func _open_tile(ev: Dictionary) -> void:
 		_add_site_view(i)
 	for i in ev.nodes:
 		_add_node_view(i)
+	for i in ev.chests:
+		_add_chest_view(i)
 	_add_stove_view(Game.engine.state.stoves.size() - 1)
 	_rebuild_frontier()
 	_set_paths(_ground)
@@ -396,6 +410,10 @@ func _on_tap(screen_pos: Vector2) -> void:
 		"stockpile":
 			_walk(_v3(MapData.stockpile_pad()))
 			_hud.sheet.open_stockpile()
+		"chest":
+			var i: int = hit.index
+			_walk(_v3(s.chests[i].pos) + Vector3(0, 0, 0.9))
+			_hud.sheet.close()
 		"gate":
 			var i: int = hit.index
 			if i < s.gates.size():
@@ -599,6 +617,15 @@ func _on_event(ev: Dictionary) -> void:
 			_meagan.play_once("warm", _v3(ev.pos))
 		"tile_opened":
 			_open_tile(ev)
+		"chest_opened":
+			Audio.play("build_done", _v3(ev.pos))
+		"cache":
+			var name: String = {"wood": "Wood", "food": "Food", "materials": "Materials"}[ev.resource]
+			_float_text(_v3(ev.pos) + Vector3(0, 2.0, 0), "+%s %s" % [Fmt.num(ev.amount), name], UiTheme.ACCENT, true)
+		"boon_taken":
+			_float_text(_meagan.global_position + Vector3(0, 3.0, 0), Balance.BOONS[ev.boon].name + "!", UiTheme.ACCENT, true)
+		"gear_equipped":
+			_float_text(_meagan.global_position + Vector3(0, 3.0, 0), "New %s!" % Balance.GEAR[ev.slot].name.to_lower(), UiTheme.ACCENT, true)
 		"built", "levelled":
 			_sites[ev.site].celebrate()
 			_rig.shake(0.3 if ev.site == 0 else 0.14)

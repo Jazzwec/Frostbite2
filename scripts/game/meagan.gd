@@ -169,7 +169,7 @@ func _physics_process(delta: float) -> void:
 	var can_move := Game.engine.can_meagan_move() and not Game.engine.paused
 	if can_move and _steer != Vector2.ZERO:
 		var dir := Vector3(_steer.x, 0, _steer.y)
-		velocity = dir.normalized() * Balance.MEAGAN_WALK_SPEED * _steer.length()
+		velocity = dir.normalized() * Economy.walk_speed(s) * _steer.length()
 		move_and_slide()
 		moving = true
 		_turn_towards(dir, delta)
@@ -180,7 +180,7 @@ func _physics_process(delta: float) -> void:
 		var dir := next - global_position
 		dir.y = 0.0
 		if dir.length() > 0.05:
-			velocity = dir.normalized() * Balance.MEAGAN_WALK_SPEED
+			velocity = dir.normalized() * Economy.walk_speed(s)
 			move_and_slide()
 			moving = true
 			_turn_towards(dir, delta)

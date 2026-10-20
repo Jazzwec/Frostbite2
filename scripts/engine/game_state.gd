@@ -44,6 +44,16 @@ var camps: Array = []
 var chests: Array = []
 var dens: Array = []
 
+## What chests gave her this winter (agreed 2026-10-20): run-long modifiers from boons, by key
+## (bag_add, walk_mult, gather_mult, drain_cut, work_mult, producer_slots, cap_mult, cache_mult),
+## the boons taken, and her gear: each slot's tier ("" for none).
+var mods := {}
+var boons: Array = []
+var gear := {"axe": "", "boots": "", "sled": ""}
+## A chest's choice waiting for her, or {}: {kind: "boon", chest, options: [boon ids]} or
+## {kind: "gear", chest, slot, tier}. The world waits while it's open.
+var offer := {}
+
 ## The ground Meagan can walk on and wolves stay within: the box round the open tiles.
 var bounds := Rect2()
 

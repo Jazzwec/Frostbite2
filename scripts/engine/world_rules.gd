@@ -67,6 +67,7 @@ static func open_tile(s: GameState, gate_index: int, events: Array) -> void:
 	s.stoves.append({"tile": tile, "pos": gate.pos})
 	var first_site := s.sites.size()
 	var first_node := s.node_defs.size()
+	var first_chest := s.chests.size()
 	var c := WorldGen.tile_contents(s.run_seed, tile)
 	for node in c.nodes:
 		s.node_defs.append({"kind": node.kind, "pos": node.pos, "tile": tile})
@@ -83,6 +84,7 @@ static func open_tile(s: GameState, gate_index: int, events: Array) -> void:
 	events.append({
 		"type": "tile_opened", "tile": tile, "pos": gate.pos,
 		"sites": range(first_site, s.sites.size()), "nodes": range(first_node, s.node_defs.size()),
+		"chests": range(first_chest, s.chests.size()),
 	})
 
 

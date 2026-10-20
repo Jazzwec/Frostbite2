@@ -238,3 +238,35 @@ const CHEST_RARITIES := {
 const TILE_DEN_CHANCE := 0.2
 ## Wolf dens only this many rings out or further.
 const TILE_DEN_MIN_RING := 3
+
+# ---------- Treasures (agreed 2026-10-20) ----------
+
+## She opens a chest by walking this close. [proto]
+const CHEST_RANGE := 1.5
+## Boon chests offer this many run-long boons to choose from, by rarity.
+const BOON_CHOICES := {"rare": 2, "epic": 3}
+## Run-long boons: each adds its value to one modifier, and taking one twice adds up. [proto]
+const BOONS := {
+	"big_bag": {"name": "Big bag", "text": "Meagan carries 10 more", "mod": "bag_add", "value": 10.0},
+	"fast_feet": {"name": "Fast feet", "text": "Meagan walks 15% faster", "mod": "walk_mult", "value": 0.15},
+	"quick_hands": {"name": "Quick hands", "text": "Meagan gathers 20% faster", "mod": "gather_mult", "value": 0.2},
+	"slow_burn": {"name": "Slow burn", "text": "Heat drains 10% slower", "mod": "drain_cut", "value": 0.1},
+	"eager_jans": {"name": "Eager Jans", "text": "Jans work 15% faster", "mod": "work_mult", "value": 0.15},
+	"roomy_huts": {"name": "Roomy huts", "text": "Every producer holds 1 more Jan", "mod": "producer_slots", "value": 1.0},
+	"deep_stores": {"name": "Deep stores", "text": "The Stockpile holds 25% more", "mod": "cap_mult", "value": 0.25},
+	"lucky_finds": {"name": "Lucky finds", "text": "Caches hold 50% more", "mod": "cache_mult", "value": 0.5},
+}
+## The most of the heat drain boons can take off.
+const DRAIN_CUT_MAX := 0.5
+## Resource caches: one resource by weight, base amount × (1 + 0.5 × (ring − 1)), into the
+## Stockpile up to its cap. [proto]
+const CACHE_AMOUNTS := {"wood": 40.0, "food": 30.0, "materials": 10.0}
+const CACHE_WEIGHTS := {"wood": 0.5, "food": 0.3, "materials": 0.2}
+const CACHE_RING_GROWTH := 0.5
+## Meagan's gear: three slots, each raising one modifier by its tier. A gear chest's rarity is
+## the item's tier. [proto]
+const GEAR := {
+	"axe": {"name": "Axe", "text": "gathering", "mod": "gather_mult", "tiers": {"common": 0.15, "rare": 0.3, "epic": 0.5}},
+	"boots": {"name": "Boots", "text": "walking", "mod": "walk_mult", "tiers": {"common": 0.1, "rare": 0.2, "epic": 0.3}},
+	"sled": {"name": "Sled", "text": "carrying", "mod": "bag_add", "tiers": {"common": 5.0, "rare": 10.0, "epic": 20.0}},
+}

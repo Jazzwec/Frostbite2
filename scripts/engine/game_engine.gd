@@ -5,8 +5,8 @@ extends RefCounted
 
 ## Bumped when a save from an older version can't be read as it is.
 ## 2: the layout lives in the state; 3: tiles, gates and small furnaces; 4: Jans work at a
-## producer (2026-10-20).
-const SAVE_VERSION := 4
+## producer; 5: chests, boons and gear (2026-10-20).
+const SAVE_VERSION := 5
 
 var state: GameState
 var rng := RandomNumberGenerator.new()
@@ -75,7 +75,8 @@ static func from_json(text: String) -> GameEngine:
 
 ## Runs whole ticks for `delta` seconds of real time. Long frames are capped, never caught up.
 func advance(delta: float) -> void:
-	if paused or state.game_over:
+	# The world waits while she chooses what a chest gives. [agreed 2026-10-20]
+	if paused or state.game_over or not state.offer.is_empty():
 		return
 	_accumulator += minf(delta, Balance.MAX_ADVANCE)
 	while _accumulator >= Balance.TICK:
@@ -108,6 +109,7 @@ func _tick(dt: float) -> void:
 	MeaganRules.gather(s, dt)
 	MeaganRules.magnet(s, dt, _events)
 	MeaganRules.rescue(s, _events)
+	TreasureRules.open_near(s, rng, _events)
 	_feed_furnace(dt)
 	_burn(dt)
 	if s.heat <= 0.0:
@@ -173,7 +175,17 @@ func set_meagan_position(pos: Vector2) -> void:
 
 
 func can_meagan_move() -> bool:
-	return not state.meagan_injured and not state.game_over
+	return not state.meagan_injured and not state.game_over and state.offer.is_empty()
+
+
+## She takes boon `index` of the open boon chest's offer.
+func choose_boon(index: int) -> bool:
+	return TreasureRules.choose_boon(state, index, _events)
+
+
+## She equips the offered gear, or leaves it and keeps what she has.
+func choose_gear(equip: bool) -> bool:
+	return TreasureRules.choose_gear(state, equip, _events)
 
 
 ## She's been sent to thaw this frozen Jan.
