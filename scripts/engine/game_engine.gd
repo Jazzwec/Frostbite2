@@ -4,8 +4,9 @@ extends RefCounted
 ## `state`; they never change it directly. Things the scenes should react to queue up as events.
 
 ## Bumped when a save from an older version can't be read as it is.
-## 2: the layout lives in the state; 3: tiles, gates and small furnaces (2026-10-20).
-const SAVE_VERSION := 3
+## 2: the layout lives in the state; 3: tiles, gates and small furnaces; 4: Jans work at a
+## producer (2026-10-20).
+const SAVE_VERSION := 4
 
 var state: GameState
 var rng := RandomNumberGenerator.new()
@@ -229,33 +230,15 @@ func set_auto_assign(on: bool) -> bool:
 	return true
 
 
-## The player puts a Jan on `job` by hand (which switches auto-assign off). [brief]
+## The player puts a Jan on `job` by hand (which switches auto-assign off). [brief] He goes to
+## the producer with the most room; with every one full, nothing happens.
 func add_to_job(job: String) -> bool:
-	if not Economy.job_open(state, job):
+	if not Economy.job_has_room(state, job):
 		return false
 	state.auto_assign = false
-	var jan := {}
-	for j in state.jans:
-		if j.job == "":
-			jan = j
-			break
-	if jan.is_empty():
-		var donor := ""
-		var most := 0.0
-		for other in Balance.JOB_SHARES:
-			if other == job:
-				continue
-			var ratio: float = Economy.job_count(state, other) / Balance.JOB_SHARES[other]
-			if ratio > most:
-				most = ratio
-				donor = other
-		if donor == "":
-			return false
-		for j in state.jans:
-			if j.job == donor:
-				jan = j
-				break
-	jan.job = job
+	var jan := _spare_jan(job)
+	if jan.is_empty() or not JobRules.assign(state, jan, job):
+		return false
 	if job == "guard":
 		jan.hp = Balance.GUARD_HP
 		jan.ko = false
@@ -264,12 +247,57 @@ func add_to_job(job: String) -> bool:
 	return true
 
 
+## The player puts a Jan at producer `i` by hand, from its building's sheet.
+func add_to_site(i: int) -> bool:
+	var job := Economy.site_job(state.sites[i].building)
+	if job == "" or job == "guard" or Economy.site_jans(state, i) >= Economy.site_slots(state, i):
+		return false
+	state.auto_assign = false
+	var jan := _spare_jan(job, i)
+	if jan.is_empty() or not JobRules.assign_to_site(state, jan, i):
+		return false
+	_events.append({"type": "jobs_changed"})
+	return true
+
+
+## Takes one Jan off producer `i`; he goes idle.
+func remove_from_site(i: int) -> bool:
+	state.auto_assign = false
+	for k in range(state.jans.size() - 1, -1, -1):
+		if state.jans[k].get("site", -1) == i:
+			JobRules.assign(state, state.jans[k], "")
+			_events.append({"type": "jobs_changed"})
+			return true
+	return false
+
+
+## A Jan to put on `job`: an idle one first, else one from the job most over its share (not one
+## already at `site`).
+func _spare_jan(job: String, site := -1) -> Dictionary:
+	for j in state.jans:
+		if j.job == "":
+			return j
+	var donor := ""
+	var most := 0.0
+	for other in Balance.JOB_SHARES:
+		if other == job:
+			continue
+		var ratio: float = Economy.job_count(state, other) / Balance.JOB_SHARES[other]
+		if ratio > most:
+			most = ratio
+			donor = other
+	for j in state.jans:
+		if donor != "" and j.job == donor and j.get("site", -1) != site:
+			return j
+	return {}
+
+
 ## Takes one Jan off `job` by hand; he goes idle (and auto-assign switches off). [brief]
 func remove_from_job(job: String) -> bool:
 	state.auto_assign = false
 	for i in range(state.jans.size() - 1, -1, -1):
 		if state.jans[i].job == job:
-			state.jans[i].job = ""
+			JobRules.assign(state, state.jans[i], "")
 			_events.append({"type": "jobs_changed"})
 			return true
 	return false
@@ -324,8 +352,9 @@ func dev_add_jan() -> void:
 	if state.jans.size() >= Economy.jan_cap(state):
 		_events.append({"type": "no_room", "arrival": -1, "pos": state.meagan_pos})
 		return
-	var job := Economy.neediest_job(state)
-	var jan := {"id": state.new_id(), "job": job, "hp": Balance.GUARD_HP, "ko": false, "pos": state.meagan_pos}
+	var jan := {"id": state.new_id(), "job": "", "site": -1, "hp": Balance.GUARD_HP, "ko": false, "pos": state.meagan_pos}
+	JobRules.assign(state, jan, Economy.neediest_job(state))
+	var job: String = jan.job
 	state.jans.append(jan)
 	state.rescued_total += 1
 	_events.append({"type": "thawed", "arrival": -1, "jan": jan.id, "job": job, "pos": state.meagan_pos})

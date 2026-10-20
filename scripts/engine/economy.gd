@@ -5,12 +5,14 @@ extends RefCounted
 const PILE_KEYS := ["wood", "food", "materials"]
 
 
-## Level of a building, 0 if it isn't built (or is still a first-time construction site).
+## Level of a building: the highest of its plots, 0 if none is built yet (a first-time
+## construction site is level 0).
 static func level(s: GameState, building: String) -> int:
+	var best := 0
 	for site in s.sites:
 		if site.building == building:
-			return site.level
-	return 0
+			best = maxi(best, site.level)
+	return best
 
 
 static func furnace_level(s: GameState) -> int:
@@ -67,7 +69,11 @@ static func bag_total(s: GameState) -> float:
 
 static func caps(s: GameState) -> Dictionary:
 	var store := pow(Balance.STOREHOUSE_CAP_GROWTH, level(s, "storehouse"))
-	var lumber := maxi(level(s, "lumber_yard") - 1, 0)
+	# Every Lumber Yard level above the first adds Wood room, across all the Lumber Yards.
+	var lumber := 0
+	for site in s.sites:
+		if site.building == "lumber_yard":
+			lumber += maxi(site.level - 1, 0)
 	return {
 		"wood": (Balance.CAP_WOOD + Balance.WOOD_CAP_PER_LUMBER_LEVEL * lumber) * store,
 		"food": Balance.CAP_FOOD * store,
@@ -134,18 +140,88 @@ static func idle_count(s: GameState) -> int:
 	return job_count(s, "")
 
 
-## A job is open once its building stands.
+## A job is open once one of its buildings stands.
 static func job_open(s: GameState, job: String) -> bool:
-	return level(s, Balance.JOBS[job].building) >= 1
+	return not job_sites(s, job).is_empty()
 
 
-## Output per second of a whole job.
-static func job_rate(s: GameState, job: String) -> float:
-	var def: Dictionary = Balance.JOBS[job]
-	var lv := level(s, def.building)
-	if lv < 1 or def.base <= 0.0:
+## The built plots that work `job` (for guards, the Barracks).
+static func job_sites(s: GameState, job: String) -> Array:
+	var out := []
+	var building: String = Balance.JOBS[job].building
+	for i in s.sites.size():
+		if s.sites[i].building == building and s.sites[i].level >= 1:
+			out.append(i)
+	return out
+
+
+## The job a building's Jans do, or "" for a building nobody works at.
+static func site_job(building: String) -> String:
+	for job in Balance.JOBS:
+		if Balance.JOBS[job].building == building:
+			return job
+	return ""
+
+
+## Jans working at plot `i`.
+static func site_jans(s: GameState, i: int) -> int:
+	var n := 0
+	for jan in s.jans:
+		if jan.get("site", -1) == i:
+			n += 1
+	return n
+
+
+## How many Jans a producer holds. [agreed 2026-10-20]
+static func site_slots(_s: GameState, _i: int) -> int:
+	return Balance.PRODUCER_JAN_CAP
+
+
+## The producer of `job` with room for one more Jan (the emptiest), or -1.
+static func free_site(s: GameState, job: String) -> int:
+	var best := -1
+	var fewest := 1 << 30
+	for i in job_sites(s, job):
+		var n := site_jans(s, i)
+		if n < site_slots(s, i) and n < fewest:
+			fewest = n
+			best = i
+	return best
+
+
+## Room for all of a job's Jans together.
+static func job_slots(s: GameState, job: String) -> int:
+	var n := 0
+	for i in job_sites(s, job):
+		n += site_slots(s, i)
+	return n
+
+
+## Whether one more Jan can take `job`: guards just need a Barracks; producers need a free place.
+static func job_has_room(s: GameState, job: String) -> bool:
+	if job == "guard":
+		return job_open(s, job)
+	return free_site(s, job) >= 0
+
+
+## Output per second of one producer: its Jans × the job's rate at its own level.
+static func site_rate(s: GameState, i: int) -> float:
+	var site: Dictionary = s.sites[i]
+	var job := site_job(site.building)
+	if job == "" or site.level < 1:
 		return 0.0
-	return job_count(s, job) * def.base * pow(def.growth, lv - 1) * output_mult(s)
+	var def: Dictionary = Balance.JOBS[job]
+	if def.base <= 0.0:
+		return 0.0
+	return site_jans(s, i) * def.base * pow(def.growth, site.level - 1) * output_mult(s)
+
+
+## Output per second of a whole job, across all its producers.
+static func job_rate(s: GameState, job: String) -> float:
+	var total := 0.0
+	for i in job_sites(s, job):
+		total += site_rate(s, i)
+	return total
 
 
 static func food_eaten_per_second(s: GameState) -> float:
@@ -167,15 +243,16 @@ static func arrival_interval(s: GameState) -> float:
 
 ## The job a newly thawed Jan takes. [brief] Lumber Yard first, then Fishing while eating
 ## outruns hunting, then the job furthest below its share.
+## Only jobs with a free place count (agreed 2026-10-20: producers hold 3 Jans each).
 static func neediest_job(s: GameState) -> String:
-	if job_open(s, "chop") and job_count(s, "chop") == 0:
+	if job_has_room(s, "chop") and job_count(s, "chop") == 0:
 		return "chop"
-	if job_open(s, "hunt") and job_rate(s, "hunt") < food_eaten_per_second(s) + Balance.FOOD_PER_JAN_PER_SECOND:
+	if job_has_room(s, "hunt") and job_rate(s, "hunt") < food_eaten_per_second(s) + Balance.FOOD_PER_JAN_PER_SECOND:
 		return "hunt"
 	var best := ""
 	var best_ratio := INF
 	for job in Balance.JOB_SHARES:
-		if not job_open(s, job):
+		if not job_has_room(s, job):
 			continue
 		var ratio: float = job_count(s, job) / Balance.JOB_SHARES[job]
 		if ratio < best_ratio:

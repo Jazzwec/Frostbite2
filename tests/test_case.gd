@@ -43,18 +43,22 @@ func node_index(kind: String) -> int:
 	return -1
 
 
-## Adds a working Jan directly, for setting up tests.
+## Adds a working Jan directly, for setting up tests, at the producer with the most room. With
+## every producer of the job full, another one is built for him, as an opened tile would give.
 func add_jan(e: GameEngine, job: String) -> Dictionary:
-	var jan := {"id": e.state.new_id(), "job": job, "hp": Balance.GUARD_HP, "ko": false, "pos": Vector2.ZERO}
+	var jan := {"id": e.state.new_id(), "job": job, "site": -1, "hp": Balance.GUARD_HP, "ko": false, "pos": Vector2.ZERO}
+	if job != "" and job != "guard" and Economy.job_open(e.state, job) and not Economy.job_has_room(e.state, job):
+		give_building(e, Balance.JOBS[job].building, Economy.level(e.state, Balance.JOBS[job].building), true)
+	JobRules.assign(e.state, jan, job)
 	e.state.jans.append(jan)
 	return jan
 
 
 ## Builds `building` at `level` on its plot, for setting up tests. A building with no free plot
 ## (a producer, found only in opened tiles) gets a new plot well away from the town.
-func give_building(e: GameEngine, building: String, level := 1) -> int:
-	var i := MapData.site_of_building(e.state.sites, building)
-	if i < 0:
+func give_building(e: GameEngine, building: String, level := 1, new_plot := false) -> int:
+	var i := -1 if new_plot else MapData.site_of_building(e.state.sites, building)
+	if i < 0 and not new_plot:
 		for j in e.state.sites.size():
 			if e.state.sites[j].building == "" and e.state.sites[j].type == building:
 				i = j

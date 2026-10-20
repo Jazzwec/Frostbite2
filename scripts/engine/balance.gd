@@ -69,6 +69,9 @@ const ARRIVAL_FILL_SLOWDOWN := 2.0
 const ARRIVAL_MAX_WAITING := 3
 ## The first frozen Jan appears this soon after a new game, so Meagan can rescue him herself. [proto]
 const FIRST_ARRIVAL_DELAY := 5.0
+## Each producer (Lumber Yard, Fishing Lodge, Workshop) holds this many Jans; upgrading raises its
+## rate, not its room, so growing means building more of them. [proto] agreed 2026-10-20
+const PRODUCER_JAN_CAP := 3
 ## Job shares used to place a new Jan once Chopping and Fishing are covered. [brief] 3 : 2 : 2
 const JOB_SHARES := {"chop": 3.0, "hunt": 2.0, "build": 2.0}
 ## Auto-assign unlocks at this Furnace level and rebalances this often. [brief] + [f1] AUTO_JOB

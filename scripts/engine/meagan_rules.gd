@@ -133,8 +133,9 @@ static func rescue(s: GameState, events: Array) -> void:
 				s.rescue_target = -1
 				events.append({"type": "no_room", "arrival": a.id, "pos": pos})
 			continue
-		var job := Economy.neediest_job(s)
-		var jan := {"id": s.new_id(), "job": job, "hp": Balance.GUARD_HP, "ko": false, "pos": pos}
+		var jan := {"id": s.new_id(), "job": "", "site": -1, "hp": Balance.GUARD_HP, "ko": false, "pos": pos}
+		JobRules.assign(s, jan, Economy.neediest_job(s))
+		var job: String = jan.job
 		s.jans.append(jan)
 		s.arrivals.erase(a)
 		s.rescued_total += 1

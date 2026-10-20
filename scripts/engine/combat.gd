@@ -104,7 +104,7 @@ static func _wolf(s: GameState, wolf: Dictionary, dt: float, events: Array) -> v
 	if wolf.mode == "jans":
 		var target: int = wolf.target
 		var job := _job_at_site(s, target)
-		if job == "" or Economy.job_count(s, job) == 0:
+		if job == "" or Economy.site_jans(s, target) == 0:
 			wolf.mode = "furnace"
 			wolf.scare_timer = 0.0
 		else:
@@ -114,7 +114,7 @@ static func _wolf(s: GameState, wolf: Dictionary, dt: float, events: Array) -> v
 			else:
 				wolf.scare_timer += dt
 				if wolf.scare_timer >= Balance.WOLF_SCARE_TIME:
-					var jan := WorldEvents.pick_jan_to_lose(s, job)
+					var jan := WorldEvents.pick_jan_to_lose(s, job, target)
 					s.jans.erase(jan)
 					s.lost_total += 1
 					wolf.scared = true
@@ -182,11 +182,10 @@ static func _nearest_foe(s: GameState, pos: Vector2) -> Dictionary:
 
 
 static func _working_site_near(s: GameState, pos: Vector2) -> int:
-	for job in ["chop", "hunt", "build"]:
-		if Economy.job_count(s, job) == 0:
+	for i in s.sites.size():
+		if _job_at_site(s, i) == "" or Economy.site_jans(s, i) == 0:
 			continue
-		var i := MapData.site_of_building(s.sites, Balance.JOBS[job].building)
-		if i >= 0 and pos.distance_to(MapData.site_pos(s, i)) <= Balance.WOLF_DETOUR_RANGE:
+		if pos.distance_to(MapData.site_pos(s, i)) <= Balance.WOLF_DETOUR_RANGE:
 			return i
 	return -1
 

@@ -39,7 +39,11 @@ static func eat(s: GameState, dt: float) -> void:
 
 
 ## Idle Jans go first, then workers, guards last.
-static func pick_jan_to_lose(s: GameState, job := "") -> Dictionary:
+static func pick_jan_to_lose(s: GameState, job := "", site := -1) -> Dictionary:
+	if site >= 0:
+		for jan in s.jans:
+			if jan.get("site", -1) == site:
+				return jan
 	if job != "":
 		for jan in s.jans:
 			if jan.job == job:

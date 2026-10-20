@@ -5,15 +5,39 @@ extends RefCounted
 ## one that needs him most, so as few Jans as possible move. Guards are never touched.
 
 
+## Puts `jan` on `job`, at the producer with the most room (guards and idle Jans have no plot).
+## False, and he's left as he was, if every producer of that job is full.
+static func assign(s: GameState, jan: Dictionary, job: String) -> bool:
+	if job == "" or job == "guard":
+		jan.job = job
+		jan.site = -1
+		return true
+	var site := Economy.free_site(s, job)
+	if site < 0:
+		return false
+	jan.job = job
+	jan.site = site
+	return true
+
+
+## Puts `jan` at producer `i` if it has room.
+static func assign_to_site(s: GameState, jan: Dictionary, i: int) -> bool:
+	var job := Economy.site_job(s.sites[i].building)
+	if job == "" or job == "guard" or s.sites[i].level < 1 or Economy.site_jans(s, i) >= Economy.site_slots(s, i):
+		return false
+	jan.job = job
+	jan.site = i
+	return true
+
+
 ## One rebalance. Returns how many Jans changed job.
 static func rebalance(s: GameState) -> int:
 	var moved := 0
 	for jan in s.jans:
 		if jan.job == "":
 			var job := Economy.neediest_job(s)
-			if job == "":
+			if job == "" or not assign(s, jan, job):
 				break
-			jan.job = job
 			moved += 1
 	var target := Economy.neediest_job(s)
 	if target == "":
@@ -23,8 +47,7 @@ static func rebalance(s: GameState) -> int:
 		return moved
 	for i in range(s.jans.size() - 1, -1, -1):
 		if s.jans[i].job == donor:
-			s.jans[i].job = target
-			return moved + 1
+			return moved + (1 if assign(s, s.jans[i], target) else 0)
 	return moved
 
 

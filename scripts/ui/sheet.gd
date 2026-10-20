@@ -181,8 +181,12 @@ func _open_building(b: String) -> void:
 		_job_label = UiTheme.label("", 38)
 		_job_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_job_row.add_child(_job_label)
-		for spec in [["−", Game.engine.remove_from_job], ["+", Game.engine.add_to_job]]:
-			var button := UiTheme.button(spec[0], spec[1].bind(_job))
+		# A producer's own Jans (agreed 2026-10-20: 3 each); the Barracks' guards are one pool.
+		var per_site := _job != "guard"
+		var minus: Callable = Game.engine.remove_from_site.bind(site_index) if per_site else Game.engine.remove_from_job.bind(_job)
+		var plus: Callable = Game.engine.add_to_site.bind(site_index) if per_site else Game.engine.add_to_job.bind(_job)
+		for spec in [["−", minus], ["+", plus]]:
+			var button := UiTheme.button(spec[0], spec[1])
 			button.custom_minimum_size = Vector2(140, UiTheme.BUTTON_HEIGHT)
 			button.add_theme_font_size_override("font_size", 56)
 			_job_row.add_child(button)
@@ -270,7 +274,7 @@ func _refresh() -> void:
 		var def: Dictionary = Balance.JOBS[_job]
 		var line := "%s: %s" % [def.name, _jans_text(Economy.job_count(s, _job))]
 		if def.resource != "":
-			line += "  ·  %s %s/s" % [str(def.resource).capitalize(), "%.1f" % Economy.job_rate(s, _job)]
+			line = "%s: %d/%d Jans  ·  %s %s/s" % [def.name, Economy.site_jans(s, site_index), Economy.site_slots(s, site_index), str(def.resource).capitalize(), "%.1f" % Economy.site_rate(s, site_index)]
 		_job_label.text = line + "\nIdle Jans: %d" % Economy.idle_count(s)
 
 
@@ -291,6 +295,8 @@ build a %s first" % [def.name, Balance.BUILDINGS[def.building].name]
 		else:
 			var line := "%s  ·  %s" % [def.name, _jans_text(count)]
 			if def.resource != "":
+				# Room across all its producers: more of them means more room. [agreed 2026-10-20]
+				line = "%s  ·  %d/%d Jans in %d" % [def.name, count, Economy.job_slots(s, job), Economy.job_sites(s, job).size()]
 				line += "
 %s %s/s" % [str(def.resource).capitalize(), "%.1f" % Economy.job_rate(s, job)]
 			else:
@@ -302,7 +308,7 @@ guarding the furnace"
 		row.minus.visible = open
 		row.plus.visible = open
 		row.minus.disabled = count == 0
-		row.plus.disabled = s.jans.size() == count
+		row.plus.disabled = s.jans.size() == count or not Economy.job_has_room(s, job)
 	var fished := Economy.job_rate(s, "hunt")
 	var eaten := Economy.food_eaten_per_second(s)
 	var net := fished - eaten

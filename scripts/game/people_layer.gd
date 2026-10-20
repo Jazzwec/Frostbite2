@@ -93,11 +93,14 @@ func _sync_jans(s: GameState, delta: float) -> void:
 				_guard_foes[view] = foe.id
 			view.guard(jan.hp / Balance.GUARD_HP, jan.ko, Vector3(foe.pos.x, 0, foe.pos.y) if not foe.is_empty() else Vector3.INF)
 			continue
-		var slot: int = slots.get(job, 0)
-		slots[job] = slot + 1
-		view.go_to(_post(s, job, slot), nav)
-		# He works while his job produces and its pile has room; otherwise he warms his hands.
-		var working := job != "" and Economy.job_rate(s, job) > 0.0
+		# Workers stand at their own producer, idle Jans round the furnace.
+		var site: int = jan.get("site", -1)
+		var key: Variant = site if site >= 0 else job
+		var slot: int = slots.get(key, 0)
+		slots[key] = slot + 1
+		view.go_to(_post(s, site, slot), nav)
+		# He works while his producer produces and its pile has room; otherwise he warms his hands.
+		var working := site >= 0 and Economy.site_rate(s, site) > 0.0
 		if working:
 			var res: String = Balance.JOBS[job].resource
 			working = s.piles[res] < caps[res] - 0.01
@@ -119,11 +122,8 @@ func _wolf_in_reach(s: GameState, pos: Vector2) -> Dictionary:
 	return {}
 
 
-## Where Jan number `slot` on `job` stands: beside the building's pad, or round the furnace if idle.
-func _post(s: GameState, job: String, slot: int) -> Vector3:
-	var site := -1
-	if job != "":
-		site = MapData.site_of_building(s.sites, Balance.JOBS[job].building)
+## Where Jan number `slot` at plot `site` stands: beside its pad, or round the furnace if idle.
+func _post(s: GameState, site: int, slot: int) -> Vector3:
 	if site < 0:
 		var angle := 0.7 + slot * 0.9
 		var r := 4.5 + (slot / 7) * 1.2
