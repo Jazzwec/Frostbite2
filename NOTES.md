@@ -2,6 +2,24 @@
 
 What felt wrong while playing, and what's still open. This file is the prompt for the next session.
 
+## Ink look v3 (2026-10-20, late)
+
+Making the game look like `source_art/direction/round3/inked/gameplay.png`, aimed at a ChatGPT paintover of our own layout (`source_art/direction/ink_v3/paintover.png`). Plan: `~/.claude/plans/make-sure-there-is-ancient-avalanche.md`. All four phases are in:
+1. **Shaders:** snow caps, near-white snow with a soft fire glow, trodden tracks, contact shade, drifts round buildings, staked plots, local-colour boiling lines, and labels only near Meagan.
+2. **House kit:** every building, in `tools/blender/house_kit.py`.
+3. **Set dressing:** `SetDressing`.
+4. **Special places:** the frozen-harbour pond, the ice block and the wild-snow frontier.
+
+Screens and reviews are in `source_art/direction/ink_v3/`. ChatGPT's last review (`review_final.md`) wants these next. They're design calls for the user, because they change layout or UI:
+- **Town layout:** tighter clusters (gaps 25–35% smaller) and one packed path linking the furnace, the Stockpile, the houses and the harbour.
+- **Pads:** no persistent coloured pad discs; show them only while targeting. A bigger peach light pool at the furnace.
+- **Silhouettes:** three big masses per building, thicker posts and snow edges, and the same treatment for the furnace, dock and boat.
+- **Harbour:** a working harbour scene (two holes by the jetty, a stool and a crate with a Jan).
+- **Labels:** one compact name-and-level label per selected building, with no duplicate levels.
+- **Characters:** Meagan and the Jans 20–25% bigger on screen.
+
+Also still greybox: the Stockpile, the small furnace, chests and dens.
+
 ## Handover (end of session, 2026-10-20, evening)
 
 **Where things stand.** Frostbite2 is now a **roguelite with a growing world** (agreed with the user on 2026-10-20). Everything is committed and pushed to `Jazzwec/Frostbite2` (last commit `94bec21`), and the **122 tests pass**.
