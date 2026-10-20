@@ -280,7 +280,9 @@ func _set_contacts(m: ShaderMaterial) -> void:
 ## the Stockpile, a gate).
 func _update_label_focus(s: GameState) -> void:
 	var me := s.meagan_pos
-	var best := SiteView.LABEL_NEAR
+	# No labels while she fights or lies hurt in a raid: nothing like "Upgrade" over a theft
+	# (fight_v2 review 1).
+	var best := 0.0 if Combat.meagan_busy(s) or (s.raid_on and s.meagan_injured) else SiteView.LABEL_NEAR
 	var focus: Node = null
 	for v in _sites:
 		var d := me.distance_to(MapData.pad_pos(s, v.index))
@@ -994,7 +996,7 @@ func _on_event(ev: Dictionary) -> void:
 				_meagan_hurt(0.04)
 		"theft":
 			Audio.play("pick", _v3(ev.pos), 0.6)
-			Fx.pop(_amounts(ev.carry, "−"), _v3(ev.pos) + Vector3(0, 1.6, 0), Color(1.0, 0.55, 0.45), 40)
+			_gather_theft(ev)
 		"jan_starved":
 			Audio.play("warning")
 			_hud.show_banner("A Jan left: there's no Food!", 4.0, UiTheme.WARN_WASH, "food")
@@ -1081,6 +1083,25 @@ func _show_sweep(at: Vector3) -> void:
 	Fx.sweep(me, at - me, reach, Balance.STICK_ARC)
 
 
+## Thefts close together make one message for the whole store (fight_v2 review 1): "23 Food
+## stolen: catch the thieves!", after THEFT_GATHER.
+const THEFT_GATHER := 1.0
+var _stolen := {}
+
+
+func _gather_theft(ev: Dictionary) -> void:
+	var first := _stolen.is_empty()
+	for res in ev.carry:
+		_stolen[res] = _stolen.get(res, 0.0) + ev.carry[res]
+	if not first:
+		return
+	await get_tree().create_timer(THEFT_GATHER).timeout
+	var what := _amounts(_stolen, "").replace(" · ", ", ")
+	_stolen = {}
+	if what != "":
+		_hud.show_strip("%s stolen: catch the thieves!" % what, "bag", UiTheme.WARN_WASH, 2.5)
+
+
 ## A kill's loot (and anything it stole) joins the pile being gathered; the first one starts
 ## the clock.
 func _gather_loot(ev: Dictionary) -> void:
@@ -1089,6 +1110,8 @@ func _gather_loot(ev: Dictionary) -> void:
 		got[res] = got.get(res, 0.0) + ev.carry[res]
 	for res in got:
 		_loot[res] = _loot.get(res, 0.0) + got[res]
+		# In the store already: the top bar shows it as its icon lands.
+		_hud.hold(res, got[res])
 	_loot_at = (_loot_at * _loot_n + _v3(ev.pos)) / (_loot_n + 1)
 	_loot_n += 1
 	if _loot_n == 1:
@@ -1097,7 +1120,9 @@ func _gather_loot(ev: Dictionary) -> void:
 		Fx.pop(_amounts(_loot, "+"), at, Color(0.75, 1.0, 0.75), 38)
 		for res in _loot:
 			if _loot[res] >= 0.5:
-				_hud.fly_to_counter(res, func() -> Vector2: return _rig.camera.unproject_position(at))
+				_hud.fly_to_counter(res, func() -> Vector2: return _rig.camera.unproject_position(at), _loot[res])
+			else:
+				_hud.hold(res, -_loot[res])
 		_loot = {}
 		_loot_n = 0
 const ENEMY_NAMES := {"fox": ["a fox", "foxes"], "wolf": ["a wolf", "wolves"], "bear": ["a bear", "bears"],

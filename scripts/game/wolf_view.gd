@@ -91,7 +91,14 @@ var _tell_fill: MeshInstance3D
 var _tell_line: MeshInstance3D
 var _shot_line: MeshInstance3D
 var _sack: Sprite3D
+var _sack_disc: Sprite3D
 var _sack_res := ""
+## The stolen load on its back while it runs off (fight_v2 review 1: a laden retreat that reads).
+var _load: Node3D
+## A thief's badge: the resource's icon on a paper disc with an ink rim (about 26 px across).
+const BADGE_PIXEL := 0.0045
+const LADEN_LEAN := 9.0
+static var _disc: Texture2D
 
 
 func _init(enemy_kind := "wolf") -> void:
@@ -123,14 +130,29 @@ func _init(enemy_kind := "wolf") -> void:
 	_hp_bar = HpBar.new(HpBar.WOLF_RED)
 	_hp_bar.position = Vector3(0, look.bar, 0)
 	add_child(_hp_bar)
+	_sack_disc = Sprite3D.new()
+	_sack_disc.texture = _badge_disc()
+	_sack_disc.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_sack_disc.no_depth_test = true
+	_sack_disc.render_priority = 10
+	_sack_disc.pixel_size = BADGE_PIXEL * 1.25
+	_sack_disc.position = Vector3(0, look.bar + 0.5, 0)
+	_sack_disc.visible = false
+	add_child(_sack_disc)
 	_sack = Sprite3D.new()
 	_sack.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_sack.no_depth_test = true
-	_sack.render_priority = 10
-	_sack.pixel_size = 0.0045
-	_sack.position = Vector3(0, look.bar + 0.45, 0)
+	_sack.render_priority = 11
+	_sack.pixel_size = BADGE_PIXEL * 0.85
+	_sack.position = _sack_disc.position
 	_sack.visible = false
 	add_child(_sack)
+	_load = Node3D.new()
+	_load.visible = false
+	_model.add_child(_load)
+	var height: float = look.bar * 0.62
+	_load.add_child(Shapes.sphere(0.26, Color(0.62, 0.48, 0.3), Vector3(0, height, -0.15)))
+	_load.add_child(Shapes.cylinder(0.08, 0.14, Color(0.45, 0.33, 0.2), Vector3(0, height + 0.27, -0.15)))
 
 
 # ---------- Bodies ----------
@@ -434,6 +456,8 @@ func die() -> void:
 	_hp_bar.visible = false
 	_tell.visible = false
 	_sack.visible = false
+	_sack_disc.visible = false
+	_load.visible = false
 	if _shot_line:
 		_shot_line.visible = false
 	Fx.burst("snow_big", global_position + Vector3(0, 0.4, 0))
@@ -473,6 +497,9 @@ func sync(enemy: Dictionary, delta: float) -> void:
 	_t += delta * (0.0 if asleep else (14.0 if fighting else TROT_SPEED * _def.speed / 2.5))
 	var lunge := _lunge() if fighting else 0.0
 	_model.position = recoil
+	# Laden, it runs off head down (the engine also slows it, Balance.CARRY_SPEED).
+	var laden: bool = not enemy.get("carry", {}).is_empty()
+	_model.rotation.x = lerp_angle(_model.rotation.x, deg_to_rad(LADEN_LEAN if laden else 0.0), 8.0 * delta)
 	if _pivot:
 		_pose(fighting, lunge)
 	else:
@@ -497,9 +524,29 @@ func _update_sack(enemy: Dictionary) -> void:
 		if most == "" or carry[res] > carry[most]:
 			most = res
 	_sack.visible = most != ""
+	_sack_disc.visible = _sack.visible
+	_load.visible = _sack.visible
 	if most != "" and most != _sack_res:
 		_sack_res = most
 		_sack.texture = load("res://assets/ui/icons/%s.png" % most)
+
+
+## The paper disc behind a thief's badge, drawn once.
+static func _badge_disc() -> Texture2D:
+	if _disc == null:
+		var size := 128
+		var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+		var c := Vector2(size, size) / 2.0
+		for y in size:
+			for x in size:
+				var d := Vector2(x + 0.5, y + 0.5).distance_to(c)
+				var col := Color(0, 0, 0, 0)
+				if d <= 60.0:
+					col = Color(0.17, 0.2, 0.25) if d > 52.0 else Color(0.96, 0.92, 0.84)
+					col.a = clampf(60.5 - d, 0.0, 1.0)
+				img.set_pixel(x, y, col)
+		_disc = ImageTexture.create_from_image(img)
+	return _disc
 
 
 ## Poses the wolf model: a trot while it runs, a lunge and snap while it fights.

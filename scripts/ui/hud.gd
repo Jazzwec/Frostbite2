@@ -44,6 +44,9 @@ var _stats: HBoxContainer
 var _stat_labels := {}
 ## When even the small font doesn't fit, the stats drop their words and keep icon and number.
 var _stats_compact := false
+## Amounts on their way into the top bar (icons still flying), held back from its numbers until
+## they land, so stolen goods won back visibly arrive before the count goes up (review 1).
+var _held := {}
 var _forecast: RichTextLabel
 var _banner: PanelContainer
 var _banner_label: RichTextLabel
@@ -210,9 +213,9 @@ func _process(delta: float) -> void:
 	# Each number keeps its word next to its icon, so it says what it is, while there's room.
 	var w := func(word: String) -> String: return "" if _stats_compact else word + " "
 	_stat_labels.jans.text = "%s %s%d/%d" % [UiTheme.icon("jans", 52), w.call("Jans"), s.jans.size(), Economy.jan_cap(s)]
-	_stat_labels.wood.text = "%s %s%s/%s" % [UiTheme.icon("wood", 52), w.call("Wood"), Fmt.num(s.piles.wood), Fmt.num(caps.wood)]
-	_stat_labels.food.text = "%s %s%s" % [UiTheme.icon("food", 52), w.call("Food"), Fmt.num(s.piles.food)]
-	_stat_labels.materials.text = "%s %s%s" % [UiTheme.icon("materials", 52), w.call("Mat"), Fmt.num(s.piles.materials)]
+	_stat_labels.wood.text = "%s %s%s/%s" % [UiTheme.icon("wood", 52), w.call("Wood"), Fmt.num(_shown(s, "wood")), Fmt.num(caps.wood)]
+	_stat_labels.food.text = "%s %s%s" % [UiTheme.icon("food", 52), w.call("Food"), Fmt.num(_shown(s, "food"))]
+	_stat_labels.materials.text = "%s %s%s" % [UiTheme.icon("materials", 52), w.call("Mat"), Fmt.num(_shown(s, "materials"))]
 	# Her bag beside the store, coral when it's full (fight_v2 review 1: instead of a toast).
 	var bag := "%s %d/%d" % [UiTheme.icon("bag", 52), roundi(Economy.bag_total(s)), roundi(Economy.bag_cap(s))]
 	var full := Economy.bag_total(s) >= Economy.bag_cap(s) - 0.01
@@ -259,11 +262,26 @@ func _fit_stats() -> void:
 			(l as RichTextLabel).add_theme_font_size_override("normal_font_size", next)
 
 
+## A store amount as the top bar shows it: less whatever is still flying in.
+func _shown(s: GameState, res: String) -> float:
+	return maxf(0.0, s.piles[res] - _held.get(res, 0.0))
+
+
+## Holds `amount` of `res` (already in the store) back from the top bar's number until an icon
+## flying in with it lands (fly_to_counter's `release`).
+func hold(res: String, amount: float) -> void:
+	_held[res] = _held.get(res, 0.0) + amount
+
+
 ## A gathered resource's icon flies from the world into its number in the top bar, which pulses
-## as it lands. `from` returns the screen point it starts at.
-func fly_to_counter(res: String, from: Callable) -> void:
-	if _stat_labels.has(res):
-		_fly(res, from, _counter_point.bind(res), _pulse.bind(_stat_labels[res]))
+## as it lands. `from` returns the screen point it starts at; `release` is what it lets through
+## of an amount held back (hold()).
+func fly_to_counter(res: String, from: Callable, release := 0.0) -> void:
+	if not _stat_labels.has(res):
+		return
+	_fly(res, from, _counter_point.bind(res), func() -> void:
+		_held[res] = maxf(0.0, _held.get(res, 0.0) - release)
+		_pulse(_stat_labels[res]))
 
 
 ## A resource a pad or gate takes from the Stockpile flies out of its number in the top bar (which
