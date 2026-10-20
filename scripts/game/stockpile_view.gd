@@ -18,7 +18,13 @@ var focused := false
 
 func setup() -> void:
 	position = Vector3(MapData.STOCKPILE_POS.x, 0, MapData.STOCKPILE_POS.y)
-	add_child(Shapes.box(Vector3(3.3, 0.14, 1.3), Color(0.55, 0.4, 0.24), Vector3(0, 0.07, 0)))
+	# The house kit's log platform and rack (ink_v3), or a greybox board.
+	var model := Props.make("prop_stockpile")
+	if model:
+		Props.use_vertex_colours(model)
+		add_child(model)
+	else:
+		add_child(Shapes.box(Vector3(3.3, 0.14, 1.3), Color(0.55, 0.4, 0.24), Vector3(0, 0.07, 0)))
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 4242
 	for res in HEAPS:

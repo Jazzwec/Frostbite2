@@ -15,10 +15,17 @@ var _embers: GPUParticles3D
 
 func setup(pos: Vector2) -> void:
 	position = Vector3(pos.x, 0, pos.y)
-	add_child(Shapes.cylinder(0.75, 0.9, STONE, Vector3(0, 0.45, 0), 0.6))
-	add_child(Shapes.cylinder(0.68, 0.14, IRON, Vector3(0, 0.95, 0)))
-	add_child(Shapes.cylinder(0.16, 0.7, IRON, Vector3(0.25, 1.35, -0.2)))
-	_glow = Shapes.sphere(0.32, FIRE, Vector3(0, 0.55, 0.45), 4.0)
+	# The house kit's fieldstone stove (ink_v3); its fire sits in the mouth facing the camera.
+	var model := Props.make("prop_stove")
+	if model:
+		Props.use_vertex_colours(model)
+		add_child(model)
+		_glow = Shapes.sphere(0.2, FIRE, Vector3(0, 0.42, 0.56), 4.0)
+	else:
+		add_child(Shapes.cylinder(0.75, 0.9, STONE, Vector3(0, 0.45, 0), 0.6))
+		add_child(Shapes.cylinder(0.68, 0.14, IRON, Vector3(0, 0.95, 0)))
+		add_child(Shapes.cylinder(0.16, 0.7, IRON, Vector3(0.25, 1.35, -0.2)))
+		_glow = Shapes.sphere(0.32, FIRE, Vector3(0, 0.55, 0.45), 4.0)
 	add_child(_glow)
 	_light = OmniLight3D.new()
 	_light.position = Vector3(0, 1.2, 0.6)

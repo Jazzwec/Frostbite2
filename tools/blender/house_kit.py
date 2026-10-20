@@ -113,7 +113,7 @@ class House:
                 continue
             # The shaded side is a pale blue-grey, the lit side ivory white (ink_v3 review).
             tone = "snow_shade" if (side < 0) == front else "snow"
-            st = 0.34
+            st = 0.44
             # Stops short of the eave so the fascia shows, and runs past the ridge (no seam roll).
             self.box(turn @ (mid + n * (t + st / 2.0 - 0.03) - down * 0.1), (width + 0.06, length + 0.02, st), tone,
                      rz=rz, rx=-side * angle, bevel=0.13, segments=2)
@@ -123,11 +123,11 @@ class House:
             for i in range(count):
                 x = -width / 2.0 + width * (i + 0.5) / count
                 wobble = math.sin(i * 2.3 + side) * 0.05
-                self.blob(turn @ (eave + Vector((x, 0.0, wobble))), (width / count * 1.2, 0.42, 0.3 + wobble),
+                self.blob(turn @ (eave + Vector((x, 0.0, wobble))), (width / count * 1.3, 0.55, 0.4 + wobble),
                           tone, rz=rz, rx=-side * angle)
         if snow:
             # A soft cap over the ridge where the two snow slabs meet, so there's no dark seam.
-            ridge = Vector((0.0, 0.0, top + h + (t + 0.34) / math.cos(angle) - 0.2))
+            ridge = Vector((0.0, 0.0, top + h + (t + 0.44) / math.cos(angle) - 0.22))
             self.box(turn @ ridge, (width + 0.04, 0.42, 0.42), "snow", rz=rz, rx=math.pi / 4.0, bevel=0.12, segments=2)
 
     def blob(self, c, s, colour, rz=0.0, rx=0.0):
@@ -144,14 +144,15 @@ class House:
         """Stone base, timber walls, corner posts and vertical battens on the front."""
         self.box((0, 0, 0.17), (w + 0.24, d + 0.24, 0.34), "stone", bevel=0.06)
         self.box((0, 0, 0.3 + wall_h / 2.0), (w, d, wall_h), wall)
+        # Chunky posts and a few broad battens rather than many thin ones (ink_v3 review).
         for x in (-w / 2.0, w / 2.0):
             for y in (-d / 2.0, d / 2.0):
-                self.box((x, y, 0.3 + wall_h / 2.0), (0.18, 0.18, wall_h), "wood_dark")
+                self.box((x, y, 0.3 + wall_h / 2.0), (0.24, 0.24, wall_h), "wood_dark")
         if battens:
-            n = max(2, int(w / 0.55))
+            n = max(2, int(w / 0.9))
             for i in range(1, n):
                 x = -w / 2.0 + w * i / n
-                self.box((x, -d / 2.0 - 0.02, 0.3 + wall_h / 2.0), (0.06, 0.04, wall_h - 0.1), dark)
+                self.box((x, -d / 2.0 - 0.025, 0.3 + wall_h / 2.0), (0.1, 0.05, wall_h - 0.1), dark)
         # A wood band where the wall meets the roof.
         self.box((0, -d / 2.0 - 0.03, 0.3 + wall_h - 0.06), (w + 0.1, 0.06, 0.12), "wood_dark")
 
@@ -162,7 +163,6 @@ class House:
         for dx in (-w / 2.0 - 0.06, w / 2.0 + 0.06):
             self.box((x + dx, y - 0.05, 0.3 + 0.75), (0.12, 0.08, 1.5), "wood_light")
         self.box((x, y - 0.05, 0.3 + 1.5), (w + 0.24, 0.08, 0.12), "wood_light")
-        self.box((x + w * 0.3, y - 0.08, 0.3 + 0.7), (0.07, 0.04, 0.07), "ink")  # the handle
         self.box((x, y - 0.32, 0.12), (w + 0.4, 0.5, 0.18), "stone_dark", bevel=0.04)  # the step
 
     def window(self, x, z, d):
@@ -178,16 +178,16 @@ class House:
         self.box((x, y - 0.1, z - 0.41), (0.92, 0.16, 0.07), "snow", bevel=0.025)  # snow on the sill
 
     def lantern(self, x, z, d):
-        y = -d / 2.0 - 0.12
-        self.box((x, y + 0.06, z + 0.22), (0.05, 0.16, 0.05), "iron")
-        self.box((x, y - 0.04, z), (0.16, 0.16, 0.24), "fire")
-        self.box((x, y - 0.04, z + 0.14), (0.22, 0.22, 0.06), "iron")
+        y = -d / 2.0 - 0.14
+        self.box((x, y + 0.07, z + 0.28), (0.07, 0.2, 0.07), "iron")
+        self.box((x, y - 0.05, z), (0.22, 0.22, 0.32), "fire")
+        self.box((x, y - 0.05, z + 0.19), (0.3, 0.3, 0.08), "iron")
 
     def sign(self, x, z, d, motif):
         """A hanging board above the door with the building's motif in ink."""
         y = -d / 2.0 - 0.14
-        self.box((x, y + 0.08, z + 0.34), (0.06, 0.2, 0.06), "wood_dark")
-        self.box((x, y, z), (0.82, 0.06, 0.56), "wood_light", bevel=0.02)
+        self.box((x, y + 0.08, z + 0.4), (0.08, 0.2, 0.08), "wood_dark")
+        self.box((x, y, z), (0.98, 0.08, 0.66), "wood_light", bevel=0.03)
         f = y - 0.045
         if motif == "mittens":
             for dx in (-0.15, 0.13):
@@ -412,11 +412,11 @@ def fence():
     """One 2 m run of fence: two posts, two rails, snow along the top."""
     h = House("prop_fence")
     for x in (-0.95, 0.95):
-        h.cyl((x, 0, 0.5), 0.07, 1.0, "wood_dark", segments=6)
-        h.blob((x, 0, 1.02), (0.2, 0.2, 0.14), "snow")
+        h.cyl((x, 0, 0.5), 0.1, 1.0, "wood_dark", segments=6)
+        h.blob((x, 0, 1.03), (0.26, 0.26, 0.18), "snow")
     for z in (0.4, 0.8):
-        h.box((0, 0, z), (2.0, 0.07, 0.11), "wood", rz=0.0, rx=0.0, ry=0.02 if z > 0.5 else -0.02)
-    h.box((0, 0, 0.88), (1.95, 0.12, 0.07), "snow", bevel=0.03)
+        h.box((0, 0, z), (2.0, 0.1, 0.15), "wood", rz=0.0, rx=0.0, ry=0.02 if z > 0.5 else -0.02)
+    h.box((0, 0, 0.91), (1.95, 0.16, 0.09), "snow", bevel=0.04)
     h.blob((0.0, 0.0, 0.02), (2.3, 0.5, 0.16), "snow_shade")
     return h
 
@@ -492,17 +492,62 @@ def jetty():
     h = House("prop_jetty")
     for x in (-0.45, 0.45):
         for y in (-1.0, 1.0):
-            h.cyl((x, y, 0.3), 0.08, 0.6, "wood_dark", segments=6)
-            h.blob((x, y, 0.62), (0.2, 0.2, 0.12), "snow")
+            h.cyl((x, y, 0.3), 0.11, 0.6, "wood_dark", segments=6)
+            h.blob((x, y, 0.63), (0.26, 0.26, 0.15), "snow")
     for i in range(9):
         h.box((0, -1.1 + i * 0.275, 0.5), (1.1, 0.24, 0.06), "wood", rz=0.03 * ((i % 3) - 1))
     h.box((0.3, 0.0, 0.56), (0.35, 2.2, 0.06), "snow", bevel=0.025)
     return h
 
 
+def stockpile():
+    """The town's store: a low log platform in three bays (wood, fish, crates; StockpileView
+    heaps them up on top) with a snowy rack along the back."""
+    h = House("prop_stockpile")
+    h.box((0, 0, 0.07), (3.4, 1.4, 0.14), "wood_dark", bevel=0.03)
+    for x in (-1.6, -0.53, 0.53, 1.6):
+        h.cyl((x, 0.6, 0.6), 0.1, 1.2, "wood_dark", segments=6)
+        h.blob((x, 0.6, 1.22), (0.26, 0.26, 0.16), "snow")
+    for z in (0.55, 1.0):
+        h.box((0, 0.6, z), (3.3, 0.1, 0.14), "wood")
+    h.box((0, 0.6, 1.1), (3.25, 0.18, 0.08), "snow", bevel=0.035)
+    for x in (-0.53, 0.53):
+        h.box((x, 0.0, 0.3), (0.08, 1.2, 0.3), "wood")
+    return h
+
+
+def stove():
+    """A small furnace on a tile's border: a squat fieldstone stove under an iron dome, a short
+    chimney and a fire mouth facing the camera (StoveView adds the glow, light and embers)."""
+    h = House("prop_stove")
+    h.cyl((0, 0, 0.42), 0.72, 0.84, "stone_dark", segments=10, r2=0.62)
+    for i in range(9):
+        a = i * math.tau / 9.0 + 0.2
+        h.blob((math.cos(a) * 0.68, math.sin(a) * 0.68, 0.25 + 0.3 * (i % 2)), (0.4, 0.32, 0.3), "stone")
+    h.blob((0, 0, 0.9), (1.3, 1.3, 0.55), "iron")
+    h.cyl((0.25, 0.2, 1.3), 0.17, 0.9, "iron", segments=8)
+    h.cyl((0.25, 0.2, 1.77), 0.22, 0.08, "stone_dark", segments=8)
+    h.box((0, -0.62, 0.42), (0.5, 0.2, 0.42), "ink")  # the fire mouth
+    h.box((0, -0.7, 0.66), (0.62, 0.12, 0.08), "stone")  # its lintel
+    return h
+
+
+def den():
+    """A wolf den: a rocky mound, snow on its back, round a dark mouth facing the camera."""
+    h = House("prop_den")
+    for (x, y, sx, sy, sz) in [(0, 0.5, 2.4, 2.0, 1.5), (-1.1, -0.1, 1.3, 1.2, 0.9), (1.05, 0.0, 1.2, 1.1, 0.8)]:
+        h.blob((x, y, sz * 0.35), (sx, sy, sz), "stone_dark")
+    for (x, y, sx, sy, sz) in [(0, 0.6, 1.9, 1.5, 0.5), (-1.1, 0.0, 0.9, 0.8, 0.3), (1.05, 0.1, 0.8, 0.7, 0.28)]:
+        h.blob((x, y, sz * 0.3 + (1.0 if x == 0 else 0.55)), (sx, sy, sz), "snow")
+    h.blob((0, -0.35, 0.3), (1.2, 0.5, 0.75), "ink")  # the mouth
+    h.blob((0, -0.6, 0.02), (2.6, 1.0, 0.16), "snow_shade")
+    return h
+
+
 PROPS = {
     "rock_a": rock_a, "rock_b": rock_b, "fence": fence, "shrub": shrub, "lantern_post": lantern_post,
     "woodpile": woodpile, "sled": sled, "bench": bench, "boat": boat, "jetty": jetty,
+    "stockpile": stockpile, "stove": stove, "den": den,
 }
 
 

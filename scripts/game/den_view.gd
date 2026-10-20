@@ -9,6 +9,12 @@ const MOUTH := Color(0.12, 0.12, 0.16)
 
 func setup(pos: Vector2) -> void:
 	position = Vector3(pos.x, 0, pos.y)
+	# The house kit's den: a snowy rock mound round a dark mouth (ink_v3).
+	var den := Props.make("prop_den")
+	if den:
+		Props.use_vertex_colours(den)
+		add_child(den)
+		return
 	var rock := Props.make("boulder", 1.6, 20.0)
 	if rock:
 		rock.position = Vector3(0, -0.3, -0.6)

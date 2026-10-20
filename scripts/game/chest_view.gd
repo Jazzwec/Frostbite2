@@ -21,15 +21,26 @@ func setup(chest_index: int, chest: Dictionary) -> void:
 	position = Vector3(chest.pos.x, 0, chest.pos.y)
 	rotation_degrees.y = float((chest_index * 47) % 60) - 30.0
 	var look: Dictionary = LOOKS.get(chest.kind if chest.kind != "boon" else "boon_" + chest.rarity, LOOKS.cache)
-	add_child(Shapes.box(Vector3(0.95, 0.55, 0.62), look.body, Vector3(0, 0.275, 0)))
-	add_child(Shapes.box(Vector3(0.12, 0.57, 0.64), look.trim, Vector3(-0.28, 0.285, 0)))
-	add_child(Shapes.box(Vector3(0.12, 0.57, 0.64), look.trim, Vector3(0.28, 0.285, 0)))
+	# Chunky, like the house kit (ink_v3 review): a stout box with broad bands, a rounded lid
+	# (the ink look snows on its top) and a drift round its foot.
+	add_child(Shapes.box(Vector3(1.0, 0.55, 0.66), look.body, Vector3(0, 0.275, 0)))
+	for x in [-0.3, 0.3]:
+		add_child(Shapes.box(Vector3(0.16, 0.57, 0.68), look.trim, Vector3(x, 0.285, 0)))
+	add_child(Shapes.box(Vector3(0.2, 0.2, 0.06), look.trim, Vector3(0, 0.45, 0.34)))
+	var drift := Shapes.sphere(0.5, Shapes.SNOW_COLOR, Vector3(0, 0.0, 0.05))
+	drift.scale = Vector3(1.9, 0.3, 1.5)
+	add_child(drift)
 	# The lid hinges along the back edge.
 	_lid = Node3D.new()
-	_lid.position = Vector3(0, 0.55, -0.31)
+	_lid.position = Vector3(0, 0.55, -0.33)
 	add_child(_lid)
-	_lid.add_child(Shapes.box(Vector3(1.0, 0.2, 0.66), look.body, Vector3(0, 0.1, 0.33)))
-	_lid.add_child(Shapes.box(Vector3(0.14, 0.06, 0.08), look.trim, Vector3(0, 0.08, 0.66)))
+	var arch := Shapes.cylinder(0.33, 1.02, look.body, Vector3(0, 0.0, 0.33))
+	arch.rotation_degrees.z = 90.0
+	_lid.add_child(arch)
+	for x in [-0.3, 0.3]:
+		var band := Shapes.cylinder(0.35, 0.16, look.trim, Vector3(x, 0.0, 0.33))
+		band.rotation_degrees.z = 90.0
+		_lid.add_child(band)
 	add_child(Shapes.tap_area(Vector3(1.6, 1.4, 1.6), "chest", index))
 	if chest.opened:
 		_open(false)
