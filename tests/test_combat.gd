@@ -14,27 +14,59 @@ func _quiet(e: GameEngine) -> void:
 	e.state.next_arrival_in = 9999.0
 
 
-func test_no_attacks_before_furnace_level_2() -> void:
+func test_the_first_wave_comes_after_four_minutes() -> void:
 	var e := engine()
 	_quiet(e)
-	e.skip(20.0 * 60.0)
-	check(e.state.wolves.is_empty(), "no wolves")
-	e.state.sites[0].level = 2
-	e.skip(0.1)
-	check(e.state.attack_at >= e.state.time + Balance.ATTACK_GAP_MIN - 0.2, "first attack scheduled 8+ minutes out")
+	e.skip(Balance.WAVE_FIRST - 1.0)
+	check(e.state.wolves.is_empty(), "no enemies yet")
+	e.skip(2.0)
+	check_eq(e.state.wave, 1, "wave 1")
+	check(not e.state.wolves.is_empty(), "it came")
+	check_near(e.state.attack_at, Balance.WAVE_FIRST + Combat.wave_gap(1), 0.2, "the next one is booked")
 
 
-func test_wolves_break_through_at_the_furnace() -> void:
+func test_a_raider_steals_food_first_and_a_kill_gives_it_back() -> void:
 	var e := engine()
 	_quiet(e)
+	e.state.piles.food = 100.0
 	e.state.piles.wood = 100.0
-	add_jan(e, "")
 	e.spawn_wolves(1)
-	e.skip(15.0)
+	e.skip(20.0)
 	var events := e.drain_events()
-	check(_has_event(events, "breakthrough"), "reached the furnace")
-	check_eq(e.state.jans.size(), 0, "scared the idle Jan off")
-	check(e.state.piles.wood < 100.0, "took Wood")
+	check(_has_event(events, "theft"), "it reached the store and stole")
+	check_near(e.state.piles.food, 100.0 - Balance.ENEMIES.wolf.steal, 0.5, "Food first")
+	check_near(e.state.piles.wood, 100.0, 0.001, "Wood left while there's Food")
+	check_eq(e.state.wolves[0].mode, "leave", "running off with it")
+	e.state.wolves[0].hp = 0.0
+	e.skip(0.1)
+	check_near(e.state.piles.food, 100.0, 0.5, "killed: the Food is back")
+
+
+func test_with_no_food_it_takes_wood_then_materials() -> void:
+	var e := engine()
+	_quiet(e)
+	e.state.piles.food = 0.0
+	e.state.piles.wood = 3.0
+	e.state.piles.materials = 10.0
+	e.spawn_wolves(1, "bear")
+	e.state.wolves[0].pos = MapData.site_pos(e.state, 0) + Vector2(0, 3)
+	e.skip(6.0)
+	check(_has_event(e.drain_events(), "theft"), "stole")
+	check_near(e.state.wolves[0].carry.get("wood", 0.0), 3.0, 0.01, "all the Wood")
+	check_near(e.state.piles.materials, 0.0, 0.01, "then Materials")
+
+
+func test_a_hit_interrupts_a_theft() -> void:
+	var e := engine()
+	_quiet(e)
+	e.spawn_wolves(1)
+	var w: Dictionary = e.state.wolves[0]
+	w.pos = MapData.site_pos(e.state, 0) + Vector2(0, 2.2)
+	w.hp = 1000.0
+	e.skip(1.5)
+	check(w.steal_t > 0.5, "stealing")
+	Combat._damage(e.state, w, 1.0, w.pos + Vector2(0, 1), 0.0, "guard", [])
+	check_near(w.steal_t, 0.0, 0.001, "started over")
 
 
 func test_a_wolf_detours_and_scares_a_worker() -> void:
@@ -60,12 +92,12 @@ func test_guards_kill_wolves_for_loot() -> void:
 	e.skip(5.0)
 	e.spawn_wolves(1)
 	e.state.wolves[0].pos = Vector2(0, -8)
-	e.state.piles.food = 0.0
+	e.state.piles.materials = 0.0
 	e.skip(20.0)
 	var events := e.drain_events()
 	check(_has_event(events, "wolf_killed"), "killed")
 	check(_has_event(events, "attack_over"), "attack over")
-	check(e.state.piles.food > 0.0, "loot")
+	check(e.state.piles.materials > 0.0, "loot")
 
 
 func test_meagan_fights_and_heals() -> void:
@@ -117,7 +149,7 @@ func test_a_pack_spreads_round_meagan_instead_of_piling_up() -> void:
 	check_eq(wolves.size(), 3, "all three still fighting")
 	for w in wolves:
 		check_eq(w.mode, "fight", "wolf %d fights" % w.id)
-		check(w.pos.distance_to(e.state.meagan_pos) <= Balance.WOLF_ENGAGE_RANGE, "wolf %d stays in reach" % w.id)
+		check(w.pos.distance_to(e.state.meagan_pos) <= Balance.ENEMY_ENGAGE, "wolf %d stays in reach" % w.id)
 		check(w.pos.distance_to(e.state.meagan_pos) >= Balance.WOLF_FIGHT_DISTANCE - 0.3, "wolf %d isn't on top of her" % w.id)
 	for i in wolves.size():
 		for j in range(i + 1, wolves.size()):

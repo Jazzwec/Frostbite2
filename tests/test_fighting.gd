@@ -55,7 +55,7 @@ func test_melee_hits_harder_and_knocks_back() -> void:
 	e.skip(0.4)
 	var hits := _events_of(e, "wolf_hit")
 	check(hits.any(func(h): return h.kind == "melee"), "a stick hit landed")
-	check(e.state.wolves[0].hp <= 1000.0 - Balance.MEAGAN_MELEE_DAMAGE + 0.001, "10 damage")
+	check(e.state.wolves[0].hp <= 1000.0 - Economy.meagan_weapon(e.state).stick_damage + 0.001, "the stick's damage")
 
 
 func test_work_pauses_during_a_fight() -> void:
@@ -63,12 +63,12 @@ func test_work_pauses_during_a_fight() -> void:
 	var forest := node_index("forest")
 	var pos: Vector2 = MapData.START_NODES[forest].pos
 	put_meagan(e, pos)
-	var w := _wolf_at(e, pos + Vector2(5, 0))
+	var w := _wolf_at(e, pos + Vector2(3.5, 0))
 	w.damage = 0.0
 	e.skip(1.0)
 	var before: float = e.state.bag.wood
 	e.skip(1.0)
-	check_near(e.state.bag.wood, before, 0.001, "no gathering with a wolf 5 m away")
+	check_near(e.state.bag.wood, before, 0.001, "no gathering while a wolf fights her")
 	e.state.wolves.clear()
 	e.skip(1.5)
 	check(e.state.bag.wood > before, "back to work once it's gone")
@@ -100,10 +100,10 @@ func test_at_most_two_wolves_wind_up_at_once() -> void:
 	var most := 0
 	for t in 30:
 		e.skip(0.1)
-		var winding := e.state.wolves.filter(func(w): return w.get("bite_t", -1.0) >= 0.0 and w.bite_t < Balance.WOLF_BITE_WINDUP + Balance.WOLF_BITE_LUNGE).size()
+		var winding := e.state.wolves.filter(func(w): return w.get("bite_t", -1.0) >= 0.0 and w.bite_t < Balance.ENEMIES.wolf.tell + Balance.ENEMY_LUNGE).size()
 		most = maxi(most, winding)
 	check(most >= 1, "they bite")
-	check(most <= Balance.WOLF_MAX_WINDUPS, "never more than two at once (%d)" % most)
+	check(most <= Balance.ENEMY_MAX_MELEE_WINDUP, "never more than two at once (%d)" % most)
 
 
 func test_guards_strike_once_a_second() -> void:

@@ -149,7 +149,9 @@ const NODES := {
 ## Rate per Jan = base × growth^(building level − 1). [brief]
 const JOBS := {
 	"chop": {"name": "Chopping", "building": "lumber_yard", "resource": "wood", "base": 1.0, "growth": 1.15},
-	"hunt": {"name": "Fishing", "building": "hunting_lodge", "resource": "food", "base": 0.6, "growth": 1.15},
+	# Fishing was 0.6 Food/s a Jan: one fisher fed 36 Jans, so raids could never starve the town.
+	# ChatGPT's steer (fight_v2): 0.05, about three Jans fed per fisher. [proto, 2026-10-20]
+	"hunt": {"name": "Fishing", "building": "hunting_lodge", "resource": "food", "base": 0.05, "growth": 1.15},
 	"build": {"name": "Building", "building": "workshop", "resource": "materials", "base": 0.1, "growth": 1.2},
 	"guard": {"name": "Guarding", "building": "barracks", "resource": "", "base": 0.0, "growth": 1.15},
 }
@@ -170,6 +172,8 @@ const BUILDINGS := {
 	"bunkhouse": {"name": "Bunkhouse", "max": 10, "unlock": 3, "start": 0, "cost": {"wood": 120.0, "materials": 30.0}, "growth": 1.25},
 	"watchtower": {"name": "Watchtower", "max": 10, "unlock": 4, "start": 0, "cost": {"wood": 120.0, "materials": 30.0}, "growth": 1.25},
 	"hot_springs": {"name": "Hot Springs", "max": 5, "unlock": 7, "start": 0, "cost": {"wood": 120.0, "materials": 30.0}, "growth": 1.25},
+	# Meagan's weapons and the guards' kit (agreed 2026-10-20): ARMORY_LEVELS. [proto]
+	"armory": {"name": "Armory", "max": 10, "unlock": 1, "start": 0, "cost": {"wood": 40.0, "materials": 12.0}, "growth": 1.27},
 	# Not a plot: the stockpiles share this level (agreed 2026-10-20). [proto]
 	"stockpile": {"name": "Stockpile", "max": 10, "unlock": 1, "start": 1, "cost": {"wood": 60.0, "materials": 10.0}, "growth": 1.5},
 }
@@ -209,6 +213,8 @@ const WOLF_LOOT := {"food": 15.0, "materials": 3.0}  # [brief]
 const WOLF_SCALE_PER_FURNACE_LEVEL := 1.6
 ## About 10 s from the map edge to the furnace. [brief]
 const WOLF_SPEED := 4.0
+## Enemy speeds in ENEMIES are the steer's; this scales them all (1 = as given). [proto]
+const SPEED_SCALE := 1.0
 ## A wolf this close to working Jans detours to them; after WOLF_SCARE_TIME beside them one flees for good. [brief] + [proto] distances
 const WOLF_DETOUR_RANGE := 7.0
 const WOLF_REACH := 2.0
@@ -338,3 +344,118 @@ const GEAR := {
 	"boots": {"name": "Boots", "text": "walking", "mod": "walk_mult", "tiers": {"common": 0.1, "rare": 0.2, "epic": 0.3}},
 	"sled": {"name": "Sled", "text": "gathering", "mod": "gather_mult", "tiers": {"common": 0.1, "rare": 0.2, "epic": 0.3}},
 }
+
+# ---------- Enemies, waves, the Armory and outposts (agreed 2026-10-20) ----------
+# The user asked for an Armory, escalating waves, new enemies and outposts on the map, with
+# raids that drain the store; the numbers are ChatGPT's steer (source_art/direction/fight_v2/
+# steer.md), all [proto].
+
+## Every enemy kind. `shape` is how it attacks: "wedge" (a bite or swipe in an arc in front),
+## "ring" (a slam all round it) or "shot" (a thrown shard). `hold` is how far from its target it
+## stands (centre to centre), `reach` how far its attack lands (for a shot, how close to where it
+## was aimed). `tell` is the wind-up before it lands, `cooldown` from one hit to the next wind-up.
+## `steal` is how much it carries off from the store; `loot` its Materials when killed; `cost`
+## its share of a wave's budget; `first` the first wave it can come in; `knocked` how much of a
+## knockback it takes; `weight` how much of the wind-up limit it uses.
+const ENEMIES := {
+	"fox": {"name": "Frost fox", "hp": 10.0, "speed": 3.6, "shape": "wedge", "hold": 1.0, "reach": 1.5, "arc": 45.0,
+		"tell": 0.45, "damage": 2.0, "cooldown": 1.4, "steal": 5.0, "loot": 1.0, "cost": 1, "first": 3, "knocked": 1.0, "weight": 1},
+	"wolf": {"name": "Wolf", "hp": 20.0, "speed": 2.5, "shape": "wedge", "hold": 1.3, "reach": 1.9, "arc": 60.0,
+		"tell": 0.4, "damage": 3.0, "cooldown": 1.5, "steal": 8.0, "loot": 1.0, "cost": 2, "first": 1, "knocked": 1.0, "weight": 1},
+	"bear": {"name": "Bear", "hp": 100.0, "speed": 1.4, "shape": "wedge", "hold": 1.8, "reach": 2.8, "arc": 110.0,
+		"tell": 0.9, "damage": 10.0, "cooldown": 2.6, "steal": 20.0, "loot": 5.0, "cost": 8, "first": 5, "knocked": 0.25, "weight": 1},
+	"raider": {"name": "Raider", "hp": 30.0, "speed": 2.1, "shape": "shot", "hold": 5.0, "reach": 0.7, "arc": 0.0,
+		"tell": 0.75, "damage": 4.0, "cooldown": 2.0, "steal": 15.0, "loot": 3.0, "cost": 4, "first": 4, "knocked": 1.0, "weight": 0},
+	"troll": {"name": "Ice troll", "hp": 240.0, "speed": 1.1, "shape": "ring", "hold": 2.0, "reach": 3.0, "arc": 360.0,
+		"tell": 1.4, "damage": 16.0, "cooldown": 4.5, "steal": 40.0, "loot": 15.0, "cost": 20, "first": 6, "knocked": 0.0, "weight": 2},
+}
+## A wedge attack's short lunge before it lands, and the recovery after any attack.
+const ENEMY_LUNGE := 0.12
+const ENEMY_RECOVER := 0.28
+## A thrown shard's speed, and how long before release its aim locks.
+const ENEMY_SHOT_SPEED := 6.0
+## Enemies head for the store; they fight the nearest defender within this distance, but give up
+## on one after this long without landing a hit (so she can't lead every raid round in circles),
+## ignoring defenders for a while.
+const ENEMY_ENGAGE := 4.0
+const ENEMY_GIVE_UP := 3.0
+const ENEMY_IGNORE := 4.0
+## At most this much melee wind-up at once (a troll counts double), plus one thrower.
+const ENEMY_MAX_MELEE_WINDUP := 2
+const ENEMY_MAX_SHOT_WINDUP := 1
+
+## Waves: the first after 4 minutes of play, then every max(75, 150 × 0.94^(n−1)) s. A wave's
+## budget is round(10 × 1.2^(n−1) × 1.15^floor((n−1)/5)), spent up to 96; beyond that its
+## enemies get tougher instead (HP × the overflow, damage × its square root).
+const WAVE_FIRST := 240.0
+const WAVE_GAP := 150.0
+const WAVE_GAP_SHRINK := 0.94
+const WAVE_GAP_MIN := 75.0
+const WAVE_BUDGET := 10.0
+const WAVE_GROWTH := 1.2
+const WAVE_STEP := 1.15
+const WAVE_STEP_EVERY := 5
+const WAVE_SPEND_MAX := 96.0
+## Kinds drawn by weight once a wave's guaranteed members are paid; a troll every few waves.
+const WAVE_WEIGHTS := {"wolf": 0.4, "fox": 0.3, "raider": 0.2, "bear": 0.1}
+const WAVE_GUARANTEED := {3: {"fox": 4}, 4: {"raider": 2}, 5: {"bear": 1}}
+const WAVE_TROLL_EVERY := 6
+const WAVE_MAX := {"bear": 3, "raider": 6}
+const WAVE_FOX_SHARE := 0.4
+## Enemies come in groups this big, this far apart, with at most this many on the map; from
+## wave 5 they come from two directions.
+const WAVE_GROUP := 6
+const WAVE_GROUP_GAP := 6.0
+const WAVE_MAX_ALIVE := 24
+const WAVE_TWO_SIDES_FROM := 5
+
+## Raids drain the store (the user's rule, 2026-10-20): an enemy that reaches the furnace or a
+## stockpile spends a moment stealing (a hit interrupts it), takes Food first, then Wood, then
+## Materials, up to what it carries, and runs off a little slower. Killing it gives it all back.
+const STEAL_REACH := 1.5
+const STEAL_TIME := 2.0
+const STEAL_RETRY := 1.0
+const CARRY_SPEED := 0.8
+## With no Food, after a grace the Jans start leaving, one every so often, idle ones first; it
+## stops once Food has stayed up a while.
+const STARVE_GRACE := 30.0
+const STARVE_LEAVE_EVERY := 20.0
+const STARVE_FED := 10.0
+const STARVE_FED_FOR := 20.0
+
+## The Armory (agreed 2026-10-20): each level, Meagan's snowball (range, damage, interval), her
+## stick (reach, damage, interval, knockback) and the guards' kit (damage per strike, HP). Level 1
+## is where she starts. The stick sweeps 100° and hits up to 3.
+const ARMORY_LEVELS := [
+	{"snow": [7.0, 6.0, 0.75], "stick": [2.5, 10.0, 0.8, 0.35], "guard": [3.0, 30.0]},
+	{"snow": [7.2, 7.0, 0.73], "stick": [2.5, 12.0, 0.78, 0.4], "guard": [4.0, 35.0]},
+	{"snow": [7.4, 9.0, 0.71], "stick": [2.6, 14.0, 0.76, 0.45], "guard": [5.0, 41.0]},
+	{"snow": [7.6, 11.0, 0.69], "stick": [2.6, 17.0, 0.73, 0.5], "guard": [6.0, 48.0]},
+	{"snow": [7.8, 13.0, 0.67], "stick": [2.7, 20.0, 0.7, 0.55], "guard": [7.0, 56.0]},
+	{"snow": [8.0, 16.0, 0.65], "stick": [2.7, 24.0, 0.67, 0.6], "guard": [8.0, 65.0]},
+	{"snow": [8.2, 19.0, 0.63], "stick": [2.8, 28.0, 0.64, 0.65], "guard": [10.0, 75.0]},
+	{"snow": [8.4, 23.0, 0.61], "stick": [2.8, 33.0, 0.61, 0.7], "guard": [12.0, 86.0]},
+	{"snow": [8.6, 27.0, 0.59], "stick": [2.9, 39.0, 0.58, 0.75], "guard": [14.0, 98.0]},
+	{"snow": [8.8, 32.0, 0.57], "stick": [3.0, 46.0, 0.55, 0.8], "guard": [16.0, 112.0]},
+]
+const STICK_ARC := 100.0
+const STICK_TARGETS := 3
+## She goes back to snowballs once nothing has been within her stick's reach + this for a moment.
+const MELEE_EXIT_MARGIN := 0.6
+
+## Outposts (agreed 2026-10-20): a chance per opened tile by ring, a kind by weight, its
+## defenders asleep until she comes within the alert radius (or hits one), leashed to it, and
+## its reward (Materials, or a chest of spoils), all × P = min(2, 1 + 0.15 × (ring − 2)).
+const OUTPOST_CHANCE := {2: 0.12, 3: 0.12, 4: 0.18, 5: 0.18}
+const OUTPOST_CHANCE_FAR := 0.24
+const OUTPOST_KINDS := {"fox_den": 0.35, "wolf_hollow": 0.3, "raider_camp": 0.25, "bear_cave": 0.1}
+const OUTPOSTS := {
+	"fox_den": {"name": "Fox den", "defenders": {"fox": 6}, "pay": {"materials": 10.0}, "chest": false},
+	"wolf_hollow": {"name": "Wolf hollow", "defenders": {"wolf": 4}, "pay": {"materials": 12.0}, "chest": false},
+	"raider_camp": {"name": "Raider camp", "defenders": {"raider": 3, "wolf": 2}, "pay": {"materials": 18.0, "wood": 20.0}, "chest": true},
+	"bear_cave": {"name": "Bear cave", "defenders": {"bear": 1, "wolf": 2}, "pay": {"materials": 20.0, "food": 15.0}, "chest": true},
+}
+const OUTPOST_ALERT := 5.0
+const OUTPOST_LEASH := 10.0
+const OUTPOST_MAX_OPEN := 3
+const OUTPOST_ROOM := 2.6

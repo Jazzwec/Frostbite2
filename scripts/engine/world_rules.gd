@@ -89,6 +89,17 @@ static func open_tile(s: GameState, gate_index: int, events: Array) -> void:
 		s.chests.append({"pos": c.chest.pos, "kind": c.chest.kind, "rarity": c.chest.rarity, "tile": tile, "opened": false})
 	if not c.den.is_empty():
 		s.dens.append({"pos": c.den.pos, "tile": tile})
+	# An outpost of sleeping enemies to clear, if there aren't already too many uncleared ones
+	# near (agreed 2026-10-20). No bear cave before the fifth wave: a fox den instead.
+	var first_outpost := s.outposts.size()
+	if not c.outpost.is_empty():
+		var open := s.outposts.filter(func(o): return not o.cleared)
+		var crowded := open.any(func(o): return absi(o.tile.x - tile.x) + absi(o.tile.y - tile.y) < 2)
+		if open.size() < Balance.OUTPOST_MAX_OPEN and not crowded:
+			var kind: String = c.outpost.kind
+			if kind == "bear_cave" and s.wave < 5:
+				kind = "fox_den"
+			Combat.add_outpost(s, kind, c.outpost.pos, tile, WorldGen.ring(tile))
 	refresh_gates(s)
 	refresh_edges(s)
 	events.append({
@@ -96,6 +107,7 @@ static func open_tile(s: GameState, gate_index: int, events: Array) -> void:
 		"sites": range(first_site, s.sites.size()), "nodes": range(first_node, s.node_defs.size()),
 		"chests": range(first_chest, s.chests.size()), "dens": range(first_den, s.dens.size()),
 		"stockpile": s.stockpiles.size() - 1,
+		"outposts": range(first_outpost, s.outposts.size()),
 	})
 
 
@@ -111,7 +123,7 @@ static func stockpile_spot(tile: Vector2i, stove_pos: Vector2, c: Dictionary) ->
 		things.append([node.pos, STOCKPILE_ROOM.node])
 	for site in c.sites:
 		things.append([site.pos, STOCKPILE_ROOM.site])
-	for key in ["camp", "chest", "den"]:
+	for key in ["camp", "chest", "den", "outpost"]:
 		if not c[key].is_empty():
 			things.append([c[key].pos, STOCKPILE_ROOM.thing])
 	var best := Vector2.ZERO

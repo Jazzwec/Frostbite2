@@ -24,6 +24,8 @@ const START_SITES := [
 	{"pos": Vector2(-10, 2), "type": "bunkhouse", "built": false},
 	{"pos": Vector2(11, -1), "type": "watchtower", "built": false},
 	{"pos": Vector2(-4, -12), "type": "hot_springs", "built": false},
+	# Meagan's weapons and the guards' kit (agreed 2026-10-20).
+	{"pos": Vector2(5, -13), "type": "armory", "built": false},
 ]
 ## Half the width of a building's square footprint.
 const SITE_HALF_SIZE := 2.0

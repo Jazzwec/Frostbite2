@@ -169,6 +169,11 @@ static func level_up(s: GameState, building: String, events: Array) -> void:
 			lv = site.level
 			if first < 0:
 				first = i
+	# The guards' new kit comes with them at once.
+	if building == "armory":
+		for jan in s.jans:
+			if jan.job == "guard" and not jan.ko:
+				jan.hp = Economy.guard_hp(s)
 	events.append({"type": "levelled", "site": first, "building": building, "level": lv})
 
 

@@ -39,7 +39,7 @@ static func tile_contents(run_seed: int, tile: Vector2i) -> Dictionary:
 	# The midpoints of the tile's edges, where gates and small furnaces go.
 	for edge in [Vector2(0.5, 0), Vector2(1, 0.5), Vector2(0.5, 1), Vector2(0, 0.5)]:
 		taken.append({"pos": rect.position + rect.size * edge, "room": GATE_ROOM})
-	var out := {"nodes": [], "sites": [], "camp": {}, "chest": {}, "den": {}}
+	var out := {"nodes": [], "sites": [], "camp": {}, "chest": {}, "den": {}, "outpost": {}}
 
 	for i in rng.randi_range(Balance.TILE_NODES_MIN, Balance.TILE_NODES_MAX):
 		var kind: String = pick(rng, Balance.TILE_NODE_WEIGHTS)
@@ -68,6 +68,11 @@ static func tile_contents(run_seed: int, tile: Vector2i) -> Dictionary:
 		var pos := _free_spot(rng, rect, taken, ROOM.den)
 		if pos != Vector2.INF:
 			out.den = {"pos": pos}
+	var chance: float = Balance.OUTPOST_CHANCE.get(ring(tile), Balance.OUTPOST_CHANCE_FAR if ring(tile) > 5 else 0.0)
+	if rng.randf() < chance:
+		var pos := _free_spot(rng, rect, taken, Balance.OUTPOST_ROOM)
+		if pos != Vector2.INF:
+			out.outpost = {"pos": pos, "kind": pick(rng, Balance.OUTPOST_KINDS)}
 	return out
 
 

@@ -8,8 +8,9 @@ extends RefCounted
 ## producer; 5: chests, boons and gear; 6: camps, the frontier and dens; 7: no bag, gathering
 ## goes to the Stockpile; 8: no Sled Shed plot; 9: the tighter town layout; 10: global building
 ## levels, upgrades in `upgrades`; 11: a stockpile per opened tile, the Stockpile's level; 12: the
-## bag is back; 13: Jans haul their work; 14: hypercasual fighting (2026-10-20).
-const SAVE_VERSION := 14
+## bag is back; 13: Jans haul their work; 14: hypercasual fighting; 15: the Armory, waves, the
+## enemy roster and outposts (2026-10-20).
+const SAVE_VERSION := 15
 
 var state: GameState
 var rng := RandomNumberGenerator.new()
@@ -106,7 +107,7 @@ func _tick(dt: float) -> void:
 	s.time += dt
 	s.meagan_activity = ""
 	_produce(dt)
-	WorldEvents.eat(s, dt)
+	WorldEvents.eat(s, dt, _events)
 	MeaganRules.regrow(s, dt)
 	MeaganRules.gather(s, dt)
 	MeaganRules.pay_pads(s, dt, _events)
@@ -265,7 +266,7 @@ func add_to_job(job: String) -> bool:
 	if jan.is_empty() or not JobRules.assign(state, jan, job):
 		return false
 	if job == "guard":
-		jan.hp = Balance.GUARD_HP
+		jan.hp = Economy.guard_hp(state)
 		jan.ko = false
 		jan.pos = MapData.site_pos(state, MapData.site_of_building(state.sites, "barracks"))
 	_events.append({"type": "jobs_changed"})
@@ -357,8 +358,8 @@ func force_blizzard() -> void:
 	_events.append({"type": "blizzard_warning", "starts_in": Balance.BLIZZARD_FORCED_DELAY})
 
 
-func spawn_wolves(count := -1) -> void:
-	Combat.spawn_pack(state, rng, _events, count)
+func spawn_wolves(count := -1, kind := "wolf") -> void:
+	Combat.spawn_pack(state, rng, _events, count, kind)
 
 
 ## Finishes a plot's construction, or its building's next level, straight away.

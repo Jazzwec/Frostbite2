@@ -41,7 +41,6 @@ func test_a_blizzard_triples_the_drain() -> void:
 func test_an_attack_due_in_a_blizzard_waits_until_after_it() -> void:
 	var e := engine()
 	_quiet(e)
-	e.state.sites[0].level = Balance.ATTACK_MIN_FURNACE_LEVEL
 	e.state.blizzard_at = 1.0
 	e.state.attack_at = 5.0
 	e.skip(6.0)
@@ -76,15 +75,12 @@ func test_a_level_2_storehouse_raises_every_cap() -> void:
 	check_near(caps.materials, Balance.CAP_MATERIALS * grow, 0.01, "materials")
 
 
-func test_wolves_grow_with_the_furnace_from_level_3() -> void:
-	var e := engine()
-	check_near(Economy.wolf_scale(e.state), 1.0, 0.0001, "Furnace Lv 1")
-	e.state.sites[0].level = 2
-	check_near(Economy.wolf_scale(e.state), 1.0, 0.0001, "Furnace Lv 2")
-	e.state.sites[0].level = 4
-	check_near(Economy.wolf_scale(e.state), pow(Balance.WOLF_SCALE_PER_FURNACE_LEVEL, 2), 0.0001, "Furnace Lv 4")
-	e.spawn_wolves(1)
-	check_near(e.state.wolves[0].hp, Balance.WOLF_HP * Economy.wolf_scale(e.state), 0.01, "a wolf's hit points scale")
+func test_waves_grow_and_come_closer_together() -> void:
+	check_eq(Combat.wave_budget(1), 10.0, "wave 1's budget")
+	for n in range(1, 20):
+		check(Combat.wave_budget(n + 1) > Combat.wave_budget(n), "wave %d's budget grows" % (n + 1))
+		check(Combat.wave_gap(n + 1) <= Combat.wave_gap(n), "and it comes sooner")
+	check_near(Combat.wave_gap(40), Balance.WAVE_GAP_MIN, 0.001, "never closer than the minimum")
 
 
 func test_buildings_unlock_with_the_furnace_and_stop_at_their_max() -> void:

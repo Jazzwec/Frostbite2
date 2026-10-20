@@ -20,6 +20,12 @@ static func open_near(s: GameState, rng: RandomNumberGenerator, events: Array) -
 		match chest.kind:
 			"cache":
 				_cache(s, chest, rng, events)
+			"spoils":
+				# An outpost's chest (agreed 2026-10-20): what it held, into the store.
+				var caps := Economy.caps(s)
+				for res in chest.pay:
+					s.piles[res] = minf(caps[res], s.piles[res] + chest.pay[res])
+				events.append({"type": "spoils", "pay": chest.pay, "pos": chest.pos})
 			"boon":
 				s.offer = {"kind": "boon", "chest": i, "options": boon_options(s, rng, Balance.BOON_CHOICES[chest.rarity])}
 			"gear":

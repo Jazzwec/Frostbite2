@@ -316,11 +316,6 @@ static func neediest_job(s: GameState) -> String:
 
 
 
-static func guard_damage(s: GameState) -> float:
-	var lv := maxi(level(s, "barracks"), 1)
-	return Balance.GUARD_DAMAGE_PER_SECOND * Balance.GUARD_NO_KIT_MULT * pow(Balance.GUARD_GROWTH, lv - 1)
-
-
 ## How long before a blizzard it's announced: 3 minutes, plus a minute per Watchtower level. [brief]
 static func blizzard_warning(s: GameState) -> float:
 	return Balance.BLIZZARD_WARNING + Balance.WATCHTOWER_BLIZZARD_WARNING_PER_LEVEL * level(s, "watchtower")
@@ -331,6 +326,27 @@ static func attack_warning(s: GameState) -> float:
 	return Balance.WATCHTOWER_ATTACK_WARNING_PER_LEVEL * level(s, "watchtower")
 
 
-## Wolves get stronger with the Furnace. [brief] ×1.6 per level above 2.
-static func wolf_scale(s: GameState) -> float:
-	return pow(Balance.WOLF_SCALE_PER_FURNACE_LEVEL, maxi(furnace_level(s) - 2, 0))
+## The Armory's row for its level (an Armory not built yet gives level 1). [agreed 2026-10-20]
+static func armory_row(s: GameState, lv := -1) -> Dictionary:
+	if lv < 0:
+		lv = level(s, "armory")
+	return Balance.ARMORY_LEVELS[clampi(lv, 1, Balance.ARMORY_LEVELS.size()) - 1]
+
+
+## Meagan's weapons at her Armory level.
+static func meagan_weapon(s: GameState, lv := -1) -> Dictionary:
+	var row := armory_row(s, lv)
+	return {
+		"range": row.snow[0], "snow_damage": row.snow[1], "snow_every": row.snow[2],
+		"reach": row.stick[0], "stick_damage": row.stick[1], "stick_every": row.stick[2], "knock": row.stick[3],
+	}
+
+
+## A guard's strike and HP at the Armory level, with the Barracks' bonus and boons on top.
+static func guard_strike(s: GameState) -> float:
+	var lv := maxi(level(s, "barracks"), 1)
+	return armory_row(s).guard[0] * pow(Balance.GUARD_GROWTH, lv - 1)
+
+
+static func guard_hp(s: GameState) -> float:
+	return armory_row(s).guard[1]

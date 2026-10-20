@@ -110,7 +110,7 @@ func _sync_jans(s: GameState, delta: float) -> void:
 			var foe := _wolf_in_reach(s, jan.pos)
 			if not foe.is_empty() and not jan.ko:
 				_guard_foes[view] = foe.id
-			view.guard(jan.hp / Balance.GUARD_HP, jan.ko, Vector3(foe.pos.x, 0, foe.pos.y) if not foe.is_empty() else Vector3.INF)
+			view.guard(jan.hp / Economy.guard_hp(s), jan.ko, Vector3(foe.pos.x, 0, foe.pos.y) if not foe.is_empty() else Vector3.INF)
 			continue
 		# Workers stand at their own producer and haul their work to a stockpile (the engine's
 		# CarryRules decides when, agreed 2026-10-20); idle Jans stand round the furnace.

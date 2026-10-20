@@ -28,8 +28,10 @@ static func arrivals(s: GameState, dt: float, rng: RandomNumberGenerator, events
 	events.append({"type": "arrival", "arrival": arrival.id, "pos": arrival.pos})
 
 
-## Jans eat from the Stockpile. With none left they're hungry and slower. [brief]
-static func eat(s: GameState, dt: float) -> void:
+## Jans eat from the Stockpile. With none left they're hungry and slower, and after a grace
+## they start leaving, idle ones first, one every so often, until Food has stayed up a while.
+## [brief; leaving agreed 2026-10-20]
+static func eat(s: GameState, dt: float, events := []) -> void:
 	var eaten := Economy.food_eaten_per_second(s) * dt
 	if s.piles.food >= eaten:
 		s.piles.food -= eaten
@@ -37,6 +39,23 @@ static func eat(s: GameState, dt: float) -> void:
 	else:
 		s.piles.food = 0.0
 		s.hungry = not s.jans.is_empty()
+	if s.hungry:
+		s.fed_t = 0.0
+		s.starve_t += dt
+		if s.starve_t < Balance.STARVE_GRACE:
+			return
+		s.starve_next -= dt
+		if s.starve_next <= 0.0 and not s.jans.is_empty():
+			s.starve_next = Balance.STARVE_LEAVE_EVERY
+			var jan := pick_jan_to_lose(s)
+			s.jans.erase(jan)
+			s.lost_total += 1
+			events.append({"type": "jan_starved", "jan": jan.id, "job": jan.job, "pos": jan.pos})
+	elif s.starve_t > 0.0:
+		s.fed_t = s.fed_t + dt if s.piles.food >= Balance.STARVE_FED else 0.0
+		if s.fed_t >= Balance.STARVE_FED_FOR:
+			s.starve_t = 0.0
+			s.starve_next = 0.0
 
 
 
