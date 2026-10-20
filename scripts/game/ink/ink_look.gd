@@ -18,7 +18,7 @@ const LINES := preload("res://scripts/game/ink/ink_lines.gdshader")
 const PAPER := preload("res://scripts/game/ink/ink_paper.gdshader")
 ## Greybox colours swapped for the watercolour palette (snow as paper white, etc.).
 const RECOLOR := [
-	[Shapes.SNOW_COLOR, Color(0.89, 0.92, 0.94)],  # the snowfield, a light blue-grey the warmth tints
+	[Shapes.SNOW_COLOR, Color(0.89, 0.92, 0.94)],  # snow caps (the snowfield paints itself, ink_ground)
 	[Color(0.66, 0.72, 0.82), Color(0.78, 0.84, 0.9)],  # the snow beyond the field
 	[Color(0.9, 0.93, 1.0), Color(0.96, 0.97, 0.98)],  # snowbanks
 ]
@@ -33,6 +33,8 @@ const WARM_RADIUS_FULL := 12.0
 const WARM_FOLLOW := 1.5
 
 var enabled := false
+## Painted materials made elsewhere (the ground) that also take the furnace's warmth.
+var painted: Array[ShaderMaterial] = []
 
 var _env: Environment
 var _sun: DirectionalLight3D
@@ -101,7 +103,7 @@ func _update_warmth(delta: float) -> void:
 	var target := lerpf(WARM_RADIUS_COLD, WARM_RADIUS_FULL, fraction)
 	_warm_radius = lerpf(_warm_radius, target, minf(1.0, delta * WARM_FOLLOW))
 	var center := MapData.SITES[0].pos as Vector2
-	for ink in _original_of:
+	for ink in _original_of.keys() + painted:
 		ink.set_shader_parameter("warm_radius", _warm_radius)
 		ink.set_shader_parameter("warm_center", Vector3(center.x, 0.0, center.y))
 

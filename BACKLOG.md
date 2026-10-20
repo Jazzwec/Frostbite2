@@ -118,7 +118,7 @@ The user committed to the ink & watercolour direction; the rules are in `docs/ar
     - Less paper grain.
     - Amber light around the furnace, cool blue beyond it.
   - **Done when:** `InkLook` is on at start (the DEV toggle still compares), before/after screenshots and FPS are logged, and a ChatGPT review is folded in.
-- [ ] **1c. Painted snow ground (ChatGPT).**
+- [x] **1c. Painted snow ground (ChatGPT).**
   - **What:** a tileable watercolour snow wash on the ground, blue-grey shadow patches, and warm packed paths between the furnace, the Stockpile and the plots. The routes stay quieter than the pads.
   - **Done when:** there are no visible seams, the FPS is checked, and a ChatGPT review finds it readable.
 - [ ] **A3. Jans in faded teal (Blender).** Recolour `jan.glb`'s parka and the greybox Jan colours, so no Jan wears Meagan's red.

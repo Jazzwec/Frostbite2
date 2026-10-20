@@ -4,11 +4,15 @@ extends Node3D
 
 const BLIZZARD_BLUE := Color(0.15, 0.3, 0.55, 0.92)
 const GOOD_GREEN := Color(0.15, 0.45, 0.25, 0.92)
+const GROUND_SHADER := preload("res://scripts/game/ink/ink_ground.gdshader")
+const SNOW_WASH := preload("res://assets/textures/snow_wash.png")
 
 var _env: Environment
 var _sun: DirectionalLight3D
 ## The ink-and-watercolour look, on by default (DEV → Ink look compares; `-- --no-ink` starts without it).
 var _ink: InkLook
+## The painted snowfield (`ink_ground`), kept to give InkLook the furnace's warmth.
+var _ground: ShaderMaterial
 var _nav: NavigationRegion3D
 var _nav_dirty := false
 var _baking := false
@@ -85,6 +89,7 @@ func _ready() -> void:
 	Audio.listener = _meagan
 	Game.engine_event.connect(_on_event)
 	_ink = InkLook.new(_env, _sun)
+	_ink.painted.append(_ground)
 	add_child(_ink)
 	_hud.ink_toggled.connect(_ink.toggle)
 
@@ -164,6 +169,26 @@ func _build_environment() -> void:
 	add_child(_sun)
 
 
+## The snowfield's painted material: a watercolour snow wash, cool hollows, and packed paths from
+## the furnace to every plot's pad and the Stockpile.
+func _ground_material() -> ShaderMaterial:
+	var m := ShaderMaterial.new()
+	m.shader = GROUND_SHADER
+	m.set_shader_parameter("snow_tex", SNOW_WASH)
+	var paths: Array[Vector4] = []
+	var furnace: Vector2 = MapData.SITES[0].pos
+	var ends: Array[Vector2] = [MapData.stockpile_pad()]
+	for i in range(1, MapData.SITES.size()):
+		ends.append(MapData.pad_pos(i))
+	for end in ends:
+		# From the furnace's rim, so the paths don't pool into one blot in the middle.
+		var start := furnace + (end - furnace).normalized() * (MapData.FURNACE_RADIUS + 1.0)
+		paths.append(Vector4(start.x, start.y, end.x, end.y))
+	m.set_shader_parameter("paths", paths)
+	m.set_shader_parameter("path_count", paths.size())
+	return m
+
+
 func _build_ground() -> void:
 	var b := MapData.BOUNDS
 	var outer := MeshInstance3D.new()
@@ -177,7 +202,8 @@ func _build_ground() -> void:
 	var field_mesh := PlaneMesh.new()
 	field_mesh.size = b.size
 	field.mesh = field_mesh
-	field.material_override = Shapes.material(Shapes.SNOW_COLOR)
+	_ground = _ground_material()
+	field.material_override = _ground
 	field.position = Vector3(b.get_center().x, 0, b.get_center().y)
 	add_child(field)
 	# Snowbanks mark the edge of the town's snowfield.

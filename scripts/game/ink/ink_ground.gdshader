@@ -1,0 +1,60 @@
+shader_type spatial;
+// The town's snowfield, painted: a watercolour snow wash (assets/textures/snow_wash.png) laid
+// twice at different sizes and angles so it doesn't visibly repeat, broad blue-grey shadow
+// washes, and warm packed-snow paths from the furnace to every plot and the Stockpile (set by
+// main.gd from MapData). The paths stay paler than the pads, so travel routes stay quiet.
+
+uniform sampler2D snow_tex : source_color, filter_linear_mipmap, repeat_enable;
+// Metres per repeat of the snow wash.
+uniform float tile_m = 20.0;
+// How much of the wash's own contrast shows (1 = as painted), around its average colour.
+uniform float wash_contrast = 0.7;
+uniform vec3 wash_mean : source_color = vec3(0.886, 0.908, 0.925);
+uniform vec3 shadow_tint : source_color = vec3(0.8, 0.86, 0.94);
+uniform float shadow_strength = 0.4;
+uniform vec3 path_color : source_color = vec3(0.82, 0.74, 0.67);
+uniform float path_strength = 0.45;
+uniform float path_width = 1.3;
+// Each path is a segment from (x, y) to (z, w), in world x/z metres.
+uniform vec4 paths[24];
+uniform int path_count = 0;
+
+varying vec3 world_pos;
+
+#include "res://scripts/game/ink/ink_common.gdshaderinc"
+
+void vertex() {
+	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+}
+
+float segment_distance(vec2 p, vec2 a, vec2 b) {
+	vec2 ab = b - a;
+	float t = clamp(dot(p - a, ab) / max(dot(ab, ab), 0.0001), 0.0, 1.0);
+	return distance(p, a + ab * t);
+}
+
+void fragment() {
+	vec2 p = world_pos.xz;
+	vec2 q = mat2(vec2(0.8, 0.6), vec2(-0.6, 0.8)) * p;
+	vec3 c = mix(texture(snow_tex, p / tile_m).rgb, texture(snow_tex, q / (tile_m * 2.3) + 0.37).rgb, 0.5);
+	c = mix(wash_mean, c, wash_contrast);
+
+	// Broad shadow washes, like the cool hollows between drifts.
+	float hollow = value_noise(p * 0.05) * 0.7 + value_noise(p * 0.13) * 0.3;
+	c *= mix(vec3(1.0), shadow_tint, smoothstep(0.5, 0.72, hollow) * shadow_strength);
+
+	// Packed paths with wobbly painted edges.
+	float d = 1000.0;
+	for (int i = 0; i < path_count; i++) {
+		d = min(d, segment_distance(p, paths[i].xy, paths[i].zw));
+	}
+	d += (value_noise(p * 0.9) - 0.5) * 0.5;
+	// A wide soft edge: a gradual change, so the ink pass doesn't outline the path.
+	float path = 1.0 - smoothstep(path_width * 0.2, path_width * 0.5 + 0.5, d);
+	float grain = value_noise(p * 3.1) * 0.5 + 0.75;
+	c = mix(c, path_color * c / 0.9, path * path_strength * grain);
+
+	ALBEDO = c * warmth_tint(world_pos);
+	ROUGHNESS = 1.0;
+	SPECULAR = 0.0;
+}
