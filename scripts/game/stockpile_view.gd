@@ -60,6 +60,17 @@ func setup(stockpile_index: int, s: GameState) -> void:
 	_pad_label.rotation_degrees.x = -90.0
 	add_child(_pad_label)
 	add_child(Shapes.tap_area(Vector3(3.4 * scale_k, 2.0, 2.0 + 1.8), "stockpile", index, Vector3(0, 0, 0.9)))
+	# Jans and Meagan walk round it, not across its deck (AFK N2).
+	var solid := StaticBody3D.new()
+	solid.collision_layer = Layers.OBSTACLE
+	solid.collision_mask = 0
+	var cs := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(3.3, 1.2, 1.3) * scale_k
+	cs.shape = shape
+	cs.position = Vector3(0, 0.6, 0)
+	solid.add_child(cs)
+	add_child(solid)
 
 
 func refresh(s: GameState) -> void:

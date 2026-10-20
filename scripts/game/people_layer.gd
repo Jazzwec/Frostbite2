@@ -108,8 +108,9 @@ func _sync_jans(s: GameState, delta: float) -> void:
 		slots[key] = slot + 1
 		var trip: String = jan.get("trip", "")
 		if site >= 0 and trip == "out":
-			# Spread out a little on the pad, so a crowd of haulers doesn't stand in one spot.
-			var pad := MapData.stockpile_pad(s, jan.dest) + Vector2(((jan.id % 3) - 1) * 0.7, 0.4)
+			# Each hauler drops at his own spot along the stockpile's front, so a crowd of them
+			# never merges into one shape (Astra animation review, 2026-10-20).
+			var pad := _drop_spot(s, jan.dest, jan.id)
 			view.haul(Balance.JOBS[job].resource)
 			view.go_to(Vector3(pad.x, 0, pad.y), nav)
 			continue
@@ -159,6 +160,17 @@ func _sync_wolves(s: GameState, delta: float) -> void:
 		if not seen.has(id):
 			_wolves[id].queue_free()
 			_wolves.erase(id)
+
+
+## Where hauler `id` drops his load at stockpile `k`: one of a row of spots along its front,
+## DROP_GAP apart (fewer at a small stockpile).
+const DROP_GAP := 0.75
+
+
+func _drop_spot(s: GameState, k: int, id: int) -> Vector2:
+	var slots := 5 if k == 0 else 3
+	var col := (id * 7) % slots - (slots - 1) / 2
+	return MapData.stockpile_pad(s, k) + Vector2(col * DROP_GAP, 0.3 + 0.5 * float((id / slots) % 2))
 
 
 ## Wolves closer than this are drawn apart (view only), and how quickly the nudge settles.

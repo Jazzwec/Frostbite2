@@ -22,6 +22,12 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 152 onwards.
 - **Why only the view:** moving the pack apart in the engine pushed a wolf out of a fight and changed gameplay, which an existing test caught, so the engine is unchanged.
 - **Check in the game:** DEV → Wolves, then watch them come in and fight Meagan.
 
+### N2. Jans don't merge
+- **What changed:**
+  - Each hauler drops his load at his own spot in a row along the stockpile's front, 0.75 m apart: 5 spots at the main stockpile, 3 at a small one.
+  - Stockpiles now have an obstacle body, so Jans and Meagan walk round them instead of across the deck (the navmesh bakes round it).
+- **Check in the game:** several Jans delivering at once.
+
 ## Run 2026-10-20, 19:27 → 22:00 (visual polish)
 
 ChatGPT budget: counted from `tools/chatgpt/calls.log` line 145 onwards (8 images, 25 reviews).

@@ -217,7 +217,7 @@ Asked by the user on 2026-10-20: Astra's review of the animations (`source_art/d
 - Silhouettes read at phone size.
 
 - [x] **N1. Wolves that read (safe).** Done 2026-10-20 (AFK). Wolves at the furnace keep separate slots 0.65-0.85 m apart instead of piling into one dark mass. Their trot phases are offset per wolf. An attack is 0.25 s of anticipation (a 12° lean back), then a 0.3 m lunge over 0.1 s, a 3-frame hold at the hit and a 0.22 s recovery.
-- [ ] **N2. Jans don't merge (safe).** Haulers drop their load at their own spot round the stockpile's front, 0.75 m apart, instead of all on the pad's centre.
+- [x] **N2. Jans don't merge (safe).** Done 2026-10-20 (AFK). Haulers drop their load at their own spot round the stockpile's front, 0.75 m apart, instead of all on the pad's centre.
 - [ ] **N3. Impacts with weight (safe).** Every work impact (chop, scavenge, hammer, spear) gets a 3-frame hit-stop on the rig and a quick 0.96 / 1.04 squash for 0.06 s. Chips fly at the contact point.
 - [ ] **N4. A walk with weight (safe).** More bounce and lean in the walk, a heavier, slower walk while her bag is nearly full, and her carried stack lags and sways a few degrees behind her body.
 - [ ] **N5. Fishing that reads (safe).** The float bobs while waiting and dips at the bite, the rod lifts and she leans back, and there's one "+N" per catch instead of one per piece.
