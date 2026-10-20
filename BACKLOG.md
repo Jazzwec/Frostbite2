@@ -89,7 +89,7 @@ Polish and quality first, then new content.
   - **Leave out:** the auto-assign switch, which is item 9.
   - **Done when:** the job counts in the game change from the screen.
 
-- [ ] **8. Milestones (safe).**
+- [x] **8. Milestones (safe).** Done 2026-10-20 (AFK).
   - **What:** achievement cards from `docs/frostbite1/content/milestones.json`, copied to `data/`.
   - **Triggers:** only those the game can already detect: building levels, Jans in the city, Jans rescued, blizzards survived and attacks repelled. Skip variant and research triggers until those exist.
   - **Showing them:** each pops a card for 3 s with a chime once, and they're stored in `user://settings.cfg`.

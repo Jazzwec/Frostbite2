@@ -141,6 +141,10 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - [ ] The Jans button (row under the top bar) opens a sheet: idle Jans in amber, then one row per job with its Jans and output and −/+ to move Jans; jobs without their building say what to build. Food at the bottom: net per second, fished and eaten, red when eating outpaces fishing.
 - [ ] Tapping −/+ changes the job counts at once (and Meagan doesn't move); the Jans button again closes it.
 
+**Milestones (2026-10-20)** (to see them again, delete `[milestones]` from `user://settings.cfg`)
+- [ ] The first rescue, Furnace Lv 2, five Jans, the first Sled Shed/Storehouse/Workshop, the first blizzard survived, the first attack repelled… each pops a card under the button row for 3 s with a chime, one after another, never over a warning banner.
+- [ ] They never show twice, not after Play again or a restart.
+
 **Objective: keep the fire burning**
 - [ ] A winter starts at 100/100 heat. With no Wood it lasts about 2½ minutes.
 - [ ] Below 25%: the bar pulses red, banner and horn. Below 10%: "Fire out in 0:12" on the bar.

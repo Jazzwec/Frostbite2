@@ -254,3 +254,19 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.
   - Applied: the idle count highlighted, two-line rows, locked rows without controls, a net food line.
   - Not applied: a scrolling list (not needed with four jobs), and lock icons (icons are on hold).
 - **Left out:** the auto-assign switch, which is item 9.
+
+### 8. Milestones
+- **Commits:** "Milestones: cards for what the game can detect".
+- **What changed:**
+  - `data/milestones.json` is copied unchanged from Frostbite 1: 26 drafts, still placeholder writing.
+  - `MilestoneRules` (engine side) supports the triggers the game can detect: building levels (Frostbite 1's camelCase keys mapped to ours), Jans in the city, Jans rescued, blizzards survived, attacks repelled.
+  - Variants, research, the Research Hut and the secret date are skipped until they exist; 16 of the 26 are live now.
+  - `MilestoneCards` checks twice a second. Each milestone shows once as a card under the button row for 3 s with the `coin` sound, one after another with a short gap, and waits while a warning banner is up. Earned milestones go in `settings.cfg`.
+- **Check in the game:** a fresh profile (or delete `[milestones]` from `user://settings.cfg`), then rescue a Jan and DEV → Furnace +1.
+- **Tests:** `tests/test_milestones.gd` (key mapping, which milestones are supported, each trigger type at its count). 77 pass.
+- **ChatGPT feedback:**
+  - Applied: placement just under the button row, waiting for banners, a more opaque card, a gap between cards.
+  - Not applied: shorter rewritten lines (the writing is your Frostbite 1 draft, yours to change), a Jan portrait on the card (icons and art are on hold), 4 s instead of the backlog's 3 s.
+- **Notes:**
+  - The "chime" is the existing `coin` sound. A dedicated chime could be added to `tools/audio/make_audio.py`, but I didn't regenerate the audio unattended.
+  - The editor's class cache went stale once after a headless test run ("Could not find type MilestoneCards"); `--import` plus `swallowtail editor reload` fixed it.

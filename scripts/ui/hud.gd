@@ -10,6 +10,7 @@ var sheet: Sheet
 var joystick: Joystick
 var hints: Hints
 var bag_readout: BagReadout
+var milestone_cards: MilestoneCards
 
 var _root: Control
 var _top: PanelContainer
@@ -41,6 +42,10 @@ func _ready() -> void:
 	add_child(_root)
 	_build_top()
 	_build_banner()
+	milestone_cards = MilestoneCards.new()
+	_root.add_child(milestone_cards)
+	milestone_cards.setup(Game.milestones)
+	milestone_cards.banner = _banner
 	bag_readout = BagReadout.new()
 	_root.add_child(bag_readout)
 	hints = Hints.new()

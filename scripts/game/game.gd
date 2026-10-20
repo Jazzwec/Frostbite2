@@ -12,6 +12,8 @@ var messages: Dictionary = {}
 var buildings_text: Dictionary = {}
 ## data/tips.json: the first-minute hints and the loading tips.
 var tips: Dictionary = {}
+## data/milestones.json: the milestone cards (titles, messages, triggers).
+var milestones: Array = []
 const SETTINGS_PATH := "user://settings.cfg"
 const SAVE_PATH := "user://save.json"
 
@@ -31,6 +33,7 @@ func _ready() -> void:
 	messages = _load_json("res://data/messages.json", {})
 	buildings_text = _load_json("res://data/buildings.json", {})
 	tips = _load_json("res://data/tips.json", {})
+	milestones = _load_json("res://data/milestones.json", [])
 	if OS.get_cmdline_user_args().has("--keep-running"):
 		pause_on_focus_loss = false
 
