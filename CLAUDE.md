@@ -40,6 +40,7 @@ Frostbite2 is a fresh rebuild in Godot of Frostbite 1 (a finished Vite + Phaser 
   - **Events:** queued dictionaries, read with `drain_events()`.
 - **Rules by file** (each called from the tick):
   - `economy.gd`: pure derived values (costs, caps, drain, rates, `neediest_job`)
+  - `world_gen.gd` / `world_rules.gd`: the growing world (agreed 2026-10-20). `WorldGen.tile_contents(run_seed, tile)` says what a tile beyond the starting grid holds (resource spots, producer plots, a camp, a chest, a wolf den), seeded per tile with its own random numbers, so it's the same whatever order tiles open in. `WorldRules` keeps `state.tiles` (open, by `"x,y"`), `state.gates` (one per closed tile touching an open one; `start_gate(i)`, then she pays on its pad like a build pad) and `open_tile`, which lights a small furnace (`state.stoves`, each +`STOVE_DRAIN` heat/s) and adds the tile's contents. Main builds a tile's views on the `tile_opened` event; closed tiles round the open ones are raised slate-blue blocks (`_rebuild_frontier`), and Meagan can't walk onto them (`Meagan._walkable`).
   - `meagan_rules.gd`: gathering, node regrowth, the bag ↔ building magnet, rescues
   - `world_events.gd`: arrivals, eating, Jans leaving at zero heat, blizzards
   - `combat.gd`: wolves, guards, Meagan fighting

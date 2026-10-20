@@ -6,7 +6,7 @@ extends RefCounted
 ## new tiles add to it during a winter.
 
 ## The world is a grid of square tiles; tile (0, 0) is centred on the furnace. [proto] 2026-10-20
-const TILE_SIZE := 16.0
+const TILE_SIZE := 20.0
 ## The starting grid: tiles -1..1 each way, 3 × 3. [agreed 2026-10-20]
 const START_RADIUS := 1
 
@@ -39,12 +39,12 @@ const START_NODES := [
 
 ## Where frozen Jans wait, near the starting grid's edge.
 const START_ARRIVAL_SPOTS := [
-	Vector2(-21, -22), Vector2(21, -22), Vector2(-22, 6), Vector2(22, 8),
-	Vector2(-12, 22), Vector2(12, 22), Vector2(0, -22), Vector2(22, 20),
+	Vector2(-26, -26), Vector2(26, -26), Vector2(-27, 6), Vector2(27, 8),
+	Vector2(-12, 27), Vector2(12, 27), Vector2(-6, -27), Vector2(26, 13),
 ]
 
 ## Where wolf packs come in from, on the starting grid's edge.
-const START_WOLF_SPAWNS := [Vector2(0, -24), Vector2(-24, -10), Vector2(24, 12), Vector2(-24, 20), Vector2(24, -20)]
+const START_WOLF_SPAWNS := [Vector2(0, -30), Vector2(-30, -10), Vector2(30, 12), Vector2(-30, 20), Vector2(30, -20)]
 
 ## The Stockpile, the town's store, just right of the furnace. [agreed 2026-10-19]
 const STOCKPILE_POS := Vector2(5, 1.5)

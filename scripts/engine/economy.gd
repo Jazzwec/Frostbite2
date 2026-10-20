@@ -24,7 +24,8 @@ static func is_unlocked(s: GameState, building: String) -> bool:
 ## What the next level costs: base × growth^n with n = levels bought so far. Whole units.
 static func cost(building: String, current_level: int) -> Dictionary:
 	var def: Dictionary = Balance.BUILDINGS[building]
-	var n: int = current_level - int(def.start)
+	# A second producer (found in an opened tile) costs what the first one's next level does.
+	var n: int = maxi(current_level - int(def.start), 0)
 	var base: Dictionary = def.cost
 	if building == "furnace" and n == 0:
 		base = Balance.FURNACE_FIRST_UPGRADE_COST
@@ -85,8 +86,11 @@ static func building_levels(s: GameState) -> int:
 	return total
 
 
-static func heat_drain(s: GameState) -> float:
+## `extra_stoves` previews the drain after opening that many more tiles.
+static func heat_drain(s: GameState, extra_stoves := 0) -> float:
 	var drain := Balance.DRAIN_BASE + Balance.DRAIN_PER_JAN * s.jans.size() + Balance.DRAIN_PER_BUILDING_LEVEL * building_levels(s)
+	# Every small furnace burns from the same heat. [agreed 2026-10-20]
+	drain += Balance.STOVE_DRAIN * (s.stoves.size() + extra_stoves)
 	if s.blizzard_active:
 		drain *= Balance.BLIZZARD_DRAIN_MULT
 	return drain * (1.0 - hot_springs_cut(s))

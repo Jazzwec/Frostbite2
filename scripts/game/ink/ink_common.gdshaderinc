@@ -5,6 +5,9 @@
 // cool blue beyond. Its edge wanders like a hand-laid wash.
 uniform vec3 warm_center = vec3(0.0);
 uniform float warm_radius = 12.0;
+// The small furnaces' smaller warm patches (agreed 2026-10-20): x, z and radius.
+uniform vec4 warm_spots[16];
+uniform int warm_spot_count = 0;
 uniform vec3 warm_tint : source_color = vec3(1.05, 0.94, 0.8);
 uniform vec3 cool_tint : source_color = vec3(0.88, 0.93, 1.0);
 // How much of a point light's strength paints (the furnace's fire is a strong light).
@@ -25,8 +28,13 @@ float value_noise(vec2 p) {
 // Warm inside the disc, turning cool over its outer part, so the edge reads at a glance. The edge
 // wanders a little, broadly, so it stays one rounded shape.
 vec3 warmth_tint(vec3 p) {
-	float d = distance(p.xz, warm_center.xz) + (value_noise(p.xz * 0.12) - 0.5) * 1.2;
+	float wander = (value_noise(p.xz * 0.12) - 0.5) * 1.2;
+	float d = distance(p.xz, warm_center.xz) + wander;
 	float warm = 1.0 - smoothstep(warm_radius * 0.8, warm_radius, d);
+	for (int i = 0; i < warm_spot_count; i++) {
+		float ds = distance(p.xz, warm_spots[i].xy) + wander * 0.5;
+		warm = max(warm, 1.0 - smoothstep(warm_spots[i].z * 0.75, warm_spots[i].z, ds));
+	}
 	return mix(cool_tint, warm_tint, warm);
 }
 

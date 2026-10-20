@@ -30,7 +30,21 @@ var meagan_activity := ""
 var meagan_target := -1
 var meagan_target_pos := Vector2.ZERO
 
-## The ground Meagan can walk on and wolves stay within: the open part of the world.
+## The winter's world (agreed 2026-10-20): its seed decides what every tile beyond the starting
+## grid holds. Open tiles by "x,y" key; gates on the border of closed tiles next to open ones:
+## {tile: Vector2i, pos: Vector2 (on the border), pad: Vector2, cost, progress, paying: bool};
+## and the small furnaces lit by opening tiles: {tile, pos}.
+var run_seed := 0
+var tiles := {}
+var gates: Array = []
+var stoves: Array = []
+## What opened tiles held besides resource spots and plots, for later phases:
+## camps {pos, jans, tile}, chests {pos, kind, rarity, tile, opened}, dens {pos, tile}.
+var camps: Array = []
+var chests: Array = []
+var dens: Array = []
+
+## The ground Meagan can walk on and wolves stay within: the box round the open tiles.
 var bounds := Rect2()
 
 ## One entry per plot: {type: the building it holds (the game decides), pos: Vector2,

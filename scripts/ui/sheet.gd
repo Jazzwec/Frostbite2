@@ -10,6 +10,8 @@ var site_index := -1
 var stockpile := false
 ## Open as the Jans screen.
 var jans := false
+## Open on a gate: the closed tile behind it (gates shift index as tiles open, tiles don't).
+var gate_tile := Vector2i(9999, 9999)
 var _jan_rows := {}  # job -> {label, minus, plus}
 var _food_line: Label
 var _auto_button: Button
@@ -41,6 +43,7 @@ func close() -> void:
 	site_index = -1
 	stockpile = false
 	jans = false
+	gate_tile = Vector2i(9999, 9999)
 
 
 func open_site(index: int) -> void:
@@ -52,6 +55,32 @@ func open_site(index: int) -> void:
 		_open_building(site.building)
 	visible = true
 	_refresh()
+
+
+## A gate's sheet: what opening the tile behind it costs, and what it does. [agreed 2026-10-20]
+func open_gate(index: int) -> void:
+	_start(-1)
+	gate_tile = Game.engine.state.gates[index].tile
+	_title.text = "New area"
+	_body.add_child(UiTheme.label("Opening it lights a small furnace here. It burns from the town's heat: +%.2f heat/s to the drain, for good. What's out there is new every winter." % Balance.STOVE_DRAIN, 34, Color(0.8, 0.85, 0.95)))
+	_status = UiTheme.label("", 38)
+	_body.add_child(_status)
+	_upgrade = UiTheme.button("", _open_gate)
+	_body.add_child(_upgrade)
+	visible = true
+	_refresh()
+
+
+func _gate_index() -> int:
+	var gates: Array = Game.engine.state.gates
+	for i in gates.size():
+		if gates[i].tile == gate_tile:
+			return i
+	return -1
+
+
+func _open_gate() -> void:
+	Game.engine.start_gate(_gate_index())
 
 
 ## The Stockpile's sheet: what's in store against the caps.
@@ -106,6 +135,7 @@ func open_jans() -> void:
 func _start(index: int) -> void:
 	site_index = index
 	stockpile = false
+	gate_tile = Vector2i(9999, 9999)
 	jans = false
 	for c in get_children():
 		c.queue_free()
@@ -178,6 +208,23 @@ func _refresh() -> void:
 	var s := Game.engine.state
 	if jans:
 		_refresh_jans(s)
+		return
+	if gate_tile != Vector2i(9999, 9999):
+		var g := _gate_index()
+		if g < 0:
+			close()
+			return
+		var gate: Dictionary = s.gates[g]
+		if gate.paying:
+			var parts := []
+			for res in gate.cost:
+				parts.append("%s %s/%s" % [str(res).capitalize(), Fmt.num(gate.progress.get(res, 0.0)), Fmt.num(gate.cost[res])])
+			_status.text = "Stand on the pad to pay: " + ", ".join(parts)
+			_upgrade.visible = false
+		else:
+			_status.text = "The drain is %.2f heat/s now, %.2f after." % [Economy.heat_drain(s), Economy.heat_drain(s, 1)]
+			_upgrade.text = "Open  ·  %s" % Fmt.cost(gate.cost)
+			_upgrade.visible = true
 		return
 	if stockpile:
 		var caps := Economy.caps(s)

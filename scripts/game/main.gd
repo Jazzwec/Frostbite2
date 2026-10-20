@@ -18,6 +18,15 @@ var _nav_dirty := false
 var _baking := false
 var _sites: Array[SiteView] = []
 var _nodes: Array[NodeView] = []
+## The open tiles' ground, and the frontier round it (raised snow over closed tiles, gates),
+## rebuilt whenever a tile opens. [agreed 2026-10-20]
+var _tiles_root: Node3D
+var _frontier: Node3D
+var _gates: Array[GateView] = []
+var _stoves: Array[StoveView] = []
+## Closed tiles are deep, cold drifts: cooler than the trodden snow and raised above it.
+const VEIL_COLOR := Color(0.6, 0.68, 0.82)
+const VEIL_HEIGHT := 1.2
 var _people: PeopleLayer
 var _stockpile: StockpileView
 ## For showing the Stockpile paying a build pad: each site's progress and her bag last frame.
@@ -49,16 +58,12 @@ func _ready() -> void:
 	_build_environment()
 	_build_ground()
 	for i in Game.engine.state.sites.size():
-		var view := SiteView.new()
-		_nav.add_child(view)
-		view.setup(i, Game.engine.state)
-		view.footprint_changed.connect(func(): _nav_dirty = true)
-		_sites.append(view)
+		_add_site_view(i)
 	for i in Game.engine.state.node_defs.size():
-		var view := NodeView.new()
-		add_child(view)
-		view.setup(i, Game.engine.state)
-		_nodes.append(view)
+		_add_node_view(i)
+	for i in Game.engine.state.stoves.size():
+		_add_stove_view(i)
+	_rebuild_frontier()
 	_stockpile = StockpileView.new()
 	add_child(_stockpile)
 	_stockpile.setup()
@@ -74,6 +79,7 @@ func _ready() -> void:
 	add_child(_rig)
 	_rig.follow_target = _meagan
 	_rig.global_position = _meagan.global_position
+	_rig.bounds = _camera_bounds()
 	_rig.tapped.connect(_on_tap)
 	_rig.steered.connect(_meagan.steer)
 	_meagan.worked.connect(_on_meagan_worked)
@@ -142,6 +148,11 @@ func _refresh_views(delta: float) -> void:
 		_meagan.show_silhouette(hidden)
 	_stockpile.refresh(s)
 	_people.refresh(s, delta)
+	for g in _gates:
+		if g.index < s.gates.size():
+			g.refresh(s.gates[g.index])
+	for v in _stoves:
+		v.refresh(s)
 
 
 # ---------- World ----------
@@ -178,43 +189,46 @@ func _ground_material() -> ShaderMaterial:
 	var m := ShaderMaterial.new()
 	m.shader = GROUND_SHADER
 	m.set_shader_parameter("snow_tex", SNOW_WASH)
+	_set_paths(m)
+	return m
+
+
+## Packed paths from the furnace to the Stockpile and every starting plot's pad, and from each
+## small furnace to the plots in its tile. The shader takes at most PATH_LIMIT.
+const PATH_LIMIT := 64
+
+
+func _set_paths(m: ShaderMaterial) -> void:
 	var paths: Array[Vector4] = []
 	var s := Game.engine.state
 	var furnace := MapData.site_pos(s, 0)
 	var ends: Array[Vector2] = [MapData.stockpile_pad()]
 	for i in range(1, s.sites.size()):
-		ends.append(MapData.pad_pos(s, i))
+		if not s.sites[i].has("tile"):
+			ends.append(MapData.pad_pos(s, i))
 	for end in ends:
 		# From the furnace's rim, so the paths don't pool into one blot in the middle.
 		var start := furnace + (end - furnace).normalized() * (MapData.FURNACE_RADIUS + 1.0)
 		paths.append(Vector4(start.x, start.y, end.x, end.y))
+	for stove in s.stoves:
+		for i in s.sites.size():
+			if s.sites[i].get("tile", Vector2i(9999, 9999)) == stove.tile:
+				var end := MapData.pad_pos(s, i)
+				paths.append(Vector4(stove.pos.x, stove.pos.y, end.x, end.y))
+	paths.resize(mini(paths.size(), PATH_LIMIT))
 	m.set_shader_parameter("paths", paths)
 	m.set_shader_parameter("path_count", paths.size())
-	return m
 
 
 func _build_ground() -> void:
-	var b := Game.engine.state.bounds
 	var outer := MeshInstance3D.new()
 	var outer_mesh := PlaneMesh.new()
-	outer_mesh.size = Vector2(160, 200)
+	outer_mesh.size = Vector2(1000, 1000)
 	outer.mesh = outer_mesh
 	outer.material_override = Shapes.material(Color(0.66, 0.72, 0.82))
 	outer.position = Vector3(0, -0.02, 0)
 	add_child(outer)
-	var field := MeshInstance3D.new()
-	var field_mesh := PlaneMesh.new()
-	field_mesh.size = b.size
-	field.mesh = field_mesh
 	_ground = _ground_material()
-	field.material_override = _ground
-	field.position = Vector3(b.get_center().x, 0, b.get_center().y)
-	add_child(field)
-	# Snowbanks mark the edge of the town's snowfield.
-	for edge in [Vector3(b.get_center().x, 0, b.position.y), Vector3(b.get_center().x, 0, b.end.y)]:
-		add_child(Shapes.box(Vector3(b.size.x + 2.0, 0.8, 1.2), Color(0.9, 0.93, 1.0), edge + Vector3(0, 0.3, 0)))
-	for edge in [Vector3(b.position.x, 0, b.get_center().y), Vector3(b.end.x, 0, b.get_center().y)]:
-		add_child(Shapes.box(Vector3(1.2, 0.8, b.size.y + 2.0), Color(0.9, 0.93, 1.0), edge + Vector3(0, 0.3, 0)))
 
 	# A few boulders poking out of the snow, clear of plots and paths.
 	for spot in [Vector3(-12, 0, -20), Vector3(13, 0, -22), Vector3(-14, 0, 8), Vector3(12, 0, 17), Vector3(-3, 0, 19), Vector3(21, 0, -3), Vector3(-4, 0, -20)]:
@@ -235,16 +249,104 @@ func _build_ground() -> void:
 	_nav.navigation_mesh = mesh
 	_nav.bake_finished.connect(func(): _baking = false)
 	add_child(_nav)
+	_tiles_root = Node3D.new()
+	add_child(_tiles_root)
+	for k in Game.engine.state.tiles:
+		_add_tile_ground(WorldRules.tile_from_key(k))
+	_frontier = Node3D.new()
+	add_child(_frontier)
+
+
+## An open tile's painted snow and the ground under it (the navmesh only covers open tiles).
+func _add_tile_ground(tile: Vector2i) -> void:
+	var r := MapData.tile_rect(tile)
+	var field := MeshInstance3D.new()
+	var field_mesh := PlaneMesh.new()
+	field_mesh.size = r.size
+	field.mesh = field_mesh
+	field.material_override = _ground
+	field.position = Vector3(r.get_center().x, 0, r.get_center().y)
+	_tiles_root.add_child(field)
 	var ground := StaticBody3D.new()
 	ground.collision_layer = Layers.GROUND
 	ground.collision_mask = 0
 	var cs := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(b.size.x, 1.0, b.size.y)
+	shape.size = Vector3(r.size.x, 1.0, r.size.y)
 	cs.shape = shape
-	cs.position = Vector3(b.get_center().x, -0.5, b.get_center().y)
+	cs.position = Vector3(r.get_center().x, -0.5, r.get_center().y)
 	ground.add_child(cs)
 	_nav.add_child(ground)
+
+
+func _add_site_view(i: int) -> void:
+	var view := SiteView.new()
+	_nav.add_child(view)
+	view.setup(i, Game.engine.state)
+	view.footprint_changed.connect(func(): _nav_dirty = true)
+	_sites.append(view)
+
+
+func _add_node_view(i: int) -> void:
+	var view := NodeView.new()
+	add_child(view)
+	view.setup(i, Game.engine.state)
+	_nodes.append(view)
+
+
+func _add_stove_view(i: int) -> void:
+	var view := StoveView.new()
+	_nav.add_child(view)
+	view.setup(Game.engine.state.stoves[i].pos)
+	_stoves.append(view)
+
+
+## Raised snow over every closed tile round the open ones, and a gate view for each gate.
+func _rebuild_frontier() -> void:
+	for c in _frontier.get_children():
+		c.queue_free()
+	_gates.clear()
+	var s := Game.engine.state
+	var veiled := {}
+	for k in s.tiles:
+		var t := WorldRules.tile_from_key(k)
+		for dx in [-1, 0, 1]:
+			for dy in [-1, 0, 1]:
+				var n := t + Vector2i(dx, dy)
+				if WorldRules.is_open(s, n) or veiled.has(n):
+					continue
+				veiled[n] = true
+				var r := MapData.tile_rect(n)
+				_frontier.add_child(Shapes.box(Vector3(r.size.x, VEIL_HEIGHT, r.size.y), VEIL_COLOR, Vector3(r.get_center().x, VEIL_HEIGHT / 2.0, r.get_center().y)))
+	for i in s.gates.size():
+		var g := GateView.new()
+		_frontier.add_child(g)
+		g.setup(i, s.gates[i])
+		_gates.append(g)
+
+
+## Where the camera may go: the open tiles, plus enough to see the closed ring round them.
+func _camera_bounds() -> Rect2:
+	return Game.engine.state.bounds.grow(MapData.TILE_SIZE * 0.5)
+
+
+## A tile opened: its ground, plots, resource spots and small furnace appear, and the frontier
+## moves out.
+func _open_tile(ev: Dictionary) -> void:
+	_add_tile_ground(ev.tile)
+	for i in ev.sites:
+		_add_site_view(i)
+	for i in ev.nodes:
+		_add_node_view(i)
+	_add_stove_view(Game.engine.state.stoves.size() - 1)
+	_rebuild_frontier()
+	_set_paths(_ground)
+	_rig.bounds = _camera_bounds()
+	_nav_dirty = true
+	_rig.shake(0.2)
+	Audio.play("build_done")
+	_float_text(Vector3(ev.pos.x, 3.5, ev.pos.y), "New area!", UiTheme.ACCENT, true)
+	_float_text(Vector3(ev.pos.x, 2.4, ev.pos.y), "+%.2f heat/s drain" % Balance.STOVE_DRAIN, Color(1.0, 0.75, 0.6))
 
 
 func _build_snow() -> void:
@@ -294,6 +396,11 @@ func _on_tap(screen_pos: Vector2) -> void:
 		"stockpile":
 			_walk(_v3(MapData.stockpile_pad()))
 			_hud.sheet.open_stockpile()
+		"gate":
+			var i: int = hit.index
+			if i < s.gates.size():
+				_walk(_v3(s.gates[i].pad))
+				_hud.sheet.open_gate(i)
 		"arrival":
 			var arrival_id: int = hit.index
 			for a in s.arrivals:
@@ -323,8 +430,9 @@ func _walk(target: Vector3) -> void:
 
 ## How long she must stand still on a pad before its sheet opens.
 const PAD_STOP_TIME := 0.25
-## The Stockpile's pad, in the pad-stop logic alongside the plots' indexes.
+## The Stockpile's pad and the gates' pads, in the pad-stop logic alongside the plots' indexes.
 const STOCKPILE_PAD := 1000
+const GATE_PAD := 2000
 
 
 ## Stopping on a plot's pad opens its sheet (build list or upgrade panel); leaving closes it.
@@ -338,6 +446,9 @@ func _update_pad_stop(delta: float) -> void:
 			break
 	if me.distance_to(MapData.stockpile_pad()) <= Balance.PAD_RADIUS:
 		on = STOCKPILE_PAD
+	for i in s.gates.size():
+		if me.distance_to(s.gates[i].pad) <= Balance.PAD_RADIUS:
+			on = GATE_PAD + i
 	if on != _pad_site:
 		_pad_site = on
 		_pad_still = 0.0
@@ -350,6 +461,8 @@ func _update_pad_stop(delta: float) -> void:
 	if _pad_still >= PAD_STOP_TIME:
 		if on == STOCKPILE_PAD:
 			_hud.sheet.open_stockpile()
+		elif on >= GATE_PAD:
+			_hud.sheet.open_gate(on - GATE_PAD)
 		else:
 			_hud.sheet.open_site(on)
 		Audio.play("tap")
@@ -394,7 +507,7 @@ func _update_meagan_activity(delta: float) -> void:
 	if activity == "":
 		_meagan.set_activity("", Vector3.INF)
 		return
-	_work = {"activity": activity, "target": s.meagan_target}
+	_work = {"activity": activity, "target": s.meagan_target, "pos": s.meagan_target_pos}
 	_work_age = 0.0
 	var face := _v3(s.meagan_target_pos)
 	if activity == "gather":
@@ -418,7 +531,7 @@ func _update_carry() -> void:
 		return
 	var target: int = _work.target
 	var me := _meagan.global_position
-	var site_top := _v3(MapData.site_pos(Game.engine.state, target)) + Vector3(0, 1.0, 0) if _work.activity in ["fuel", "build"] else Vector3.ZERO
+	var site_top := _v3(_work.pos) + Vector3(0, 1.0, 0) if _work.activity in ["fuel", "build"] else Vector3.ZERO
 	match _work.activity:
 		"gather":
 			_meagan.carry(_nodes[target].focus_point(me) + Vector3(0, 0.6, 0), Vector3.INF)
@@ -484,6 +597,8 @@ func _on_event(ev: Dictionary) -> void:
 			Audio.play("crash")
 		"thawed":
 			_meagan.play_once("warm", _v3(ev.pos))
+		"tile_opened":
+			_open_tile(ev)
 		"built", "levelled":
 			_sites[ev.site].celebrate()
 			_rig.shake(0.3 if ev.site == 0 else 0.14)

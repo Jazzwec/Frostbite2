@@ -4,8 +4,8 @@ extends RefCounted
 ## `state`; they never change it directly. Things the scenes should react to queue up as events.
 
 ## Bumped when a save from an older version can't be read as it is.
-## 2: the layout lives in the state (2026-10-20).
-const SAVE_VERSION := 2
+## 2: the layout lives in the state; 3: tiles, gates and small furnaces (2026-10-20).
+const SAVE_VERSION := 3
 
 var state: GameState
 var rng := RandomNumberGenerator.new()
@@ -20,13 +20,16 @@ func _init(seed_value := 0) -> void:
 		rng.seed = seed_value
 	else:
 		rng.randomize()
-	state = new_winter()
+	# The world's seed comes from the engine's seed without drawing from its rolls.
+	var seeder := RandomNumberGenerator.new()
+	seeder.seed = rng.seed ^ 0x5EED
+	state = new_winter(seeder.randi())
 
 
 ## The start of a winter. [brief] Empty city, cold furnace; Furnace, Lumber Yard and Fishing Lodge at Lv 1.
-static func new_winter() -> GameState:
+static func new_winter(run_seed := 1) -> GameState:
 	var s := GameState.new()
-	s.bounds = MapData.start_bounds()
+	WorldRules.start(s, run_seed)
 	for def in MapData.START_SITES:
 		var b: String = def.type
 		s.sites.append({
@@ -187,6 +190,16 @@ func start_construction(site_index: int) -> bool:
 	site.upgrading = true
 	site.progress = {}
 	_events.append({"type": "site_started", "site": site_index, "building": site.building})
+	return true
+
+
+## She's chosen to open the tile behind gate `i`: standing on its pad now pays for its small
+## furnace. [agreed 2026-10-20]
+func start_gate(gate_index: int) -> bool:
+	if gate_index < 0 or gate_index >= state.gates.size() or state.gates[gate_index].paying:
+		return false
+	state.gates[gate_index].paying = true
+	_events.append({"type": "gate_started", "gate": gate_index})
 	return true
 
 

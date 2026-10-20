@@ -2,7 +2,7 @@ shader_type spatial;
 // The town's snowfield, painted: a watercolour snow wash (assets/textures/snow_wash.png) laid
 // twice at different sizes and angles so it doesn't visibly repeat, broad blue-grey shadow
 // washes, and warm packed-snow paths from the furnace to every plot and the Stockpile (set by
-// main.gd from MapData). The paths stay paler than the pads, so travel routes stay quiet.
+// main.gd from the state, as tiles open). The paths stay paler than the pads, so travel routes stay quiet.
 
 uniform sampler2D snow_tex : source_color, filter_linear_mipmap, repeat_enable;
 // Metres per repeat of the snow wash.
@@ -16,7 +16,7 @@ uniform vec3 path_color : source_color = vec3(0.82, 0.74, 0.67);
 uniform float path_strength = 0.45;
 uniform float path_width = 1.3;
 // Each path is a segment from (x, y) to (z, w), in world x/z metres.
-uniform vec4 paths[24];
+uniform vec4 paths[64];
 uniform int path_count = 0;
 
 varying vec3 world_pos;

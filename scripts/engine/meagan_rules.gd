@@ -67,6 +67,13 @@ static func magnet(s: GameState, dt: float, events: Array) -> void:
 			return
 		if s.sites[i].upgrading and s.meagan_pos.distance_to(MapData.pad_pos(s, i)) <= Balance.PAD_RADIUS:
 			budget = _deliver_to_site(s, i, budget, events)
+	# A gate she's chosen to open takes its cost the same way. [agreed 2026-10-20]
+	for i in range(s.gates.size() - 1, -1, -1):
+		var gate: Dictionary = s.gates[i]
+		if budget > 0.0 and gate.paying and s.meagan_pos.distance_to(gate.pad) <= Balance.PAD_RADIUS:
+			budget = pay(s, gate.cost, gate.progress, budget, "build", -1, gate.pos)
+			if is_paid(gate.cost, gate.progress):
+				WorldRules.open_tile(s, i, events)
 	if s.meagan_pos.distance_to(MapData.stockpile_pad()) <= Balance.PAD_RADIUS:
 		var caps := Economy.caps(s)
 		for res in ["wood", "food", "materials"]:
@@ -78,23 +85,34 @@ static func magnet(s: GameState, dt: float, events: Array) -> void:
 				set_activity(s, "store", -1, MapData.STOCKPILE_POS)
 
 
+## Moves what `need` still lacks into `progress`, from her bag first, then from the Stockpile,
+## within the tick's budget. Returns the budget left.
+static func pay(s: GameState, need: Dictionary, progress: Dictionary, budget: float, activity: String, target: int, pos: Vector2) -> float:
+	for res in need:
+		for source in [s.bag, s.piles]:
+			var have: float = progress.get(res, 0.0)
+			var give := minf(minf(need[res] - have, source[res]), budget)
+			if give > 0.0:
+				source[res] -= give
+				progress[res] = have + give
+				budget -= give
+				set_activity(s, activity, target, pos)
+	return budget
+
+
+static func is_paid(need: Dictionary, progress: Dictionary) -> bool:
+	for res in need:
+		if progress.get(res, 0.0) < need[res] - 0.0001:
+			return false
+	return true
+
+
 ## Pays a site from her bag first, then from the Stockpile.
 static func _deliver_to_site(s: GameState, i: int, budget: float, events: Array) -> float:
 	var site: Dictionary = s.sites[i]
 	var need := Economy.site_cost(s, i)
-	var done := true
-	for res in need:
-		for source in [s.bag, s.piles]:
-			var have: float = site.progress.get(res, 0.0)
-			var give := minf(minf(need[res] - have, source[res]), budget)
-			if give > 0.0:
-				source[res] -= give
-				site.progress[res] = have + give
-				budget -= give
-				set_activity(s, "build", i, MapData.site_pos(s, i))
-		if site.progress.get(res, 0.0) < need[res] - 0.0001:
-			done = false
-	if done:
+	budget = pay(s, need, site.progress, budget, "build", i, MapData.site_pos(s, i))
+	if is_paid(need, site.progress):
 		site.level += 1
 		site.upgrading = false
 		site.progress = {}

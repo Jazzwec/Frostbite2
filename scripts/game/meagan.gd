@@ -144,6 +144,19 @@ func head_position() -> Vector3:
 	return _rig.head.global_position + Vector3(0, 0.2, 0)
 
 
+## How close she may come to a closed tile.
+const EDGE_CLEARANCE := 1.5
+
+
+## Whether she can stand here: on an open tile, and not right up against a closed one.
+static func _walkable(s: GameState, p: Vector3) -> bool:
+	var at := Vector2(p.x, p.z)
+	for d in [Vector2.ZERO, Vector2(EDGE_CLEARANCE, 0), Vector2(-EDGE_CLEARANCE, 0), Vector2(0, EDGE_CLEARANCE), Vector2(0, -EDGE_CLEARANCE)]:
+		if not WorldRules.is_open_at(s, at + d):
+			return false
+	return true
+
+
 ## Which way she's facing, flat on the ground.
 func forward() -> Vector3:
 	return _rig.global_basis.z
@@ -151,6 +164,7 @@ func forward() -> Vector3:
 
 func _physics_process(delta: float) -> void:
 	var s := Game.engine.state
+	var before := global_position
 	moving = false
 	var can_move := Game.engine.can_meagan_move() and not Game.engine.paused
 	if can_move and _steer != Vector2.ZERO:
@@ -172,9 +186,14 @@ func _physics_process(delta: float) -> void:
 			_turn_towards(dir, delta)
 	if not moving:
 		velocity = Vector3.ZERO
-	# The snowbanks round the town are her edge.
-	var b := Game.engine.state.bounds.grow(-1.5)
-	global_position = Vector3(clampf(global_position.x, b.position.x, b.end.x), 0.0, clampf(global_position.z, b.position.y, b.end.y))
+	# Closed tiles are deep snow: she stays on the open ones, sliding along their edge.
+	var b := s.bounds.grow(-EDGE_CLEARANCE)
+	var p := Vector3(clampf(global_position.x, b.position.x, b.end.x), 0.0, clampf(global_position.z, b.position.y, b.end.y))
+	if not _walkable(s, p):
+		var slide_x := Vector3(p.x, 0.0, before.z)
+		var slide_z := Vector3(before.x, 0.0, p.z)
+		p = slide_x if _walkable(s, slide_x) else (slide_z if _walkable(s, slide_z) else Vector3(before.x, 0.0, before.z))
+	global_position = p
 	Game.engine.set_meagan_position(Vector2(global_position.x, global_position.z))
 
 	# Footsteps crunching in the snow.

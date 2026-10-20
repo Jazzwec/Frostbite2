@@ -47,6 +47,8 @@ var _restore := {}  # MeshInstance3D -> {surface index: original surface overrid
 var _paper: CanvasLayer
 var _scan_in := 0.0
 var _warm_radius := WARM_RADIUS_FULL
+## The shaders take this many small furnaces' warm patches (ink_common.gdshaderinc).
+const MAX_WARM_SPOTS := 16
 
 
 func _init(env: Environment, sun: DirectionalLight3D) -> void:
@@ -103,9 +105,15 @@ func _update_warmth(delta: float) -> void:
 	var target := lerpf(WARM_RADIUS_COLD, WARM_RADIUS_FULL, fraction)
 	_warm_radius = lerpf(_warm_radius, target, minf(1.0, delta * WARM_FOLLOW))
 	var center := MapData.START_SITES[0].pos as Vector2
+	# Each small furnace keeps a smaller warm patch, shrinking with the same heat. [agreed 2026-10-20]
+	var spots: Array[Vector4] = []
+	for stove in s.stoves.slice(0, MAX_WARM_SPOTS):
+		spots.append(Vector4(stove.pos.x, stove.pos.y, Balance.STOVE_WARM_RADIUS * (0.4 + 0.6 * fraction), 0.0))
 	for ink in _original_of.keys() + painted:
 		ink.set_shader_parameter("warm_radius", _warm_radius)
 		ink.set_shader_parameter("warm_center", Vector3(center.x, 0.0, center.y))
+		ink.set_shader_parameter("warm_spots", spots)
+		ink.set_shader_parameter("warm_spot_count", spots.size())
 
 
 # ---------- Materials ----------

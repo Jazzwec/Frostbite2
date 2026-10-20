@@ -197,3 +197,41 @@ const GUARD_SPEED := 4.0  # [proto]
 const GUARD_RANGE := 1.6  # [proto]
 ## Guards wait in a ring this far from the furnace. [proto]
 const GUARD_RING_RADIUS := 4.0
+
+# ---------- The world: tiles and small furnaces (agreed 2026-10-20) ----------
+
+## Every small furnace (one per opened tile) adds this to the heat drain. [proto]
+const STOVE_DRAIN := 0.15
+## Opening a tile costs Wood 40 × 1.6^(d − 1), plus Materials 10 × 1.6^(d − 2) from d = 2, where d is
+## how many rings of tiles out from the starting grid it is (1 = touching it). [proto]
+const GATE_WOOD := 40.0
+const GATE_MATERIALS := 10.0
+const GATE_GROWTH := 1.6
+## The gate's pad sits this far inside the open tile, in front of the border. [proto]
+const GATE_PAD_INSET := 1.8
+## A small furnace's warm patch at full heat, in metres. [proto]
+const STOVE_WARM_RADIUS := 3.5
+
+## What a generated tile holds. [proto]
+const TILE_NODES_MIN := 1
+const TILE_NODES_MAX := 2
+const TILE_PRODUCERS_MAX := 2
+## Resource spot kinds in generated tiles, by weight.
+const TILE_NODE_WEIGHTS := {"forest": 0.45, "hunting": 0.3, "scrap": 0.25}
+## The producer that works each kind of resource spot.
+const PRODUCER_FOR := {"forest": "lumber_yard", "hunting": "hunting_lodge", "scrap": "workshop"}
+const TILE_CAMP_CHANCE := 0.35
+const TILE_CAMP_JANS_MIN := 1
+const TILE_CAMP_JANS_MAX := 3
+const TILE_CHEST_CHANCE := 0.3
+## Chest kinds by weight, and each kind's rarities by weight: boon chests are rare (a choice of 2)
+## or epic (a choice of 3).
+const CHEST_KINDS := {"cache": 0.5, "boon": 0.3, "gear": 0.2}
+const CHEST_RARITIES := {
+	"cache": {"common": 1.0},
+	"boon": {"rare": 0.7, "epic": 0.3},
+	"gear": {"common": 0.55, "rare": 0.33, "epic": 0.12},
+}
+const TILE_DEN_CHANCE := 0.2
+## Wolf dens only this many rings out or further.
+const TILE_DEN_MIN_RING := 3
