@@ -109,6 +109,10 @@ const FURNACE_FEED_PER_SECOND := 5.0
 const RESCUE_RANGE := 2.0
 ## Combat. [brief]
 const MEAGAN_HP := 100.0
+## Knocked down, she gets up after this long with this share of her HP, raid or not (fight_v2
+## review 2: thieves you can still catch; the brief had her down until the raid ended). [proto]
+const MEAGAN_DOWN_TIME := 6.0
+const MEAGAN_GETUP_HP := 0.5
 const MEAGAN_DAMAGE_PER_SECOND := 10.0
 const MEAGAN_ATTACK_RANGE := 2.5  # [proto]
 ## Hypercasual fighting (agreed 2026-10-20, numbers from Astra's steer, all [proto]): she

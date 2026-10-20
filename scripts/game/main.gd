@@ -140,6 +140,7 @@ func _process(delta: float) -> void:
 		_footprints.track(v, v.is_walking())
 	_refresh_views(delta)
 	_update_meagan_activity(delta)
+	_update_down_label()
 	_update_pad_stop(delta)
 	_update_pad_payments(delta)
 	_update_ground_marks()
@@ -1050,7 +1051,7 @@ func _on_event(ev: Dictionary) -> void:
 			_gather_loot(ev)
 		"meagan_injured":
 			Audio.play("hurt", Vector3.INF, 0.8)
-			_hud.show_strip("Meagan is down!", "", UiTheme.WARN_WASH, 2.5)
+			_hud.show_strip("Meagan is down for %d s!" % roundi(ev.up_in), "", UiTheme.WARN_WASH, 2.0)
 		"attack_over":
 			_hud.show_strip("Wave %d held!" % ev.wave, "", GOOD_GREEN)
 
@@ -1070,6 +1071,21 @@ const LOOT_HEIGHT := 2.6
 var _loot := {}
 var _loot_at := Vector3.ZERO
 var _loot_n := 0
+
+
+## While she's down, "Up in 4" over her, counting down (fight_v2 review 2).
+var _down_label: Label3D
+
+
+func _update_down_label() -> void:
+	var s := Game.engine.state
+	if _down_label == null:
+		_down_label = Shapes.label("", Vector3(0, 2.6, 0), 56, Color(1.0, 0.9, 0.85))
+		_down_label.pixel_size = 0.009
+		_meagan.add_child(_down_label)
+	_down_label.visible = s.meagan_injured and not s.game_over
+	if _down_label.visible:
+		_down_label.text = "Up in %d" % ceili(maxf(0.0, s.meagan_down_at + Balance.MEAGAN_DOWN_TIME - s.time))
 
 
 ## A beat of stillness on a kill or a heavy blow, and only then (review 2: 35-50 ms).

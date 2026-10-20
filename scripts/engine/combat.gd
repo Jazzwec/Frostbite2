@@ -13,6 +13,7 @@ extends RefCounted
 
 
 static func update(s: GameState, dt: float, rng: RandomNumberGenerator, events: Array) -> void:
+	_get_up(s, events)
 	_schedule(s, rng, events)
 	_spawn_queued(s, events)
 	for enemy in s.wolves.duplicate():
@@ -440,7 +441,8 @@ static func _hurt(s: GameState, foe: Dictionary, damage: float, events: Array) -
 		if s.meagan_hp <= 0.0 and not s.meagan_injured:
 			s.meagan_hp = 0.0
 			s.meagan_injured = true
-			events.append({"type": "meagan_injured"})
+			s.meagan_down_at = s.time
+			events.append({"type": "meagan_injured", "up_in": Balance.MEAGAN_DOWN_TIME})
 		return
 	for guard in _guards(s):
 		if guard.id == foe.id:
@@ -757,6 +759,15 @@ static func _collect_dead(s: GameState, events: Array) -> void:
 		events.append({"type": "wolf_killed", "wolf": e.id, "kind": e.kind, "pos": e.pos, "food": 0.0, "materials": materials, "carry": e.carry})
 	if any:
 		_check_outposts(s, events)
+
+
+## Knocked down, she gets up after a while with part of her HP, so a raid's thieves can still be
+## caught (fight_v2 review 2).
+static func _get_up(s: GameState, events: Array) -> void:
+	if s.meagan_injured and s.time >= s.meagan_down_at + Balance.MEAGAN_DOWN_TIME:
+		s.meagan_injured = false
+		s.meagan_hp = Balance.MEAGAN_HP * Balance.MEAGAN_GETUP_HP
+		events.append({"type": "meagan_up"})
 
 
 ## Knocked-out guards get up and Meagan heals once the raid is over. [brief]

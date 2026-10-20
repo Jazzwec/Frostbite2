@@ -160,6 +160,7 @@ func _post(s: GameState, site: int, slot: int) -> Vector3:
 
 func _sync_wolves(s: GameState, delta: float) -> void:
 	var seen := {}
+	var thief := ThreatArrows.nearest_thief(s)
 	for wolf in s.wolves:
 		seen[wolf.id] = true
 		var view: WolfView = _wolves.get(wolf.id)
@@ -169,6 +170,7 @@ func _sync_wolves(s: GameState, delta: float) -> void:
 			view.global_position = Vector3(wolf.pos.x, 0, wolf.pos.y)
 			_wolves[wolf.id] = view
 		view.rest = _rest(s, wolf)
+		view.badge = not thief.is_empty() and thief.id == wolf.id
 		view.sync(wolf, delta)
 	_nudge_wolves(s, delta)
 	for id in _wolves.keys():

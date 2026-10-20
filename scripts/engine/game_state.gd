@@ -30,6 +30,8 @@ var gathered := {"wood": 0.0, "food": 0.0, "materials": 0.0}
 var meagan_pos := Vector2(0, 3)
 var meagan_hp := Balance.MEAGAN_HP
 var meagan_injured := false
+## When she was knocked down (she gets up Balance.MEAGAN_DOWN_TIME later).
+var meagan_down_at := -100.0
 ## The frozen Jan she was sent to, or -1.
 var rescue_target := -1
 ## What she did this tick, for her animation: "" | full | gather | store | build | fight.

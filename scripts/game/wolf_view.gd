@@ -112,10 +112,14 @@ var _sack_disc: Sprite3D
 var _sack_res := ""
 ## The stolen load on its back while it runs off (fight_v2 review 1: a laden retreat that reads).
 var _load: Node3D
-## A thief's badge: the resource's icon on a paper disc with an ink rim (about 26 px across).
-const BADGE_PIXEL := 0.0045
+## The nearest thief's badge (fight_v2 review 2, only that one; the rest show their sacks): the
+## resource's icon on an ochre disc with an ink rim, about 32 px across, and how much it carries.
+const BADGE_PIXEL := 0.0057
 const LADEN_LEAN := 9.0
 static var _disc: Texture2D
+## Whether this one wears the badge (PeopleLayer picks the nearest thief).
+var badge := false
+var _badge_amount: Label3D
 
 
 func _init(enemy_kind := "wolf") -> void:
@@ -156,7 +160,7 @@ func _init(enemy_kind := "wolf") -> void:
 	_sack_disc.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_sack_disc.no_depth_test = true
 	_sack_disc.render_priority = 10
-	_sack_disc.pixel_size = BADGE_PIXEL * 1.25
+	_sack_disc.pixel_size = BADGE_PIXEL
 	_sack_disc.position = Vector3(0, look.bar + 0.5, 0)
 	_sack_disc.visible = false
 	add_child(_sack_disc)
@@ -164,10 +168,15 @@ func _init(enemy_kind := "wolf") -> void:
 	_sack.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_sack.no_depth_test = true
 	_sack.render_priority = 11
-	_sack.pixel_size = BADGE_PIXEL * 0.85
+	_sack.pixel_size = BADGE_PIXEL * 0.7
 	_sack.position = _sack_disc.position
 	_sack.visible = false
 	add_child(_sack)
+	_badge_amount = Shapes.label("", _sack_disc.position + Vector3(0.48, -0.12, 0), 60, Color(1.0, 0.95, 0.82))
+	_badge_amount.pixel_size = 0.006
+	_badge_amount.outline_size = 14
+	_badge_amount.visible = false
+	add_child(_badge_amount)
 	_load = Node3D.new()
 	_load.visible = false
 	_model.add_child(_load)
@@ -514,6 +523,7 @@ func die() -> void:
 	_tell.visible = false
 	_sack.visible = false
 	_sack_disc.visible = false
+	_badge_amount.visible = false
 	_load.visible = false
 	if _shot_line:
 		_shot_line.visible = false
@@ -585,9 +595,15 @@ func _update_sack(enemy: Dictionary) -> void:
 	for res in carry:
 		if most == "" or carry[res] > carry[most]:
 			most = res
-	_sack.visible = most != ""
+	_load.visible = most != ""
+	_sack.visible = most != "" and badge
 	_sack_disc.visible = _sack.visible
-	_load.visible = _sack.visible
+	_badge_amount.visible = _sack.visible
+	if _sack.visible:
+		var total := 0.0
+		for res in carry:
+			total += carry[res]
+		_badge_amount.text = Fmt.num(total)
 	if most != "" and most != _sack_res:
 		_sack_res = most
 		_sack.texture = load("res://assets/ui/icons/%s.png" % most)
@@ -604,7 +620,7 @@ static func _badge_disc() -> Texture2D:
 				var d := Vector2(x + 0.5, y + 0.5).distance_to(c)
 				var col := Color(0, 0, 0, 0)
 				if d <= 60.0:
-					col = Color(0.17, 0.2, 0.25) if d > 52.0 else Color(0.96, 0.92, 0.84)
+					col = Color(0.17, 0.2, 0.25) if d > 53.0 else Color(0.86, 0.66, 0.3)
 					col.a = clampf(60.5 - d, 0.0, 1.0)
 				img.set_pixel(x, y, col)
 		_disc = ImageTexture.create_from_image(img)

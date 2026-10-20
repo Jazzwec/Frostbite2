@@ -169,3 +169,21 @@ func test_melee_lasts_until_a_quarter_beyond_her_reach() -> void:
 	check_eq(e.state.meagan_mode, "melee", "not for a moment yet")
 	hold.call(0.4)
 	check_eq(e.state.meagan_mode, "ranged", "then snowballs")
+
+
+## Review 2: knocked down, she gets up after MEAGAN_DOWN_TIME with part of her HP, raid or not.
+func test_knocked_down_she_gets_up_after_a_while() -> void:
+	var e := engine()
+	put_meagan(e, Vector2(0, 20))
+	var w := _wolf_at(e, Vector2(30, 20))
+	w.mode = "leave"
+	w.carry = {"food": 1.0}
+	e.state.meagan_hp = 1.0
+	Combat._hurt(e.state, {"id": -1, "pos": e.state.meagan_pos}, 5.0, [])
+	check(e.state.meagan_injured, "down")
+	check(not e.can_meagan_move(), "she can't move")
+	e.skip(Balance.MEAGAN_DOWN_TIME - 0.5)
+	check(e.state.meagan_injured, "still down")
+	e.skip(1.0)
+	check(not e.state.meagan_injured, "up again while the raid's still on")
+	check_near(e.state.meagan_hp, Balance.MEAGAN_HP * Balance.MEAGAN_GETUP_HP, 0.01, "with half her HP")
