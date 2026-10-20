@@ -214,22 +214,8 @@ const PATH_LIMIT := 64
 
 
 func _set_paths(m: ShaderMaterial) -> void:
-	var paths: Array[Vector4] = []
-	var s := Game.engine.state
-	var furnace := MapData.site_pos(s, 0)
-	var ends: Array[Vector2] = [MapData.stockpile_pad()]
-	for i in range(1, s.sites.size()):
-		if not s.sites[i].has("tile"):
-			ends.append(MapData.pad_pos(s, i))
-	for end in ends:
-		# From the furnace's rim, so the paths don't pool into one blot in the middle.
-		var start := furnace + (end - furnace).normalized() * (MapData.FURNACE_RADIUS + 1.0)
-		paths.append(Vector4(start.x, start.y, end.x, end.y))
-	for stove in s.stoves:
-		for i in s.sites.size():
-			if s.sites[i].get("tile", Vector2i(9999, 9999)) == stove.tile:
-				var end := MapData.pad_pos(s, i)
-				paths.append(Vector4(stove.pos.x, stove.pos.y, end.x, end.y))
+	# One connected network, shared with the set dressing so props keep off it.
+	var paths := SetDressing.tracks(Game.engine.state)
 	paths.resize(mini(paths.size(), PATH_LIMIT))
 	m.set_shader_parameter("paths", paths)
 	m.set_shader_parameter("path_count", paths.size())

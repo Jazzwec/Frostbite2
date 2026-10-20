@@ -109,22 +109,44 @@ func _clear(s: GameState, p: Vector2, paths: Array, own_site: int) -> bool:
 	return true
 
 
-## The trodden tracks (as main.gd paints them): from the furnace to the Stockpile and every pad,
-## and from each small furnace to its tile's plots.
-static func _paths(s: GameState) -> Array:
-	var out := []
+## The trodden tracks, one connected network (main.gd paints them on the snow; props keep off
+## them): from the furnace's rim to the Stockpile, every starting plot's pad and the starting
+## resource spots' edges, and from each small furnace to its tile's plots and spots.
+## [ink_v3 review, 2026-10-20]
+const TRACK_SPOT_GAP := 2.4
+
+
+static func tracks(s: GameState) -> Array[Vector4]:
+	var out: Array[Vector4] = []
 	var furnace := MapData.site_pos(s, 0)
 	var ends: Array[Vector2] = [MapData.stockpile_pad()]
 	for i in range(1, s.sites.size()):
-		ends.append(MapData.pad_pos(s, i))
+		if not s.sites[i].has("tile"):
+			ends.append(MapData.pad_pos(s, i))
+	for i in s.node_defs.size():
+		if not s.node_defs[i].has("tile"):
+			var p := MapData.node_pos(s, i)
+			ends.append(p + (furnace - p).normalized() * TRACK_SPOT_GAP)
 	for end in ends:
-		out.append(Vector4(furnace.x, furnace.y, end.x, end.y))
+		# From the furnace's rim, so the tracks don't pool into one blot in the middle.
+		var start := furnace + (end - furnace).normalized() * (MapData.FURNACE_RADIUS + 1.0)
+		out.append(Vector4(start.x, start.y, end.x, end.y))
 	for stove in s.stoves:
 		for i in s.sites.size():
 			if s.sites[i].get("tile", Vector2i(9999, 9999)) == stove.tile:
 				var end := MapData.pad_pos(s, i)
 				out.append(Vector4(stove.pos.x, stove.pos.y, end.x, end.y))
+		for i in s.node_defs.size():
+			if s.node_defs[i].get("tile", Vector2i(9999, 9999)) == stove.tile:
+				var p := MapData.node_pos(s, i)
+				var from: Vector2 = stove.pos
+				var end := p + (from - p).normalized() * TRACK_SPOT_GAP
+				out.append(Vector4(stove.pos.x, stove.pos.y, end.x, end.y))
 	return out
+
+
+static func _paths(s: GameState) -> Array:
+	return tracks(s)
 
 
 static func _segment_distance(p: Vector2, a: Vector2, b: Vector2) -> float:

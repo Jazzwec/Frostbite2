@@ -12,16 +12,18 @@ const START_RADIUS := 1
 
 ## The starting grid's plots. Index 0 is the furnace. `type` is the building the plot holds
 ## (the game decides, agreed 2026-10-20); `built` ones exist from the start of a winter.
+## Drawn in about 30% round the furnace (ink_v3 review, 2026-10-20) so the town reads as one
+## cluster linked by its tracks; each house kit footprint keeps about 2 m clear of the next. [proto]
 const START_SITES := [
 	{"pos": Vector2(0, 0), "type": "furnace", "built": true},
-	{"pos": Vector2(-9, -6), "type": "lumber_yard", "built": true},
-	{"pos": Vector2(9, -6), "type": "hunting_lodge", "built": true},
-	{"pos": Vector2(9, 4), "type": "storehouse", "built": false},
-	{"pos": Vector2(-5, 12), "type": "kitchen", "built": false},
-	{"pos": Vector2(5, 12), "type": "barracks", "built": false},
-	{"pos": Vector2(-15, -1), "type": "bunkhouse", "built": false},
-	{"pos": Vector2(15, -1), "type": "watchtower", "built": false},
-	{"pos": Vector2(6, -15), "type": "hot_springs", "built": false},
+	{"pos": Vector2(-7, -5), "type": "lumber_yard", "built": true},
+	{"pos": Vector2(7, -6), "type": "hunting_lodge", "built": true},
+	{"pos": Vector2(10.5, 4.5), "type": "storehouse", "built": false},
+	{"pos": Vector2(-4, 9), "type": "kitchen", "built": false},
+	{"pos": Vector2(4, 9), "type": "barracks", "built": false},
+	{"pos": Vector2(-10, 2), "type": "bunkhouse", "built": false},
+	{"pos": Vector2(11, -1), "type": "watchtower", "built": false},
+	{"pos": Vector2(-4, -12), "type": "hot_springs", "built": false},
 ]
 ## Half the width of a building's square footprint.
 const SITE_HALF_SIZE := 2.0
@@ -30,9 +32,9 @@ const FURNACE_RADIUS := 1.8
 ## The starting grid's resource spots: two forests, a fishing pond (kind "hunting") and the scrap
 ## heap right behind the furnace, so the first Materials are close. [proto] 2026-10-20
 const START_NODES := [
-	{"kind": "forest", "pos": Vector2(-18, -16)},
-	{"kind": "forest", "pos": Vector2(-18, 18)},
-	{"kind": "hunting", "pos": Vector2(18, -16)},
+	{"kind": "forest", "pos": Vector2(-14, -13)},
+	{"kind": "forest", "pos": Vector2(-13, 14)},
+	{"kind": "hunting", "pos": Vector2(13, -12)},
 	{"kind": "scrap", "pos": Vector2(0, -7)},
 ]
 

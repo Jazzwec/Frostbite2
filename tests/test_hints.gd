@@ -33,7 +33,7 @@ func test_thawing() -> void:
 func test_arrows_point_at_the_nearest_place() -> void:
 	var e := engine()
 	put_meagan(e, Vector2(-15, -20))
-	check_eq(HintRules.target("chop", e.state), Vector2(-18, -16), "the nearest forest")
+	check_eq(HintRules.target("chop", e.state), Vector2(-14, -13), "the nearest forest")
 	check_eq(HintRules.target("move", e.state), Vector2.INF, "moving has no target")
 	check_eq(HintRules.target("thaw", e.state), Vector2.INF, "no frozen Jan yet")
 	e.state.arrivals.append({"id": 99, "spot": 1, "pos": e.state.arrival_spots[1]})
