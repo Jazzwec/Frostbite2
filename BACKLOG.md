@@ -2,11 +2,14 @@
 
 Work for unattended runs (see AFK.md), in priority order.
 - **safe** items have rules in the brief or need no design call. Claude does them in order and ticks them off.
+- **on hold** items wait for a decision (currently the art direction); Claude skips them.
 - **needs you** items wait for the user.
 
 Add, reorder or delete items freely; Claude only reads this file at the start of each iteration.
 
 ## Safe
+
+Polish and quality first, then new content.
 
 - [ ] **1. Save and continue (safe).**
   - **What:** the winter survives closing the game.
@@ -15,24 +18,6 @@ Add, reorder or delete items freely; Claude only reads this file at the start of
     - A test round-trips a mid-game state (Jans, sites, wolves, bag, stores, timers).
     - In the game, quitting and relaunching continues where it left off.
     - Game over shows the card again, not a frozen world.
-
-- [x] **1a. Concept sheets for Tripo (safe, ChatGPT).** Done 2026-10-19: see `source_art/concept/README.md`.
-  - **What:** model sheets in one consistent chunky cartoon style, made with the `chatgpt` skill: Meagan (pink parka, white bobble hat, gold scarf), a Jan (orange parka, blue hat, red nose), a wolf, the Furnace and the Lumber Yard.
-  - **Style:** generate Meagan first, then use her as `--ref` for the rest.
-  - **Where:** `source_art/concept/`, with a `README.md` on how to upload each one to Tripo Studio (image to 3D, auto-rig for the characters).
-  - **Done when:** 5 sheets are checked by eye and committed with their prompts. Budget: up to 7 images, counting retries.
-
-- [ ] **1b. Resource and HUD icons (safe, ChatGPT).**
-  - **What:** icons for Wood, Food (fish), Materials, Heat (flame), Jans and Bag, made with the `chatgpt` skill, with the white keyed out to transparency.
-  - **Where:** `assets/ui/icons/`, shown at 48–64 px next to the numbers in the HUD's top bar, the Stockpile label and Meagan's counter (Label3D can't show images, so use a Sprite3D or a small icon row).
-  - **Done when:**
-    - Screenshots show the icons.
-    - A ChatGPT review says they read at phone size.
-    - The text still says what each number is the first time it's seen.
-
-- [ ] **1c. Snow ground texture (safe, ChatGPT).**
-  - **What:** a seamless, tileable snow texture made with the `chatgpt` skill, at 1k with mipmaps, replacing the flat snow colour on the ground plane. Keep it subtle, so the characters and pads still pop.
-  - **Done when:** a screenshot shows no visible seams and a ChatGPT review finds it doesn't hurt readability. Check the FPS too.
 
 - [ ] **2. First-minute hints (safe).**
   - **What:** a new player learns the loop with no text wall.
@@ -50,6 +35,40 @@ Add, reorder or delete items freely; Claude only reads this file at the start of
   - **What:** two-finger pinch on phones and the mouse wheel on desktop.
   - **How:** zoom the camera between `VIEW_HEIGHT` 16 and 34 (default 22). One-finger drag stays the joystick.
   - **Done when:** both zoom inputs work in the running game and the joystick is unaffected. Pinch is checked by injecting two touch events through `runtime eval`.
+
+- [ ] **15. One readout above Meagan (safe, polish).**
+  - **What:** the labels stacked over her (the node's stock, "12/20", "12 Wood") become one compact readout: the bag count, with "MAX" in red when full and the carried resources on one short line under it. From the ChatGPT review of her model (NOTES.md).
+  - **Done when:** a screenshot shows a single readout that never overlaps her head or the furnace labels, and the "+N" pops still show.
+
+- [ ] **16. Smaller building nameplates (safe, polish).**
+  - **What:** world labels are wider than the buildings. Use a smaller nameplate (name and level only), and move upgrade and stock details into the tap sheet. From the ChatGPT review of the Jans (NOTES.md).
+  - **Done when:** at the default zoom no nameplate is wider than its building, and every number is still reachable in a sheet.
+
+- [ ] **17. Fade canopies over Meagan (safe, polish).**
+  - **What:** tree crowns (and roofs, if any) between the camera and Meagan fade to about 35% opacity while she's behind them, and back when she leaves. From the ChatGPT review of her model.
+  - **Done when:** a screenshot of her chopping inside a forest shows her clearly, and FPS stays the same.
+
+- [ ] **18. Wolves spread around their target (safe, polish).**
+  - **What:** attacking wolves take separate slots around whoever they fight (Meagan, a Jan or the furnace), about one wolf-body apart, instead of piling on one spot. From the ChatGPT review of the wolf (NOTES.md).
+  - **How:** engine-side in `combat.gd`, with the slot spacing in `balance.gd` marked `[proto]`. Damage rules don't change.
+  - **Done when:** a test shows three wolves on one target end up in different slots, and a screenshot shows them spread out.
+
+- [ ] **10. Building-complete juice (safe).**
+  - **What:** a confetti and snow burst, a short camera shake and a level-up pop number when a building finishes or levels up. The furnace levelling up gets a bigger flare and a ring of light.
+  - **Done when:** screenshots show it, and FPS stays high.
+
+- [ ] **11. Phone UI audit (safe).**
+  - **What:** every tap target is at least 120 px at 1080 wide, no text is under 30 px, and the HUD, banner, sheet, DEV and sound buttons, joystick and game-over card don't overlap.
+  - **Sizes:** check with screenshots at 1080×1920, and also at 1080×2400 (a tall phone) by changing the window size in `runtime eval`.
+  - **Done when:** whatever needed fixing is fixed, with before and after screenshots described in the report.
+
+- [ ] **12. Performance pass (safe).**
+  - **What:** measure FPS and draw calls with 20 Jans, 4 wolves and a blizzard (use the DEV tools), then fix the biggest costs, e.g. share materials and meshes, pool `Fx.throw` items, and cut the snow particles on low FPS.
+  - **Done when:** the numbers before and after are in the report.
+
+- [ ] **13. Test coverage (safe).**
+  - **What:** add tests for the engine rules that don't have any yet. Read `tests/` and the `scripts/engine/` functions to find them: for example `arrival_interval`, blizzard scheduling edge cases, guards returning to their posts, and caps with a Storehouse.
+  - **Done when:** the new tests pass, and none of the existing ones were weakened.
 
 - [ ] **4. Kitchen (safe).**
   - **What:** a new building from the brief: food eaten per Jan −5% per level, unlocks at Furnace Lv 2, cost and growth from the brief's economy table.
@@ -81,24 +100,29 @@ Add, reorder or delete items freely; Claude only reads this file at the start of
   - **Where:** a toggle on the Jans screen.
   - **Done when:** there are engine tests for the rebalancing.
 
-- [ ] **10. Building-complete juice (safe).**
-  - **What:** a confetti and snow burst, a short camera shake and a level-up pop number when a building finishes or levels up. The furnace levelling up gets a bigger flare and a ring of light.
-  - **Done when:** screenshots show it, and FPS stays high.
+- [x] **1a. Concept sheets for Tripo (safe, ChatGPT).** Done 2026-10-19: see `source_art/concept/README.md`.
+  - **What:** model sheets in one consistent chunky cartoon style, made with the `chatgpt` skill: Meagan (pink parka, white bobble hat, gold scarf), a Jan (orange parka, blue hat, red nose), a wolf, the Furnace and the Lumber Yard.
+  - **Style:** generate Meagan first, then use her as `--ref` for the rest.
+  - **Where:** `source_art/concept/`, with a `README.md` on how to upload each one to Tripo Studio (image to 3D, auto-rig for the characters).
+  - **Done when:** 5 sheets are checked by eye and committed with their prompts. Budget: up to 7 images, counting retries.
 
-- [ ] **11. Phone UI audit (safe).**
-  - **What:** every tap target is at least 120 px at 1080 wide, no text is under 30 px, and the HUD, banner, sheet, DEV and sound buttons, joystick and game-over card don't overlap.
-  - **Sizes:** check with screenshots at 1080×1920, and also at 1080×2400 (a tall phone) by changing the window size in `runtime eval`.
-  - **Done when:** whatever needed fixing is fixed, with before and after screenshots described in the report.
+## On hold: art direction not settled (2026-10-20)
 
-- [ ] **12. Performance pass (safe).**
-  - **What:** measure FPS and draw calls with 20 Jans, 4 wolves and a blizzard (use the DEV tools), then fix the biggest costs, e.g. share materials and meshes, pool `Fx.throw` items, and cut the snow particles on low FPS.
-  - **Done when:** the numbers before and after are in the report.
+The user is keeping the current style for now (see NOTES.md, Art direction). Don't do these until the style is decided.
 
-- [ ] **13. Test coverage (safe).**
-  - **What:** add tests for the engine rules that don't have any yet. Read `tests/` and the `scripts/engine/` functions to find them: for example `arrival_interval`, blizzard scheduling edge cases, guards returning to their posts, and caps with a Storehouse.
-  - **Done when:** the new tests pass, and none of the existing ones were weakened.
+- [ ] **1b. Resource and HUD icons (on hold, ChatGPT).**
+  - **What:** icons for Wood, Food (fish), Materials, Heat (flame), Jans and Bag, made with the `chatgpt` skill, with the white keyed out to transparency.
+  - **Where:** `assets/ui/icons/`, shown at 48–64 px next to the numbers in the HUD's top bar, the Stockpile label and Meagan's counter (Label3D can't show images, so use a Sprite3D or a small icon row).
+  - **Done when:**
+    - Screenshots show the icons.
+    - A ChatGPT review says they read at phone size.
+    - The text still says what each number is the first time it's seen.
 
-- [ ] **14. Low-poly trees (safe, needs Blender open).**
+- [ ] **1c. Snow ground texture (on hold, ChatGPT).**
+  - **What:** a seamless, tileable snow texture made with the `chatgpt` skill, at 1k with mipmaps, replacing the flat snow colour on the ground plane. Keep it subtle, so the characters and pads still pop.
+  - **Done when:** a screenshot shows no visible seams and a ChatGPT review finds it doesn't hurt readability. Check the FPS too.
+
+- [ ] **14. Low-poly trees (on hold, needs Blender open).**
   - **What:** model two or three chunky low-poly pines (under 1,500 triangles each) in Blender through the Blender MCP.
   - **Where:** save them in `source_art/blender/trees.blend`, export them to `assets/models/blender/`, and use them in `NodeView` forests in place of the cone greybox. Keep the stump/crown split, so felling still works.
   - **If Blender isn't reachable,** skip it and note that in the report.
@@ -108,7 +132,7 @@ Add, reorder or delete items freely; Claude only reads this file at the start of
 
 - The `[proto]` numbers in `balance.gd`: walk speed, pad size, furnace feed, warning thresholds, ranges.
 - Score as minutes or as "days survived".
-- Art direction: photoreal Poly Haven props or chunky cartoon Tripo models.
+- Art direction: the user leans to round 3's ink-and-watercolour (`source_art/direction/board.html`), but the style stays as it is for now. The ink look (`InkLook`) stays off.
 - Research Hut, Knowledge and the Research tree: big, and its place in the hypercasual loop needs a call.
 - Caravans and the Signal Beacon, Expedition Post and scavenging, guard kits and gear, bears, Jan variants and the Collection screen, Prestige: all big systems to plan with you first.
 - ElevenLabs music and sound: needs an API key.

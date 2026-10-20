@@ -22,6 +22,7 @@ These rules override the "plan first, show the plan, ask before guessing" rules 
    - Remove any test values written to `user://` (best time, saves).
    - **ChatGPT review (the `chatgpt` skill):** for any visible change, screenshot before and after, then run `python tools/chatgpt/chatgpt.py review before.png after.png --focus "<the item>"`. Apply the points that are in scope, and list the rest in the report under "ChatGPT feedback".
 5. **Commit and push.** One commit per item (or per clear step of a big item), with a clear message and the Co-Authored-By line. Push with `git push origin main`.
+   - Stage files by name (`git add <files>`), never `git add -A` or `git add .`. The user may have uncommitted work of their own (for example `assets/models/tripo/Meagan.glb`), which stays out of AFK commits.
 6. **Record it:**
    - Generated assets are committed with their `<name>.prompt.txt`, and only after you've looked at them with the Read tool.
    - Tick the item in `BACKLOG.md`.
@@ -46,3 +47,4 @@ These rules override the "plan first, show the plan, ask before guessing" rules 
 - Go over the ChatGPT budget: **8 images and 25 reviews or asks per run**, counted in `tools/chatgpt/calls.log` from the run's start time. ChatGPT through the Codex bridge uses the user's ChatGPT plan, which is allowed within this budget.
 - Touch anything outside `C:\Claude Code\Frostbite2`. The Blender MCP may only change the Frostbite2 source `.blend` files.
 - Change `.claude/settings.json`, permissions or the user's global settings.
+- Change the art style: no new art direction, palettes, textures or models unless an item says so, and the ink look (`InkLook`) stays off. Items on hold in BACKLOG.md stay on hold.
