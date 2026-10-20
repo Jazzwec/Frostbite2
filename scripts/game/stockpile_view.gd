@@ -78,7 +78,8 @@ func refresh(s: GameState) -> void:
 	var d := s.meagan_pos.distance_to(MapData.stockpile_pad(s, index))
 	_pad.visible = d <= SiteView.PAD_SHOW
 	# Hidden while she empties her bag here, so it doesn't compete with the deposit (AFK V5).
-	_pad_label.visible = focused and s.meagan_activity != "store"
+	# Hidden while she empties her bag here or wolves are about, so it doesn't cover the action.
+	_pad_label.visible = focused and s.meagan_activity != "store" and s.wolves.is_empty()
 	if focused:
 		# The level is shared by every stockpile; the sheet says so (Astra review, 2026-10-20).
 		_pad_label.text = "Stockpile · Lv %d" % s.stockpile_level

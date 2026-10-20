@@ -59,6 +59,18 @@ const CLIPS := {
 			{"t": 0.75, "arm_r": Vector3(-4, 0, 10), "arm_l": Vector3(-4, 0, 10), "rise": 0.04, "lean": 9.0, "head": -3.0},
 		],
 	},
+	# A Jan splitting logs on his stump (AFK N8, Astra's second review): both hands raise the axe
+	# over his head (0.25 s anticipation), bring it down onto the middle of the stump in 0.1 s,
+	# hold (the rig's hit-stop) and recover.
+	"split": {
+		"length": 0.9, "loop": true, "tool": "axe", "impact": 0.42,
+		"keys": [
+			{"t": 0.0, "arm_r": Vector3(-70, 0, -16), "arm_l": Vector3(-70, 0, -16), "lean": 6.0},
+			{"t": 0.3, "arm_r": Vector3(-165, 0, -10), "arm_l": Vector3(-165, 0, -10), "lean": -8.0, "rise": 0.04, "head": -8.0, "ease": "out"},
+			{"t": 0.42, "arm_r": Vector3(-52, 0, -16), "arm_l": Vector3(-52, 0, -16), "lean": 18.0, "rise": -0.08, "head": 10.0, "ease": "in"},
+			{"t": 0.7, "arm_r": Vector3(-58, 0, -16), "arm_l": Vector3(-58, 0, -16), "lean": 14.0, "rise": -0.05, "head": 6.0},
+		],
+	},
 	# Felling: two hands on the axe, wound back over the shoulder, then swung flat into the trunk.
 	# A flat swing reads as a wide arc from the camera above.
 	"chop": {
@@ -78,7 +90,7 @@ const CLIPS := {
 			{"t": 0.2, "arm_r": Vector3(-49, 0, 6), "arm_l": Vector3(-40, 0, -10), "rise": -0.32, "lean": 14.0, "head": 10.0},
 			{"t": 0.4, "arm_r": Vector3(-56, 0, 6), "arm_l": Vector3(-40, 0, -10), "rise": -0.32, "lean": 14.0, "head": 10.0},
 			{"t": 0.6, "arm_r": Vector3(-50, 0, 6), "arm_l": Vector3(-40, 0, -10), "rise": -0.32, "lean": 14.0, "head": 12.0},
-			{"t": 0.72, "arm_r": Vector3(-46, 0, 6), "arm_l": Vector3(-40, 0, -10), "rise": -0.34, "lean": 16.0, "head": 14.0},
+			{"t": 0.72, "arm_r": Vector3(-34, 0, 6), "arm_l": Vector3(-34, 0, -10), "rise": -0.34, "lean": 18.0, "head": 16.0},
 			{"t": 0.8, "arm_r": Vector3(-125, 0, 6), "arm_l": Vector3(-70, 0, 10), "rise": -0.18, "lean": -8.0, "head": -10.0, "ease": "in"},
 			{"t": 0.9, "arm_r": Vector3(-115, 0, 6), "arm_l": Vector3(-60, 0, 10), "rise": -0.2, "lean": -4.0, "head": -6.0},
 		],
@@ -91,7 +103,7 @@ const CLIPS := {
 			{"t": 0.0, "arm_r": Vector3(-55, 0, 6), "arm_l": Vector3(-40, 0, -10), "rise": -0.5, "lean": 8.0, "head": 10.0, "leg_l": 72.0, "leg_r": 72.0},
 			{"t": 0.3, "arm_r": Vector3(-49, 0, 6), "arm_l": Vector3(-40, 0, -10), "rise": -0.5, "lean": 8.0, "head": 12.0, "leg_l": 72.0, "leg_r": 72.0},
 			{"t": 0.6, "arm_r": Vector3(-53, 0, 6), "arm_l": Vector3(-40, 0, -10), "rise": -0.5, "lean": 10.0, "head": 12.0, "leg_l": 72.0, "leg_r": 72.0},
-			{"t": 0.72, "arm_r": Vector3(-46, 0, 6), "arm_l": Vector3(-40, 0, -10), "rise": -0.5, "lean": 12.0, "head": 14.0, "leg_l": 72.0, "leg_r": 72.0},
+			{"t": 0.72, "arm_r": Vector3(-34, 0, 6), "arm_l": Vector3(-34, 0, -10), "rise": -0.5, "lean": 14.0, "head": 16.0, "leg_l": 72.0, "leg_r": 72.0},
 			{"t": 0.8, "arm_r": Vector3(-120, 0, 6), "arm_l": Vector3(-68, 0, 10), "rise": -0.46, "lean": -6.0, "head": -8.0, "leg_l": 70.0, "leg_r": 70.0, "ease": "in"},
 			{"t": 0.9, "arm_r": Vector3(-110, 0, 6), "arm_l": Vector3(-58, 0, 10), "rise": -0.48, "lean": -2.0, "head": -4.0, "leg_l": 72.0, "leg_r": 72.0},
 		],

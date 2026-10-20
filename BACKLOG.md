@@ -222,7 +222,8 @@ Asked by the user on 2026-10-20: Astra's review of the animations (`source_art/d
 - [x] **N4. A walk with weight (safe).** Done 2026-10-20 (AFK). More bounce and lean in the walk, a heavier, slower walk while her bag is nearly full, and her carried stack lags and sways a few degrees behind her body.
 - [x] **N5. Fishing that reads (safe).** Done 2026-10-20 (AFK). The float bobs while waiting and dips at the bite, the rod lifts and she leans back, and there's one "+N" per catch instead of one per piece.
 - [x] **N6. Unloading and paying that read (safe).** Done 2026-10-20 (AFK). A 5° dip of her body as each piece leaves her stack, and a 6% pulse of the building or stockpile as one lands.
-- [x] **N7. Clear overlays (safe).** Done 2026-10-20 (AFK). The bag readout is 25% smaller and sits above her highest head position. Gather pops sit to the side, not over her. The raid text over wolves is smaller and higher.
+- [x] **N7. Clear overlays (safe).** Done 2026-10-20 (AFK).
+- [x] **N8. From Astra's second review (safe).** Done 2026-10-20 (AFK). The Jans' overhead `split` onto the stump, a harder rod dip at the bite, a lower stack that sways less, and no stockpile label during fights. The bag readout is 25% smaller and sits above her highest head position. Gather pops sit to the side, not over her. The raid text over wolves is smaller and higher.
 
 ## Needs you (Claude won't touch these unattended)
 

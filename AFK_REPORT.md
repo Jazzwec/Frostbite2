@@ -48,6 +48,33 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 152 onwards.
   - Each one landing pulses the stockpile (6%) or knocks the building she's paying.
 - **Check in the game:** walk with a full bag, then empty it at a stockpile and pay a pad.
 
+### N8. From Astra's second review
+The second review (`source_art/direction/anim_v1/review_2.md`) scored every clip up: walk 5→6, chop 5→6, fish 4→5, unload 3→4, haul 3→4, trot 5→6, fight 2→4, Jan chopping 5, Jan seated fishing 3.
+
+- **Applied:**
+  - **Splitting:** Jans split logs with an overhead `split` clip. They raise the axe over their head for 0.25 s, bring it down onto the middle of the stump in 0.1 s, then the hit-stop and recovery. Chips and sound come at the stump.
+  - **Fishing:** the rod dips harder at the bite before the lift, for her and the Jans.
+  - **Her stack:** lower (7 pieces at 0.72 scale, about head height) and sways at most 4°.
+  - **Fights:** the stockpile label hides while wolves are about.
+  - **A bug from V8:** the Jans' seated fishing clip had lost its splash, sound and thrown fish, because the impact handler only knew the old clip name.
+- **Not done (bigger or design calls):**
+  - one attacking wolf at a time, with the others waiting a body length back in lanes, and the victim recoiling;
+  - each piece going back → hands → pile, with Meagan keeping the front delivery spot;
+  - Jan's seated knees showing past his coat (the rig has no knees);
+  - a shoulder strap on her stack;
+  - showing her axe's contact patch on the trunk.
+
+### Closing summary (20:46)
+- **All items done:** N1–N8, one commit each (N3/N5/N7 and N4/N6 shared one), all pushed. Tests: 140, all passing.
+- **ChatGPT:** 2 reviews (the first look and a second look).
+- **Paid credits:** none.
+- **`Meagan.glb`:** never staged.
+- **Web sources for the best practices:**
+  - skills.cat "animation-principles / game-development" (hit-stop of 2–5 frames, player-first response, follow-through, squash and stretch);
+  - bugnet.io "animation basics that make your game feel alive";
+  - Cornell CS3152 design lab (walk poses, secondary motion);
+  - the Princeton/Adobe secondary-motion paper (Willett 2017).
+
 ## Run 2026-10-20, 19:27 → 22:00 (visual polish)
 
 ChatGPT budget: counted from `tools/chatgpt/calls.log` line 145 onwards (8 images, 25 reviews).

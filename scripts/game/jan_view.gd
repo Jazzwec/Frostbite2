@@ -19,7 +19,7 @@ static var _speaker: JanView
 ## How far a chatter bubble keeps from the screen's edge, in pixels.
 const BUBBLE_MARGIN := 24.0
 const PARKA := Color(0.21, 0.4, 0.42)  # deep teal (#35666B, docs/art-direction.md)
-const JOB_CLIPS := {"chop": "chop", "hunt": "fish_sit", "build": "build"}
+const JOB_CLIPS := {"chop": "split", "hunt": "fish_sit", "build": "build"}
 ## What a resting Jan does, in turn (AFK V8), changing every REST_CHANGE seconds.
 const REST_CLIPS := ["warm_hands", "stamp", "look_round"]
 const REST_CHANGE := 6.0
@@ -307,7 +307,7 @@ func _place_station(job: String) -> void:
 
 
 ## Jans' work sounds, a little quieter than Meagan's.
-const WORK_SOUNDS := {"chop": "chop", "fish": "splash", "build": "hammer", "guard_attack": "swing_hit"}
+const WORK_SOUNDS := {"chop": "chop", "split": "chop", "fish_sit": "splash", "fish": "splash", "build": "hammer", "guard_attack": "swing_hit"}
 
 
 func _on_impact(clip: String) -> void:
@@ -316,9 +316,9 @@ func _on_impact(clip: String) -> void:
 	if _station == null and clip != "guard_attack":
 		return
 	match clip:
-		"chop":
+		"chop", "split":
 			Fx.burst("chips", _station.global_position + Vector3(0, 0.5, 0))
-		"fish":
+		"fish", "fish_sit":
 			Fx.burst("splash", _station.global_position)
 			Fx.throw("fish", _station.global_position, global_position + Vector3(0, 0.2, -1.4), 0.5, 1.4)
 		"build":

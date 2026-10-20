@@ -5,13 +5,13 @@ extends Node3D
 ## each with a "+N" pop.
 
 ## At most this many pieces, so a full stack stays below her head.
-const MAX_PIECES := 8
+const MAX_PIECES := 7
 ## Seconds between pieces joining or leaving, for the one-by-one feel.
 const STEP_TIME := 0.07
 const ORDER := ["wood", "food", "materials"]
 const ITEMS := {"wood": "log", "food": "fish", "materials": "materials"}
 ## Pieces are drawn at this size, so a full stack doesn't hide the chibi model behind it.
-const PIECE_SCALE := 0.8
+const PIECE_SCALE := 0.72
 ## How much stack height each item takes, at that size.
 const HEIGHTS := {"wood": 0.18, "food": 0.13, "materials": 0.19}
 const COLORS := {"wood": Color(1.0, 0.85, 0.6), "food": Color(1.0, 0.7, 0.65), "materials": Color(0.8, 0.85, 0.95)}
@@ -147,6 +147,6 @@ func _sway(moving: float, delta: float) -> void:
 	if _last_yaw != INF and delta > 0.0:
 		turn = wrapf(yaw - _last_yaw, -PI, PI) / delta
 	_last_yaw = yaw
-	var want := Vector2(clampf(-turn * 0.05, -0.12, 0.12), -0.06 * moving)
+	var want := Vector2(clampf(-turn * 0.04, -0.07, 0.07), -0.05 * moving)
 	_tilt = _tilt.lerp(want, minf(1.0, 9.0 * delta))
 	rotation = Vector3(_tilt.y, 0.0, _tilt.x)
