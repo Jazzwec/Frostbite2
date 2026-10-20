@@ -20,7 +20,7 @@ const SNOW := Color(0.94, 0.96, 1.0)
 ## The build pad's look: its disc colour by state, and the progress ring.
 const PAD_RADIUS_SHOWN := 1.1
 const PAD_COLORS := {
-	"plot": Color(0.72, 0.8, 0.92, 0.3), "idle": Color(0.35, 0.6, 0.95, 0.5),
+	"plot": Color(0.72, 0.8, 0.92, 0.3), "idle": Color(0.5, 0.66, 0.88, 0.35),
 	"paying": Color(1.0, 0.78, 0.3, 0.55), "maxed": Color(0.6, 0.6, 0.65, 0.35),
 }
 const RING_COLOR := Color(1.0, 0.92, 0.5)
@@ -41,7 +41,7 @@ var _flare := 0.0
 ## A working Kitchen puffs steam from its chimney every so often.
 const STEAM_EVERY := 2.0
 ## Where the Hot Springs' pool sits, beside the hut and clear of the build pad.
-const HOT_SPRINGS_POOL := Vector3(2.5, 0, 0.7)
+const HOT_SPRINGS_POOL := Vector3(2.75, 0, 0.7)
 ## On the furnace model (assets/models/blender/furnace.glb): its fire mouth and chimney top.
 const FURNACE_MOUTH := Vector3(0.23, 0.82, 0.64)
 const FURNACE_CHIMNEY := Vector3(0.29, 4.37, 0.0)
@@ -113,7 +113,7 @@ func refresh(s: GameState) -> void:
 			# The springs steam all the time; the Kitchen's chimney now and then.
 			_steam_in = STEAM_EVERY if site.building == "kitchen" else STEAM_EVERY / 2.0
 			if site.building == "kitchen":
-				Fx.burst("steam", global_position + Vector3(-1.0, 1.6 + 0.08 * site.level + 1.6, -0.6))
+				Fx.burst("steam", global_position + _chimney)
 			else:
 				Fx.burst("steam", global_position + HOT_SPRINGS_POOL + Vector3(0.3, 0.3, 0.2))
 				Fx.burst("steam", global_position + HOT_SPRINGS_POOL + Vector3(-0.4, 0.3, -0.3))
@@ -233,9 +233,27 @@ func _add_drifts() -> void:
 		_shapes.add_child(drift)
 
 
+## Where the Kitchen model's chimney top is (tools/blender/house_kit.py, after its centring), for
+## the steam.
+const KITCHEN_CHIMNEY := Vector3(-0.93, 4.9, -0.89)
+## Where the Kitchen's steam rises from: its model's chimney, or the greybox one.
+var _chimney := Vector3.ZERO
+
+
 func _build_house(b: String, level: int) -> void:
+	var model := Props.make("house_" + b)
+	if model:
+		# The ink_v3 house kit, painted with the palette's vertex colours; the Hot Springs' pool
+		# stays in code (it's water).
+		Props.use_vertex_colours(model)
+		_shapes.add_child(model)
+		_chimney = KITCHEN_CHIMNEY
+		if b == "hot_springs":
+			_add_pool()
+		return
 	var look: Dictionary = LOOKS[b]
 	var h := 1.6 + 0.08 * level
+	_chimney = Vector3(-1.0, h + 1.6, -0.6)
 	_shapes.add_child(Shapes.box(Vector3(3.4, h, 3.0), look.wall, Vector3(0, h / 2.0, 0)))
 	_shapes.add_child(Shapes.roof(3.7, 3.3, 1.1, look.roof, Vector3(0, h + 0.55, 0)))
 	_shapes.add_child(Shapes.roof(3.75, 0.9, 0.25, SNOW, Vector3(0, h + 1.02, 0)))
@@ -281,16 +299,20 @@ func _build_house(b: String, level: int) -> void:
 			_shapes.add_child(Shapes.cylinder(0.04, 0.9, wood, Vector3(1.1, top + 2.2, 1.2)))
 			_shapes.add_child(Shapes.box(Vector3(0.75, 0.42, 0.04), Color(0.95, 0.15, 0.15), Vector3(1.5, top + 2.4, 1.2)))
 		"hot_springs":
-			# A steaming pool ringed with stones beside the bath house, clear of the build pad.
-			var pool := HOT_SPRINGS_POOL
-			_shapes.add_child(Shapes.cylinder(1.4, 0.14, Color(0.8, 0.8, 0.78), pool + Vector3(0, 0.07, 0)))
-			_shapes.add_child(Shapes.cylinder(1.15, 0.16, Color(0.1, 0.62, 0.72), pool + Vector3(0, 0.09, 0), -1.0, 0.35))
-			for i in 10:
-				var a := TAU * i / 10.0
-				_shapes.add_child(Shapes.sphere(0.27, Color(0.86, 0.85, 0.82), pool + Vector3(cos(a) * 1.35, 0.16, sin(a) * 1.35)))
+			_add_pool()
 		"barracks":
 			_shapes.add_child(Shapes.cylinder(0.04, 2.6, Color(0.4, 0.3, 0.2), Vector3(1.5, 1.3, 1.7)))
 			_shapes.add_child(Shapes.box(Vector3(0.7, 0.45, 0.04), Color(0.8, 0.2, 0.2), Vector3(1.85, 2.3, 1.7)))
+
+
+## A steaming pool ringed with stones beside the bath house, clear of the build pad.
+func _add_pool() -> void:
+	var pool := HOT_SPRINGS_POOL
+	_shapes.add_child(Shapes.cylinder(1.4, 0.14, Color(0.56, 0.55, 0.53), pool + Vector3(0, 0.07, 0)))
+	_shapes.add_child(Shapes.cylinder(1.15, 0.16, Color(0.37, 0.54, 0.53), pool + Vector3(0, 0.09, 0), -1.0, 0.35))
+	for i in 10:
+		var a := TAU * i / 10.0
+		_shapes.add_child(Shapes.sphere(0.27, Color(0.56, 0.55, 0.53), pool + Vector3(cos(a) * 1.35, 0.16, sin(a) * 1.35)))
 
 
 func _build_construction() -> void:

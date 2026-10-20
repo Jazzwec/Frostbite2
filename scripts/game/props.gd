@@ -12,6 +12,17 @@ const PATHS := {
 	"pine_b": "res://assets/models/blender/pine_b.glb",
 	"pine_c": "res://assets/models/blender/pine_c.glb",
 	"furnace": "res://assets/models/blender/furnace.glb",
+	# The ink_v3 house kit (tools/blender/house_kit.py): one model per building, painted in the
+	# palette's vertex colours.
+	"house_lumber_yard": "res://assets/models/blender/house_lumber_yard.glb",
+	"house_hunting_lodge": "res://assets/models/blender/house_hunting_lodge.glb",
+	"house_storehouse": "res://assets/models/blender/house_storehouse.glb",
+	"house_workshop": "res://assets/models/blender/house_workshop.glb",
+	"house_barracks": "res://assets/models/blender/house_barracks.glb",
+	"house_bunkhouse": "res://assets/models/blender/house_bunkhouse.glb",
+	"house_kitchen": "res://assets/models/blender/house_kitchen.glb",
+	"house_watchtower": "res://assets/models/blender/house_watchtower.glb",
+	"house_hot_springs": "res://assets/models/blender/house_hot_springs.glb",
 }
 ## The pines' own height in metres (base of the trunk to the tip), to scale them to a tree's height.
 const PINE_HEIGHTS := {"pine_a": 3.45, "pine_b": 3.55, "pine_c": 2.55}

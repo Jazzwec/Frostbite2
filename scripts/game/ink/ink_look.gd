@@ -169,6 +169,9 @@ func _ink(m: Material) -> ShaderMaterial:
 	if base.albedo_texture:
 		ink.set_shader_parameter("albedo_tex", base.albedo_texture)
 	ink.set_shader_parameter("use_vertex_color", base.vertex_color_use_as_albedo)
+	# Vertex-painted models (the house kit, the pines) carry their own painted snow.
+	if base.vertex_color_use_as_albedo:
+		ink.set_shader_parameter("snow_caps", 0.0)
 	if base.emission_enabled:
 		ink.set_shader_parameter("emission_color", base.emission)
 		# Glows stay paint, not light: capped so the fire reads orange instead of clipping to yellow.

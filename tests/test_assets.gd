@@ -16,6 +16,16 @@ const BUDGETS := {
 	"boulder": [2000, 0.3, 2.0],
 	"crate": [2000, 0.2, 1.5],
 	"log": [2000, 0.2, 1.5],
+	# The ink_v3 house kit (tools/blender/house_kit.py).
+	"house_lumber_yard": [3000, 2.5, 5.0],
+	"house_hunting_lodge": [3000, 2.5, 5.0],
+	"house_storehouse": [3000, 2.5, 5.0],
+	"house_workshop": [3000, 2.5, 5.0],
+	"house_barracks": [3000, 2.5, 5.0],
+	"house_bunkhouse": [3000, 2.5, 5.0],
+	"house_kitchen": [3000, 2.5, 5.0],
+	"house_watchtower": [3000, 6.0, 9.0],
+	"house_hot_springs": [3000, 2.5, 5.0],
 }
 ## Rigged characters posed by ModelRig: they need its bones under Mixamo names (tools/blender/rig_names.py
 ## renames a Meshy rig's).
