@@ -62,7 +62,7 @@ Polish and quality first, then new content.
   - **Sizes:** check with screenshots at 1080×1920, and also at 1080×2400 (a tall phone) by changing the window size in `runtime eval`.
   - **Done when:** whatever needed fixing is fixed, with before and after screenshots described in the report.
 
-- [ ] **12. Performance pass (safe).**
+- [x] **12. Performance pass (safe).** Done 2026-10-20 (AFK).
   - **What:** measure FPS and draw calls with 20 Jans, 4 wolves and a blizzard (use the DEV tools), then fix the biggest costs, e.g. share materials and meshes, pool `Fx.throw` items, and cut the snow particles on low FPS.
   - **Done when:** the numbers before and after are in the report.
 

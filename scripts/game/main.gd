@@ -26,6 +26,11 @@ var _hud: Hud
 var _snow: GPUParticles3D
 var _snow_mat: ParticleProcessMaterial
 var _storm := 0.0
+## Below LOW_FPS for LOW_FPS_TIME seconds the snowfall thins out (and comes back once it's fine).
+const LOW_FPS := 40.0
+const LOW_FPS_TIME := 3.0
+var _low_fps_for := 0.0
+var _snow_quality := 1.0
 ## What Meagan last worked at: {activity, target}. Hit moments use it after the tick has moved on.
 var _work := {}
 var _work_age := 0.0
@@ -106,7 +111,9 @@ func _process(delta: float) -> void:
 		_nav.bake_navigation_mesh(true)
 	var s := Game.engine.state
 	_storm = move_toward(_storm, 1.0 if s.blizzard_active else 0.0, delta * 0.5)
-	_snow.amount_ratio = lerpf(0.3, 1.0, _storm)
+	_low_fps_for = _low_fps_for + delta if Engine.get_frames_per_second() < LOW_FPS else 0.0
+	_snow_quality = move_toward(_snow_quality, 0.4 if _low_fps_for > LOW_FPS_TIME else 1.0, delta * 0.2)
+	_snow.amount_ratio = lerpf(0.3, 1.0, _storm) * _snow_quality
 	_snow_mat.gravity = Vector3(lerpf(0.0, 9.0, _storm), -3.0 - 4.0 * _storm, 0.0)
 	# The camera sits about 40 m from the ground, so even light fog builds up fast.
 	_env.fog_density = lerpf(0.002, 0.011, _storm)
@@ -150,6 +157,10 @@ func _build_environment() -> void:
 	_sun.light_color = Color(1.0, 0.96, 0.9)
 	_sun.light_energy = 0.8
 	_sun.shadow_enabled = true
+	# The camera only ever shows about 30 m of ground: one shadow split over 45 m instead of the
+	# default four over 100 m (about 10% of frame time on desktop, more on a phone).
+	_sun.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
+	_sun.directional_shadow_max_distance = 45.0
 	add_child(_sun)
 
 

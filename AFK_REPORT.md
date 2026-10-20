@@ -149,3 +149,28 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.
   - The faded Music button is deliberate: it shows music is off.
   - Your call: a dedicated chatter bubble kept 48 px inside the screen edges (Jans' chatter Label3Ds clip at the screen edge when a Jan stands near it), and larger, brighter game-over stats.
 - **Felt wrong:** world labels near the screen edge (chatter, nameplates) get cut off. They're world-space, so this audit doesn't cover them.
+
+### 12. Performance pass
+- **Commits:** "Performance: skip posing off-screen rigs, cheaper sun shadows, snow guard".
+- **Test scene:** Furnace Lv 5, 20 Jans at work, 4 wolves (hit points raised so they last), a blizzard, Meagan by the furnace, vsync off, on this desktop (RTX 3060 Ti). Averages of three samples:
+
+  | | FPS | draw calls | objects | triangles |
+  |---|---|---|---|---|
+  | Before | 334–374 | 232–299 | 377–437 | 167–184k |
+  | Off-screen rigs not posed | 395–472 | 227–294 | 372–432 | 177–188k |
+  | + single-split sun shadows | 474–491 | 319–321 | 460–465 | 148–163k |
+
+  About +35% overall.
+- **How the costs were found:**
+  - Switching groups off showed the 38 character rigs were the biggest cost: 393 → 807 FPS with them off.
+  - Next came `main.gd`'s per-frame refreshes (→ 1,175) and the HUD (→ 1,419).
+  - Sun shadows were about 10%; the blizzard snow, fog and furnace light were negligible on this GPU.
+  - The engine tick costs 35 µs.
+- **What changed:**
+  - Off-screen characters skip bone posing. Their clips still keep time and fire impacts, so work sounds and timing are unchanged.
+  - The sun casts one orthogonal shadow split over 45 m instead of four splits over 100 m. The camera never shows more than about 30 m.
+  - The snowfall thins to 40% if the game stays under 40 FPS for 3 s, and comes back when it recovers.
+- **Not done:**
+  - Pooling `Fx.throw` items: they're short-lived and didn't show up in the measurements.
+  - Godot's `TIME_PROCESS` monitor proved too noisy to use; FPS was the reliable signal.
+- **For the phone port:** check on a real device. The CPU side (rigs, per-frame label refreshes) is the likely limit there, not the GPU.

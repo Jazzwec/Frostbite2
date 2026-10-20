@@ -41,12 +41,18 @@ var _once := ""
 var _after_once := "idle"
 var _after_once_speed := 1.0
 var _time := 0.0
+## Whether the character is on screen: off it, the clip keeps time (and its impacts still fire)
+## but the body isn't posed, which is most of a rig's cost.
+var _screen: VisibleOnScreenNotifier3D
 
 static var _full_keys := {}  # clip -> Array of complete poses
 
 
 ## Subclasses call this once their body, sockets and `body`/`head` exist.
 func _finish_setup() -> void:
+	_screen = VisibleOnScreenNotifier3D.new()
+	_screen.aabb = AABB(Vector3(-1.2, 0, -1.2), Vector3(2.4, 2.8, 2.4))
+	add_child(_screen)
 	_line = Shapes.cylinder(0.008, 1.0, Color(0.15, 0.15, 0.18))
 	_line.top_level = true
 	_line.visible = false
@@ -142,6 +148,8 @@ func _process(delta: float) -> void:
 			_phase = 1.0
 
 	_blend = minf(1.0, _blend + delta / Clips.BLEND)
+	if not _screen.is_on_screen():
+		return
 	var target := _sample(clip, _phase)
 	var w := smoothstep(0.0, 1.0, _blend)
 	for joint in target:
