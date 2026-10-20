@@ -76,7 +76,6 @@ func _sync_jans(s: GameState, delta: float) -> void:
 	var nav := get_world_3d().navigation_map
 	var slots := {}
 	var guards := 0
-	var caps := Economy.caps(s)
 	var speed := Economy.output_mult(s)
 	var cold := Economy.is_cold(s)
 	_guard_foes.clear()
@@ -96,18 +95,22 @@ func _sync_jans(s: GameState, delta: float) -> void:
 				_guard_foes[view] = foe.id
 			view.guard(jan.hp / Balance.GUARD_HP, jan.ko, Vector3(foe.pos.x, 0, foe.pos.y) if not foe.is_empty() else Vector3.INF)
 			continue
-		# Workers stand at their own producer, idle Jans round the furnace.
+		# Workers stand at their own producer and haul their work to a stockpile (the engine's
+		# CarryRules decides when, agreed 2026-10-20); idle Jans stand round the furnace.
 		var site: int = jan.get("site", -1)
 		var key: Variant = site if site >= 0 else job
 		var slot: int = slots.get(key, 0)
 		slots[key] = slot + 1
+		var trip: String = jan.get("trip", "")
+		if site >= 0 and trip == "out":
+			# Spread out a little on the pad, so a crowd of haulers doesn't stand in one spot.
+			var pad := MapData.stockpile_pad(s, jan.dest) + Vector2(((jan.id % 3) - 1) * 0.7, 0.4)
+			view.haul(Balance.JOBS[job].resource)
+			view.go_to(Vector3(pad.x, 0, pad.y), nav)
+			continue
+		view.haul("")
 		view.go_to(_post(s, site, slot), nav)
-		# He works while his producer produces and its pile has room; otherwise he warms his hands.
-		var working := site >= 0 and Economy.site_rate(s, site) > 0.0
-		if working:
-			var res: String = Balance.JOBS[job].resource
-			working = s.piles[res] < caps[res] - 0.01
-		view.work(job if working else "", speed)
+		view.work(job if jan.get("working", false) else "", speed)
 	var alive := {}
 	for jan in s.jans:
 		alive[jan.id] = true
@@ -131,12 +134,8 @@ func _post(s: GameState, site: int, slot: int) -> Vector3:
 		var angle := 0.7 + slot * 0.9
 		var r := 4.5 + (slot / 7) * 1.2
 		return Vector3(cos(angle) * r, 0, sin(angle) * r)
-	# Either side of the building's pad, leaving the pad itself clear for Meagan.
-	var base := MapData.site_pos(s, site)
-	var side := -1.0 if slot % 2 == 0 else 1.0
-	var col := (slot / 2) % 2
-	var row := slot / 4
-	return Vector3(base.x + side * (2.2 + col * 1.3), 0, base.y + 2.4 + row * 1.1)
+	var p := MapData.jan_post(s, site, slot)
+	return Vector3(p.x, 0, p.y)
 
 
 func _sync_wolves(s: GameState, delta: float) -> void:

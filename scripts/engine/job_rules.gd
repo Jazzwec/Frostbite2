@@ -11,12 +11,14 @@ static func assign(s: GameState, jan: Dictionary, job: String) -> bool:
 	if job == "" or job == "guard":
 		jan.job = job
 		jan.site = -1
+		CarryRules.reset(jan)
 		return true
 	var site := Economy.free_site(s, job)
 	if site < 0:
 		return false
 	jan.job = job
 	jan.site = site
+	CarryRules.reset(jan)
 	return true
 
 
@@ -27,6 +29,7 @@ static func assign_to_site(s: GameState, jan: Dictionary, i: int) -> bool:
 		return false
 	jan.job = job
 	jan.site = i
+	CarryRules.reset(jan)
 	return true
 
 

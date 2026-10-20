@@ -79,7 +79,8 @@ var upgrades := {}
 var node_defs: Array = []
 var nodes: Array = []
 
-## Rescued Jans: {id, job ("" = idle), hp, ko, pos: Vector2}. hp, ko and pos matter for guards.
+## Rescued Jans: {id, job ("" = idle), site, hp, ko, pos: Vector2}, plus load, trip, dest and
+## working for producer Jans (CarryRules). hp and ko matter for guards; pos for guards and haulers.
 var jans: Array = []
 ## Where frozen Jans wait, and where wolf packs come in from.
 var arrival_spots: Array = []

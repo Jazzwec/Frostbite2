@@ -10,14 +10,18 @@ func _keep_warm(e: GameEngine) -> void:
 	e.state.fuel = 1000.0
 
 
+## Jans haul their work (agreed 2026-10-20): it reaches the store a load at a time.
 func test_jans_produce_into_piles() -> void:
 	var e := engine()
 	put_meagan(e, Vector2(0, 30))
 	add_jan(e, "chop")
 	e.state.piles.food = 100.0
-	_keep_warm(e)
-	e.skip(10.0)
-	check_near(e.state.piles.wood, 10.0, 0.2, "1 Wood/s")
+	for k in 40:
+		_keep_warm(e)
+		e.skip(1.0)
+	var wood: float = e.state.piles.wood
+	check(wood >= 9.9 and wood < 40.0, "loads of 5 Wood delivered, slower than 1 Wood/s (%.0f)" % wood)
+	check_near(wood, roundf(wood / 5.0) * 5.0, 0.01, "whole loads")
 
 
 func test_at_most_three_waiting() -> void:

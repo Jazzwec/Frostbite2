@@ -784,6 +784,12 @@ func _on_event(ev: Dictionary) -> void:
 			_meagan.play_once("warm", _v3(ev.pos))
 		"tile_opened":
 			_open_tile(ev)
+		"jan_delivered":
+			# A Jan's load lands in the store: a "+N" at the stockpile and its icon up into the top bar.
+			var drop: Vector3 = _stockpiles[ev.stockpile].drop_point()
+			Fx.pop("+%d" % roundi(ev.amount), drop + Vector3(0, 0.4, 0), CarryStack.COLORS[ev.resource])
+			Audio.play("drop", drop, 1.0, -6.0)
+			_hud.fly_to_counter(ev.resource, func() -> Vector2: return _rig.camera.unproject_position(drop))
 		"chest_opened":
 			Audio.play("build_done", _v3(ev.pos))
 			# A short reward burst out of the lid, so opening reads at a glance (review phase D/E).

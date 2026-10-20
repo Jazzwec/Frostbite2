@@ -8,8 +8,8 @@ extends RefCounted
 ## producer; 5: chests, boons and gear; 6: camps, the frontier and dens; 7: no bag, gathering
 ## goes to the Stockpile; 8: no Sled Shed plot; 9: the tighter town layout; 10: global building
 ## levels, upgrades in `upgrades`; 11: a stockpile per opened tile, the Stockpile's level; 12: the
-## bag is back (2026-10-20).
-const SAVE_VERSION := 12
+## bag is back; 13: Jans haul their work (2026-10-20).
+const SAVE_VERSION := 13
 
 var state: GameState
 var rng := RandomNumberGenerator.new()
@@ -139,14 +139,9 @@ func _auto_assign(dt: float) -> void:
 		_events.append({"type": "jobs_changed"})
 
 
-## Jans' output goes into the Stockpile. [agreed 2026-10-19]
+## Jans' output reaches the store when they carry it to a stockpile. [agreed 2026-10-20]
 func _produce(dt: float) -> void:
-	var caps := Economy.caps(state)
-	for job in ["chop", "hunt", "build"]:
-		var res: String = Balance.JOBS[job].resource
-		var rate := Economy.job_rate(state, job)
-		if rate > 0.0:
-			state.piles[res] = minf(caps[res], state.piles[res] + rate * dt)
+	CarryRules.haul(state, dt, _events)
 
 
 ## The furnace tops itself up from the Stockpile's Wood. [agreed 2026-10-19]

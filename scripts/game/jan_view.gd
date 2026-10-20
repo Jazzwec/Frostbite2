@@ -6,7 +6,10 @@ extends Node3D
 ## At each clip's hit moment, for effects that reach beyond him (a guard's spear hitting a wolf).
 signal worked(view: JanView, clip: String)
 
-const WALK_SPEED := 3.0
+## Walking pace: the engine's (Balance.JAN_WALK_SPEED); the engine times a haul with it.
+const WALK_SPEED := Balance.JAN_WALK_SPEED
+## What he hugs while hauling, by resource (agreed 2026-10-20).
+const HAUL_CLIPS := {"wood": "haul_log", "food": "haul_fish", "materials": "haul_materials"}
 ## His rigged model (Tripo, prepared in Blender); the greybox stands in if it's missing.
 const MODEL_PATH := "res://assets/models/blender/jan.glb"
 ## A little smaller than Meagan's 1.2, so she stands out.
@@ -37,6 +40,8 @@ var _moving := false
 var _path_walking := false
 var _station: Node3D
 var _station_job := ""
+## The resource he's carrying to a stockpile, or "".
+var _hauling := ""
 
 
 func setup(is_frozen: bool, arrival_id := -1) -> void:
@@ -143,6 +148,11 @@ func go_to(target: Vector3, nav_map: RID) -> void:
 		_path = PackedVector3Array([target])
 
 
+## Carrying `resource` to a stockpile ("" for nothing): he walks with it hugged.
+func haul(resource: String) -> void:
+	_hauling = resource
+
+
 ## At his post: works `job` at its station ("" rests instead), `speed` showing cold and hunger.
 func work(job: String, speed: float) -> void:
 	if _moving or not _path.is_empty():
@@ -221,7 +231,7 @@ func _process(delta: float) -> void:
 	_path_walking = true
 	_moving = true
 	_place_station("")
-	_rig.play("walk")
+	_rig.play(HAUL_CLIPS[_hauling] if _hauling != "" else "walk")
 	while not _path.is_empty():
 		var next := _path[0]
 		var step := next - global_position

@@ -77,6 +77,16 @@ static func site_pos(s: GameState, i: int) -> Vector2:
 
 
 ## The build pad in front of a plot, where she stands to pay for construction and upgrades.
+## Where producer Jan number `slot` at plot `site` works: either side of its pad, leaving the pad
+## itself clear for Meagan. [proto]
+static func jan_post(s: GameState, site: int, slot: int) -> Vector2:
+	var base := site_pos(s, site)
+	var side := -1.0 if slot % 2 == 0 else 1.0
+	var col := (slot / 2) % 2
+	var row := slot / 4
+	return Vector2(base.x + side * (2.2 + col * 1.3), base.y + 2.4 + row * 1.1)
+
+
 ## The pad in front of small furnace `k`, a little way into its tile: standing on it opens the
 ## furnace's sheet, and pays the furnace's upgrade there too. [agreed 2026-10-20]
 static func stove_pad(s: GameState, k: int) -> Vector2:

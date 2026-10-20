@@ -98,6 +98,11 @@ const STORE_PER_SECOND := 20.0
 const PAD_PAY_PER_SECOND := 20.0
 ## Construction and upgrades are paid only while she stands on the plot's pad. [proto]
 const PAD_RADIUS := 1.4
+## Jans haul their work (agreed 2026-10-20): a load is this much, carried to the nearest stockpile
+## at walking pace, slowed by the path factor for the way round buildings. [proto]
+const CARRY_LOAD := {"chop": 5.0, "hunt": 3.0, "build": 1.0}
+const JAN_WALK_SPEED := 3.0
+const JAN_PATH_FACTOR := 1.25
 ## The furnace feeds itself from the Stockpile's Wood this fast, up to its fuel cap. [proto]
 const FURNACE_FEED_PER_SECOND := 5.0
 ## She thaws a frozen Jan when this close. [proto]
