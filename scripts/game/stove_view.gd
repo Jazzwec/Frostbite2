@@ -16,6 +16,10 @@ var _pad_at := Vector2.ZERO
 var _light: OmniLight3D
 var _embers: GPUParticles3D
 var _smoke: Smoke
+## Dark until the town's fire reaches it, when a tile has just opened (AFK V9).
+var _lit := true
+## A flare as it lights, dying away.
+var _flare := 0.0
 ## Where its embers rise: the model's chimney top (measured on the mesh), or the greybox one.
 var _chimney := Vector3(0.25, 1.75, -0.2)
 
@@ -72,6 +76,18 @@ func setup(stove_index: int, s: GameState) -> void:
 	add_child(body)
 
 
+func set_lit(lit: bool) -> void:
+	_lit = lit
+
+
+## The fire arrives: it flares alight.
+func light_up() -> void:
+	_lit = true
+	_flare = 1.4
+	Fx.burst("flame", global_position + Vector3(0, 0.8, 0.5))
+	Audio.play("fire", global_position)
+
+
 func refresh(s: GameState) -> void:
 	# Its pad shows as she comes near, like the plots': the shared furnace's level and upgrade.
 	var near := s.meagan_pos.distance_to(_pad_at) <= SiteView.PAD_SHOW
@@ -90,9 +106,12 @@ func refresh(s: GameState) -> void:
 		_pad_label.text = ("Furnace · Lv %d\n%s" % [lv, line])
 	var cap := Economy.heat_cap(s)
 	var frac := clampf(s.heat / cap, 0.0, 1.0) if cap > 0.0 else 0.0
-	_glow.scale = Vector3.ONE * (0.2 + 0.8 * frac)
+	if not _lit:
+		frac = 0.0
+	_flare = move_toward(_flare, 0.0, get_process_delta_time() * 1.5)
+	_glow.scale = Vector3.ONE * (0.2 + 0.8 * frac) * (1.0 + _flare)
 	_glow.visible = frac > 0.01
-	_light.light_energy = 0.2 + 1.6 * frac
+	_light.light_energy = (0.2 + 1.6 * frac) * (1.0 + 1.5 * _flare)
 	_embers.emitting = frac > 0.05
 	_smoke.visible = frac > 0.02
 	_smoke.rate = clampf(0.3 + 0.7 * frac, 0.3, 1.0)

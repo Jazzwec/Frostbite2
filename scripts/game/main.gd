@@ -496,6 +496,11 @@ func _open_tile(ev: Dictionary) -> void:
 		_add_den_view(Game.engine.state.dens[i].pos)
 	_add_stove_view(Game.engine.state.stoves.size() - 1)
 	_add_stockpile_view(ev.stockpile)
+	# The town's fire carries out to the new small furnace, which lights as it lands (AFK V9,
+	# from the world_tiles review).
+	var stove: StoveView = _stoves[-1]
+	stove.set_lit(false)
+	_flame_trail(_v3(MapData.site_pos(Game.engine.state, 0)) + Vector3(0, 3.5, 0), stove.global_position + Vector3(0, 1.0, 0), stove.light_up)
 	_rebuild_frontier()
 	_set_paths(_ground)
 	_rig.bounds = _camera_bounds()
@@ -504,6 +509,33 @@ func _open_tile(ev: Dictionary) -> void:
 	Audio.play("build_done")
 	_float_text(Vector3(ev.pos.x, 3.5, ev.pos.y), "New area!", UiTheme.ACCENT, true)
 	_float_text(Vector3(ev.pos.x, 2.4, ev.pos.y), "+%.2f heat/s drain" % Balance.STOVE_DRAIN, Color(1.0, 0.75, 0.6))
+
+
+## An ember that flies in an arc from `from` to `to`, shedding sparks, then calls `landed`.
+const TRAIL_TIME := 1.8
+const TRAIL_HEIGHT := 4.0
+const TRAIL_SPARK_EVERY := 0.04
+
+
+func _flame_trail(from: Vector3, to: Vector3, landed: Callable) -> void:
+	var ember := Shapes.sphere(0.45, Color(1.0, 0.62, 0.22), Vector3.ZERO, 4.0)
+	add_child(ember)
+	ember.global_position = from
+	Audio.play("fire", from)
+	var shed := {"left": 0.0}
+	var fly := func(t: float) -> void:
+		var p := from.lerp(to, t) + Vector3(0, sin(PI * t) * TRAIL_HEIGHT, 0)
+		ember.global_position = p
+		shed.left -= get_process_delta_time()
+		if shed.left <= 0.0:
+			shed.left = TRAIL_SPARK_EVERY
+			Fx.burst("sparks", p)
+	var tween := create_tween()
+	tween.tween_method(fly, 0.0, 1.0, TRAIL_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_callback(func() -> void:
+		Fx.burst("flame", to)
+		ember.queue_free()
+		landed.call())
 
 
 func _build_snow() -> void:
