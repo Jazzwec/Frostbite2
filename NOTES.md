@@ -167,6 +167,13 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 
 ## Open questions
 
+- **Roguelite world (agreed 2026-10-20, being built in phases):** the plan is in the brief's **Areas, small furnaces & treasures** section. These numbers are `[proto]` and need your sign-off:
+  - tile size 16 m;
+  - small-furnace drain 0.15 heat/s;
+  - gate cost (Wood 40 × 1.6^(d−1), Materials from d = 2);
+  - 3 Jans per producer;
+  - tile odds: camp 35%, chest 30%, wolf den 20% from d = 3.
+  - Still to design together: what carries over between runs (content unlocks plus a currency, maybe tokens from defeated enemies), and the boon and gear lists.
 - **Numbers marked `[proto]` in `scripts/engine/balance.gd`** need your sign-off: walk 6 m/s, build pad 1.4 m, low-heat warning 25% (clears at 40%) and countdown 10%, furnace feed from the Stockpile 5 Wood/s, gather range 3 m, building reach 4.5 m, rescue range 2 m, first Jan after 5 s, wolf detour 7 m, guard ring 4 m.
 - **Guards are weak:** by the brief, without kits they deal half damage (1.5/s), so 2 guards struggle against 3 wolves. Kits and gear aren't in the prototype yet.
 - **Trees:** done (2026-10-20): three low-poly Blender pines replace the greybox cones.
