@@ -1,0 +1,17 @@
+The shader pass moves the scene toward the target’s winter palette, but it still reads as **flat white masks over 3D surfaces**. The paintover gets its depth from soft blue contact shadows, irregular snow edges and broad, quiet ground washes. Image 2’s furnace makes the gap clearest; image 3 shows how much the ground pattern competes with Meagan.
+
+1. **Fix snow coverage and edge blending first.** Snow forms bright stripes across the furnace dome and hard rectangular patches on the stockpile and lumber yard. These fragment silhouettes at phone size and obscure the material beneath. Replace the predominantly upward-facing mask with a world-space accumulation mask: broad connected coverage on tops, exposed steep sides, and restrained, low-frequency breakup. At this screenshot scale, soften boundaries over roughly 2–4 pixels; avoid isolated white slivers.
+
+2. **Remove the ground’s square-edged noise.** Images 2 and 3 have conspicuous pale blue, pixel-like clusters, especially across open snow. The target uses flowing washes and recognisable footprints. The current pattern creates visual activity without useful information. Reduce its contrast by about two-thirds, enlarge the wash shapes to roughly 60–150 screen pixels, and reserve small marks for actual travelled paths.
+
+3. **Give objects soft, grounded shadows.** The furnace and Meagan cast fairly solid mauve silhouettes, while several white surfaces appear detached from their surroundings. This weakens spatial readability. Use a muted blue-grey shadow, darkest immediately beneath feet and building bases, fading over 10–25 screen pixels. Keep a narrow contact band; soften the outer cast shadow substantially.
+
+4. **Make snow shaded rather than uniformly white.** The stockpile top and lumber-yard roof lose their form in near-white blocks. On a small screen, their planes merge with the ground. Use warm ivory for lit snow, pale blue-grey for turned-away snow, and reserve near-white for the highest exposed ridges. Keep these changes broad enough to describe volume without adding texture clutter.
+
+5. **Break up the circular drift shapes.** The lumber yard’s scalloped perimeter and the pale oval beneath the lower plot look like stamps. They can read as interaction zones, competing with the upgrade and stockpile circles. Bank snow unevenly against object bases, with two or three broad lobes and tapered ends; remove detached ovals and fade drift edges into the ground.
+
+6. **Control line weight by visual importance.** The pass retains dark, continuous outlines around small surface details, while snow boundaries are often defined mostly by a harsh colour cut. The target uses broken, locally coloured ink. At this resolution, aim for roughly 1–2 pixels on major silhouettes and thinner, lower-contrast internal edges. Suppress lines across continuous snow and soften distant ground details.
+
+7. **Concentrate the furnace warmth.** Image 1 has an expansive peach ground wash; image 2 reduces it, but the opening still reads as a flat yellow shape. The target anchors attention with a bright fire and a restrained pool of warmth. Add a small cream-yellow core, orange recess shading and warm bounce on the nearest stones; fade the ground glow within roughly half a furnace diameter beyond the entrance.
+
+Verdict: fix first — replace the fragmented snow mask; it is the largest remaining obstacle to clean silhouettes and convincing picture-book shading.

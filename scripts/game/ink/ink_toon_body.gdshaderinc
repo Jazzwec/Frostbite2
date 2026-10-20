@@ -11,17 +11,25 @@ uniform float granulation = 0.07;
 // Reads the texture this many mip levels blurrier, so detailed textures flatten into washes
 // (a stand-in for textures painted in watercolour).
 uniform float wash_blur = 2.6;
+// Snow settles on whatever faces up, so every roof, crate, rock and chimney sits in the same
+// winter (ink_v3, 2026-10-20). Its edge wanders like a laid wash. Characters and the closed-tile
+// veil turn it off (InkLook), and nothing this close to the ground gets a cap.
+uniform float snow_caps = 1.0;
+uniform vec3 snow_color : source_color = vec3(0.93, 0.95, 0.97);
+uniform float snow_min_height = 0.12;
 #ifdef INK_FADE
 // How solid it is while it fades out of Meagan's way (FadeCover).
 uniform float opacity = 1.0;
 #endif
 
 varying vec3 world_pos;
+varying vec3 world_normal;
 
 #include "res://scripts/game/ink/ink_common.gdshaderinc"
 
 void vertex() {
 	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 }
 
 void fragment() {
@@ -33,6 +41,11 @@ void fragment() {
 	vec2 p = world_pos.xz + world_pos.y * 0.7;
 	float blotch = value_noise(p * 0.45) * 0.65 + value_noise(p * 2.3) * 0.35;
 	c.rgb *= 1.0 + granulation * (blotch - 0.5) * 2.0;
+	// A soft, broad ramp with only low-frequency breakup, so faceted models get one connected cap
+	// on top rather than stripes and slivers (ink_v3 review).
+	float up = normalize(world_normal).y + (value_noise(p * 0.6) - 0.5) * 0.12;
+	float cap = smoothstep(0.66, 0.95, up) * 0.92 * snow_caps * step(snow_min_height, world_pos.y);
+	c.rgb = mix(c.rgb, snow_color, cap);
 	c.rgb *= warmth_tint(world_pos);
 	ALBEDO = c.rgb;
 	EMISSION = emission_color * emission_energy;

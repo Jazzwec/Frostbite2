@@ -20,7 +20,7 @@ const SNOW := Color(0.94, 0.96, 1.0)
 ## The build pad's look: its disc colour by state, and the progress ring.
 const PAD_RADIUS_SHOWN := 1.1
 const PAD_COLORS := {
-	"plot": Color(1, 1, 1, 0.45), "idle": Color(0.35, 0.6, 0.95, 0.5),
+	"plot": Color(0.72, 0.8, 0.92, 0.3), "idle": Color(0.35, 0.6, 0.95, 0.5),
 	"paying": Color(1.0, 0.78, 0.3, 0.55), "maxed": Color(0.6, 0.6, 0.65, 0.35),
 }
 const RING_COLOR := Color(1.0, 0.92, 0.5)
@@ -52,6 +52,8 @@ var _ring: MeshInstance3D
 var _ring_frac := -1.0
 ## Whether the building is (still) faded because Meagan is behind it.
 var _faded := false
+## The nameplate steps aside for a moment while the level-up line has the stage.
+var _resting := false
 
 
 func setup(site_index: int, s: GameState) -> void:
@@ -129,8 +131,8 @@ func bounce() -> void:
 func celebrate() -> void:
 	bounce()
 	# The nameplate steps aside while the level-up line has the stage.
-	_title.visible = false
-	get_tree().create_timer(1.0).timeout.connect(func(): _title.visible = true)
+	_resting = true
+	get_tree().create_timer(1.0).timeout.connect(func(): _resting = false)
 	Fx.burst("confetti", global_position + Vector3(0, 3.6, 0))
 	Fx.burst("snow_big", global_position + Vector3(0, 0.4, 0))
 	if index == 0:
@@ -183,16 +185,52 @@ func _rebuild(site: Dictionary) -> void:
 		_body = null
 	var b: String = site.building
 	if b == "":
-		var plot := Shapes.box(Vector3(3.6, 0.04, 3.6), Color(1, 1, 1, 0.35), Vector3(0, 0.02, 0))
-		_shapes.add_child(plot)
+		_build_plot()
 		return
 	if b == "furnace":
 		_build_furnace(site.level)
-	elif site.level == 0:
-		_build_construction()
 	else:
-		_build_house(b, site.level)
+		if site.level == 0:
+			_build_construction()
+		else:
+			_build_house(b, site.level)
+		_add_drifts()
 	_add_body(MapData.FURNACE_RADIUS if b == "furnace" else MapData.SITE_HALF_SIZE)
+
+
+## An empty plot: a staked-out square of trodden snow with a rope round it. [ink_v3 paintover]
+func _build_plot() -> void:
+	var half := MapData.SITE_HALF_SIZE * 0.85
+	var rope := Color(0.62, 0.5, 0.36)
+	for x in [-half, half]:
+		for z in [-half, half]:
+			_shapes.add_child(Shapes.cylinder(0.07, 0.7, Color(0.5, 0.36, 0.24), Vector3(x, 0.35, z)))
+	for side in 4:
+		var along := side < 2
+		var at := half if side % 2 == 0 else -half
+		var size := Vector3(half * 2.0, 0.035, 0.035) if along else Vector3(0.035, 0.035, half * 2.0)
+		_shapes.add_child(Shapes.box(size, rope, Vector3(0, 0.55, at) if along else Vector3(at, 0.55, 0)))
+
+
+## Low snow drifts banked against the walls, so the building sits in the snow instead of on it.
+## Kept off the front middle, where the door and pad are. [ink_v3 paintover]
+## A few broad, uneven lobes (back, sides, front corners), not a ring of stamps (ink_v3 review).
+const DRIFT_SPOTS := [
+	Vector3(-0.8, -1.5, 0.0), Vector3(1.0, -1.55, 0.2), Vector3(-1.75, 0.2, 1.57),
+	Vector3(1.75, 0.5, 1.57), Vector3(-1.45, 1.55, 0.3), Vector3(1.5, 1.55, -0.3),
+]
+
+
+func _add_drifts() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = index * 7919 + 13
+	for spot: Vector3 in DRIFT_SPOTS:
+		# x and y place it; z turns it, so each lobe lies along its wall and tapers off.
+		var drift := Shapes.sphere(rng.randf_range(0.5, 0.65), Shapes.SNOW_COLOR, Vector3(spot.x, 0.0, spot.y))
+		drift.scale = Vector3(rng.randf_range(2.0, 2.6), rng.randf_range(0.28, 0.38), rng.randf_range(0.9, 1.1))
+		drift.rotation.y = spot.z + rng.randf_range(-0.2, 0.2)
+		drift.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_shapes.add_child(drift)
 
 
 func _build_house(b: String, level: int) -> void:
@@ -331,9 +369,22 @@ func _add_body(half: float) -> void:
 	add_child(_body)
 
 
+## Nameplates and pad text fade in only while she's this close (or the plot is being paid for), so
+## the town reads as a picture rather than a sign board. [ink_v3, 2026-10-20]
+const LABEL_NEAR := 9.0
+const LABEL_FADE := 4.0
+var _label_alpha := 0.0
+
+
 func _update_labels(s: GameState, site: Dictionary) -> void:
 	var b: String = site.building
 	_update_pad(s, site)
+	var show: bool = site.upgrading or s.meagan_pos.distance_to(MapData.pad_pos(s, index)) <= LABEL_NEAR
+	_label_alpha = move_toward(_label_alpha, 1.0 if show else 0.0, get_process_delta_time() * LABEL_FADE)
+	for label: Label3D in [_title, _pad_label]:
+		label.modulate.a = _label_alpha
+		label.outline_modulate.a = _label_alpha
+		label.visible = _label_alpha > 0.01 and (label != _title or not _resting)
 	if b == "":
 		_title.text = ""
 		return

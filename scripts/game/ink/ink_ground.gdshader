@@ -1,8 +1,9 @@
 shader_type spatial;
 // The town's snowfield, painted: a watercolour snow wash (assets/textures/snow_wash.png) laid
 // twice at different sizes and angles so it doesn't visibly repeat, broad blue-grey shadow
-// washes, and warm packed-snow paths from the furnace to every plot and the Stockpile (set by
-// main.gd from the state, as tiles open). The paths stay paler than the pads, so travel routes stay quiet.
+// washes, trodden tracks from the furnace to every plot and the Stockpile, and soft shade pooled
+// round everything standing in it (both set by main.gd from the state, as tiles open and things
+// are built). The tracks stay paler than the pads, so travel routes stay quiet.
 
 uniform sampler2D snow_tex : source_color, filter_linear_mipmap, repeat_enable;
 // Metres per repeat of the snow wash.
@@ -11,13 +12,19 @@ uniform float tile_m = 20.0;
 uniform float wash_contrast = 0.7;
 uniform vec3 wash_mean : source_color = vec3(0.886, 0.908, 0.925);
 uniform vec3 shadow_tint : source_color = vec3(0.8, 0.86, 0.94);
-uniform float shadow_strength = 0.4;
-uniform vec3 path_color : source_color = vec3(0.82, 0.74, 0.67);
-uniform float path_strength = 0.45;
-uniform float path_width = 1.3;
+uniform float shadow_strength = 0.28;
+// Trodden snow: a cool blue-grey track broken into footprints, not a warm road (ink_v3, 2026-10-20).
+uniform vec3 path_color : source_color = vec3(0.8, 0.85, 0.92);
+uniform float path_strength = 0.55;
+uniform float path_width = 1.1;
 // Each path is a segment from (x, y) to (z, w), in world x/z metres.
 uniform vec4 paths[64];
 uniform int path_count = 0;
+// Soft blue shade pooled round everything standing in the snow: x, z, radius (set by main.gd).
+uniform vec4 contacts[96];
+uniform int contact_count = 0;
+uniform vec3 contact_tint : source_color = vec3(0.72, 0.8, 0.92);
+uniform float contact_strength = 0.6;
 
 varying vec3 world_pos;
 
@@ -40,8 +47,9 @@ void fragment() {
 	c = mix(wash_mean, c, wash_contrast);
 
 	// Broad shadow washes, like the cool hollows between drifts.
-	float hollow = value_noise(p * 0.05) * 0.7 + value_noise(p * 0.13) * 0.3;
-	c *= mix(vec3(1.0), shadow_tint, smoothstep(0.5, 0.72, hollow) * shadow_strength);
+	// Broad and quiet (ink_v3 review): low frequencies and a wide ramp, so no blocky clusters.
+	float hollow = value_noise(p * 0.035) * 0.75 + value_noise(p * 0.08) * 0.25;
+	c *= mix(vec3(1.0), shadow_tint, smoothstep(0.45, 0.85, hollow) * shadow_strength);
 
 	// Packed paths with wobbly painted edges.
 	float d = 1000.0;
@@ -51,8 +59,19 @@ void fragment() {
 	d += (value_noise(p * 0.9) - 0.5) * 0.5;
 	// A wide soft edge: a gradual change, so the ink pass doesn't outline the path.
 	float path = 1.0 - smoothstep(path_width * 0.2, path_width * 0.5 + 0.5, d);
-	float grain = value_noise(p * 3.1) * 0.5 + 0.75;
-	c = mix(c, path_color * c / 0.9, path * path_strength * grain);
+	// Footprints: the track is darker in small blots and paler between them.
+	float steps = smoothstep(0.4, 0.7, value_noise(p * 2.2)) * 0.35 + 0.65;
+	c = mix(c, path_color * c / 0.9, path * path_strength * steps);
+
+	// Contact shade: a soft pool under and around each standing thing, darkest at its foot, so
+	// nothing meets the snow with a hard edge.
+	float shade = 0.0;
+	for (int i = 0; i < contact_count; i++) {
+		float r = contacts[i].z;
+		float dc = distance(p, contacts[i].xy) + (value_noise(p * 0.8 + float(i)) - 0.5) * r * 0.25;
+		shade = max(shade, 1.0 - smoothstep(r * 0.75, r * 1.45, dc));
+	}
+	c *= mix(vec3(1.0), contact_tint, shade * contact_strength);
 
 	ALBEDO = c * warmth_tint(world_pos);
 	ROUGHNESS = 1.0;

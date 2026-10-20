@@ -36,10 +36,12 @@ UI accents may brighten these for contrast, but stay within the same hues.
 
 ## In the engine
 `InkLook` (`scripts/game/ink/`) is the look, on by default:
-- `ink_toon` bands the light into a few watercolour washes with pigment granulation, warm in the sun and cool blue in shade.
-- `ink_lines` inks silhouettes and major seams in deep ink, 1–2 px at phone resolution, thinner inside, and ignores small colour speckle.
-- `ink_paper` adds pigment pooling at edges and a light paper grain under the HUD.
-- `ink_ground` paints the snowfield: a watercolour wash, cool hollows and packed paths.
+- `ink_toon` bands the light into a few watercolour washes with pigment granulation, warm in the sun and cool blue in shade. Snow settles on anything facing up as one soft cap (characters opt out).
+- `ink_lines` inks silhouettes and major seams, 1–2 px at phone resolution, thinner inside, and ignores small colour speckle. The line is a darker shade of what it outlines (not one flat ink), and its wobble boils gently, about 8 times a second.
+- `ink_paper` adds pigment pooling at edges and a light paper grain under the HUD, granulating more in the shade.
+- `ink_ground` paints the snowfield: near-white snow with a soft firelight glow near the furnace, quiet cool hollows, blue-grey trodden tracks with footprints, and soft blue shade pooled round everything standing in it.
+- Buildings sit in low snow drifts; empty plots are staked out with rope. Labels show only while Meagan is near.
+- **Seamless rule (ink_v3, 2026-10-20):** the look comes from the assets; the shaders only unify them. Every new model uses the shared palette, big clean colour areas and chunky snow-capped tops, and is checked in the game against `source_art/direction/ink_v3/paintover.png` before it's kept.
 
 ## Icons
 Watercolour icons with a thick deep-ink outline, in `assets/ui/icons/` (128 px, cut from `source_art/icons/sheet.png`). They sit inline in rich labels through `UiTheme.icon(name, size)`, at 36–48 px on the 1080-wide layout; a number keeps its word next to its icon.

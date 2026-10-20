@@ -121,6 +121,7 @@ func _process(delta: float) -> void:
 	_update_meagan_activity()
 	_update_pad_stop(delta)
 	_update_pad_payments(delta)
+	_update_ground_marks()
 	_update_gather_fx()
 	if _nav_dirty and not _baking:
 		_nav_dirty = false
@@ -226,6 +227,50 @@ func _set_paths(m: ShaderMaterial) -> void:
 	paths.resize(mini(paths.size(), PATH_LIMIT))
 	m.set_shader_parameter("paths", paths)
 	m.set_shader_parameter("path_count", paths.size())
+	_set_contacts(m)
+
+
+## Soft blue shade pooled round everything standing in the snow: buildings and construction
+## sites, the Stockpile, forests and scrap heaps, small furnaces and the boulders. The shader
+## takes at most CONTACT_LIMIT. [ink_v3, 2026-10-20]
+const CONTACT_LIMIT := 96
+const CONTACT_RADIUS := {"forest": 2.6, "scrap": 1.6}
+const BOULDERS := [Vector3(-12, 0, -20), Vector3(13, 0, -22), Vector3(-14, 0, 8), Vector3(12, 0, 17), Vector3(-3, 0, 19), Vector3(21, 0, -3), Vector3(-4, 0, -20)]
+
+
+func _set_contacts(m: ShaderMaterial) -> void:
+	var s := Game.engine.state
+	var contacts: Array[Vector4] = []
+	for i in s.sites.size():
+		if s.sites[i].building != "":
+			var p := MapData.site_pos(s, i)
+			var r := MapData.FURNACE_RADIUS * 1.1 if i == 0 else MapData.SITE_HALF_SIZE * 1.05
+			contacts.append(Vector4(p.x, p.y, r, 0.0))
+	contacts.append(Vector4(MapData.STOCKPILE_POS.x, MapData.STOCKPILE_POS.y, 2.0, 0.0))
+	for i in s.node_defs.size():
+		var kind := MapData.node_kind(s, i)
+		if CONTACT_RADIUS.has(kind):
+			var p := MapData.node_pos(s, i)
+			contacts.append(Vector4(p.x, p.y, CONTACT_RADIUS[kind], 0.0))
+	for stove in s.stoves:
+		contacts.append(Vector4(stove.pos.x, stove.pos.y, 1.0, 0.0))
+	for b in BOULDERS:
+		contacts.append(Vector4(b.x, b.z, 1.0, 0.0))
+	contacts.resize(mini(contacts.size(), CONTACT_LIMIT))
+	m.set_shader_parameter("contacts", contacts)
+	m.set_shader_parameter("contact_count", contacts.size())
+
+
+## The ground's marks change when something is built or a tile opens.
+var _marks_key := ""
+
+
+func _update_ground_marks() -> void:
+	var s := Game.engine.state
+	var key := "%d/%d/%d" % [s.sites.filter(func(site): return site.building != "").size(), s.node_defs.size(), s.stoves.size()]
+	if key != _marks_key:
+		_marks_key = key
+		_set_paths(_ground)
 
 
 func _build_ground() -> void:
@@ -239,7 +284,7 @@ func _build_ground() -> void:
 	_ground = _ground_material()
 
 	# A few boulders poking out of the snow, clear of plots and paths.
-	for spot in [Vector3(-12, 0, -20), Vector3(13, 0, -22), Vector3(-14, 0, 8), Vector3(12, 0, 17), Vector3(-3, 0, 19), Vector3(21, 0, -3), Vector3(-4, 0, -20)]:
+	for spot in BOULDERS:
 		var rock := Props.make("boulder", randf_range(0.7, 1.3), randf_range(0, 360))
 		if rock:
 			rock.position = spot + Vector3(0, -0.2, 0)
