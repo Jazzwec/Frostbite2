@@ -154,10 +154,33 @@ func _sync_wolves(s: GameState, delta: float) -> void:
 			view.global_position = Vector3(wolf.pos.x, 0, wolf.pos.y)
 			_wolves[wolf.id] = view
 		view.sync(wolf, delta)
+	_nudge_wolves(s, delta)
 	for id in _wolves.keys():
 		if not seen.has(id):
 			_wolves[id].queue_free()
 			_wolves.erase(id)
+
+
+## Wolves closer than this are drawn apart (view only), and how quickly the nudge settles.
+const WOLF_VIEW_SPACING := 1.0
+const WOLF_NUDGE_EASE := 6.0
+
+
+func _nudge_wolves(s: GameState, delta: float) -> void:
+	for wolf in s.wolves:
+		var view: WolfView = _wolves.get(wolf.id)
+		if view == null:
+			continue
+		var push := Vector2.ZERO
+		for other in s.wolves:
+			if other.id == wolf.id:
+				continue
+			var apart: Vector2 = wolf.pos - other.pos
+			var d := apart.length()
+			if d < WOLF_VIEW_SPACING:
+				var dir := apart / d if d > 0.001 else Vector2.RIGHT.rotated(float(wolf.id * 7 - other.id * 3))
+				push += dir * (WOLF_VIEW_SPACING - d) * 0.5
+		view.nudge = view.nudge.lerp(Vector3(push.x, 0, push.y), minf(1.0, WOLF_NUDGE_EASE * delta))
 
 
 ## Every 20 to 30 s while the city is calm, a working Jan says something. [brief]

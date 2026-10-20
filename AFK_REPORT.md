@@ -8,6 +8,20 @@ What happened during unattended runs, newest run first. Each run starts with a h
 
 A "Needs you" list goes at the end.
 
+## Run 2026-10-20, 20:15 → done (animation polish)
+
+The task: Astra's review of the animations, best practices from the web, then polish. Frame strips of every clip were captured at quarter speed (`source_art/direction/anim_v1/`), and Astra reviewed them (`review.md`). Two of its lowest scores (Jan fishing and chopping, Meagan storing) were my capture's fault, not the game's: the camera followed the wrong Jan, and Meagan was still walking. Its real findings are backlog items N1–N7.
+
+ChatGPT budget: counted from `tools/chatgpt/calls.log` line 152 onwards.
+
+### N1. Wolves that read
+- **What changed:**
+  - **Spacing:** wolves closer than 1 m are drawn apart in the view, so a pack never reads as one dark mass. A fighting wolf stands back half a body, so its snout, not its middle, is at the fight distance.
+  - **Rhythm:** each wolf's trot starts at its own phase.
+  - **The attack:** a 0.25 s crouch with a 12° lean back (anticipation), a 0.1 s lunge, a 0.05 s (3-frame) hold at the bite, then a 0.22 s recovery.
+- **Why only the view:** moving the pack apart in the engine pushed a wolf out of a fight and changed gameplay, which an existing test caught, so the engine is unchanged.
+- **Check in the game:** DEV → Wolves, then watch them come in and fight Meagan.
+
 ## Run 2026-10-20, 19:27 → 22:00 (visual polish)
 
 ChatGPT budget: counted from `tools/chatgpt/calls.log` line 145 onwards (8 images, 25 reviews).

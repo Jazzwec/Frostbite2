@@ -23,15 +23,25 @@ const KNEE_LIFT := 35.0
 const TAIL_WAG := 18.0
 ## Trot cycle speed (radians per second): one full stride in about half a second.
 const TROT_SPEED := 13.0
-## One attack every this many seconds: crouch back, thrust, recover, then wait.
-const ATTACK_PERIOD := 1.0
-const ATTACK_CROUCH := 0.15
+## One attack every this many seconds: a readable crouch back (anticipation), a quick thrust, a
+## few frames held at the bite, recover, then wait (Astra animation review, 2026-10-20).
+const ATTACK_PERIOD := 1.1
+const ATTACK_CROUCH := 0.25
 const ATTACK_THRUST := 0.1
-const ATTACK_RECOVER := 0.25
+const ATTACK_HOLD := 0.05
+const ATTACK_RECOVER := 0.22
+## How far it leans back while crouching to strike, in degrees.
+const ATTACK_LEAN_BACK := 12.0
 
 var _model: Node3D
 var _hp_bar: HpBar
 var _t := 0.0
+## A visual nudge apart from wolves standing too close (PeopleLayer sets it), so a pack never
+## reads as one dark mass; the engine's positions don't change (Astra animation review).
+var nudge := Vector3.ZERO
+## A fighting wolf stands back by about half its body, so its snout, not its middle, is at the
+## engine's fight distance and it doesn't lie over whoever it fights (view only). [proto]
+const FIGHT_BACK_OFF := 0.5
 var _attack := -1.0
 var _flash: MeshInstance3D
 var _knock := 0.0
@@ -113,17 +123,23 @@ func hit() -> void:
 
 func sync(wolf: Dictionary, delta: float) -> void:
 	var target := Vector3(wolf.pos.x, 0, wolf.pos.y)
-	var step := target - global_position
 	var fighting: bool = wolf.mode == "fight"
+	if fighting and wolf.has("foe_pos"):
+		var away := Vector3(wolf.pos.x - wolf.foe_pos.x, 0, wolf.pos.y - wolf.foe_pos.y)
+		if away.length() > 0.01:
+			target += away.normalized() * FIGHT_BACK_OFF
+	var step := target - global_position
 	if fighting and wolf.has("foe_pos"):
 		# Face whoever it's fighting, not the way it last stepped.
 		step = Vector3(wolf.foe_pos.x, 0, wolf.foe_pos.y) - global_position
 	if step.length() > 0.01:
 		_model.rotation.y = lerp_angle(_model.rotation.y, atan2(step.x, step.z), 10.0 * delta)
-	global_position = global_position.lerp(target, minf(1.0, 12.0 * delta))
+	global_position = global_position.lerp(target + nudge, minf(1.0, 12.0 * delta))
 	if _attack < 0.0:
-		# Each wolf's lunge starts at its own point in the cycle, so a pack doesn't strike in unison.
+		# Each wolf's lunge and stride start at their own point in the cycle, so a pack doesn't
+		# strike or trot in unison.
 		_attack = fmod(float(wolf.id) * 0.37, ATTACK_PERIOD)
+		_t = float(wolf.id) * 1.7
 	_knock = move_toward(_knock, 0.0, delta * 5.0)
 	if _pivot:
 		_t += delta * (14.0 if fighting else TROT_SPEED)
@@ -168,7 +184,8 @@ func _pose(fighting: bool) -> void:
 		# Tail up and stiff (rotating about +X lifts a tail that points back).
 		_turn_bone(_bone.tail, Basis(Vector3.RIGHT, deg_to_rad(15.0)) * Basis(Vector3.UP, deg_to_rad(8.0 * sin(_t))))
 		_pivot.position = Vector3(0, 0.02 * bob - 0.06 * maxf(0.0, -lunge), 0.3 * lunge)
-		_pivot.rotation_degrees.x = 8.0 * lunge
+		# Crouching it rears back (lunge -0.4 gives the full lean), stretching it dips forward.
+		_pivot.rotation_degrees.x = 8.0 * lunge if lunge >= 0.0 else ATTACK_LEAN_BACK * lunge / 0.4
 	else:
 		_turn_bone(_bone.back, Basis(Vector3.RIGHT, deg_to_rad(3.0 * sin(_t * 2.0))))
 		_turn_bone(_bone.neck, Basis(Vector3.RIGHT, deg_to_rad(4.0 * sin(_t * 2.0 + 0.6))))
@@ -186,6 +203,9 @@ func _lunge() -> float:
 	if t < ATTACK_THRUST:
 		return lerpf(-0.4, 1.0, smoothstep(0.0, 1.0, t / ATTACK_THRUST))
 	t -= ATTACK_THRUST
+	if t < ATTACK_HOLD:
+		return 1.0
+	t -= ATTACK_HOLD
 	if t < ATTACK_RECOVER:
 		return 1.0 - smoothstep(0.0, 1.0, t / ATTACK_RECOVER)
 	return 0.0
