@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://cxh24cshfxmop"
-path="res://.godot/imported/house_workshop.glb-3685715bef0734c76d86de99087db77f.scn"
+uid="uid://dwest36p7qb81"
+path="res://.godot/imported/house_watchtower.glb-7c6758c797ad62ae211092e5ec0b5cf0.scn"
 
 [deps]
 
-source_file="res://assets/models/blender/house_workshop.glb"
-dest_files=["res://.godot/imported/house_workshop.glb-3685715bef0734c76d86de99087db77f.scn"]
+source_file="res://assets/models/kit/house_watchtower.glb"
+dest_files=["res://.godot/imported/house_watchtower.glb-7c6758c797ad62ae211092e5ec0b5cf0.scn"]
 
 [params]
 

@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dctb2xbsx4kux"
-path="res://.godot/imported/house_storehouse.glb-1c5d935b1cae794e330c9896332c7f89.scn"
+uid="uid://d0kxoxjbghf5e"
+path="res://.godot/imported/house_hunting_lodge.glb-c33ecc5c98405094687a473bb08f81df.scn"
 
 [deps]
 
-source_file="res://assets/models/blender/house_storehouse.glb"
-dest_files=["res://.godot/imported/house_storehouse.glb-1c5d935b1cae794e330c9896332c7f89.scn"]
+source_file="res://assets/models/kit/house_hunting_lodge.glb"
+dest_files=["res://.godot/imported/house_hunting_lodge.glb-c33ecc5c98405094687a473bb08f81df.scn"]
 
 [params]
 

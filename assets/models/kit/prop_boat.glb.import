@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://c4qq6ncvu0g0i"
-path="res://.godot/imported/prop_bench.glb-bb9b7f171697b941c62573a9e7311322.scn"
+uid="uid://dh7r1w28hxtcb"
+path="res://.godot/imported/prop_boat.glb-d0cff87af4336771b2ae5f8fc564e63a.scn"
 
 [deps]
 
-source_file="res://assets/models/blender/prop_bench.glb"
-dest_files=["res://.godot/imported/prop_bench.glb-bb9b7f171697b941c62573a9e7311322.scn"]
+source_file="res://assets/models/kit/prop_boat.glb"
+dest_files=["res://.godot/imported/prop_boat.glb-d0cff87af4336771b2ae5f8fc564e63a.scn"]
 
 [params]
 

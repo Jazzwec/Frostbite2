@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bybjc8xqbdeiq"
-path="res://.godot/imported/house_lumber_yard.glb-664cd0b7f7386ed60dea166cbff96d61.scn"
+uid="uid://cru5nlgkd4ydt"
+path="res://.godot/imported/prop_shrub.glb-bb7807e7f4a8a59895eb15b56836d621.scn"
 
 [deps]
 
-source_file="res://assets/models/blender/house_lumber_yard.glb"
-dest_files=["res://.godot/imported/house_lumber_yard.glb-664cd0b7f7386ed60dea166cbff96d61.scn"]
+source_file="res://assets/models/kit/prop_shrub.glb"
+dest_files=["res://.godot/imported/prop_shrub.glb-bb7807e7f4a8a59895eb15b56836d621.scn"]
 
 [params]
 

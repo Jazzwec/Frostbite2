@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://cgha5rha3jowi"
-path="res://.godot/imported/prop_stockpile.glb-c623aa3ce63999ddb09003501d8391ac.scn"
+uid="uid://chplxkho4lnev"
+path="res://.godot/imported/prop_rock_b.glb-cde5c4f3d8cba0d072e9fcef305c03ea.scn"
 
 [deps]
 
-source_file="res://assets/models/blender/prop_stockpile.glb"
-dest_files=["res://.godot/imported/prop_stockpile.glb-c623aa3ce63999ddb09003501d8391ac.scn"]
+source_file="res://assets/models/kit/prop_rock_b.glb"
+dest_files=["res://.godot/imported/prop_rock_b.glb-cde5c4f3d8cba0d072e9fcef305c03ea.scn"]
 
 [params]
 

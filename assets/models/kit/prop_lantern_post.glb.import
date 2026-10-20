@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://ys3l18dkbtie"
-path="res://.godot/imported/prop_sled.glb-0a2fa7dc85c43875f53aab41a6cce931.scn"
+uid="uid://dx4f5sj7qk0hx"
+path="res://.godot/imported/prop_lantern_post.glb-f902a3dbd77df3912e74ae176953f64d.scn"
 
 [deps]
 
-source_file="res://assets/models/blender/prop_sled.glb"
-dest_files=["res://.godot/imported/prop_sled.glb-0a2fa7dc85c43875f53aab41a6cce931.scn"]
+source_file="res://assets/models/kit/prop_lantern_post.glb"
+dest_files=["res://.godot/imported/prop_lantern_post.glb-f902a3dbd77df3912e74ae176953f64d.scn"]
 
 [params]
 

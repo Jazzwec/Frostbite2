@@ -24,8 +24,13 @@ Add or check the asset's row in `source_art/concept/README.md`: export name, hei
 python tools/chatgpt/chatgpt.py image "<subject: what it is, its parts, materials, colours>" \
     --out source_art/concept/ink/<name>.png --for-3d --ref source_art/direction/round3/inked/lineup.png
 ```
-- `--for-3d` adds what a 3D generator needs (one object, centred, front three-quarter, close to orthographic, plain light grey, flat light, no cast shadow, no ground, no text) and pads the image to a square. Start the subject with the prompt template block from `docs/art-direction.md`.
-- Always pass a `--ref` from the same set (the lineup, or the last good reference) so the assets match.
+- `--for-3d` adds what a 3D generator needs and pads the image to a square:
+  - one object, centred, front three-quarter, close to orthographic;
+  - plain light grey, flat light, no cast shadow, no ground, no text;
+  - broad flat colour areas: three or four big masses, few large stones or planks, no speckle.
+
+  Start the subject with the prompt template block from `docs/art-direction.md`. ChatGPT runs on `gpt-6-astra` (the script's default).
+- Always pass `--ref` from the same set: the round-3 lineup for the first asset of a kind, and the last approved reference of that kind as a second `--ref` after that, so a set matches.
 - **Read the image** before going on. Regenerate (at most twice) if there are shadows on the object or the ground, more than one object, a cut-off part, strong perspective, text, or heavy surface noise (Meshy bakes all of it into the model).
 - **Characters:** T-pose, arms straight out, legs apart, nothing in the hands. For a better model, make separate front, side and back images (same prompt plus "front view" / "side view" / "back view", each with the front as `--ref`) for `meshy_multi_image_to_3d`, front first. Never one combined turnaround sheet.
 
@@ -48,6 +53,12 @@ exec(open(r"C:/Claude Code/Frostbite2/tools/blender/cleanup.py", encoding="utf-8
 print(cleanup("<name>", r"C:/Claude Code/Frostbite2/assets/models/meshy/<name>_<model>.glb",
               footprint=3.4, max_tris=8000))        # or height=<m>
 ```
+Options (2026-10-20):
+- `palette=0.5` pulls the base-colour texture towards the art-direction palette after a light blur (`palette_snap`: the "one palette" rule, so Meshy textures sit with everything else).
+- `split_lid_at=<m>` cuts a chest into its body and a `<name>_lid` node hinged at the top back edge, for `ChestView`'s opening swing.
+
+Meshy exports keep the names the code loads (`house_<building>`, `prop_<name>`, `furnace`, `pine_a`…); the hand-built kit's versions of the same names live in `assets/models/kit/` and are what `Props.make` falls back to.
+
 It makes the scene `FB2_<Name>`, joins, welds, drops loose bits, recalculates normals, decimates to the budget, scales to metres, puts the origin at the bottom centre, leaves one opaque base-colour material (texture ≤ 1024, back faces culled), exports the GLB with `use_active_scene`/`use_active_collection`, saves just that scene as `source_art/blender/<name>.blend`, and prints a report. `yaw=` turns a model that doesn't face the camera: the front faces Blender −Y (Godot +Z, towards the camera).
 
 Then `look` with `mode: "angles"`, `shading: "material"`, and from the game's angle (`views: [[0, -0.62, 0.79]]`, the camera's 52° pitch). Fix by hand what the script can't: floating bits, holes, a shadow painted into the texture (paint it out, or retry Meshy with `meshy-6`).

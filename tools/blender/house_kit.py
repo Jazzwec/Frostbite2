@@ -575,7 +575,7 @@ def build_all(export=False, only=None, spacing=6.0):
         ob.location.x = i * spacing
         built.append((key, ob))
     if export:
-        out_dir = os.path.join(PROJECT, "assets", "models", "blender")
+        out_dir = os.path.join(PROJECT, "assets", "models", "kit")
         layer = scene.view_layers[0]
         for key, ob in built:
             x = ob.location.x

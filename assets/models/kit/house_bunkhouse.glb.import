@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://uqy46gyoy24n"
-path="res://.godot/imported/prop_boat.glb-073fe87ccd2b67b575f1463dccec56d4.scn"
+uid="uid://b3xlo2mbtrk6n"
+path="res://.godot/imported/house_bunkhouse.glb-af3db6b62452b95f6e06ec2f1bf786de.scn"
 
 [deps]
 
-source_file="res://assets/models/blender/prop_boat.glb"
-dest_files=["res://.godot/imported/prop_boat.glb-073fe87ccd2b67b575f1463dccec56d4.scn"]
+source_file="res://assets/models/kit/house_bunkhouse.glb"
+dest_files=["res://.godot/imported/house_bunkhouse.glb-af3db6b62452b95f6e06ec2f1bf786de.scn"]
 
 [params]
 

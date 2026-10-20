@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bu7h2mbgx6omd"
-path="res://.godot/imported/prop_jetty.glb-867813e5fdba1bdb576bbfc678ad31f7.scn"
+uid="uid://brsmqiuqe2xmm"
+path="res://.godot/imported/house_hot_springs.glb-e4493c9526c45a5d6069d7df2f5b0bd6.scn"
 
 [deps]
 
-source_file="res://assets/models/blender/prop_jetty.glb"
-dest_files=["res://.godot/imported/prop_jetty.glb-867813e5fdba1bdb576bbfc678ad31f7.scn"]
+source_file="res://assets/models/kit/house_hot_springs.glb"
+dest_files=["res://.godot/imported/house_hot_springs.glb-e4493c9526c45a5d6069d7df2f5b0bd6.scn"]
 
 [params]
 

@@ -5,8 +5,10 @@
     python tools/chatgpt/chatgpt.py image "the village furnace" --out source_art/concept/ink/furnace.png --for-3d --ref lineup.png
     python tools/chatgpt/chatgpt.py ask "Is 6 m/s too fast for a phone screen?" [--image shot.png] [--out answer.md]
 
-Every call is logged to tools/chatgpt/calls.log (time, kind, seconds, output, prompt summary) so
-budgets can be checked. Standard library only; needs `codex` on PATH.
+Every call runs on gpt-6-astra (Codex's frontier model) at high effort, the user's choice from
+2026-10-20; --model and --effort override it. Every call is logged to tools/chatgpt/calls.log
+(time, kind, model, seconds, output, prompt summary) so budgets can be checked. Standard library
+only (PIL for --for-3d padding); needs `codex` on PATH.
 """
 
 import argparse
@@ -22,6 +24,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 LOG = Path(__file__).resolve().parent / "calls.log"
 GENERATED = Path.home() / ".codex" / "generated_images"
+## The model every call uses, and its reasoning effort (user's choice, 2026-10-20).
+MODEL = "gpt-6-astra"
+EFFORT = "high"
 
 STYLE = (
     "Frostbite2 is a cosy, hypercasual mobile survival game: a small arctic town around a big furnace, "
@@ -38,7 +43,10 @@ FOR_3D = (
     "space around it, front three-quarter view from slightly above, close to orthographic (no strong "
     "perspective), square framing, plain flat light grey background, flat even lighting with no cast "
     "shadows and no baked highlights, no ground, base, pedestal or scenery, no text. Only light, thin "
-    "outlines on the object itself, because the game draws its own ink lines."
+    "outlines on the object itself, because the game draws its own ink lines. Paint its surfaces as "
+    "broad, flat watercolour colour areas: three or four big colour masses, few large stones, planks or "
+    "folds, no fine texture, grime or dark speckle, because the 3D generator bakes every mark into the "
+    "model's texture."
 )
 
 REVIEW_PROMPT = """You are an experienced art director and game designer for hypercasual mobile games.
@@ -66,21 +74,22 @@ Do not write code, do not edit files, do not run shell commands.
 Image to create: {prompt}"""
 
 
-def log(kind, seconds, out, summary):
+def log(kind, model, seconds, out, summary):
     stamp = datetime.datetime.now().isoformat(timespec="seconds")
-    line = f"{stamp}\t{kind}\t{seconds:.0f}s\t{out}\t{summary[:120].replace(chr(10), ' ')}\n"
+    line = f"{stamp}\t{kind}\t{model}\t{seconds:.0f}s\t{out}\t{summary[:120].replace(chr(10), ' ')}\n"
     with LOG.open("a", encoding="utf-8") as f:
         f.write(line)
 
 
-def codex(prompt, images=(), out_file=None, timeout=180, sandbox="read-only"):
-    """Runs one non-interactive Codex turn; returns (final message, thread id)."""
+def codex(prompt, images=(), out_file=None, timeout=420, sandbox="read-only", model=MODEL, effort=EFFORT):
+    """Runs one non-interactive Codex turn on `model`; returns (final message, thread id)."""
     exe = shutil.which("codex")
     if not exe:
         sys.exit("codex CLI not found on PATH")
     with tempfile.TemporaryDirectory() as work:
         last = Path(work) / "last.md"
-        cmd = [exe, "exec", "-s", sandbox, "--skip-git-repo-check", "--ephemeral", "--json", "-C", work, "-o", str(last)]
+        cmd = [exe, "exec", "-m", model, "-c", f'model_reasoning_effort="{effort}"', "-s", sandbox,
+               "--skip-git-repo-check", "--ephemeral", "--json", "-C", work, "-o", str(last)]
         for img in images:
             cmd += ["-i", str(Path(img).resolve())]
         cmd.append("-")
@@ -113,15 +122,17 @@ def cmd_review(args):
     for img in args.images:
         if not Path(img).exists():
             sys.exit(f"no such image: {img}")
-    text, _ = codex(REVIEW_PROMPT.format(style=STYLE, focus=args.focus), args.images, args.out)
-    log("review", time.time() - start, args.out or "-", args.focus)
+    text, _ = codex(REVIEW_PROMPT.format(style=STYLE, focus=args.focus), args.images, args.out,
+                    timeout=args.timeout, model=args.model, effort=args.effort)
+    log("review", args.model, time.time() - start, args.out or "-", args.focus)
     print(text)
 
 
 def cmd_ask(args):
     start = time.time()
-    text, _ = codex(ASK_PROMPT.format(style=STYLE, question=args.question), args.image or (), args.out)
-    log("ask", time.time() - start, args.out or "-", args.question)
+    text, _ = codex(ASK_PROMPT.format(style=STYLE, question=args.question), args.image or (), args.out,
+                    timeout=args.timeout, model=args.model, effort=args.effort)
+    log("ask", args.model, time.time() - start, args.out or "-", args.question)
     print(text)
 
 
@@ -152,13 +163,13 @@ def _pad_square(path):
 def cmd_image(args):
     start = time.time()
     out = Path(args.out)
-    refs = [args.ref] if args.ref else []
+    refs = args.ref or []
     prompt = IMAGE_PROMPT.format(style=STYLE, prompt=args.prompt)
     if args.for_3d:
         prompt += "\n" + FOR_3D
     if refs:
-        prompt += "\nMatch the style of the attached reference image."
-    reply, thread = codex(prompt, refs, timeout=args.timeout)
+        prompt += "\nMatch the style of the attached reference image(s)."
+    reply, thread = codex(prompt, refs, timeout=args.timeout, model=args.model, effort=args.effort)
     made = _thread_images(thread)
     if not made:
         sys.exit(f"no image was generated. Codex said:\n{reply[-1500:]}")
@@ -168,7 +179,7 @@ def cmd_image(args):
         _pad_square(out)
     # Keep the prompt beside the asset so it can be regenerated.
     out.with_suffix(".prompt.txt").write_text(args.prompt + "\n", encoding="utf-8")
-    log("image", time.time() - start, str(out), args.prompt)
+    log("image", args.model, time.time() - start, str(out), args.prompt)
     print(out)
 
 
@@ -181,19 +192,24 @@ def main():
     r.add_argument("images", nargs="+")
     r.add_argument("--focus", default="overall readability, clarity and juice on a phone")
     r.add_argument("--out")
+    r.add_argument("--timeout", type=int, default=420)
     r.set_defaults(fn=cmd_review)
     a = sub.add_parser("ask", help="a second opinion")
     a.add_argument("question")
     a.add_argument("--image", nargs="*")
     a.add_argument("--out")
+    a.add_argument("--timeout", type=int, default=420)
     a.set_defaults(fn=cmd_ask)
     i = sub.add_parser("image", help="generate one image")
     i.add_argument("prompt")
     i.add_argument("--out", required=True)
-    i.add_argument("--ref")
+    i.add_argument("--ref", action="append", help="a style reference; repeat for several (e.g. the lineup and the front view)")
     i.add_argument("--for-3d", action="store_true", help="a reference for Meshy/Tripo: one object, plain grey, flat light, square")
-    i.add_argument("--timeout", type=int, default=300)
+    i.add_argument("--timeout", type=int, default=600)
     i.set_defaults(fn=cmd_image)
+    for s in (r, a, i):
+        s.add_argument("--model", default=MODEL, help="Codex model (default %(default)s)")
+        s.add_argument("--effort", default=EFFORT, help="reasoning effort (default %(default)s)")
     args = p.parse_args()
     args.fn(args)
 

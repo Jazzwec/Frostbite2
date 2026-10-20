@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://hdom4tgrmkgw"
-path="res://.godot/imported/house_bunkhouse.glb-46505be156f55876ac94c16e3ec7d2bc.scn"
+uid="uid://c80awiqhyf5gr"
+path="res://.godot/imported/house_storehouse.glb-f351482e9d757bff893e141fe9ac559e.scn"
 
 [deps]
 
-source_file="res://assets/models/blender/house_bunkhouse.glb"
-dest_files=["res://.godot/imported/house_bunkhouse.glb-46505be156f55876ac94c16e3ec7d2bc.scn"]
+source_file="res://assets/models/kit/house_storehouse.glb"
+dest_files=["res://.godot/imported/house_storehouse.glb-f351482e9d757bff893e141fe9ac559e.scn"]
 
 [params]
 

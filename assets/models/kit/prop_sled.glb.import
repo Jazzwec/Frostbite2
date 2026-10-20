@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://crsootbwshyaw"
-path="res://.godot/imported/prop_woodpile.glb-e85c671a3c5d93ed660c6b7621dfae4b.scn"
+uid="uid://24conw13yqfd"
+path="res://.godot/imported/prop_sled.glb-393c06f7418620a04ce9ac32dc140e6e.scn"
 
 [deps]
 
-source_file="res://assets/models/blender/prop_woodpile.glb"
-dest_files=["res://.godot/imported/prop_woodpile.glb-e85c671a3c5d93ed660c6b7621dfae4b.scn"]
+source_file="res://assets/models/kit/prop_sled.glb"
+dest_files=["res://.godot/imported/prop_sled.glb-393c06f7418620a04ce9ac32dc140e6e.scn"]
 
 [params]
 

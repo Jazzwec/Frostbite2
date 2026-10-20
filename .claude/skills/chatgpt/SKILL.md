@@ -14,7 +14,9 @@ python tools/chatgpt/chatgpt.py image "<what to draw>" --out <path.png> [--ref <
 ```
 
 - A review or ask takes about 30 s; an image about 40 s. The script prints the result. Images are written to `--out`, with the prompt saved beside them as `<name>.prompt.txt`.
-- Every call is logged in `tools/chatgpt/calls.log`, which is gitignored. Check it to stay within a budget.
+- **Every call runs on `gpt-6-astra` at high effort** (Codex's frontier model; the user's choice, 2026-10-20). It's the script's default, so pass nothing; `--model`/`--effort` exist only for a one-off. An Astra image takes about 1–3 minutes and a review about a minute (timeouts 600 s and 420 s).
+- `--ref` can be given more than once (say the round-3 lineup and the last approved reference of the same kind), so a set of assets stays consistent.
+- Every call is logged in `tools/chatgpt/calls.log` (with its model), which is gitignored. Check it to stay within a budget.
 - The script adds the game's style brief to every prompt by itself (cosy arctic town, ink & watercolour picture book, original work only), so prompts only need to say what's specific.
 - `--for-3d` makes a reference for a 3D generator (Meshy or Tripo): it adds the generator's needs (one object, plain grey, flat light, no shadows) and pads the image to a square. The `asset-pipeline` skill has the whole route to a game model.
 - Use the Bash tool. Screenshots come from `swallowtail runtime screenshot --save_path <file>`.

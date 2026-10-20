@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://cd3m5sa4xugsi"
-path="res://.godot/imported/prop_lantern_post.glb-b56162abb04dbae09edc571da7172c61.scn"
+uid="uid://bj47rx376h3kh"
+path="res://.godot/imported/prop_den.glb-681d6de4b08f13f0d7cc59c2e79da121.scn"
 
 [deps]
 
-source_file="res://assets/models/blender/prop_lantern_post.glb"
-dest_files=["res://.godot/imported/prop_lantern_post.glb-b56162abb04dbae09edc571da7172c61.scn"]
+source_file="res://assets/models/kit/prop_den.glb"
+dest_files=["res://.godot/imported/prop_den.glb-681d6de4b08f13f0d7cc59c2e79da121.scn"]
 
 [params]
 

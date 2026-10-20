@@ -48,6 +48,10 @@ static var _vertex_paint: StandardMaterial3D
 static func make(id: String, scale := 1.0, yaw_degrees := 0.0) -> Node3D:
 	if not _cache.has(id):
 		var path: String = PATHS.get(id, "")
+		# The pipeline's model (assets/models/blender) when there is one, else the hand-built kit's
+		# (assets/models/kit, tools/blender/house_kit.py).
+		if path != "" and not ResourceLoader.exists(path):
+			path = path.replace("/models/blender/", "/models/kit/")
 		_cache[id] = load(path) if path != "" and ResourceLoader.exists(path) else null
 	var scene: PackedScene = _cache[id]
 	if scene == null:

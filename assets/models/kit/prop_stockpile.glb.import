@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://0dwgkfx6dc0i"
-path="res://.godot/imported/prop_den.glb-d088400edc04241a10debd499e25ea08.scn"
+uid="uid://cu50712kenpfg"
+path="res://.godot/imported/prop_stockpile.glb-cf52c3e81ea98ed4a16ab92ec7e8373e.scn"
 
 [deps]
 
-source_file="res://assets/models/blender/prop_den.glb"
-dest_files=["res://.godot/imported/prop_den.glb-d088400edc04241a10debd499e25ea08.scn"]
+source_file="res://assets/models/kit/prop_stockpile.glb"
+dest_files=["res://.godot/imported/prop_stockpile.glb-cf52c3e81ea98ed4a16ab92ec7e8373e.scn"]
 
 [params]
 

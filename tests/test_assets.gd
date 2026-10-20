@@ -3,7 +3,7 @@ extends TestCase
 ## metres with the base at y = 0 and centred, within their triangle budget, few opaque
 ## BaseMaterial3D materials (what InkLook repaints) and textures no bigger than 1024.
 
-const DIRS := ["res://assets/models/blender", "res://assets/models/polyhaven"]
+const DIRS := ["res://assets/models/blender", "res://assets/models/kit", "res://assets/models/polyhaven"]
 ## Every model needs a row here: [max triangles, min height m, max height m].
 const BUDGETS := {
 	"furnace": [10000, 2.5, 4.5],

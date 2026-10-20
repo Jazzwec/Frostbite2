@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://pwdvitnskh7x"
-path="res://.godot/imported/prop_rock_b.glb-d154bc20adc36b660e63efca9dba9d8c.scn"
+uid="uid://n0x61sp6na76"
+path="res://.godot/imported/prop_jetty.glb-58f115e5268f6567d7ebe04ef9651ab1.scn"
 
 [deps]
 
-source_file="res://assets/models/blender/prop_rock_b.glb"
-dest_files=["res://.godot/imported/prop_rock_b.glb-d154bc20adc36b660e63efca9dba9d8c.scn"]
+source_file="res://assets/models/kit/prop_jetty.glb"
+dest_files=["res://.godot/imported/prop_jetty.glb-58f115e5268f6567d7ebe04ef9651ab1.scn"]
 
 [params]
 

@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://2jijuqtm3ci2"
-path="res://.godot/imported/house_kitchen.glb-7c23221f2a2dbbebf0c58f25e1b0812a.scn"
+uid="uid://bmuutsmkoc8al"
+path="res://.godot/imported/prop_fence.glb-be1226f95e2c7f5c8497ffb7044ebc9e.scn"
 
 [deps]
 
-source_file="res://assets/models/blender/house_kitchen.glb"
-dest_files=["res://.godot/imported/house_kitchen.glb-7c23221f2a2dbbebf0c58f25e1b0812a.scn"]
+source_file="res://assets/models/kit/prop_fence.glb"
+dest_files=["res://.godot/imported/prop_fence.glb-be1226f95e2c7f5c8497ffb7044ebc9e.scn"]
 
 [params]
 

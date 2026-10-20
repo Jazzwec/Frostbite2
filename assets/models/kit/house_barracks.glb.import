@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bb7b3jcqdjxhd"
-path="res://.godot/imported/prop_rock_a.glb-5e7f77117144eb9b34ff5ec979bf0e49.scn"
+uid="uid://clxjwke7151fu"
+path="res://.godot/imported/house_barracks.glb-07d701973a875d52833f15af20d2af6c.scn"
 
 [deps]
 
-source_file="res://assets/models/blender/prop_rock_a.glb"
-dest_files=["res://.godot/imported/prop_rock_a.glb-5e7f77117144eb9b34ff5ec979bf0e49.scn"]
+source_file="res://assets/models/kit/house_barracks.glb"
+dest_files=["res://.godot/imported/house_barracks.glb-07d701973a875d52833f15af20d2af6c.scn"]
 
 [params]
 

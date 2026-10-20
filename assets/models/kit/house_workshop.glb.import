@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bxr56u8y85qa"
-path="res://.godot/imported/house_barracks.glb-de00001a58718e2efc3c72d59ae6b0ce.scn"
+uid="uid://b122c465eellu"
+path="res://.godot/imported/house_workshop.glb-bc47bdc5e3be757c603476c06fac2acb.scn"
 
 [deps]
 
-source_file="res://assets/models/blender/house_barracks.glb"
-dest_files=["res://.godot/imported/house_barracks.glb-de00001a58718e2efc3c72d59ae6b0ce.scn"]
+source_file="res://assets/models/kit/house_workshop.glb"
+dest_files=["res://.godot/imported/house_workshop.glb-bc47bdc5e3be757c603476c06fac2acb.scn"]
 
 [params]
 

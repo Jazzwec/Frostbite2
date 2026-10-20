@@ -96,9 +96,75 @@ def _flatten_material(mat, tex_size):
     return image
 
 
+# The art-direction palette (docs/art-direction.md, the house kit's PAL), in sRGB. palette_snap()
+# pulls a texture towards these tones and a darker and a lighter step of each.
+PALETTE = ["B2412E", "C9973F", "5E8A87", "35666B", "EEF2F2", "7F93A6", "2C3440", "F2B266",
+           "8A5E3C", "5E3F2A", "B48D62", "8E8C88", "6E6C6A", "45474E", "5B6470", "B39A6E"]
+
+
+def palette_snap(image, strength=0.5, blur=1):
+    """One palette for every model (ink_v3): blurs the texture `blur` times (3x3) to melt fine
+    speckle into washes, then moves each texel `strength` of the way to its nearest palette tone."""
+    import numpy as np
+    w, h = image.size
+    px = np.array(image.pixels[:], dtype=np.float32).reshape(h, w, 4)
+    rgb = px[:, :, :3]
+    for _ in range(blur):
+        pad = np.pad(rgb, ((1, 1), (1, 1), (0, 0)), mode="edge")
+        rgb = sum(pad[dy:dy + h, dx:dx + w] for dy in range(3) for dx in range(3)) / 9.0
+    base = np.array([[int(c[i:i + 2], 16) / 255.0 for i in (0, 2, 4)] for c in PALETTE], dtype=np.float32)
+    tones = np.concatenate([base * 0.8, base, np.minimum(base * 1.15, 1.0)])
+    flat = rgb.reshape(-1, 3)
+    out = np.empty_like(flat)
+    for start in range(0, len(flat), 65536):
+        chunk = flat[start:start + 65536]
+        d = ((chunk[:, None, :] - tones[None, :, :]) ** 2).sum(axis=2)
+        nearest = tones[d.argmin(axis=1)]
+        out[start:start + 65536] = chunk + (nearest - chunk) * strength
+    px[:, :, :3] = out.reshape(h, w, 3)
+    image.pixels[:] = px.ravel()
+    image.update()
+
+
+def _split_lid(obj, at):
+    """Cuts a chest at height `at` into itself (the body) and `<name>_lid`, whose origin is its
+    back hinge (the top back edge of the body), with both cut faces filled."""
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
+    bmesh.ops.bisect_plane(bm, geom=geom, dist=0.0001, plane_co=(0, 0, at), plane_no=(0, 0, 1))
+    lid_faces = [f for f in bm.faces if f.calc_center_median().z > at]
+    lid_bm = bmesh.new()
+    lid_mesh = bpy.data.meshes.new(obj.name + "_lid")
+    # Copy the whole mesh to the lid, then each keeps only its own half.
+    bm.to_mesh(lid_mesh)
+    lid_bm.from_mesh(lid_mesh)
+    bmesh.ops.delete(lid_bm, geom=[f for f in lid_bm.faces if f.calc_center_median().z <= at], context="FACES")
+    bmesh.ops.delete(bm, geom=lid_faces, context="FACES")
+    for part in (bm, lid_bm):
+        boundary = [e for e in part.edges if e.is_boundary]
+        if boundary:
+            bmesh.ops.holes_fill(part, edges=boundary, sides=0)
+    hinge_y = max(v.co.y for v in lid_bm.verts) if lid_bm.verts else 0.0
+    bmesh.ops.translate(lid_bm, verts=lid_bm.verts, vec=(0, -hinge_y, -at))
+    bm.to_mesh(obj.data)
+    lid_bm.to_mesh(lid_mesh)
+    bm.free()
+    lid_bm.free()
+    for mat in obj.data.materials:
+        lid_mesh.materials.append(mat)
+    lid = bpy.data.objects.new(obj.name + "_lid", lid_mesh)
+    obj.users_collection[0].objects.link(lid)
+    lid.parent = obj
+    lid.location = (0, hinge_y, at)
+    return lid
+
+
 def cleanup(name, source, height=None, footprint=None, max_tris=8000, tex_size=1024,
-            weld=0.0005, yaw=0.0, export=True):
-    """See the module docstring. `height` or `footprint` (the larger of width and depth) in metres."""
+            weld=0.0005, yaw=0.0, export=True, palette=0.0, split_lid_at=None):
+    """See the module docstring. `height` or `footprint` (the larger of width and depth) in metres.
+    `palette` (0 to 1) pulls the texture towards the art-direction palette (palette_snap);
+    `split_lid_at` (metres, after scaling) cuts a chest into a body and a hinged lid."""
     if (height is None) == (footprint is None):
         raise ValueError("give exactly one of height or footprint")
     scene_name = "FB2_" + "".join(w.capitalize() for w in name.split("_"))
@@ -175,12 +241,17 @@ def cleanup(name, source, height=None, footprint=None, max_tris=8000, tex_size=1
     images = [_flatten_material(slot.material, tex_size) for slot in obj.material_slots if slot.material]
     for image in images:
         if image:
+            if palette > 0.0:
+                palette_snap(image, palette)
             image.pack()
+    parts = [obj]
+    if split_lid_at is not None:
+        parts.append(_split_lid(obj, split_lid_at))
 
     blend = PROJECT / "source_art" / "blender" / f"{name}.blend"
     glb = PROJECT / "assets" / "models" / "blender" / f"{name}.glb"
     if export:
-        _select_only([obj], obj)
+        _select_only(parts, obj)
         bpy.ops.export_scene.gltf(filepath=str(glb), export_format="GLB", use_active_scene=True,
                                   use_active_collection=True, export_yup=True, export_apply=True,
                                   export_tangents=False, export_animations=False,
