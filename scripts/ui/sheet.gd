@@ -23,7 +23,7 @@ var _upgrade: Button
 var _job_label: Label
 var _job_row: HBoxContainer
 var _job := ""
-var _build_buttons := {}  # building id -> Button
+var _build_button: Button  # an unbuilt plot's Build button
 var _body: VBoxContainer
 
 
@@ -109,7 +109,7 @@ func _start(index: int) -> void:
 	jans = false
 	for c in get_children():
 		c.queue_free()
-	_build_buttons.clear()
+	_build_button = null
 	_job = ""
 	_body = VBoxContainer.new()
 	_body.add_theme_constant_override("separation", 14)
@@ -124,16 +124,14 @@ func _start(index: int) -> void:
 	header.add_child(close_button)
 
 
+## An unbuilt plot: the game decides what it holds (agreed 2026-10-20), so it offers just that.
 func _open_plot() -> void:
-	_title.text = "Empty plot"
-	_body.add_child(UiTheme.label("Pick a building, then stand on its pad: her bag pays first, then the Stockpile.", 34, Color(0.8, 0.85, 0.95)))
-	for b in Balance.BUILDINGS:
-		if Balance.BUILDINGS[b].start > 0:
-			continue
-		var button := UiTheme.button("", _choose.bind(b))
-		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		_body.add_child(button)
-		_build_buttons[b] = button
+	var b: String = Game.engine.state.sites[site_index].type
+	_title.text = Balance.BUILDINGS[b].name
+	_body.add_child(UiTheme.label(Game.building_text(b).get("effect", ""), 34, Color(0.8, 0.85, 0.95)))
+	_body.add_child(UiTheme.label("Build it, then stand on its pad: her bag pays first, then the Stockpile.", 34, Color(0.8, 0.85, 0.95)))
+	_build_button = UiTheme.button("", _build)
+	_body.add_child(_build_button)
 
 
 func _open_building(b: String) -> void:
@@ -160,8 +158,8 @@ func _open_building(b: String) -> void:
 			_job_row.add_child(button)
 
 
-func _choose(b: String) -> void:
-	Game.engine.choose_building(site_index, b)
+func _build() -> void:
+	Game.engine.start_construction(site_index)
 	close()
 
 
@@ -191,21 +189,17 @@ func _refresh() -> void:
 	if site_index < 0:
 		return
 	var site: Dictionary = s.sites[site_index]
-	if not _build_buttons.is_empty():
+	if _build_button != null:
 		if site.building != "":
 			close()
 			return
-		var open := Economy.buildable(s)
-		for b in _build_buttons:
-			var button: Button = _build_buttons[b]
-			var name: String = Balance.BUILDINGS[b].name
-			button.visible = open.has(b)
-			if Economy.is_unlocked(s, b):
-				button.text = "%s  ·  %s" % [name, Fmt.cost(Economy.cost(b, 0))]
-				button.disabled = false
-			else:
-				button.text = "%s  ·  needs Furnace Lv %d" % [name, Balance.BUILDINGS[b].unlock]
-				button.disabled = true
+		var plot: String = site.type
+		if Economy.is_unlocked(s, plot):
+			_build_button.text = "Build  ·  %s" % Fmt.cost(Economy.cost(plot, 0))
+			_build_button.disabled = false
+		else:
+			_build_button.text = "Needs Furnace Lv %d" % Balance.BUILDINGS[plot].unlock
+			_build_button.disabled = true
 		return
 	var b: String = site.building
 	var name: String = Balance.BUILDINGS[b].name

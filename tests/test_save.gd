@@ -8,7 +8,7 @@ func _mid_game() -> GameEngine:
 	e.dev_add_jan()
 	e.dev_add_jan()
 	e.state.jans[0].job = "chop"
-	e.choose_building(3, "sled_shed")
+	e.start_construction(3)
 	e.state.sites[3].progress = {"wood": 12.0}
 	e.state.bag = {"wood": 7.0, "food": 2.0, "materials": 1.0}
 	e.state.piles.wood = 40.0

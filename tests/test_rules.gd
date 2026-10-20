@@ -111,12 +111,18 @@ func test_the_fire_counts_down_only_without_fuel() -> void:
 	check_near(Economy.seconds_until_cold(e.state), 60.0 / Economy.heat_drain(e.state), 0.001, "heat ÷ drain")
 
 
-func test_one_of_each_building_on_the_plots() -> void:
+func test_every_plot_holds_its_own_building() -> void:
 	var e := engine()
-	check(Economy.buildable(e.state).has("sled_shed"), "a Sled Shed can go up")
-	check(not Economy.buildable(e.state).has("furnace"), "the furnace is never on the list")
-	give_building(e, "sled_shed", 1)
-	check(not Economy.buildable(e.state).has("sled_shed"), "only one Sled Shed")
+	var types := MapData.START_SITES.map(func(d): return d.type)
+	for b in ["sled_shed", "storehouse", "kitchen", "barracks", "bunkhouse", "watchtower", "hot_springs"]:
+		check_eq(types.count(b), 1, "one %s plot on the starting grid" % b)
+	check(not types.has("workshop"), "producers only in opened tiles")
+	var kitchen: int = types.find("kitchen")
+	check(not e.start_construction(kitchen), "the Kitchen waits for Furnace Lv 2")
+	e.state.sites[0].level = 2
+	check(e.start_construction(kitchen), "then it can start")
+	check_eq(e.state.sites[kitchen].building, "kitchen", "and it's a Kitchen")
+	check(not e.start_construction(0), "the furnace is never a construction site")
 
 
 func test_a_watchtower_warns_of_blizzards_a_minute_sooner_per_level() -> void:
@@ -152,5 +158,5 @@ func test_hot_springs_unlock_at_furnace_7() -> void:
 	check(not Economy.is_unlocked(e.state, "hot_springs"), "locked at Furnace Lv 6")
 	e.state.sites[0].level = 7
 	check(Economy.is_unlocked(e.state, "hot_springs"), "open at Furnace Lv 7")
-	check(Economy.buildable(e.state).has("hot_springs"), "on the build list")
+	check(MapData.START_SITES.any(func(d): return d.type == "hot_springs"), "the starting grid has a Hot Springs plot")
 	check_eq(Balance.BUILDINGS.hot_springs.max, 5, "five levels")

@@ -14,15 +14,15 @@ static func arrivals(s: GameState, dt: float, rng: RandomNumberGenerator, events
 	if s.arrivals.size() >= Balance.ARRIVAL_MAX_WAITING:
 		return
 	var free := []
-	for i in MapData.ARRIVAL_SPOTS.size():
+	for i in s.arrival_spots.size():
 		if not s.arrivals.any(func(a): return a.spot == i):
 			free.append(i)
 	if free.is_empty():
 		return
 	var spot: int = free[rng.randi_range(0, free.size() - 1)]
-	var arrival := {"id": s.new_id(), "spot": spot}
+	var arrival := {"id": s.new_id(), "spot": spot, "pos": s.arrival_spots[spot]}
 	s.arrivals.append(arrival)
-	events.append({"type": "arrival", "arrival": arrival.id, "pos": MapData.ARRIVAL_SPOTS[spot]})
+	events.append({"type": "arrival", "arrival": arrival.id, "pos": arrival.pos})
 
 
 ## Jans eat from the Stockpile. With none left they're hungry and slower. [brief]

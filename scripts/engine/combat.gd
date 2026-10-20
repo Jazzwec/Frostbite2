@@ -45,11 +45,11 @@ static func _schedule(s: GameState, rng: RandomNumberGenerator, events: Array) -
 static func spawn_pack(s: GameState, rng: RandomNumberGenerator, events: Array, count := -1) -> void:
 	if count < 0:
 		count = rng.randi_range(Balance.WOLF_PACK_MIN, Balance.WOLF_PACK_MAX)
-	var home: Vector2 = MapData.WOLF_SPAWNS[rng.randi_range(0, MapData.WOLF_SPAWNS.size() - 1)]
+	var home: Vector2 = s.wolf_spawns[rng.randi_range(0, s.wolf_spawns.size() - 1)]
 	var scale := Economy.wolf_scale(s)
 	for i in count:
 		var offset := Vector2(rng.randf_range(-2.0, 2.0), rng.randf_range(-2.0, 2.0))
-		var pos := (home + offset).clamp(MapData.BOUNDS.position, MapData.BOUNDS.end)
+		var pos := (home + offset).clamp(s.bounds.position, s.bounds.end)
 		s.wolves.append({
 			"id": s.new_id(), "pos": pos, "home": home,
 			"hp": Balance.WOLF_HP * scale, "max_hp": Balance.WOLF_HP * scale,
@@ -108,7 +108,7 @@ static func _wolf(s: GameState, wolf: Dictionary, dt: float, events: Array) -> v
 			wolf.mode = "furnace"
 			wolf.scare_timer = 0.0
 		else:
-			var site_pos: Vector2 = MapData.SITES[target].pos
+			var site_pos := MapData.site_pos(s, target)
 			if wolf.pos.distance_to(site_pos) > Balance.WOLF_REACH + MapData.SITE_HALF_SIZE:
 				wolf.pos = wolf.pos.move_toward(site_pos, Balance.WOLF_SPEED * dt)
 			else:
@@ -123,7 +123,7 @@ static func _wolf(s: GameState, wolf: Dictionary, dt: float, events: Array) -> v
 			return
 
 	# Head for the furnace and break through.
-	var furnace: Vector2 = MapData.SITES[0].pos
+	var furnace := MapData.site_pos(s, 0)
 	if wolf.pos.distance_to(furnace) > Balance.FURNACE_REACH + MapData.FURNACE_RADIUS:
 		wolf.pos = wolf.pos.move_toward(furnace, Balance.WOLF_SPEED * dt)
 		return
@@ -159,8 +159,8 @@ static func _spread(s: GameState, dt: float) -> void:
 				continue
 			var dir := apart / d if d > 0.001 else Vector2.RIGHT.rotated(float(a.id * 7 + b.id * 13))
 			var step := minf((Balance.WOLF_SPACING - d) / 2.0, most)
-			a.pos = (a.pos + dir * step).clamp(MapData.BOUNDS.position, MapData.BOUNDS.end)
-			b.pos = (b.pos - dir * step).clamp(MapData.BOUNDS.position, MapData.BOUNDS.end)
+			a.pos = (a.pos + dir * step).clamp(s.bounds.position, s.bounds.end)
+			b.pos = (b.pos - dir * step).clamp(s.bounds.position, s.bounds.end)
 
 
 static func _nearest_foe(s: GameState, pos: Vector2) -> Dictionary:
@@ -186,7 +186,7 @@ static func _working_site_near(s: GameState, pos: Vector2) -> int:
 		if Economy.job_count(s, job) == 0:
 			continue
 		var i := MapData.site_of_building(s.sites, Balance.JOBS[job].building)
-		if i >= 0 and pos.distance_to(MapData.SITES[i].pos) <= Balance.WOLF_DETOUR_RANGE:
+		if i >= 0 and pos.distance_to(MapData.site_pos(s, i)) <= Balance.WOLF_DETOUR_RANGE:
 			return i
 	return -1
 
@@ -205,7 +205,8 @@ static func _guards(s: GameState) -> Array:
 ## Where guard number `i` of `n` waits around the furnace.
 static func guard_post(i: int, n: int) -> Vector2:
 	var angle := TAU * i / maxi(n, 1)
-	return MapData.SITES[0].pos + Vector2(cos(angle), sin(angle)) * Balance.GUARD_RING_RADIUS
+	# The furnace never moves: it's the starting grid's plot 0.
+	return MapData.START_SITES[0].pos + Vector2(cos(angle), sin(angle)) * Balance.GUARD_RING_RADIUS
 
 
 static func _guards_return(s: GameState, dt: float) -> void:

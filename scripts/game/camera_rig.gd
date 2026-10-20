@@ -27,6 +27,8 @@ const JOY_RADIUS := 110.0
 const JOY_DEAD := 12.0
 ## How far the view may go past the snowfield's edge, in metres (x, top, bottom).
 const EDGE_MARGIN := Vector3(6.0, 8.0, 10.0)
+## The open ground, kept up to date by main as tiles open.
+var bounds := MapData.start_bounds()
 
 var camera: Camera3D
 var follow_target: Node3D
@@ -196,7 +198,7 @@ func _spread() -> float:
 
 
 func _clamp() -> void:
-	var b := MapData.BOUNDS
+	var b := bounds
 	# Keep the view mostly over the snowfield rather than the empty land around it.
 	global_position.x = clampf(global_position.x, b.position.x + EDGE_MARGIN.x, b.end.x - EDGE_MARGIN.x)
 	global_position.z = clampf(global_position.z, b.position.y + EDGE_MARGIN.y, b.end.y - EDGE_MARGIN.z)
@@ -220,7 +222,7 @@ func pick(screen_pos: Vector2) -> Dictionary:
 	if ground == null:
 		return {}
 	var p: Vector3 = ground
-	var b := MapData.BOUNDS
+	var b := bounds
 	p.x = clampf(p.x, b.position.x + 0.5, b.end.x - 0.5)
 	p.z = clampf(p.z, b.position.y + 0.5, b.end.y - 0.5)
 	return {"kind": "ground", "pos": p}

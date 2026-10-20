@@ -28,16 +28,16 @@ static func target(id: String, s: GameState) -> Vector2:
 	match id:
 		"chop":
 			var best := Vector2.INF
-			for node in MapData.RESOURCE_NODES:
+			for node in s.node_defs:
 				if node.kind == "forest" and s.meagan_pos.distance_to(node.pos) < s.meagan_pos.distance_to(best):
 					best = node.pos
 			return best
 		"fuel":
-			return MapData.SITES[0].pos
+			return MapData.site_pos(s, 0)
 		"thaw":
 			var best := Vector2.INF
 			for arrival in s.arrivals:
-				var pos: Vector2 = MapData.ARRIVAL_SPOTS[arrival.spot]
+				var pos: Vector2 = arrival.pos
 				if s.meagan_pos.distance_to(pos) < s.meagan_pos.distance_to(best):
 					best = pos
 			return best

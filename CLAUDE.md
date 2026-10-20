@@ -43,7 +43,7 @@ Frostbite2 is a fresh rebuild in Godot of Frostbite 1 (a finished Vite + Phaser 
   - `meagan_rules.gd`: gathering, node regrowth, the bag ↔ building magnet, rescues
   - `world_events.gd`: arrivals, eating, Jans leaving at zero heat, blizzards
   - `combat.gd`: wolves, guards, Meagan fighting
-  - `map_data.gd`: the layout (plots, resource nodes, arrival spots, wolf spawns)
+  - `map_data.gd`: the world's geometry (16 m tiles, `tile_of`, `tile_rect`, pads) and the fixed 3 × 3 starting grid (`START_SITES` with each plot's building type, `START_NODES`, `START_ARRIVAL_SPOTS`, `START_WOLF_SPAWNS`). The live layout is in `GameState` (`sites[i].pos`/`type`, `node_defs`, `arrival_spots`, `wolf_spawns`, `bounds`), because tiles opened during a winter add to it; read it through `MapData.site_pos(s, i)`, `pad_pos(s, i)`, `node_pos(s, i)`. `sites[0]` is always the furnace. The game decides every plot's building (`start_construction(i)`).
 - **Every tunable number lives in `balance.gd`** as a named, commented constant, with its source noted. Engine logic never hard-codes a number. Where the brief has no number, the value is marked `[proto]` and still needs your sign-off.
 - **The rest reads engine state and calls engine actions; it never changes state directly.**
   - **`Game` autoload** (`scripts/game/game.gd`): ticks the engine, pauses when the window loses focus, emits `engine_event`, and loads the text from `data/`.

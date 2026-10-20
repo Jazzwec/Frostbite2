@@ -102,7 +102,7 @@ func _update_warmth(delta: float) -> void:
 	var fraction := clampf(s.heat / cap, 0.0, 1.0) if cap > 0.0 else 0.0
 	var target := lerpf(WARM_RADIUS_COLD, WARM_RADIUS_FULL, fraction)
 	_warm_radius = lerpf(_warm_radius, target, minf(1.0, delta * WARM_FOLLOW))
-	var center := MapData.SITES[0].pos as Vector2
+	var center := MapData.START_SITES[0].pos as Vector2
 	for ink in _original_of.keys() + painted:
 		ink.set_shader_parameter("warm_radius", _warm_radius)
 		ink.set_shader_parameter("warm_center", Vector3(center.x, 0.0, center.y))

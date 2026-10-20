@@ -55,9 +55,10 @@ var _ring_frac := -1.0
 var _faded := false
 
 
-func setup(site_index: int) -> void:
+func setup(site_index: int, s: GameState) -> void:
 	index = site_index
-	position = Vector3(MapData.SITES[index].pos.x, 0, MapData.SITES[index].pos.y)
+	var pos := MapData.site_pos(s, index)
+	position = Vector3(pos.x, 0, pos.y)
 	_shapes = Node3D.new()
 	add_child(_shapes)
 	# Above the roof and the furnace's chimney, name and level as one tight block.
@@ -67,12 +68,12 @@ func setup(site_index: int) -> void:
 	add_child(_title)
 	var size := Vector3(MapData.SITE_HALF_SIZE * 2.0, 3.0, MapData.SITE_HALF_SIZE * 2.0)
 	add_child(Shapes.tap_area(size, "site", index))
-	_build_pad()
+	_build_pad(s)
 
 
 ## The pad in front of the plot: where she stands to pay, and where its panel opens.
-func _build_pad() -> void:
-	var at: Vector2 = MapData.pad_pos(index) - MapData.SITES[index].pos
+func _build_pad(s: GameState) -> void:
+	var at: Vector2 = MapData.pad_pos(s, index) - MapData.site_pos(s, index)
 	var root := Node3D.new()
 	root.position = Vector3(at.x, 0, at.y)
 	add_child(root)
@@ -369,7 +370,10 @@ func _update_pad(s: GameState, site: Dictionary) -> void:
 	var state := "plot"
 	var frac := 0.0
 	if site.building == "":
-		_pad_label.text = "+ Build"
+		# The plot's own building (the game decides, agreed 2026-10-20), or what it waits for.
+		var plot: String = site.type
+		var name: String = Balance.BUILDINGS[plot].name
+		_pad_label.text = ("+ %s" % name) if Economy.is_unlocked(s, plot) else ("%s\nFurnace Lv %d" % [name, Balance.BUILDINGS[plot].unlock])
 	elif site.upgrading:
 		state = "paying"
 		var need := Economy.site_cost(s, index)

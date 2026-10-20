@@ -21,19 +21,6 @@ static func is_unlocked(s: GameState, building: String) -> bool:
 	return furnace_level(s) >= Balance.BUILDINGS[building].unlock
 
 
-## Building types that can still go on an empty plot (one of each kind).
-static func buildable(s: GameState) -> Array:
-	var out := []
-	for b in Balance.BUILDINGS:
-		var def: Dictionary = Balance.BUILDINGS[b]
-		if def.start > 0:
-			continue
-		if MapData.site_of_building(s.sites, b) >= 0:
-			continue
-		out.append(b)
-	return out
-
-
 ## What the next level costs: base × growth^n with n = levels bought so far. Whole units.
 static func cost(building: String, current_level: int) -> Dictionary:
 	var def: Dictionary = Balance.BUILDINGS[building]

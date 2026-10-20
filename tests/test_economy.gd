@@ -75,7 +75,7 @@ func test_neediest_job() -> void:
 	add_jan(e, "chop")
 	add_jan(e, "chop")
 	check_eq(Economy.neediest_job(e.state), "hunt", "by share")
-	check_eq(Economy.buildable(e.state).has("workshop"), true, "workshop is a buildable type")
+	check(MapData.START_SITES.all(func(d): return d.type != "workshop"), "the Workshop is a producer: only in opened tiles")
 	check_eq(Economy.is_unlocked(e.state, "workshop"), false, "but locked until Furnace Lv 2")
 
 
@@ -93,7 +93,7 @@ func test_a_kitchen_cuts_what_jans_eat() -> void:
 
 func test_the_kitchen_unlocks_at_furnace_2() -> void:
 	var e := engine()
-	check(Economy.buildable(e.state).has("kitchen"), "on the build list")
+	check(MapData.START_SITES.any(func(d): return d.type == "kitchen"), "the starting grid has a Kitchen plot")
 	check(not Economy.is_unlocked(e.state, "kitchen"), "locked at Furnace Lv 1")
 	e.state.sites[0].level = 2
 	check(Economy.is_unlocked(e.state, "kitchen"), "open at Furnace Lv 2")

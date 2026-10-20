@@ -48,16 +48,16 @@ var _pad_opened := -1
 func _ready() -> void:
 	_build_environment()
 	_build_ground()
-	for i in MapData.SITES.size():
+	for i in Game.engine.state.sites.size():
 		var view := SiteView.new()
 		_nav.add_child(view)
-		view.setup(i)
+		view.setup(i, Game.engine.state)
 		view.footprint_changed.connect(func(): _nav_dirty = true)
 		_sites.append(view)
-	for i in MapData.RESOURCE_NODES.size():
+	for i in Game.engine.state.node_defs.size():
 		var view := NodeView.new()
 		add_child(view)
-		view.setup(i)
+		view.setup(i, Game.engine.state)
 		_nodes.append(view)
 	_stockpile = StockpileView.new()
 	add_child(_stockpile)
@@ -179,10 +179,11 @@ func _ground_material() -> ShaderMaterial:
 	m.shader = GROUND_SHADER
 	m.set_shader_parameter("snow_tex", SNOW_WASH)
 	var paths: Array[Vector4] = []
-	var furnace: Vector2 = MapData.SITES[0].pos
+	var s := Game.engine.state
+	var furnace := MapData.site_pos(s, 0)
 	var ends: Array[Vector2] = [MapData.stockpile_pad()]
-	for i in range(1, MapData.SITES.size()):
-		ends.append(MapData.pad_pos(i))
+	for i in range(1, s.sites.size()):
+		ends.append(MapData.pad_pos(s, i))
 	for end in ends:
 		# From the furnace's rim, so the paths don't pool into one blot in the middle.
 		var start := furnace + (end - furnace).normalized() * (MapData.FURNACE_RADIUS + 1.0)
@@ -193,7 +194,7 @@ func _ground_material() -> ShaderMaterial:
 
 
 func _build_ground() -> void:
-	var b := MapData.BOUNDS
+	var b := Game.engine.state.bounds
 	var outer := MeshInstance3D.new()
 	var outer_mesh := PlaneMesh.new()
 	outer_mesh.size = Vector2(160, 200)
@@ -216,7 +217,7 @@ func _build_ground() -> void:
 		add_child(Shapes.box(Vector3(1.2, 0.8, b.size.y + 2.0), Color(0.9, 0.93, 1.0), edge + Vector3(0, 0.3, 0)))
 
 	# A few boulders poking out of the snow, clear of plots and paths.
-	for spot in [Vector3(-12, 0, -20), Vector3(13, 0, -22), Vector3(-21, 0, 18), Vector3(12, 0, 24), Vector3(-3, 0, 25), Vector3(22, 0, -2), Vector3(-13, 0, 32), Vector3(8, 0, -36)]:
+	for spot in [Vector3(-12, 0, -20), Vector3(13, 0, -22), Vector3(-14, 0, 8), Vector3(12, 0, 17), Vector3(-3, 0, 19), Vector3(21, 0, -3), Vector3(-4, 0, -20)]:
 		var rock := Props.make("boulder", randf_range(0.7, 1.3), randf_range(0, 360))
 		if rock:
 			rock.position = spot + Vector3(0, -0.2, 0)
@@ -285,7 +286,7 @@ func _on_tap(screen_pos: Vector2) -> void:
 	match hit.kind:
 		"site":
 			var i: int = hit.index
-			_walk(_v3(MapData.pad_pos(i)))
+			_walk(_v3(MapData.pad_pos(s, i)))
 			_hud.sheet.open_site(i)
 		"node":
 			_walk(_nodes[hit.index].work_spot(_meagan.global_position))
@@ -298,7 +299,7 @@ func _on_tap(screen_pos: Vector2) -> void:
 			for a in s.arrivals:
 				if a.id == arrival_id:
 					Game.engine.target_arrival(arrival_id)
-					var p: Vector2 = MapData.ARRIVAL_SPOTS[a.spot]
+					var p: Vector2 = a.pos
 					_walk(Vector3(p.x, 0, p.y + 0.8))
 			_hud.sheet.close()
 		"ground":
@@ -330,8 +331,9 @@ const STOCKPILE_PAD := 1000
 func _update_pad_stop(delta: float) -> void:
 	var me := Vector2(_meagan.global_position.x, _meagan.global_position.z)
 	var on := -1
-	for i in MapData.SITES.size():
-		if me.distance_to(MapData.pad_pos(i)) <= Balance.PAD_RADIUS:
+	var s := Game.engine.state
+	for i in s.sites.size():
+		if me.distance_to(MapData.pad_pos(s, i)) <= Balance.PAD_RADIUS:
 			on = i
 			break
 	if me.distance_to(MapData.stockpile_pad()) <= Balance.PAD_RADIUS:
@@ -365,7 +367,7 @@ func _update_bank_payments(delta: float) -> void:
 		for res in progress:
 			if progress[res] > before.get(res, progress[res]) + 0.001 and bag >= _last_bag - 0.001 and _bank_throw_in <= 0.0:
 				var item: String = {"wood": "log", "food": "fish", "materials": "crate"}[res]
-				Fx.throw(item, _stockpile.drop_point(), _v3(MapData.SITES[i].pos) + Vector3(0, 1.0, 0), 0.45, 1.6)
+				Fx.throw(item, _stockpile.drop_point(), _v3(MapData.site_pos(s, i)) + Vector3(0, 1.0, 0), 0.45, 1.6)
 				Audio.play("whoosh", _stockpile.drop_point())
 				_bank_throw_in = 0.15
 		_last_progress[i] = progress.duplicate()
@@ -416,7 +418,7 @@ func _update_carry() -> void:
 		return
 	var target: int = _work.target
 	var me := _meagan.global_position
-	var site_top := _v3(MapData.SITES[target].pos) + Vector3(0, 1.0, 0) if _work.activity in ["fuel", "build"] else Vector3.ZERO
+	var site_top := _v3(MapData.site_pos(Game.engine.state, target)) + Vector3(0, 1.0, 0) if _work.activity in ["fuel", "build"] else Vector3.ZERO
 	match _work.activity:
 		"gather":
 			_meagan.carry(_nodes[target].focus_point(me) + Vector3(0, 0.6, 0), Vector3.INF)
@@ -486,7 +488,7 @@ func _on_event(ev: Dictionary) -> void:
 			_sites[ev.site].celebrate()
 			_rig.shake(0.3 if ev.site == 0 else 0.14)
 			Audio.play("build_done")
-			var p: Vector2 = MapData.SITES[ev.site].pos
+			var p := MapData.site_pos(Game.engine.state, ev.site)
 			var name: String = Balance.BUILDINGS[ev.building].name
 			_float_text(Vector3(p.x, 5.0, p.y), ("%s built!" % name) if ev.type == "built" else ("%s Lv %d!" % [name, ev.level]), UiTheme.ACCENT, true)
 		"no_room":

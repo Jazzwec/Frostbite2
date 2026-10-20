@@ -1,57 +1,68 @@
 class_name MapData
 extends RefCounted
-## The town layout as data. Positions are Vector2 metres: x is world X, y is world Z.
-## The furnace sits at the origin; +y is towards the bottom of the screen.
+## The world's geometry, and the fixed starting grid every winter begins with. Positions are
+## Vector2 metres: x is world X, y is world Z. The furnace sits at the origin; +y is towards the
+## bottom of the screen. The live layout (plots, resource spots, edges) is in GameState, because
+## new tiles add to it during a winter.
 
-## The snowfield. [brief] about three phone screens.
-const BOUNDS := Rect2(-24.0, -40.0, 48.0, 80.0)
+## The world is a grid of square tiles; tile (0, 0) is centred on the furnace. [proto] 2026-10-20
+const TILE_SIZE := 16.0
+## The starting grid: tiles -1..1 each way, 3 × 3. [agreed 2026-10-20]
+const START_RADIUS := 1
 
-## Building plots. Index 0 is the furnace. `fixed` buildings exist from the start of a winter.
-const SITES := [
-	{"pos": Vector2(0, 0), "fixed": "furnace"},
-	{"pos": Vector2(-9, -6), "fixed": "lumber_yard"},
-	{"pos": Vector2(9, -6), "fixed": "hunting_lodge"},
-	{"pos": Vector2(-9, 4), "fixed": ""},
-	{"pos": Vector2(9, 4), "fixed": ""},
-	{"pos": Vector2(-5, 12), "fixed": ""},
-	{"pos": Vector2(5, 12), "fixed": ""},
-	{"pos": Vector2(-6, -15), "fixed": ""},
-	{"pos": Vector2(6, -15), "fixed": ""},
-	{"pos": Vector2(-15, -1), "fixed": ""},
-	{"pos": Vector2(15, -1), "fixed": ""},
+## The starting grid's plots. Index 0 is the furnace. `type` is the building the plot holds
+## (the game decides, agreed 2026-10-20); `built` ones exist from the start of a winter.
+const START_SITES := [
+	{"pos": Vector2(0, 0), "type": "furnace", "built": true},
+	{"pos": Vector2(-9, -6), "type": "lumber_yard", "built": true},
+	{"pos": Vector2(9, -6), "type": "hunting_lodge", "built": true},
+	{"pos": Vector2(-9, 4), "type": "sled_shed", "built": false},
+	{"pos": Vector2(9, 4), "type": "storehouse", "built": false},
+	{"pos": Vector2(-5, 12), "type": "kitchen", "built": false},
+	{"pos": Vector2(5, 12), "type": "barracks", "built": false},
+	{"pos": Vector2(-15, -1), "type": "bunkhouse", "built": false},
+	{"pos": Vector2(15, -1), "type": "watchtower", "built": false},
+	{"pos": Vector2(6, -15), "type": "hot_springs", "built": false},
 ]
 ## Half the width of a building's square footprint.
 const SITE_HALF_SIZE := 2.0
 const FURNACE_RADIUS := 1.8
 
-## Resource spots on the outskirts. [brief] 4 forests, 3 fishing ponds (kind "hunting"), 3 scrap heaps.
-## One scrap heap sits right behind the furnace so the first Materials are close.
-const RESOURCE_NODES := [
-	{"kind": "forest", "pos": Vector2(-17, -26)},
-	{"kind": "forest", "pos": Vector2(17, -30)},
-	{"kind": "forest", "pos": Vector2(-18, 24)},
-	{"kind": "forest", "pos": Vector2(16, 32)},
-	{"kind": "hunting", "pos": Vector2(-20, 10)},
-	{"kind": "hunting", "pos": Vector2(20, -14)},
-	{"kind": "hunting", "pos": Vector2(2, 34)},
+## The starting grid's resource spots: two forests, a fishing pond (kind "hunting") and the scrap
+## heap right behind the furnace, so the first Materials are close. [proto] 2026-10-20
+const START_NODES := [
+	{"kind": "forest", "pos": Vector2(-18, -16)},
+	{"kind": "forest", "pos": Vector2(-18, 18)},
+	{"kind": "hunting", "pos": Vector2(18, -16)},
 	{"kind": "scrap", "pos": Vector2(0, -7)},
-	{"kind": "scrap", "pos": Vector2(-19, -37)},
-	{"kind": "scrap", "pos": Vector2(21, 21)},
 ]
 
-## Where frozen Jans wait, near the map edge.
-const ARRIVAL_SPOTS := [
-	Vector2(-21, -33), Vector2(21, -36), Vector2(-22, -6), Vector2(22, 6),
-	Vector2(-21, 36), Vector2(20, 37), Vector2(0, -38), Vector2(-4, 38),
+## Where frozen Jans wait, near the starting grid's edge.
+const START_ARRIVAL_SPOTS := [
+	Vector2(-21, -22), Vector2(21, -22), Vector2(-22, 6), Vector2(22, 8),
+	Vector2(-12, 22), Vector2(12, 22), Vector2(0, -22), Vector2(22, 20),
 ]
 
-## Where wolf packs come in from.
-const WOLF_SPAWNS := [Vector2(0, -40), Vector2(-24, -20), Vector2(24, 18), Vector2(-24, 28), Vector2(24, -30)]
+## Where wolf packs come in from, on the starting grid's edge.
+const START_WOLF_SPAWNS := [Vector2(0, -24), Vector2(-24, -10), Vector2(24, 12), Vector2(-24, 20), Vector2(24, -20)]
 
-
-## The site a job's building stands on, or -1.
 ## The Stockpile, the town's store, just right of the furnace. [agreed 2026-10-19]
 const STOCKPILE_POS := Vector2(5, 1.5)
+
+
+## The tile a point is on.
+static func tile_of(pos: Vector2) -> Vector2i:
+	return Vector2i(floori(pos.x / TILE_SIZE + 0.5), floori(pos.y / TILE_SIZE + 0.5))
+
+
+## The ground a tile covers.
+static func tile_rect(tile: Vector2i) -> Rect2:
+	return Rect2((Vector2(tile) - Vector2(0.5, 0.5)) * TILE_SIZE, Vector2(TILE_SIZE, TILE_SIZE))
+
+
+## The ground the starting grid covers.
+static func start_bounds() -> Rect2:
+	return tile_rect(Vector2i(-START_RADIUS, -START_RADIUS)).merge(tile_rect(Vector2i(START_RADIUS, START_RADIUS)))
 
 
 ## The Stockpile's pad, where she stands to drop off everything she carries.
@@ -59,12 +70,25 @@ static func stockpile_pad() -> Vector2:
 	return STOCKPILE_POS + Vector2(0, 1.8)
 
 
+static func site_pos(s: GameState, i: int) -> Vector2:
+	return s.sites[i].pos
+
+
 ## The build pad in front of a plot, where she stands to pay for construction and upgrades.
-static func pad_pos(i: int) -> Vector2:
+static func pad_pos(s: GameState, i: int) -> Vector2:
 	var half := FURNACE_RADIUS if i == 0 else SITE_HALF_SIZE
-	return SITES[i].pos + Vector2(0, half + 0.9)
+	return s.sites[i].pos + Vector2(0, half + 0.9)
 
 
+static func node_pos(s: GameState, i: int) -> Vector2:
+	return s.node_defs[i].pos
+
+
+static func node_kind(s: GameState, i: int) -> String:
+	return s.node_defs[i].kind
+
+
+## The plot a building stands on (built or under construction), or -1.
 static func site_of_building(sites: Array, building: String) -> int:
 	for i in sites.size():
 		if sites[i].building == building:

@@ -30,17 +30,25 @@ var meagan_activity := ""
 var meagan_target := -1
 var meagan_target_pos := Vector2.ZERO
 
-## One entry per plot in MapData.SITES:
-## {building: String ("" = empty plot), level: int, upgrading: bool, progress: {resource: amount}}
-## A plot under first construction has a building, level 0 and upgrading = true.
+## The ground Meagan can walk on and wolves stay within: the open part of the world.
+var bounds := Rect2()
+
+## One entry per plot: {type: the building it holds (the game decides), pos: Vector2,
+## building: String ("" = not started yet), level: int, upgrading: bool, progress: {resource: amount}}.
+## A plot under first construction has its building, level 0 and upgrading = true.
+## Index 0 is always the furnace.
 var sites: Array = []
 
-## Stock left at each MapData.RESOURCE_NODES entry.
+## The resource spots: {kind, pos: Vector2}, and the stock left at each, by the same index.
+var node_defs: Array = []
 var nodes: Array = []
 
 ## Rescued Jans: {id, job ("" = idle), hp, ko, pos: Vector2}. hp, ko and pos matter for guards.
 var jans: Array = []
-## Frozen Jans waiting at the edge: {id, spot}.
+## Where frozen Jans wait, and where wolf packs come in from.
+var arrival_spots: Array = []
+var wolf_spawns: Array = []
+## Frozen Jans waiting to be thawed: {id, spot, pos}.
 var arrivals: Array = []
 var next_arrival_in := Balance.FIRST_ARRIVAL_DELAY
 var rescued_total := 0

@@ -4,7 +4,8 @@ extends RefCounted
 ## `state`; they never change it directly. Things the scenes should react to queue up as events.
 
 ## Bumped when a save from an older version can't be read as it is.
-const SAVE_VERSION := 1
+## 2: the layout lives in the state (2026-10-20).
+const SAVE_VERSION := 2
 
 var state: GameState
 var rng := RandomNumberGenerator.new()
@@ -25,11 +26,18 @@ func _init(seed_value := 0) -> void:
 ## The start of a winter. [brief] Empty city, cold furnace; Furnace, Lumber Yard and Fishing Lodge at Lv 1.
 static func new_winter() -> GameState:
 	var s := GameState.new()
-	for def in MapData.SITES:
-		var b: String = def.fixed
-		s.sites.append({"building": b, "level": Balance.BUILDINGS[b].start if b != "" else 0, "upgrading": false, "progress": {}})
-	for node in MapData.RESOURCE_NODES:
+	s.bounds = MapData.start_bounds()
+	for def in MapData.START_SITES:
+		var b: String = def.type
+		s.sites.append({
+			"type": b, "pos": def.pos, "building": b if def.built else "",
+			"level": Balance.BUILDINGS[b].start if def.built else 0, "upgrading": false, "progress": {},
+		})
+	for node in MapData.START_NODES:
+		s.node_defs.append({"kind": node.kind, "pos": node.pos})
 		s.nodes.append(Balance.NODES[node.kind].stock)
+	s.arrival_spots = MapData.START_ARRIVAL_SPOTS.duplicate()
+	s.wolf_spawns = MapData.START_WOLF_SPAWNS.duplicate()
 	# The furnace starts full; keeping it burning is the goal. [agreed 2026-10-19]
 	s.heat = Economy.heat_cap(s)
 	return s
@@ -169,16 +177,16 @@ func target_arrival(arrival_id: int) -> void:
 	state.rescue_target = arrival_id
 
 
-## Turns an empty plot into a construction site for `building`.
-func choose_building(site_index: int, building: String) -> bool:
+## Starts building what a plot holds (the game decides which building; agreed 2026-10-20).
+func start_construction(site_index: int) -> bool:
 	var site: Dictionary = state.sites[site_index]
-	if site.building != "" or not Economy.buildable(state).has(building) or not Economy.is_unlocked(state, building):
+	if site.building != "" or not Economy.is_unlocked(state, site.type):
 		return false
-	site.building = building
+	site.building = site.type
 	site.level = 0
 	site.upgrading = true
 	site.progress = {}
-	_events.append({"type": "site_started", "site": site_index, "building": building})
+	_events.append({"type": "site_started", "site": site_index, "building": site.building})
 	return true
 
 
@@ -238,7 +246,7 @@ func add_to_job(job: String) -> bool:
 	if job == "guard":
 		jan.hp = Balance.GUARD_HP
 		jan.ko = false
-		jan.pos = MapData.SITES[MapData.site_of_building(state.sites, "barracks")].pos
+		jan.pos = MapData.site_pos(state, MapData.site_of_building(state.sites, "barracks"))
 	_events.append({"type": "jobs_changed"})
 	return true
 

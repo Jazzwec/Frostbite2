@@ -30,13 +30,15 @@ func put_meagan(e: GameEngine, pos: Vector2) -> void:
 	e.set_meagan_position(pos)
 
 
+## Where plot `i` of the starting grid stands.
 func site_pos(i: int) -> Vector2:
-	return MapData.SITES[i].pos
+	return MapData.START_SITES[i].pos
 
 
+## The first starting-grid resource spot of `kind`.
 func node_index(kind: String) -> int:
-	for i in MapData.RESOURCE_NODES.size():
-		if MapData.RESOURCE_NODES[i].kind == kind:
+	for i in MapData.START_NODES.size():
+		if MapData.START_NODES[i].kind == kind:
 			return i
 	return -1
 
@@ -48,14 +50,18 @@ func add_jan(e: GameEngine, job: String) -> Dictionary:
 	return jan
 
 
-## Builds `building` on the first free plot at `level`, for setting up tests.
+## Builds `building` at `level` on its plot, for setting up tests. A building with no free plot
+## (a producer, found only in opened tiles) gets a new plot well away from the town.
 func give_building(e: GameEngine, building: String, level := 1) -> int:
 	var i := MapData.site_of_building(e.state.sites, building)
 	if i < 0:
 		for j in e.state.sites.size():
-			if e.state.sites[j].building == "":
+			if e.state.sites[j].building == "" and e.state.sites[j].type == building:
 				i = j
 				break
+	if i < 0:
+		i = e.state.sites.size()
+		e.state.sites.append({"type": building, "pos": Vector2(60 + 10 * i, 60), "building": "", "level": 0, "upgrading": false, "progress": {}})
 	e.state.sites[i].building = building
 	e.state.sites[i].level = level
 	e.state.sites[i].upgrading = false

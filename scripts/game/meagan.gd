@@ -173,7 +173,7 @@ func _physics_process(delta: float) -> void:
 	if not moving:
 		velocity = Vector3.ZERO
 	# The snowbanks round the town are her edge.
-	var b := MapData.BOUNDS.grow(-1.5)
+	var b := Game.engine.state.bounds.grow(-1.5)
 	global_position = Vector3(clampf(global_position.x, b.position.x, b.end.x), 0.0, clampf(global_position.z, b.position.y, b.end.y))
 	Game.engine.set_meagan_position(Vector2(global_position.x, global_position.z))
 

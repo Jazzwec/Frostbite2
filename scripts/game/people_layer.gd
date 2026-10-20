@@ -61,7 +61,7 @@ func _sync_frozen(s: GameState) -> void:
 	for a in s.arrivals:
 		seen[a.id] = true
 		if not _frozen.has(a.id):
-			var p: Vector2 = MapData.ARRIVAL_SPOTS[a.spot]
+			var p: Vector2 = a.pos
 			_frozen[a.id] = _new_jan(Vector3(p.x, 0, p.y), true, a.id)
 	for id in _frozen.keys():
 		if not seen.has(id):
@@ -129,7 +129,7 @@ func _post(s: GameState, job: String, slot: int) -> Vector3:
 		var r := 4.5 + (slot / 7) * 1.2
 		return Vector3(cos(angle) * r, 0, sin(angle) * r)
 	# Either side of the building's pad, leaving the pad itself clear for Meagan.
-	var base: Vector2 = MapData.SITES[site].pos
+	var base := MapData.site_pos(s, site)
 	var side := -1.0 if slot % 2 == 0 else 1.0
 	var col := (slot / 2) % 2
 	var row := slot / 4

@@ -95,7 +95,7 @@ func test_meagan_can_be_injured() -> void:
 func test_fighting_shows_over_gathering() -> void:
 	var e := engine()
 	var forest := node_index("forest")
-	var pos: Vector2 = MapData.RESOURCE_NODES[forest].pos
+	var pos: Vector2 = MapData.START_NODES[forest].pos
 	put_meagan(e, pos)
 	e.spawn_wolves(1)
 	e.state.wolves[0].pos = pos + Vector2(1, 0)
