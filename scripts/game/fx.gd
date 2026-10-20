@@ -26,7 +26,7 @@ const KINDS := {
 	"snow_big": {"color": Color(0.95, 0.97, 1.0), "amount": 34, "size": 0.18, "speed": Vector2(2.0, 4.5), "spread": 85.0, "gravity": -3.0, "life": 0.9},
 	# A hit's secondary flourish (fight_v2 review 1): a few dark ink flecks flung away from the
 	# blow, small enough to leave the struck one's shape readable.
-	"ink": {"color": Color(0.17, 0.14, 0.17), "amount": 7, "size": 0.08, "speed": Vector2(2.5, 4.0), "spread": 28.0, "gravity": -7.0, "life": 0.32},
+	"ink": {"color": Color(0.17, 0.14, 0.17), "amount": 4, "size": 0.08, "speed": Vector2(2.5, 4.0), "spread": 28.0, "gravity": -7.0, "life": 0.32},
 }
 ## Her stick's sweep on the snow (fight_v2 review 2): a pale-gold crescent at her reach that runs
 ## across exactly the arc it hits in SWEEP_TIME, then fades; no filled sector. Gold is hers; rust
@@ -42,6 +42,14 @@ static var instance: Fx
 var _pools := {}  # kind -> Array of CPUParticles3D
 var _next := {}  # kind -> int
 var _sweeps := {}  # "reach" -> crescent MeshInstance3D
+## Impact marks: a small cream star with a rust rim where a blow lands, for IMPACT_TIME (fight_v2
+## review 2: feedback at the contact, 12-18 px on the phone, not just a bar going down).
+const IMPACT_SIZE := 0.36
+const IMPACT_TIME := 0.11
+const IMPACT_POOL := 8
+var _impacts: Array[Sprite3D] = []
+var _next_impact := 0
+static var _star: Texture2D
 var _pops: Array[Label3D] = []
 var _pop_tweens := {}  # Label3D -> its running Tween
 var _next_pop := 0
@@ -80,6 +88,60 @@ static func throw(item: String, from: Vector3, to: Vector3, seconds := 0.45, hei
 	var t := instance.create_tween()
 	t.tween_method(fly, 0.0, 1.0, seconds)
 	t.tween_callback(land)
+
+
+## A blow's impact mark at `pos`, `size` times the usual size.
+static func impact(pos: Vector3, size := 1.0) -> void:
+	if instance:
+		instance._impact(pos, size)
+
+
+func _impact(pos: Vector3, size: float) -> void:
+	if _impacts.is_empty():
+		for i in IMPACT_POOL:
+			var s := Sprite3D.new()
+			s.texture = _impact_star()
+			s.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+			s.no_depth_test = true
+			s.render_priority = 12
+			s.shaded = false
+			s.visible = false
+			add_child(s)
+			_impacts.append(s)
+	var mark := _impacts[_next_impact]
+	_next_impact = (_next_impact + 1) % IMPACT_POOL
+	mark.global_position = pos
+	mark.pixel_size = IMPACT_SIZE * size / 128.0
+	mark.rotation.z = randf() * TAU
+	mark.modulate = Color.WHITE
+	mark.scale = Vector3.ONE * 0.6
+	mark.visible = true
+	var t := mark.create_tween().set_parallel()
+	t.tween_property(mark, "scale", Vector3.ONE * 1.1, IMPACT_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	t.tween_property(mark, "modulate:a", 0.0, IMPACT_TIME * 0.5).set_delay(IMPACT_TIME * 0.5)
+	t.chain().tween_callback(mark.hide)
+
+
+## The impact mark: a four-point star, cream with a rust rim, drawn once.
+static func _impact_star() -> Texture2D:
+	if _star == null:
+		var size := 128
+		var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+		var c := Vector2(size, size) / 2.0
+		for y in size:
+			for x in size:
+				var v := Vector2(x + 0.5, y + 0.5) - c
+				var a := v.angle()
+				# Spiky: long points on the diagonals, short ones between.
+				var edge := 60.0 * (0.38 + 0.62 * pow(absf(cos(2.0 * a)), 4.0))
+				var d := v.length()
+				var col := Color(0, 0, 0, 0)
+				if d <= edge:
+					col = Color(0.62, 0.24, 0.15) if d > edge - 7.0 else Color(1.0, 0.95, 0.82)
+					col.a = clampf(edge - d, 0.0, 1.0)
+				img.set_pixel(x, y, col)
+		_star = ImageTexture.create_from_image(img)
+	return _star
 
 
 ## Her stick's sweep from `pos`, facing `dir` (on the ground), `reach` metres and `arc` degrees.

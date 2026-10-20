@@ -55,10 +55,12 @@ const TELL_LINE := Color(0.38, 0.12, 0.07, 1.0)
 const TELL_LINE_THIN := 0.05
 const TELL_LINE_WIDTH := 0.075
 ## A struck enemy: a warm rim flash this long (no white-out, so its shape reads through the hit),
-## and a recoil away from the hit this far (about 5 px) over this long.
+## and a recoil away from the hit, by the blow (review 2: about 4 px for a snowball or a guard's
+## spear, 7 px for her sweep, 10 px for a heavy blow), out and back over RECOIL_TIME.
 const FLASH_TIME := 0.08
-const RECOIL := 0.12
-const RECOIL_TIME := 0.12
+const FLASH_STRENGTH := 0.7
+const RECOIL := {"light": 0.09, "sweep": 0.16, "heavy": 0.23}
+const RECOIL_TIME := 0.17
 const RIM_FLASH := preload("res://scripts/game/ink/rim_flash.gdshader")
 ## Where each kind's health bar and sack sit, and how far back it stands from whoever it fights
 ## (so its front, not its middle, is at the engine's fight distance; view only). [proto]
@@ -85,6 +87,7 @@ var _attack := -1.0
 var _flash := 0.0
 var _recoil := 0.0
 var _recoil_dir := Vector3.ZERO
+var _recoil_size := 0.0
 ## The posed wolf model (wolves and foxes), or null for a greybox body.
 var _pivot: Node3D
 var _skeleton: Skeleton3D
@@ -480,6 +483,14 @@ func _update_tell(enemy: Dictionary) -> void:
 
 # ---------- Life ----------
 
+## Where a blow from `from` meets its body: on its outline facing the blow, at chest height.
+func contact_point(from: Vector3) -> Vector3:
+	var to := from - global_position
+	to.y = 0.0
+	var reach: float = _def.width * 0.5
+	return global_position + (to.normalized() * reach if to.length() > 0.01 else Vector3.ZERO) + Vector3(0, LOOK[kind].bar * 0.45, 0)
+
+
 ## Meagan has picked it: its health bar's border lights up a moment (review 2: the chosen target
 ## shows where it already looks, no extra ground ring).
 func accent() -> void:
@@ -488,9 +499,10 @@ func accent() -> void:
 
 ## Struck from `from`: a short warm rim flash and a recoil away from the hit (fight_v2 review 1;
 ## the ink flecks are main's).
-func hit(from := Vector3.INF) -> void:
+func hit(from := Vector3.INF, blow := "light") -> void:
 	_flash = FLASH_TIME
 	_recoil = RECOIL_TIME
+	_recoil_size = RECOIL[blow]
 	var away := global_position - from if from != Vector3.INF else -_model.basis.z
 	away.y = 0.0
 	_recoil_dir = away.normalized() if away.length() > 0.01 else Vector3.BACK
@@ -537,7 +549,9 @@ func sync(enemy: Dictionary, delta: float) -> void:
 	_flash = maxf(0.0, _flash - delta)
 	_recoil = maxf(0.0, _recoil - delta)
 	# Out and back: half a sine over the recoil's time.
-	var recoil := _recoil_dir * RECOIL * sin(PI * (1.0 - _recoil / RECOIL_TIME)) if _recoil > 0.0 else Vector3.ZERO
+	# A quick shove out, an easier return.
+	var u := 1.0 - _recoil / RECOIL_TIME
+	var recoil := _recoil_dir * _recoil_size * (sin(PI * minf(u * 2.5, 1.0) / 2.0) * (1.0 - smoothstep(0.3, 1.0, u))) if _recoil > 0.0 else Vector3.ZERO
 	var asleep := rest > 0.99
 	_t += delta * (0.0 if asleep else (14.0 if fighting else TROT_SPEED * _def.speed / 2.5))
 	var lunge := _lunge() if fighting else 0.0
@@ -555,7 +569,7 @@ func sync(enemy: Dictionary, delta: float) -> void:
 		_tail.rotation.y = deg_to_rad(16.0 * sin(_t)) if not fighting else deg_to_rad(5.0 * sin(_t))
 		_tail.rotation.x = deg_to_rad(-12.0 if fighting else 0.0)
 	var flashing := _flash > 0.0
-	_flash_mat.set_shader_parameter("strength", _flash / FLASH_TIME)
+	_flash_mat.set_shader_parameter("strength", FLASH_STRENGTH * _flash / FLASH_TIME)
 	for mesh in _skins:
 		mesh.material_overlay = _flash_mat if flashing else null
 	_hp_bar.set_value(enemy.hp / enemy.max_hp)

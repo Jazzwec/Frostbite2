@@ -71,6 +71,8 @@ func wolf_hit(wolf_id: int, from := Vector3.INF) -> void:
 	var view: WolfView = _wolves.get(wolf_id)
 	if view:
 		view.hit(from)
+		if from != Vector3.INF:
+			Fx.impact(view.contact_point(from), 0.8)
 
 
 func _sync_frozen(s: GameState) -> void:

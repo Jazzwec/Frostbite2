@@ -1021,7 +1021,9 @@ func _on_event(ev: Dictionary) -> void:
 			var wolf := _people.wolf_view(ev.wolf)
 			if wolf:
 				var from := _v3(ev.from)
-				wolf.hit(from)
+				var killing: bool = Game.engine.state.wolves.all(func(w): return w.id != ev.wolf or w.hp <= 0.0)
+				wolf.hit(from, "heavy" if killing else ("sweep" if ev.kind == "melee" else "light"))
+				Fx.impact(wolf.contact_point(from), 1.2 if ev.kind == "melee" else 1.0)
 				# One secondary flourish: ink flecks flung away from the blow (fight_v2 review 1).
 				var away := (wolf.global_position - from)
 				away.y = 0.0
@@ -1036,9 +1038,13 @@ func _on_event(ev: Dictionary) -> void:
 				_rig.shake(0.06)
 				if -1 in ev.victims:
 					_meagan_hurt(0.0)
+					_hit_stop(HIT_STOP)
 			elif ev.victim < 0 and ev.hit:
 				_meagan_hurt(0.05 if ev.kind == "bear" else 0.0)
+				if ev.kind == "bear":
+					_hit_stop(HIT_STOP)
 		"wolf_killed":
+			_hit_stop(HIT_STOP)
 			Audio.play("yelp", _v3(ev.pos), KILL_PITCH.get(ev.kind, 1.0))
 			Audio.play("coin")
 			_gather_loot(ev)
@@ -1066,6 +1072,22 @@ const LOOT_HEIGHT := 2.6
 var _loot := {}
 var _loot_at := Vector3.ZERO
 var _loot_n := 0
+
+
+## A beat of stillness on a kill or a heavy blow, and only then (review 2: 35-50 ms).
+const HIT_STOP := 0.04
+var _stopping := false
+
+
+func _hit_stop(seconds: float) -> void:
+	if _stopping:
+		return
+	_stopping = true
+	var was := Engine.time_scale
+	Engine.time_scale = was * 0.05
+	await get_tree().create_timer(seconds, true, false, true).timeout
+	Engine.time_scale = was
+	_stopping = false
 
 
 ## She's hit: her red flash and her own sound; shake only for heavy blows.
