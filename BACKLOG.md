@@ -135,7 +135,7 @@ The user committed to the ink & watercolour direction; the rules are in `docs/ar
 - [x] **U1. Meagan's health bar** green and wider; the guards' bars blue.
 - [x] **U2. Meagan's outline** shown through whatever hides her.
 - [x] **U3. Bubbles and stats:** chatter bubbles kept inside the screen; bigger game-over stats.
-- [ ] **U4. Milestone chime:** its own sound in `tools/audio/make_audio.py`.
+- [x] **U4. Milestone chime:** its own sound in `tools/audio/make_audio.py`.
 - [ ] **A4. New Tripo references in the ink style:**
   - Meagan, Jan, and the furnace, cabin and wood store kit.
   - In `source_art/concept/ink/`, for the user to remake in Tripo Studio.

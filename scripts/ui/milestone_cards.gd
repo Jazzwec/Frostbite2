@@ -94,4 +94,4 @@ func _show(m: Dictionary) -> void:
 	scale = Vector2(0.8, 0.8)
 	create_tween().tween_property(self, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_showing = SHOW_TIME
-	Audio.play("coin")
+	Audio.play("milestone")

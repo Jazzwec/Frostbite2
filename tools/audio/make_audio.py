@@ -326,6 +326,20 @@ def sfx_coin():
     return mix(glock(midi_hz(84), 0.4) * 0.7, delay(glock(midi_hz(91), 0.5), 0.07))
 
 
+def sfx_milestone():
+    """A milestone card: a doorbell-like ding-dong, then a warm chord swelling under it. No random
+    numbers, so adding it leaves every other sound (and the music) as it was."""
+    out = np.zeros(int(SR * 2.0))
+    for i, (n, gain) in enumerate([(84, 0.9), (79, 1.0)]):
+        tone = glock(midi_hz(n), 1.2, bright=0.7)
+        at = int(SR * 0.22 * i)
+        out[at:at + len(tone)] += tone * gain
+    swell = sum(osc(midi_hz(n), 1.5, "tri") for n in (60, 64, 67, 72)) * adsr(1.5, 0.35, 0.3, 0.5, 0.6)
+    at = int(SR * 0.3)
+    out[at:at + len(swell)] += low(swell, 1800) * 0.18
+    return reverb(out, 0.35, 2.0, 0.45)
+
+
 def sfx_blip():
     return osc(sweep(700, 900, 0.05), 0.06, "tri") * decay(0.06, 0.02) * 0.6
 
@@ -355,7 +369,7 @@ SFX = {
     "fire": sfx_fire, "build_done": sfx_build_done, "thaw": sfx_thaw, "breath": sfx_breath,
     "howl": sfx_howl, "yelp": sfx_yelp, "crash": sfx_crash, "warning": sfx_warning,
     "step": sfx_step, "tap": sfx_tap, "error": sfx_error, "full": sfx_full, "coin": sfx_coin,
-    "blip": sfx_blip,
+    "blip": sfx_blip, "milestone": sfx_milestone,
 }
 
 
