@@ -21,7 +21,7 @@ static func walk_speed(s: GameState) -> float:
 
 ## How fast she gathers `resource` by hand, per second.
 static func gather_rate(s: GameState, resource: String) -> float:
-	return Balance.GATHER_RATE[resource] * (1.0 + mod(s, "gather_mult") + Balance.SLED_SHED_GATHER_PER_LEVEL * level(s, "sled_shed"))
+	return Balance.GATHER_RATE[resource] * (1.0 + mod(s, "gather_mult"))
 
 
 ## Level of a building: the highest of its plots, 0 if none is built yet (a first-time

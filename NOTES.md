@@ -10,7 +10,7 @@ What felt wrong while playing, and what's still open. This file is the prompt fo
 - **The architecture:** `CLAUDE.md` (the World, Producers, Treasures and Frontier bullets under Architecture).
 
 **What's in the game now:**
-- **Starting grid:** a fixed 3 × 3 grid of 20 m tiles (±30 m). The game decides every plot's building: one utility building each (Sled Shed, Storehouse, Kitchen, Barracks, Bunkhouse, Watchtower, Hot Springs), plus the starting Lumber Yard and Fishing Lodge. `start_construction(i)` replaced choosing a building.
+- **Starting grid:** a fixed 3 × 3 grid of 20 m tiles (±30 m). The game decides every plot's building: one utility building each (Storehouse, Kitchen, Barracks, Bunkhouse, Watchtower, Hot Springs), plus the starting Lumber Yard and Fishing Lodge. `start_construction(i)` replaced choosing a building.
 - **Gates:** every closed tile touching open ground has a gate on the shared border (stone ring and pad). Choose **Open** in its sheet, then pay on the pad.
   - The tile opens and a **small furnace** is lit on the border: +0.15 heat/s drain, and it never upgrades.
   - The tile's contents come from `WorldGen.tile_contents(run_seed, tile)`, the same in any unlock order: resource spots, producer plots (Lumber Yard, Fishing Lodge, Workshop), a camp of frozen Jans, a chest, and from three rings out a wolf den.
@@ -23,8 +23,8 @@ What felt wrong while playing, and what's still open. This file is the prompt fo
 - **The frontier:** single frozen Jans and wolf packs come from the edge of the open area; dens add wolf spawns.
 - **Hints and score:** the last hint points at the nearest gate, and the game-over card counts areas and chests opened.
 - **Greybox:** the small furnace, gates, chests, dens and closed tiles (raised slate-blue blocks). Screenshots and ChatGPT reviews are in `source_art/direction/world_tiles/` and `treasures/`.
-- **Saves:** `SAVE_VERSION` is 7, so older saves start a fresh winter.
-- **No bag (agreed 2026-10-20, after the handover above):** what Meagan gathers goes straight into the Stockpile ("+N" at the spot, the icon flies into the top bar); a full pile stops her with a "Stockpile full" tag; build pads and gates pay from the Stockpile while she stands on them, and the pieces fall from the sky. The Sled Shed and the sled gear now raise her gathering speed; the Big bag boon became Quick builds. The fuel and store hints are gone. Screens and ChatGPT's review: `source_art/direction/no_bag/`. The review's top fix (icons flying from the Wood counter to the gate rather than from the sky) goes against the agreed sky drops, so it's for the user to decide.
+- **Saves:** `SAVE_VERSION` is 8, so older saves start a fresh winter.
+- **No bag (agreed 2026-10-20, after the handover above):** what Meagan gathers goes straight into the Stockpile ("+N" at the spot, the icon flies into the top bar); a full pile stops her with a "Stockpile full" tag; build pads and gates pay from the Stockpile while she stands on them. Following ChatGPT's review, the user chose to have each resource fly as an icon out of its top-bar counter (which pulses) to the building or gate, with a short cream trail, rather than fall from the sky. The Sled Shed is out of the game for now (its plot is gone; `SAVE_VERSION` 8). The sled gear now raises her gathering speed and the Big bag boon became Quick builds. The fuel and store hints are gone. Screens and both ChatGPT reviews: `source_art/direction/no_bag/`.
 
 **Also done this session:**
 - **The asset pipeline:** the `asset-pipeline` skill, `tools/blender/cleanup.py` (`cleanup()` for static models, `cleanup_character()` for rigged ones), `tools/blender/rig_names.py` (Meshy → Mixamo bone names; Meshy's spine runs the other way round), `chatgpt.py image --for-3d` and `tests/test_assets.gd`.
@@ -85,9 +85,9 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - [ ] Drag anywhere: a joystick ring appears and Meagan runs that way; let go and she stops. The camera stays on her. She can't leave the snowfield.
 - [ ] A short click on a building, resource spot or frozen Jan sends her there.
 - [ ] Forest: "+5" pops at the tree about once a second and a log icon flies up into the top bar's Wood number. Nothing stacks on her back. With Wood at its cap she stops, shrugs and a red "Stockpile full" shows over her.
-- [ ] With the Stockpile stocked, a build pad or gate takes what it needs while she stands on it, and logs and crates fall out of the sky onto it; the furnace keeps burning from the Stockpile's Wood by itself.
+- [ ] With the Stockpile stocked, a build pad or gate takes what it needs while she stands on it, and each piece flies as an icon (with a short trail) out of its number in the top bar onto it, the number pulsing as it leaves; the furnace keeps burning from the Stockpile's Wood by itself.
 - [ ] Stop on a plot's pad: its sheet opens; run off and it closes. While building, the pad's ring fills as she stands on it, and nothing is paid off the pad.
-- [ ] The scrap heap behind the furnace gives Materials; the Sled Shed (30 Wood) makes her gather 10% faster per level.
+- [ ] The scrap heap behind the furnace gives Materials. There is no Sled Shed for now.
 - [ ] Tap a "+" plot → build sheet → pick one → construction site → walk near it with the resources → built (bounce).
 - [ ] Tap a building → Upgrade, and −/+ for its Jans.
 
@@ -100,7 +100,7 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 **Animations** (2026-10-19)
 - [ ] Forest: she walks beside a tree and swings the axe flat into it; chips and snow fly, the tree shakes, and when the stock drops a step a tree topples, leaving a stump.
 - [ ] Fishing pond: She crouches at a hole with a rod and bobber; every few seconds a fish splashes out and "+3" pops.
-- [ ] Scrap heap: pickaxe strikes with sparks. Construction: hammering with dust while pieces fall from the sky.
+- [ ] Scrap heap: pickaxe strikes with sparks. Construction: hammering with dust while pieces fly in from the top bar.
 - [ ] A frozen Jan: she rubs her hands and blows warm breath; the ice shatters. Stockpile full: a shrug and "Stockpile full".
 - [ ] Jans chop at stumps, fish at ice holes and hammer at anvils in front of their building, shiver and slow down when it's cold, and warm their hands when the Stockpile is full of what they make. Guards thrust spears; wolves flash white when hit.
 
@@ -179,7 +179,7 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - [ ] Tapping −/+ changes the job counts at once (and Meagan doesn't move); the Jans button again closes it.
 
 **Milestones (2026-10-20)** (to see them again, delete `[milestones]` from `user://settings.cfg`)
-- [ ] The first rescue, Furnace Lv 2, five Jans, the first Sled Shed/Storehouse/Workshop, the first blizzard survived, the first attack repelled… each pops a card under the button row for 3 s with a chime, one after another, never over a warning banner.
+- [ ] The first rescue, Furnace Lv 2, five Jans, the first Storehouse/Workshop, the first blizzard survived, the first attack repelled… each pops a card under the button row for 3 s with a chime, one after another, never over a warning banner.
 - [ ] They never show twice, not after Play again or a restart.
 
 **Auto-assign (2026-10-20)** (DEV → Furnace +1 three times)
@@ -208,7 +208,7 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
   - **Chests are in (Phase 5, greybox).** They are caches, boon chests (2 or 3 to choose from) and gear (axe, boots, sled). The boon and gear lists and their numbers are `[proto]` in `balance.gd`. Screens are in `source_art/direction/treasures/`.
   - **Camps, the frontier and dens are in (Phase 6).** All six phases of the plan are built. What's left is the meta brainstorm below, the review items above, and models for the small furnace, chests and dens.
   - Still to design together: what carries over between runs (content unlocks plus a currency, maybe tokens from defeated enemies), and the boon and gear lists.
-- **Numbers marked `[proto]` in `scripts/engine/balance.gd`** need your sign-off: walk 6 m/s, build pad 1.4 m, low-heat warning 25% (clears at 40%) and countdown 10%, furnace feed from the Stockpile 5 Wood/s, gather range 3 m, rescue range 2 m, Sled Shed +10% gathering per level, sled gear +10/20/30% gathering, the Quick builds boon (+50% pad paying speed), first Jan after 5 s, wolf detour 7 m, guard ring 4 m.
+- **Numbers marked `[proto]` in `scripts/engine/balance.gd`** need your sign-off: walk 6 m/s, build pad 1.4 m, low-heat warning 25% (clears at 40%) and countdown 10%, furnace feed from the Stockpile 5 Wood/s, gather range 3 m, rescue range 2 m, sled gear +10/20/30% gathering, the Quick builds boon (+50% pad paying speed), first Jan after 5 s, wolf detour 7 m, guard ring 4 m.
 - **Guards are weak:** by the brief, without kits they deal half damage (1.5/s), so 2 guards struggle against 3 wolves. Kits and gear aren't in the prototype yet.
 - **Trees:** done (2026-10-20): three low-poly Blender pines replace the greybox cones.
 - **ChatGPT feedback on the Jans (not done yet):**

@@ -16,7 +16,7 @@ func test_costs_follow_base_times_growth() -> void:
 	check_eq(Economy.cost("lumber_yard", 2), {"wood": 17.0}, "lumber 2→3")
 	check_eq(Economy.cost("furnace", 1), {"wood": 100.0}, "furnace 1→2 is Wood only")
 	check_eq(Economy.cost("furnace", 2), {"wood": 180.0, "materials": 36.0}, "furnace 2→3")
-	check_eq(Economy.cost("sled_shed", 0), {"wood": 30.0}, "sled shed build")
+	check_eq(Economy.cost("storehouse", 0), {"wood": 40.0, "materials": 5.0}, "storehouse build")
 	check_eq(Economy.cost("workshop", 0), {"wood": 60.0, "materials": 10.0}, "workshop build")
 
 

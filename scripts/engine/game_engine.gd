@@ -6,8 +6,8 @@ extends RefCounted
 ## Bumped when a save from an older version can't be read as it is.
 ## 2: the layout lives in the state; 3: tiles, gates and small furnaces; 4: Jans work at a
 ## producer; 5: chests, boons and gear; 6: camps, the frontier and dens; 7: no bag, gathering
-## goes to the Stockpile (2026-10-20).
-const SAVE_VERSION := 7
+## goes to the Stockpile; 8: no Sled Shed plot (2026-10-20).
+const SAVE_VERSION := 8
 
 var state: GameState
 var rng := RandomNumberGenerator.new()

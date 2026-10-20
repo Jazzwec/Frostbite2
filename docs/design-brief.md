@@ -76,7 +76,7 @@ Storehouse multiplies every Wood, Food and Materials cap by 1.25 per level (comp
 - There is no bag. Everything she gathers by hand goes straight into the Stockpile: a "+N" pops at the spot and the resource's icon flies up into its number in the top bar. When the Stockpile is full of that resource she stops and shrugs, under a red "Stockpile full" tag.
 - The **Stockpile** next to the furnace is the town's store (Wood, Food and Materials, up to the caps above). Its pad opens a sheet of its stores. Her gathering and the Jans' output goes straight into the Stockpile, and Jans eat from its Food automatically, at a steady rate.
 - The furnace holds 30 Wood of fuel per Furnace level. It feeds itself from the Stockpile's Wood at 5 Wood/s [proto]; nobody carries Wood to it.
-- The map has plots, each with a **build pad** in front. **The game decides what each plot holds** (agreed 2026-10-20): the starting grid's plots each have a fixed utility building, and plots in opened tiles each hold a producer. Stopping on the pad of an unbuilt plot shows its building and cost (or the Furnace level it needs); paying starts it as a construction site. Stopping on a building's pad opens its panel, where its next upgrade starts. While she stands on the pad of a site under construction or upgrading, it takes what it needs from the Stockpile into its progress ring (20 a second [f1]), and the pieces fall out of the sky onto it; when the ring is full it is built or levels up.
+- The map has plots, each with a **build pad** in front. **The game decides what each plot holds** (agreed 2026-10-20): the starting grid's plots each have a fixed utility building, and plots in opened tiles each hold a producer. Stopping on the pad of an unbuilt plot shows its building and cost (or the Furnace level it needs); paying starts it as a construction site. Stopping on a building's pad opens its panel, where its next upgrade starts. While she stands on the pad of a site under construction or upgrading, it takes what it needs from the Stockpile into its progress ring (20 a second [f1]), and each piece flies as an icon out of its number in the top bar to the building; when the ring is full it is built or levels up.
 - Tapping a building, resource spot or frozen Jan walks her there, routing around buildings.
 - Frozen Jans come two ways (agreed 2026-10-20): **camps** of 1–3 frozen Jans found in opened tiles, and the slow single arrivals, who now wait at a random spot on the frontier (the edge of the opened area). Tapping one walks her out to thaw him; if the city is full he stays frozen and a "No room" message suggests the Furnace or a Bunkhouse.
 
@@ -116,7 +116,6 @@ The Furnace is the tier gate: each Furnace level raises the Jan cap and unlocks 
 | Hot Springs | Heat drain down 10% per level | 5 | — | Tier 3 (Furnace Lv 7) |
 | Barracks | Guarding rate; Weapons, Armour and guard kits are crafted here | 20 | — | Furnace Lv 2 |
 | Signal Beacon | Caravans come 8% sooner per level | 10 | — | Furnace Lv 2 |
-| Sled Shed | Meagan gathers 10% faster per level [proto, agreed 2026-10-20] | 10 | — | Start |
 
 Every level of every building except the Furnace adds 0.05 heat/s to the drain, so growth always leans on the furnace. Every small furnace (one per opened tile) adds 0.15 heat/s more [proto].
 
@@ -126,7 +125,7 @@ Every level of every building except the Furnace adds 0.05 heat/s to the drain, 
 
 Agreed with the user on 2026-10-20: Frostbite2 plays like a roguelite. Each winter is a run with a new world, and it ends when the heat runs out.
 
-- **Tiles.** The world is a grid of square tiles, 20 × 20 m each [proto] (about one screen). The **starting grid** is 3 × 3 tiles around the furnace, always the same: the Furnace, the starting Lumber Yard and Fishing Lodge, the Stockpile, one fixed plot for each utility building (Sled Shed, Storehouse, Kitchen, Barracks, Bunkhouse, Watchtower, Hot Springs), two forests, one fishing pond and the scrap heap [proto].
+- **Tiles.** The world is a grid of square tiles, 20 × 20 m each [proto] (about one screen). The **starting grid** is 3 × 3 tiles around the furnace, always the same: the Furnace, the starting Lumber Yard and Fishing Lodge, the Stockpile, one fixed plot for each utility building (Storehouse, Kitchen, Barracks, Bunkhouse, Watchtower, Hot Springs), two forests, one fishing pond and the scrap heap [proto].
 - **Opening a tile.** Every closed tile that touches an open one has a gate pad on the shared border, showing its cost. Meagan pays it like a build pad, from the Stockpile: Wood 40 × 1.6^(d − 1), plus Materials 10 × 1.6^(d − 2) from d = 2, where d is the tile's distance from the furnace in tiles [proto].
 - **Small furnaces.** Paying installs a **small furnace** on the gate and the tile thaws open. A small furnace never upgrades. It connects to the main furnace, burns from the same heat and adds 0.15 heat/s to the drain [proto], so every new tile makes Wood more pressing and opening one is a choice. When the heat runs out, they all go out together.
 - **What a tile holds,** generated from the winter's seed and the tile's position, so it's the same whatever order tiles are opened in:
@@ -166,7 +165,6 @@ where n is the number of upgrades already bought (level minus the starting level
 | Storehouse, Kitchen | 40 Wood + 5 Materials | 1.15 | Wood, Materials |
 | Workshop, Research Hut, Barracks | 60 Wood + 10 Materials | 1.15 | Wood, Materials |
 | Bunkhouse, Watchtower, Hot Springs, Expedition Post, Signal Beacon | 120 Wood + 30 Materials | 1.25 | Wood, Materials |
-| Sled Shed | 30 Wood | 1.3 | Wood |
 | Furnace level | 100 Wood + 20 Materials (Lv 1→2 is Wood only, before Materials exist) | 1.8 | Wood, Materials |
 | Weapons, Armour level | 50 Wood + 15 Materials | 1.3 | Wood, Materials |
 | Guard kit | 20 Wood + 5 Materials | 1.3 per Weapons + Armour level | Wood, Materials |

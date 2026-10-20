@@ -39,8 +39,8 @@ func test_nodes_regrow() -> void:
 
 func test_building_on_a_plot() -> void:
 	var e := engine()
-	check(e.start_construction(3), "sled shed site started")
-	check_eq(e.state.sites[3].building, "sled_shed", "the plot's own building")
+	check(e.start_construction(3), "storehouse site started")
+	check_eq(e.state.sites[3].building, "storehouse", "the plot's own building")
 	check(not e.start_construction(3), "already started")
 	e.state.fuel = 1000.0
 	e.state.piles.wood = 20.0
@@ -48,12 +48,13 @@ func test_building_on_a_plot() -> void:
 	e.skip(1.0)
 	check_near(e.state.sites[3].progress.get("wood", 0.0), 20.0, 0.01, "progress")
 	check_eq(e.state.sites[3].level, 0, "not built yet")
-	var rate := Economy.gather_rate(e.state, "wood")
-	e.state.piles.wood = 10.0
-	e.skip(1.0)
+	var cap: float = Economy.caps(e.state).wood
+	e.state.piles.wood = 20.0
+	e.state.piles.materials = 5.0
+	e.skip(2.0)
 	check_eq(e.state.sites[3].level, 1, "built")
 	check(_has_event(e.drain_events(), "built"), "built event")
-	check_near(Economy.gather_rate(e.state, "wood"), rate * 1.1, 0.001, "she gathers 10% faster")
+	check_near(Economy.caps(e.state).wood, cap * 1.25, 0.001, "the Stockpile holds more")
 
 
 func test_upgrading_the_furnace() -> void:
@@ -136,11 +137,12 @@ func test_building_pays_from_the_stockpile() -> void:
 	var e := engine()
 	e.start_construction(3)
 	e.state.fuel = 1000.0
-	e.state.piles.wood = 40.0
+	e.state.piles.wood = 50.0
+	e.state.piles.materials = 5.0
 	put_meagan(e, MapData.pad_pos(e.state, 3))
-	e.skip(2.0)
+	e.skip(3.0)
 	check_eq(e.state.sites[3].level, 1, "built from the bank alone")
-	check_near(e.state.piles.wood, 10.0, 0.5, "30 Wood taken from the Stockpile")
+	check_near(e.state.piles.wood, 10.0, 0.5, "40 Wood taken from the Stockpile")
 
 
 func test_the_furnace_feeds_from_the_stockpile() -> void:

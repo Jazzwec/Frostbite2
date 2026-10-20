@@ -85,9 +85,7 @@ const MEAGAN_WALK_SPEED := 6.0  # [proto] brisk, hypercasual
 const GATHER_RANGE := 3.0
 ## Hand-gathering per second by resource. [brief]
 const GATHER_RATE := {"wood": 5.0, "food": 3.0, "materials": 1.0}
-## No bag (agreed 2026-10-20): what she gathers goes straight into the Stockpile, and each Sled
-## Shed level makes her gather this much faster. [proto]
-const SLED_SHED_GATHER_PER_LEVEL := 0.1
+## No bag (agreed 2026-10-20): what she gathers goes straight into the Stockpile.
 ## A build pad or gate she stands on takes what it needs from the Stockpile this fast. [f1] 20 units/s shared
 const PAD_PAY_PER_SECOND := 20.0
 ## Construction and upgrades are paid only while she stands on the plot's pad. [proto]
@@ -124,11 +122,11 @@ const JOBS := {
 
 ## cost(n) = cost × growth^n, n = levels bought so far (level − start). unlock = Furnace level needed. [brief]
 ## start is the level a new winter begins at; 0 means it has to be built on a plot first.
+## The Sled Shed is out of the game for now (2026-10-20).
 const BUILDINGS := {
 	"furnace": {"name": "Furnace", "max": 10, "unlock": 1, "start": 1, "cost": {"wood": 100.0, "materials": 20.0}, "growth": 1.8},
 	"lumber_yard": {"name": "Lumber Yard", "max": 25, "unlock": 1, "start": 1, "cost": {"wood": 15.0}, "growth": 1.12},
 	"hunting_lodge": {"name": "Fishing Lodge", "max": 25, "unlock": 1, "start": 1, "cost": {"wood": 15.0}, "growth": 1.12},
-	"sled_shed": {"name": "Sled Shed", "max": 10, "unlock": 1, "start": 0, "cost": {"wood": 30.0}, "growth": 1.3},
 	"storehouse": {"name": "Storehouse", "max": 15, "unlock": 1, "start": 0, "cost": {"wood": 40.0, "materials": 5.0}, "growth": 1.15},
 	"kitchen": {"name": "Kitchen", "max": 10, "unlock": 2, "start": 0, "cost": {"wood": 40.0, "materials": 5.0}, "growth": 1.15},
 	"workshop": {"name": "Workshop", "max": 20, "unlock": 2, "start": 0, "cost": {"wood": 60.0, "materials": 10.0}, "growth": 1.15},

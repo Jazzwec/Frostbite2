@@ -11,9 +11,16 @@ const STATS_FONT := 36
 const STATS_FONT_SMALL := 31
 ## The wolves countdown turns orange for its last this many seconds.
 const WOLVES_URGENT := 10.0
-## Gathered resources fly up into their number this big, and this fast. [agreed 2026-10-20]
-const FLY_ICON_SIZE := 64.0
-const FLY_ICON_TIME := 0.45
+## Resources fly between their number in the top bar and the world (into it as she gathers, out
+## of it as a pad or gate takes them) as icons this big, along a curve this wide, in this long.
+## [agreed 2026-10-20, from ChatGPT's review]
+const FLY_ICON_SIZE := 56.0
+const FLY_BEND := 110.0
+const FLY_ICON_TIME := 0.5
+## A short tapered cream trail behind each flying icon shows which way it's going.
+const FLY_TRAIL_LENGTH := 90.0
+const FLY_TRAIL_WIDTH := 22.0
+const FLY_TRAIL_COLOR := Color(1.0, 0.93, 0.78, 0.9)
 
 var sheet: Sheet
 var joystick: Joystick
@@ -188,12 +195,30 @@ func _fit_stats() -> void:
 			(l as RichTextLabel).add_theme_font_size_override("normal_font_size", next)
 
 
-## A gathered resource's icon flies from `from` (a screen point) into its number in the top bar,
-## which gives a little pulse as it lands. [agreed 2026-10-20]
-func fly_icon(res: String, from: Vector2) -> void:
-	var label: RichTextLabel = _stat_labels.get(res)
-	if label == null:
-		return
+## A gathered resource's icon flies from the world into its number in the top bar, which pulses
+## as it lands. `from` returns the screen point it starts at.
+func fly_to_counter(res: String, from: Callable) -> void:
+	if _stat_labels.has(res):
+		_fly(res, from, _counter_point.bind(res), _pulse.bind(_stat_labels[res]))
+
+
+## A resource a pad or gate takes from the Stockpile flies out of its number in the top bar (which
+## pulses as it leaves) to the screen point `to` returns; `landed` runs when it gets there.
+func fly_from_counter(res: String, to: Callable, landed: Callable) -> void:
+	if _stat_labels.has(res):
+		_pulse(_stat_labels[res])
+		_fly(res, _counter_point.bind(res), to, landed)
+
+
+## Where a resource's number sits in the top bar: on its icon, at the label's left end.
+func _counter_point(res: String) -> Vector2:
+	var r: Rect2 = (_stat_labels[res] as RichTextLabel).get_global_rect()
+	return Vector2(r.position.x + r.size.y / 2.0, r.get_center().y)
+
+
+## An icon of `res` flying along a short curve between two screen points. Both ends are read every
+## frame, so a point in the world stays put while the camera moves.
+func _fly(res: String, from: Callable, to: Callable, landed: Callable) -> void:
 	var icon := TextureRect.new()
 	icon.texture = load(UiTheme.ICON_DIR + res + ".png")
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -201,17 +226,56 @@ func fly_icon(res: String, from: Vector2) -> void:
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.size = Vector2.ONE * FLY_ICON_SIZE
 	icon.pivot_offset = icon.size / 2.0
+	var trail := _fly_trail()
+	_root.add_child(trail)
 	_root.add_child(icon)
-	icon.position = from - icon.pivot_offset
-	var to := label.get_global_rect().get_center() - icon.pivot_offset
+	var bend := FLY_BEND if randf() < 0.5 else -FLY_BEND
+	var step := func(u: float) -> void:
+		var a: Vector2 = from.call()
+		var b: Vector2 = to.call()
+		var mid := (a + b) / 2.0 + (b - a).orthogonal().normalized() * bend
+		var at := a.lerp(mid, u).lerp(mid.lerp(b, u), u)
+		icon.position = at - icon.pivot_offset
+		trail.add_point(at)
+		# Only the last stretch of the path: the tail end drops off as the icon moves on.
+		var length := 0.0
+		for i in range(trail.get_point_count() - 1, 0, -1):
+			length += trail.get_point_position(i).distance_to(trail.get_point_position(i - 1))
+			if length > FLY_TRAIL_LENGTH:
+				for j in i:
+					trail.remove_point(0)
+				break
+	step.call(0.0)
 	var t := create_tween()
-	t.tween_property(icon, "position", to, FLY_ICON_TIME).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	t.parallel().tween_property(icon, "scale", Vector2.ONE * 0.6, FLY_ICON_TIME)
+	t.tween_method(step, 0.0, 1.0, FLY_ICON_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	t.tween_callback(func() -> void:
 		icon.queue_free()
-		label.pivot_offset = label.size / 2.0
-		label.scale = Vector2.ONE * 1.2
-		create_tween().tween_property(label, "scale", Vector2.ONE, 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT))
+		trail.queue_free()
+		landed.call())
+
+
+## The trail: thin and clear at its tail, full width at the icon.
+func _fly_trail() -> Line2D:
+	var trail := Line2D.new()
+	trail.width = FLY_TRAIL_WIDTH
+	var taper := Curve.new()
+	taper.add_point(Vector2(0, 0))
+	taper.add_point(Vector2(1, 1))
+	trail.width_curve = taper
+	var fade := Gradient.new()
+	fade.set_color(0, Color(FLY_TRAIL_COLOR, 0.0))
+	fade.set_color(1, FLY_TRAIL_COLOR)
+	trail.gradient = fade
+	trail.joint_mode = Line2D.LINE_JOINT_ROUND
+	trail.end_cap_mode = Line2D.LINE_CAP_ROUND
+	return trail
+
+
+## A quick bounce on a stats label.
+func _pulse(label: RichTextLabel) -> void:
+	label.pivot_offset = label.size / 2.0
+	label.scale = Vector2.ONE * 1.2
+	create_tween().tween_property(label, "scale", Vector2.ONE, 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 ## Keeping the fire alive is the goal, so a dying fire is loud: the bar pulses red, a banner

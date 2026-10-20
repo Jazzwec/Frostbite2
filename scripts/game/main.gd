@@ -120,7 +120,7 @@ func _process(delta: float) -> void:
 	_refresh_views(delta)
 	_update_meagan_activity()
 	_update_pad_stop(delta)
-	_update_sky_drops(delta)
+	_update_pad_payments(delta)
 	_update_gather_fx()
 	if _nav_dirty and not _baking:
 		_nav_dirty = false
@@ -498,39 +498,36 @@ func _update_pad_stop(delta: float) -> void:
 		_pad_opened = on
 
 
-## Building takes from the Stockpile, and the pieces fall out of the sky onto the building or
-## gate, one at a time. [agreed 2026-10-20]
-const SKY_DROP_HEIGHT := 12.0
-const SKY_DROP_EVERY := 0.15
-const DROP_ITEMS := {"wood": "log", "food": "fish", "materials": "crate"}
+## Building takes from the Stockpile: each piece flies out of its number in the top bar to the
+## building or gate, one at a time. [agreed 2026-10-20, from ChatGPT's review]
+const PAY_FX_EVERY := 0.15
 
 
-func _update_sky_drops(delta: float) -> void:
+func _update_pad_payments(delta: float) -> void:
 	var s := Game.engine.state
 	_drop_in -= delta
 	for i in s.sites.size():
-		_drop_from_sky("site %d" % i, s.sites[i].progress, _v3(MapData.site_pos(s, i)) + Vector3(0, 1.0, 0), i)
+		_send_from_stockpile("site %d" % i, s.sites[i].progress, _v3(MapData.site_pos(s, i)) + Vector3(0, 1.0, 0), i)
 	for gate in s.gates:
-		_drop_from_sky("gate %s" % gate.tile, gate.progress, _v3(gate.pos) + Vector3(0, 0.6, 0), -1)
+		_send_from_stockpile("gate %s" % gate.tile, gate.progress, _v3(gate.pos) + Vector3(0, 0.6, 0), -1)
 
 
-## Drops a piece onto `top` when `progress` grew since last frame. `site` is the plot that
-## shakes as it lands, or -1.
-func _drop_from_sky(key: String, progress: Dictionary, top: Vector3, site: int) -> void:
+## Sends a piece from the top bar to `top` when `progress` grew since last frame. `site` is the
+## plot that shakes as it lands, or -1.
+func _send_from_stockpile(key: String, progress: Dictionary, top: Vector3, site: int) -> void:
 	var before: Dictionary = _last_progress.get(key, {})
 	_last_progress[key] = progress.duplicate()
 	if _drop_in > 0.0:
 		return
 	for res in progress:
 		if progress[res] > before.get(res, progress[res]) + 0.001:
-			var from := top + Vector3(randf_range(-0.6, 0.6), SKY_DROP_HEIGHT, randf_range(-0.6, 0.6))
 			var landed := func() -> void:
 				Fx.burst("dust", top)
 				Audio.play("drop", top)
 				if site >= 0 and site < _sites.size():
 					_sites[site].knock()
-			Fx.throw(DROP_ITEMS[res], from, top, 0.5, 0.0, landed)
-			_drop_in = SKY_DROP_EVERY
+			_hud.fly_from_counter(res, func() -> Vector2: return _rig.camera.unproject_position(top), landed)
+			_drop_in = PAY_FX_EVERY
 			return
 
 
@@ -557,7 +554,7 @@ func _update_gather_fx() -> void:
 		var spot := _nodes[_work.target].focus_point(_meagan.global_position) + Vector3(0, 0.8, 0)
 		Fx.pop("+%d" % unit, spot, GATHER_COLORS[res])
 		Audio.play("pop", spot)
-		_hud.fly_icon(res, _rig.camera.unproject_position(spot))
+		_hud.fly_to_counter(res, func() -> Vector2: return _rig.camera.unproject_position(spot))
 
 
 # ---------- Meagan at work ----------

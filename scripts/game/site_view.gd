@@ -8,7 +8,6 @@ signal footprint_changed
 const LOOKS := {
 	"lumber_yard": {"wall": Color(0.55, 0.36, 0.2), "roof": Color(0.45, 0.16, 0.12)},
 	"hunting_lodge": {"wall": Color(0.42, 0.45, 0.25), "roof": Color(0.3, 0.22, 0.14)},
-	"sled_shed": {"wall": Color(0.45, 0.55, 0.65), "roof": Color(0.25, 0.3, 0.4)},
 	"storehouse": {"wall": Color(0.7, 0.6, 0.42), "roof": Color(0.4, 0.3, 0.2)},
 	"workshop": {"wall": Color(0.5, 0.52, 0.56), "roof": Color(0.3, 0.32, 0.36)},
 	"barracks": {"wall": Color(0.55, 0.22, 0.2), "roof": Color(0.25, 0.25, 0.28)},

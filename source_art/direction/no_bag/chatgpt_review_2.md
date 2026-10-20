@@ -1,0 +1,5 @@
+The endpoints read; the route still needs work. Shots 1–2 show logs near the Wood counter and Storehouse, but the isolated log between them looks disconnected. In shot 3, the log above “Jans” is too far from both the tree’s “+5” and the Wood counter to explain itself immediately.
+
+1. **Make flight direction unmistakable.** At phone size, a lone log reads as a floating resource marker; spending and gathering need opposite, instantly readable motion. Keep logs roughly **24–28 px wide at this 540 px screenshot scale**, and add a **short, tapered cream trail, 35–50 px long**, following the curve. Use a **450–600 ms flight** and trigger the Wood counter pulse **at departure for spending, at arrival for gathering**. Keep the trail local to each log so it doesn’t draw a line across the interface.
+
+Verdict: fix first — the endpoints are readable, but the transfer direction still depends too much on watching closely.

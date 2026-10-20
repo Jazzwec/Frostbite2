@@ -16,7 +16,6 @@ const START_SITES := [
 	{"pos": Vector2(0, 0), "type": "furnace", "built": true},
 	{"pos": Vector2(-9, -6), "type": "lumber_yard", "built": true},
 	{"pos": Vector2(9, -6), "type": "hunting_lodge", "built": true},
-	{"pos": Vector2(-9, 4), "type": "sled_shed", "built": false},
 	{"pos": Vector2(9, 4), "type": "storehouse", "built": false},
 	{"pos": Vector2(-5, 12), "type": "kitchen", "built": false},
 	{"pos": Vector2(5, 12), "type": "barracks", "built": false},

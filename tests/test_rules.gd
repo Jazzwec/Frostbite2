@@ -96,8 +96,8 @@ func test_buildings_unlock_with_the_furnace_and_stop_at_their_max() -> void:
 			check(not Economy.is_unlocked(e.state, b), "%s locked below Furnace Lv %d" % [b, unlock])
 		e.state.sites[0].level = unlock
 		check(Economy.is_unlocked(e.state, b), "%s unlocked at Furnace Lv %d" % [b, unlock])
-	var i := give_building(e, "sled_shed", Balance.BUILDINGS.sled_shed.max)
-	check(Economy.is_maxed(e.state, i), "a Sled Shed at its max level")
+	var i := give_building(e, "kitchen", Balance.BUILDINGS.kitchen.max)
+	check(Economy.is_maxed(e.state, i), "a Kitchen at its max level")
 	e.state.sites[i].level -= 1
 	check(not Economy.is_maxed(e.state, i), "one below it")
 
@@ -114,7 +114,8 @@ func test_the_fire_counts_down_only_without_fuel() -> void:
 func test_every_plot_holds_its_own_building() -> void:
 	var e := engine()
 	var types := MapData.START_SITES.map(func(d): return d.type)
-	for b in ["sled_shed", "storehouse", "kitchen", "barracks", "bunkhouse", "watchtower", "hot_springs"]:
+	check(not types.has("sled_shed"), "no Sled Shed for now")
+	for b in ["storehouse", "kitchen", "barracks", "bunkhouse", "watchtower", "hot_springs"]:
 		check_eq(types.count(b), 1, "one %s plot on the starting grid" % b)
 	check(not types.has("workshop"), "producers only in opened tiles")
 	var kitchen: int = types.find("kitchen")

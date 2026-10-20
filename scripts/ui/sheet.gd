@@ -339,8 +339,6 @@ func _summary(s: GameState, b: String) -> String:
 	match b:
 		"furnace":
 			return "Jans %d/%d  ·  Fuel %s/%s  ·  Idle Jans %d" % [s.jans.size(), Economy.jan_cap(s), Fmt.num(s.fuel), Fmt.num(Economy.fuel_cap(s)), Economy.idle_count(s)]
-		"sled_shed":
-			return "Meagan gathers %d%% faster." % roundi(Balance.SLED_SHED_GATHER_PER_LEVEL * Economy.level(s, "sled_shed") * 100.0)
 		"storehouse":
 			var caps := Economy.caps(s)
 			return "Storage: Wood %s, Food %s, Materials %s." % [Fmt.num(caps.wood), Fmt.num(caps.food), Fmt.num(caps.materials)]
