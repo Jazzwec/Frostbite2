@@ -266,19 +266,17 @@ func _refresh_armory(s: GameState) -> void:
 				c.visible = shows_wolf
 
 
-## Each resource the upgrade needs against what she has (bag and store), owned first (fight_v2
-## review 2): "Wood 299 owned / 82 needed", or "Materials 8 / 25, need 17" with only the
-## shortfall in red. One per line.
+## Each resource the upgrade needs against what she has (bag and store), the same way every time
+## (fight_v2 review 3): "Wood: 299 owned / 82 needed", "Materials: 8 owned / 25 needed · need 17"
+## with only "need 17" in red. One per line.
 func _cost_text(s: GameState, need: Dictionary) -> String:
 	var lines := []
 	for res in need:
 		var have: float = s.piles.get(res, 0.0) + s.bag.get(res, 0.0)
-		var name := str(res).capitalize()
-		if have >= need[res]:
-			lines.append("%s %s %s owned / %s needed" % [UiTheme.icon(res, 40), name, Fmt.num(have), Fmt.num(need[res])])
-		else:
-			lines.append("%s %s %s / %s, [color=#%s]need %s[/color]" % [UiTheme.icon(res, 40), name, Fmt.num(have), Fmt.num(need[res]),
-					UiTheme.FALU.to_html(false), Fmt.num(ceilf(need[res] - have))])
+		var line := "%s %s: %s owned / %s needed" % [UiTheme.icon(res, 40), str(res).capitalize(), Fmt.num(have), Fmt.num(need[res])]
+		if have < need[res]:
+			line += "  ·  [color=#%s]need %s[/color]" % [UiTheme.FALU.to_html(false), Fmt.num(ceilf(need[res] - have))]
+		lines.append(line)
 	return "\n".join(lines)
 
 
@@ -379,14 +377,16 @@ func _refresh() -> void:
 	else:
 		_status.text = _summary(s, b) + _shared_note(s, b)
 		_upgrade.visible = true
-		# Short of something, the button says so and looks muted; it still starts the upgrade, which
-		# she pays on the pad as she brings it (review 2).
+		# Short of something, the button starts a delivery: she brings the rest to the pad (the
+		# game's upgrade flow), and it says so, in an enabled muted teal (reviews 2 and 3).
 		var short := _shortfall(s, Economy.site_cost(s, site_index))
-		_upgrade.text = "Upgrade to Lv %d" % (site.level + 1) if short == "" else "Start Lv %d: need %s" % [site.level + 1, short]
+		_upgrade.text = "Upgrade to Lv %d" % (site.level + 1) if short == "" else "Start Lv %d delivery" % (site.level + 1)
+		if short != "":
+			_status.text += "\nDeliver what's missing to its pad."
 		if (short != "") != _upgrade_muted:
 			_upgrade_muted = short != ""
 			if _upgrade_muted:
-				UiTheme.style_utility(_upgrade, UiTheme.UTILITY_OFF)
+				UiTheme.style_utility(_upgrade, UiTheme.UTILITY)
 			else:
 				UiTheme.style_primary(_upgrade)
 	_cost_line.visible = _upgrade.visible

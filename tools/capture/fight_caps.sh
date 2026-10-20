@@ -75,13 +75,15 @@ add.call(\"raider\", p + Vector2(-4.5, 2.5), 30.0)
 Engine.time_scale = 0.3
 emit(1)"
 
-bash "$STRIP" "$OUT" theft 6 0.6 "$PRE
-s.meagan_injured = true
+# Knocked down by the furnace while three thieves raid the store; she gets up after 6 s.
+bash "$STRIP" "$OUT" theft 6 0.8 "$PRE
 var f = MapData.site_pos(s, 0)
 p = f + Vector2(0, 5)
 s.meagan_pos = p
 m.global_position = Vector3(p.x, 0, p.y)
 m.walk_to(Vector3(p.x, 0, p.y))
+s.meagan_hp = 1.0
+Combat._hurt(s, {\"id\": -1, \"pos\": p}, 5.0, [])
 s.raid_on = true
 for i in 3:
 	add.call([\"wolf\", \"fox\", \"raider\"][i], f + Vector2(-2.5 + 2.5 * i, 3.0), 30.0)

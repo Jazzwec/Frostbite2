@@ -5,20 +5,23 @@ extends Control
 ## will come from; during a raid, one gold arrow with a sack towards the nearest enemy running off
 ## with stolen goods (only that one). Nothing while a sheet is open. Nothing here takes touches.
 
-const SIZE := 34.0
+const SIZE := 36.0
 ## Where an arrow may sit: this far in from each screen edge (left, top, right, bottom), clear
 ## of the top panel, the buttons and the fight strip under them.
 const EDGE_MARGINS := Vector4(74, 460, 74, 184)
-const RUST := Color(0.62, 0.24, 0.15)
-const THIEF := Color(0.95, 0.72, 0.3)
-const ICON_SIZE := 56.0
+## Ochre for what's coming, terracotta for danger now (review 3), each with a cream keyline.
+const COMING := Color(0.79, 0.59, 0.25)
+const THIEF := Color(0.66, 0.3, 0.2)
+const KEYLINE := Color(0.98, 0.94, 0.86)
+const ICON_SIZE := 64.0
 
 ## The bottom sheet: while it's open the arrows keep out of the way.
 var sheet: Control
 
 var _camera: Camera3D
-var _marks := []  # [screen position, direction, colour, icon or null]
-var _bag: Texture2D
+var _marks := []  # [screen position, direction, colour, badge amount or ""]
+var _disc: Texture2D
+var _font: Font
 var _time := 0.0
 
 
@@ -29,7 +32,9 @@ func setup(camera: Camera3D) -> void:
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_bag = load(UiTheme.ICON_DIR + "bag.png")
+	_disc = WolfView.badge_disc()
+	var theme_font: Font = UiTheme.get_theme().default_font
+	_font = theme_font if theme_font else ThemeDB.fallback_font
 
 
 func _process(delta: float) -> void:
@@ -39,10 +44,13 @@ func _process(delta: float) -> void:
 	if _camera != null and not s.game_over and not (sheet and sheet.visible):
 		if s.attack_warned and not s.next_wave.is_empty():
 			for side in s.next_wave.sides:
-				_mark(side, RUST, null)
+				_mark(side, COMING, "")
 		var thief := nearest_thief(s)
 		if not thief.is_empty():
-			_mark(thief.pos, THIEF, _bag)
+			var total := 0.0
+			for res in thief.carry:
+				total += thief.carry[res]
+			_mark(thief.pos, THIEF, Fmt.num(total))
 	queue_redraw()
 
 
@@ -58,7 +66,7 @@ static func nearest_thief(s: GameState) -> Dictionary:
 
 
 ## An arrow at the edge towards `ground`, if it's off screen (on screen, its own badge says it).
-func _mark(ground: Vector2, color: Color, icon: Texture2D) -> void:
+func _mark(ground: Vector2, color: Color, badge: String) -> void:
 	var at := _camera.unproject_position(Vector3(ground.x, 1.0, ground.y))
 	var screen := get_viewport_rect().size
 	var m := EDGE_MARGINS
@@ -70,7 +78,7 @@ func _mark(ground: Vector2, color: Color, icon: Texture2D) -> void:
 	var half := inside.size / 2.0
 	var reach := minf(half.x / maxf(absf(dir.x), 0.001), half.y / maxf(absf(dir.y), 0.001))
 	var bob := 8.0 * absf(sin(_time * 5.0))
-	_marks.append([centre + dir * (reach - bob), dir, color, icon])
+	_marks.append([centre + dir * (reach - bob), dir, color, badge])
 
 
 func _draw() -> void:
@@ -83,11 +91,13 @@ func _draw() -> void:
 	for mk in _marks:
 		var dir: Vector2 = mk[1]
 		draw_set_transform(mk[0], dir.angle() - PI / 2.0)
+		draw_polyline(outline, KEYLINE, 12.0, true)
 		draw_colored_polygon(shape, mk[2])
 		draw_polyline(outline, UiTheme.INK, 5.0, true)
 		draw_set_transform(Vector2.ZERO)
-		if mk[3]:
-			var c: Vector2 = mk[0] - dir * a * 2.6
-			draw_circle(c, ICON_SIZE * 0.62, Color(UiTheme.PAPER, 0.95))
-			draw_arc(c, ICON_SIZE * 0.62, 0.0, TAU, 32, UiTheme.INK, 4.0, true)
-			draw_texture_rect(mk[3], Rect2(c - Vector2.ONE * ICON_SIZE / 2.0, Vector2.ONE * ICON_SIZE), false)
+		if mk[3] != "":
+			# The thief's badge rides on its arrow: the ochre disc and what it carries.
+			var c: Vector2 = mk[0] - dir * a * 2.7
+			draw_texture_rect(_disc, Rect2(c - Vector2.ONE * ICON_SIZE / 2.0, Vector2.ONE * ICON_SIZE), false)
+			var size := _font.get_string_size(mk[3], HORIZONTAL_ALIGNMENT_CENTER, -1, 34)
+			draw_string(_font, c + Vector2(-size.x / 2.0, 12.0), mk[3], HORIZONTAL_ALIGNMENT_CENTER, -1, 34, UiTheme.INK)

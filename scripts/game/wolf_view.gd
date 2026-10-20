@@ -40,9 +40,10 @@ const TAIL_WAG := 18.0
 const TROT_SPEED := 13.0
 ## An attack follows the engine's (Combat._attack): its tell (a crouch or a wind-up, the time to
 ## step away), a quick strike, a few frames held, then recover. Heavy hitters hold their strike
-## pose for most of their recovery, slumped, so the opening to step in reads (fight_v2 review 1).
+## pose for most of their recovery, slumped, so the opening to step in reads (fight_v2 review 1;
+## review 3: bear 0.35 s, troll 0.45 s).
 const ATTACK_HOLD := 0.05
-const HEAVY_HOLD := 0.6
+const HEAVY_HOLD := {"bear": 0.35, "troll": 0.45}
 ## How far it leans back while crouching to strike, in degrees.
 const ATTACK_LEAN_BACK := 12.0
 ## Tells (fight_v2 reviews 1 and 2): one muted terracotta treatment (ink/tell.gdshader), a light
@@ -103,9 +104,11 @@ var _tell_zone: MeshInstance3D
 var _tell_zone_mat: ShaderMaterial
 var _tell_line_thin: MeshInstance3D
 var _tell_line: MeshInstance3D
-## How far its health bar is raised to clear a neighbour's (PeopleLayer sets it; review 2).
+## How far its health bar is raised to clear a neighbour's (PeopleLayer sets it; review 2), with a
+## thin line down to its owner once it's lifted (review 3).
 var bar_lift := 0.0
 var _bar_height := 0.0
+var _bar_link: MeshInstance3D
 var _shot_line: MeshInstance3D
 var _sack: Sprite3D
 var _sack_disc: Sprite3D
@@ -154,6 +157,20 @@ func _init(enemy_kind := "wolf") -> void:
 	_hp_bar = HpBar.new(HpBar.WOLF_RED)
 	_bar_height = look.bar
 	_hp_bar.position = Vector3(0, look.bar, 0)
+	_bar_link = MeshInstance3D.new()
+	var link := BoxMesh.new()
+	link.size = Vector3(0.035, 1.0, 0.035)
+	_bar_link.mesh = link
+	var link_mat := StandardMaterial3D.new()
+	link_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	link_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	link_mat.albedo_color = Color(0.17, 0.2, 0.25, 0.7)
+	link_mat.no_depth_test = true
+	link_mat.render_priority = 19
+	_bar_link.material_override = link_mat
+	_bar_link.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_bar_link.visible = false
+	add_child(_bar_link)
 	add_child(_hp_bar)
 	_sack_disc = Sprite3D.new()
 	_sack_disc.texture = _badge_disc()
@@ -172,9 +189,10 @@ func _init(enemy_kind := "wolf") -> void:
 	_sack.position = _sack_disc.position
 	_sack.visible = false
 	add_child(_sack)
-	_badge_amount = Shapes.label("", _sack_disc.position + Vector3(0.48, -0.12, 0), 60, Color(1.0, 0.95, 0.82))
-	_badge_amount.pixel_size = 0.006
-	_badge_amount.outline_size = 14
+	_badge_amount = Shapes.label("", _sack_disc.position, 64, Color("2c3440"))
+	_badge_amount.pixel_size = 0.0062
+	_badge_amount.outline_size = 0
+	_badge_amount.render_priority = 12
 	_badge_amount.visible = false
 	add_child(_badge_amount)
 	_load = Node3D.new()
@@ -500,6 +518,11 @@ func contact_point(from: Vector3) -> Vector3:
 	return global_position + (to.normalized() * reach if to.length() > 0.01 else Vector3.ZERO) + Vector3(0, LOOK[kind].bar * 0.45, 0)
 
 
+## The badge's look, for the thief's edge arrow (ThreatArrows draws the same disc and number).
+static func badge_disc() -> Texture2D:
+	return _badge_disc()
+
+
 ## Meagan has picked it: its health bar's border lights up a moment (review 2: the chosen target
 ## shows where it already looks, no extra ground ring).
 func accent() -> void:
@@ -584,6 +607,14 @@ func sync(enemy: Dictionary, delta: float) -> void:
 		mesh.material_overlay = _flash_mat if flashing else null
 	_hp_bar.set_value(enemy.hp / enemy.max_hp)
 	_hp_bar.position.y = lerpf(_hp_bar.position.y, _bar_height + bar_lift, minf(1.0, 10.0 * delta))
+	var lifted := _hp_bar.position.y - _bar_height
+	_bar_link.visible = _hp_bar.visible and lifted > 0.2
+	if _bar_link.visible:
+		_bar_link.position.y = _bar_height - 0.1 + lifted / 2.0
+		_bar_link.scale.y = lifted
+	# The thief's badge sits just above its bar, wherever the bar is.
+	_sack_disc.position.y = _hp_bar.position.y + 0.42
+	_badge_amount.position.y = _sack_disc.position.y
 	_update_tell(enemy)
 	_update_sack(enemy)
 
@@ -596,10 +627,10 @@ func _update_sack(enemy: Dictionary) -> void:
 		if most == "" or carry[res] > carry[most]:
 			most = res
 	_load.visible = most != ""
-	_sack.visible = most != "" and badge
-	_sack_disc.visible = _sack.visible
-	_badge_amount.visible = _sack.visible
-	if _sack.visible:
+	_sack.visible = false
+	_sack_disc.visible = most != "" and badge
+	_badge_amount.visible = _sack_disc.visible
+	if _sack_disc.visible:
 		var total := 0.0
 		for res in carry:
 			total += carry[res]
@@ -705,6 +736,8 @@ func _pose_greybox(fighting: bool, lunge: float, moving: bool) -> void:
 			_parts.rear.position.y = 0.04 * bob - 0.12 * slump
 			_parts.paw_r.rotation_degrees.x = 60.0 * wound - 85.0 * strike + (0.0 if fighting else 18.0 * sin(_t))
 			_parts.paw_r.rotation_degrees.y = -30.0 * wound + 45.0 * strike
+			# Drawn out to the side, clear of its body (review 3: 15-20 px).
+			_parts.paw_r.rotation_degrees.z = 42.0 * wound
 			_parts.paw_l.rotation_degrees.x = -35.0 * wound + (0.0 if fighting else -18.0 * sin(_t))
 		"troll":
 			# The tell: both fists up over its head and spread apart, clear of its head (review 2);
@@ -714,9 +747,10 @@ func _pose_greybox(fighting: bool, lunge: float, moving: bool) -> void:
 				var side := -1.0 if arm == "arm_l" else 1.0
 				var sway := 0.0 if fighting else 14.0 * sin(_t + (0.0 if arm == "arm_l" else PI))
 				_parts[arm].rotation_degrees.x = -160.0 * wound - 30.0 * strike + 45.0 * slump + sway
-				_parts[arm].rotation_degrees.z = side * (34.0 * wound + 8.0 * slump)
+				_parts[arm].rotation_degrees.z = side * (34.0 * wound + 26.0 * slump)
 			_parts.body.rotation_degrees.x = -8.0 * wound + 12.0 * strike + 16.0 * slump
-			_parts.body.position.y = 0.05 * bob - 0.22 * strike - 0.1 * slump
+			# Review 3: the slam drops it 12-16 px.
+			_parts.body.position.y = 0.05 * bob - 0.32 * strike - 0.08 * slump
 		"raider":
 			# The shard goes up behind its head (the tell), then forward in the throw.
 			_parts.arm_r.rotation_degrees.x = 150.0 * wound - 70.0 * strike + (0.0 if fighting else 20.0 * sin(_t))
@@ -737,7 +771,7 @@ func _slump() -> float:
 	var after: float = t - _def.tell - (Balance.ENEMY_LUNGE if _def.shape == "wedge" else 0.0)
 	if after < 0.0:
 		return 0.0
-	var hold: float = _def.recover * HEAVY_HOLD
+	var hold: float = HEAVY_HOLD[kind]
 	if after < 0.1:
 		return smoothstep(0.0, 1.0, after / 0.1)
 	if after < hold:
@@ -758,7 +792,7 @@ func _lunge() -> float:
 	if t < thrust:
 		return lerpf(-0.4, 1.0, smoothstep(0.0, 1.0, t / thrust))
 	t -= thrust
-	var hold: float = _def.recover * HEAVY_HOLD if kind == "bear" or kind == "troll" else ATTACK_HOLD
+	var hold: float = HEAVY_HOLD.get(kind, ATTACK_HOLD)
 	if t < hold:
 		return 1.0
 	t -= hold

@@ -42,10 +42,11 @@ static var instance: Fx
 var _pools := {}  # kind -> Array of CPUParticles3D
 var _next := {}  # kind -> int
 var _sweeps := {}  # "reach" -> crescent MeshInstance3D
-## Impact marks: a small cream star with a rust rim where a blow lands, for IMPACT_TIME (fight_v2
-## review 2: feedback at the contact, 12-18 px on the phone, not just a bar going down).
-const IMPACT_SIZE := 0.36
-const IMPACT_TIME := 0.11
+## Impact marks: a cream star with a rust rim where a blow lands, for IMPACT_TIME, drawn over
+## bodies and bars: the brightest thing in a fight (fight_v2 reviews 2 and 3: about 24 px on the
+## phone, 30 px for a kill, 150 ms).
+const IMPACT_SIZE := 0.55
+const IMPACT_TIME := 0.15
 const IMPACT_POOL := 8
 var _impacts: Array[Sprite3D] = []
 var _next_impact := 0
@@ -103,7 +104,7 @@ func _impact(pos: Vector3, size: float) -> void:
 			s.texture = _impact_star()
 			s.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 			s.no_depth_test = true
-			s.render_priority = 12
+			s.render_priority = 30
 			s.shaded = false
 			s.visible = false
 			add_child(s)
@@ -137,7 +138,7 @@ static func _impact_star() -> Texture2D:
 				var d := v.length()
 				var col := Color(0, 0, 0, 0)
 				if d <= edge:
-					col = Color(0.62, 0.24, 0.15) if d > edge - 7.0 else Color(1.0, 0.95, 0.82)
+					col = Color(0.62, 0.24, 0.15) if d > edge - 10.0 else Color(1.0, 0.95, 0.82)
 					col.a = clampf(edge - d, 0.0, 1.0)
 				img.set_pixel(x, y, col)
 		_star = ImageTexture.create_from_image(img)

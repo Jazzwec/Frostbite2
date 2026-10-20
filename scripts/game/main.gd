@@ -973,11 +973,12 @@ func _on_event(ev: Dictionary) -> void:
 			Audio.play("warning")
 			# A short strip with what's coming; the countdown and the kinds stay in the forecast
 			# line, and edge arrows point at the sides (fight_v2 review 1). A troll is louder.
+			# What's in it is in the forecast line; the strip just says when (review 3).
 			if ev.mix.get("troll", 0) > 0:
 				Audio.play("crash", Vector3.INF, 0.4, -4.0)
-				_hud.show_strip("Troll in wave %d!  %s" % [ev.wave, Hud.mix_icons(ev.mix, 40)], "", Hud.TROLL_COMING_WASH, 2.5)
+				_hud.show_strip("Troll raid  ·  %ds" % roundi(ev.starts_in), "troll", Hud.TROLL_COMING_WASH, 2.5)
 			else:
-				_hud.show_strip("Wave %d soon  %s" % [ev.wave, Hud.mix_icons(ev.mix, 40)])
+				_hud.show_strip("Next raid  ·  %ds" % roundi(ev.starts_in), "wolves")
 		"wolves_arrived":
 			Audio.play("howl")
 			_hud.show_strip("Wave %d is here!" % ev.wave, "wolves")
@@ -1024,7 +1025,7 @@ func _on_event(ev: Dictionary) -> void:
 				var from := _v3(ev.from)
 				var killing: bool = Game.engine.state.wolves.all(func(w): return w.id != ev.wolf or w.hp <= 0.0)
 				wolf.hit(from, "heavy" if killing else ("sweep" if ev.kind == "melee" else "light"))
-				Fx.impact(wolf.contact_point(from), 1.2 if ev.kind == "melee" else 1.0)
+				Fx.impact(wolf.contact_point(from), 1.25 if killing else (1.12 if ev.get("exposed", false) else 1.0))
 				# One secondary flourish: ink flecks flung away from the blow (fight_v2 review 1).
 				var away := (wolf.global_position - from)
 				away.y = 0.0

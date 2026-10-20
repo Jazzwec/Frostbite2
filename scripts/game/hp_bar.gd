@@ -9,8 +9,9 @@ const MEAGAN_GREEN := Color(0.35, 0.82, 0.4)
 const GUARD_BLUE := Color(0.35, 0.62, 0.95)
 const WOLF_RED := Color(0.95, 0.25, 0.2)
 
-## The border's colour while it's accented (Meagan's chosen target, fight_v2 review 2).
-const ACCENT := Color(0.98, 0.8, 0.35, 1.0)
+## The border's colour while it's accented (Meagan's chosen target, fight_v2 reviews 2 and 3: a
+## 2 px muted ochre border, quieter than the hit itself).
+const ACCENT := Color(0.79, 0.59, 0.25, 1.0)
 const ACCENT_TIME := 0.3
 
 var width := WIDTH
@@ -62,7 +63,7 @@ func set_value(fraction: float, show_when_full := false) -> void:
 func accent() -> void:
 	_accent = ACCENT_TIME
 	(_back.material_override as StandardMaterial3D).albedo_color = ACCENT
-	_back.scale = Vector3(1.0 + 0.1 / width, 1.0 + 0.1 / height, 1.0)
+	_back.scale = Vector3(1.0 + 0.04 / width, 1.0 + 0.04 / height, 1.0)
 	visible = true
 
 
