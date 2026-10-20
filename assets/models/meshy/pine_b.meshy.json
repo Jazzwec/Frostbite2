@@ -1,0 +1,25 @@
+{
+  "task_id": "01a15a33-096a-73d0-9656-15393649b08d",
+  "date": "2026-10-20",
+  "ai_model": "meshy-6",
+  "endpoint": "image-to-3d",
+  "credits": 30,
+  "params": {
+    "remove_lighting": true,
+    "image_enhancement": false,
+    "should_remesh": true,
+    "topology": "triangle",
+    "should_texture": true,
+    "enable_pbr": false,
+    "texture_resolution": "2k",
+    "auto_size": true,
+    "origin_at": "bottom",
+    "target_formats": [
+      "glb"
+    ],
+    "target_polycount": 1500
+  },
+  "reference": "source_art/concept/ink/pine_b.png",
+  "reference_model": "gpt-6-astra (tools/chatgpt/chatgpt.py image --for-3d)",
+  "download": "assets/models/meshy/pine_b_meshy6.glb"
+}

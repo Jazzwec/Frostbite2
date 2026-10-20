@@ -27,5 +27,12 @@
   "prop_bench": ["01a15a1b-405a-73a7-a844-27df1d6a8450", "meshy-t2.5", 15, 1200],
   "crate": ["01a15a1b-4570-7687-a947-b07b4882d7ba", "meshy-t2.5", 15, 1000],
   "log": ["01a15a1f-4d7b-7034-9ab0-8b05358ffa26", "meshy-t2.5", 15, 800],
-  "pine_a": ["01a15a1f-538b-7221-bdfe-1144da912014", "meshy-6", 30, 1500]
+  "pine_a": ["01a15a1f-538b-7221-bdfe-1144da912014", "meshy-6", 30, 1500],
+  "pine_b": ["01a15a33-096a-73d0-9656-15393649b08d", "meshy-6", 30, 1500],
+  "pine_c": ["01a15a33-0fa9-72ed-875c-27807e060752", "meshy-6", 30, 1500],
+  "chest_cache": ["01a15a33-1542-7593-8907-39aa920a8f4f", "meshy-6", 30, 2000],
+  "chest_boon": ["01a15a33-1b6c-75d0-b35b-f7637ed8d9b5", "meshy-6", 30, 2000],
+  "chest_gear": ["01a15a33-20e0-77b2-bdcf-1d37ac93a15f", "meshy-6", 30, 2000],
+  "meagan_v2": ["01a15a33-6143-7549-a5dd-9ff819db28e0", "meshy-6", 30, 10000, "source_art/concept/ink/meagan_v2_front.png (+ _side, _back; multi-image-to-3d, t-pose)"],
+  "jan_v2": ["01a15a33-6e90-75e1-a34f-5fa5e52b2dcf", "meshy-6", 30, 8000, "source_art/concept/ink/jan_v2_front.png (+ _side, _back; multi-image-to-3d, t-pose)"]
 }

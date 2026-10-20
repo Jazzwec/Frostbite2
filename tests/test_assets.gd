@@ -11,8 +11,8 @@ const BUDGETS := {
 	"meagan": [10000, 1.4, 1.9],
 	"wolf": [5000, 0.6, 1.2],
 	"pine_a": [1100, 2.0, 4.0],
-	"pine_b": [500, 2.0, 4.0],
-	"pine_c": [500, 2.0, 4.0],
+	"pine_b": [1100, 2.0, 4.0],
+	"pine_c": [1100, 2.0, 4.0],
 	"boulder": [2000, 0.3, 2.0],
 	"crate": [2000, 0.2, 1.5],
 	"log": [2000, 0.2, 1.5],
@@ -39,6 +39,10 @@ const BUDGETS := {
 	"prop_stockpile": [3200, 0.8, 1.8],
 	"prop_stove": [3200, 1.2, 2.4],
 	"prop_den": [3200, 1.0, 2.2],
+	# Chests: a body and a hinged "<name>_lid" (cleanup.py split_lid_at; the filled cut adds ~1k).
+	"chest_cache": [2500, 0.3, 1.2],
+	"chest_boon": [2500, 0.3, 1.2],
+	"chest_gear": [2500, 0.3, 1.2],
 }
 ## Rigged characters posed by ModelRig: they need its bones under Mixamo names (tools/blender/rig_names.py
 ## renames a Meshy rig's).

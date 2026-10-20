@@ -187,10 +187,21 @@ def _split_lid(obj, at):
     lid_bm.from_mesh(lid_mesh)
     bmesh.ops.delete(lid_bm, geom=[f for f in lid_bm.faces if f.calc_center_median().z <= at], context="FACES")
     bmesh.ops.delete(bm, geom=lid_faces, context="FACES")
+    # The filled cut faces are the chest's inside: a second, plain deep-ink material, since the
+    # texture has nothing painted there.
+    inside = bpy.data.materials.get("chest_inside") or bpy.data.materials.new("chest_inside")
+    inside.use_nodes = True
+    bsdf = next(n for n in inside.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+    bsdf.inputs["Base Color"].default_value = (0.025, 0.033, 0.05, 1.0)  # PALETTE deep ink #2C3440
+    bsdf.inputs["Roughness"].default_value = 1.0
+    if inside.name not in obj.data.materials:
+        obj.data.materials.append(inside)
+    inside_index = list(obj.data.materials).index(inside)
     for part in (bm, lid_bm):
         boundary = [e for e in part.edges if e.is_boundary]
         if boundary:
-            bmesh.ops.holes_fill(part, edges=boundary, sides=0)
+            for f in bmesh.ops.holes_fill(part, edges=boundary, sides=0)["faces"]:
+                f.material_index = inside_index
     hinge_y = max(v.co.y for v in lid_bm.verts) if lid_bm.verts else 0.0
     bmesh.ops.translate(lid_bm, verts=lid_bm.verts, vec=(0, -hinge_y, -at))
     bm.to_mesh(obj.data)
@@ -206,6 +217,19 @@ def _split_lid(obj, at):
     return lid
 
 
+def _drop_scene(scene_name):
+    """Removes a previous run's scene with its objects, so a re-run's objects keep their names
+    instead of coming out as "<name>.001" (the GLB's node names come from them, and ChestView
+    finds a lid by "*_lid")."""
+    if scene_name in bpy.data.scenes:
+        old = bpy.data.scenes[scene_name]
+        for o in list(old.objects):
+            bpy.data.objects.remove(o, do_unlink=True)
+        bpy.data.scenes.remove(old)
+    for o in [o for o in bpy.data.objects if not o.users_scene]:
+        bpy.data.objects.remove(o, do_unlink=True)
+
+
 def cleanup(name, source, height=None, footprint=None, max_tris=8000, tex_size=1024,
             weld=0.0005, yaw=0.0, export=True, palette=0.0, split_lid_at=None, stretch=(1.0, 1.0, 1.0),
             strip_rig=False):
@@ -217,8 +241,7 @@ def cleanup(name, source, height=None, footprint=None, max_tris=8000, tex_size=1
     if (height is None) == (footprint is None):
         raise ValueError("give exactly one of height or footprint")
     scene_name = "FB2_" + "".join(w.capitalize() for w in name.split("_"))
-    if scene_name in bpy.data.scenes:
-        bpy.data.scenes.remove(bpy.data.scenes[scene_name])
+    _drop_scene(scene_name)
     scene = bpy.data.scenes.new(scene_name)
     scene.unit_settings.system = "METRIC"
     scene.unit_settings.scale_length = 1.0
@@ -348,8 +371,7 @@ def cleanup_character(name, source, height, max_tris=9000, tex_size=1024, export
     names = {}
     exec(open(PROJECT / "tools" / "blender" / "rig_names.py", encoding="utf-8").read(), names)
     scene_name = "FB2_" + "".join(w.capitalize() for w in name.split("_"))
-    if scene_name in bpy.data.scenes:
-        bpy.data.scenes.remove(bpy.data.scenes[scene_name])
+    _drop_scene(scene_name)
     scene = bpy.data.scenes.new(scene_name)
     bpy.context.window.scene = scene
 
