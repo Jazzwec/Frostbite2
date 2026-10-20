@@ -2,50 +2,75 @@
 
 What felt wrong while playing, and what's still open. This file is the prompt for the next session.
 
-## Handover (end of session, 2026-10-20)
+## Handover (end of session, 2026-10-20, evening)
 
-**Where things stand.** Frostbite2 is a playable hypercasual prototype in the agreed **ink & watercolour** style. Everything is committed and pushed to `Jazzwec/Frostbite2` (last commit `138d0ea`), and the 91 tests pass. `CLAUDE.md` describes the architecture; `docs/art-direction.md` is the art rulebook (pillars, palette, characters, the prompt template).
-- **Game:** a drag joystick, the carry stack, the Stockpile, build pads, the furnace objective with a game-over card, blizzards, wolves, save and continue, first-minute hints, milestones, auto-assign, the Jans screen, zoom (16–34 m) and synthesized audio.
-- **The look (on by default; DEV → Ink look, or `-- --no-ink`, to compare):** banded watercolour light, wobbly ink lines, a paper pass, and a warm wash round the furnace that shrinks with the heat. The snowfield is painted (`ink_ground`), with paths to every pad.
-- **Assets:**
-  - Meagan and the Jan are ink-style **Meshy** models (2026-10-20) from `source_art/concept/ink/`, through the `asset-pipeline` skill. The wolf is still the Tripo model. The old Tripo characters' sources are `source_art/blender/jan_tripo.blend` and `meagan_tripo.blend`.
-  - Three low-poly Blender pines make the forests.
-  - Watercolour icons are in `assets/ui/icons/`.
-  - The furnace is a Meshy model (meshy-6, 45 credits for the pilot), made through the new **asset pipeline**: the `asset-pipeline` skill, `tools/blender/cleanup.py`, `chatgpt.py image --for-3d` and `tests/test_assets.gd`. The other buildings are still greybox shapes in code.
-- **UI from the last pass:** Meagan's green health bar (the guards' are blue), her red silhouette through whatever hides her, one Jan bubble at a time kept on screen, the game-over stat tiles and the milestone chime.
-- **Before and after:** `source_art/direction/before_after.png`.
+**Where things stand.** Frostbite2 is now a **roguelite with a growing world** (agreed with the user on 2026-10-20). Everything is committed and pushed to `Jazzwec/Frostbite2` (last commit `94bec21`), and the **122 tests pass**.
+- **The plan:** `C:\Users\jansv\.claude\plans\create-a-workflow-where-snappy-flurry.md`. All six phases are built.
+- **The rules:** the brief's **Areas, small furnaces & treasures** section.
+- **The architecture:** `CLAUDE.md` (the World, Producers, Treasures and Frontier bullets under Architecture).
+
+**What's in the game now:**
+- **Starting grid:** a fixed 3 × 3 grid of 20 m tiles (±30 m). The game decides every plot's building: one utility building each (Sled Shed, Storehouse, Kitchen, Barracks, Bunkhouse, Watchtower, Hot Springs), plus the starting Lumber Yard and Fishing Lodge. `start_construction(i)` replaced choosing a building.
+- **Gates:** every closed tile touching open ground has a gate on the shared border (stone ring and pad). Choose **Open** in its sheet, then pay on the pad.
+  - The tile opens and a **small furnace** is lit on the border: +0.15 heat/s drain, and it never upgrades.
+  - The tile's contents come from `WorldGen.tile_contents(run_seed, tile)`, the same in any unlock order: resource spots, producer plots (Lumber Yard, Fishing Lodge, Workshop), a camp of frozen Jans, a chest, and from three rings out a wolf den.
+- **Producers** hold 3 Jans each (`jan.site`). Each producer's sheet shows "2/3 Jans" with −/+; the Jans screen moves Jans by job.
+- **Chests:**
+  - caches pay into the Stockpile;
+  - boon chests offer 2 (rare) or 3 (epic) run-long boons;
+  - gear chests offer an axe, boots or sled for her slots.
+  - The world waits while the `OfferCard` is up.
+- **The frontier:** single frozen Jans and wolf packs come from the edge of the open area; dens add wolf spawns.
+- **Hints and score:** the last hint points at the nearest gate, and the game-over card counts areas and chests opened.
+- **Greybox:** the small furnace, gates, chests, dens and closed tiles (raised slate-blue blocks). Screenshots and ChatGPT reviews are in `source_art/direction/world_tiles/` and `treasures/`.
+- **Saves:** `SAVE_VERSION` is 6, so older saves start a fresh winter.
+
+**Also done this session:**
+- **The asset pipeline:** the `asset-pipeline` skill, `tools/blender/cleanup.py` (`cleanup()` for static models, `cleanup_character()` for rigged ones), `tools/blender/rig_names.py` (Meshy → Mixamo bone names; Meshy's spine runs the other way round), `chatgpt.py image --for-3d` and `tests/test_assets.gd`.
+- **Ink-style Meshy models** in the game: the furnace, Meagan (9k triangles) and the Jan (5k triangles, because up to 20 are on screen). The Tripo sources are kept as `source_art/blender/*_tripo.blend`.
+- **Git LFS** for every binary from commit `bc6dbcb` on. History wasn't rewritten, and a clone needs git-lfs.
+- **The Blender MCP addon** is up to date (protocol 14).
+- **Meshy credits:** about 2,985 left, refreshing on 2026-11-20.
 
 **Waiting on the user:**
-- **Try the zoom range** (16–34 m) and sign off the `[proto]` numbers in `balance.gd`.
-- **A real-phone performance check.** On desktop the busy scene runs at about 400 FPS with the ink look on.
-- **`assets/models/tripo/Meagan.glb`** has an uncommitted change by the user. Leave it alone: don't stage or process it until they say so.
-- **The open review items** below (under Open questions → Art direction): greybox buildings and plots, bubbles under the top buttons, small icon sizes, and whether the warm disc becomes a gameplay rule.
+- **Sign off the `[proto]` numbers** (listed under Open questions → Roguelite world):
+  - tile size 20 m;
+  - small-furnace drain 0.15 heat/s;
+  - gate costs;
+  - 3 Jans per producer;
+  - tile odds;
+  - the boon and gear lists and values;
+  - and the older ones in `balance.gd`.
+- **The meta brainstorm:** what carries over between runs (content unlocks plus a currency, maybe tokens from defeated enemies). The brief's Prestige section is on hold until then.
+- **Models** for the small furnace, chests, dens and other buildings, through the `asset-pipeline` skill. Meshy costs credits, so ask before each paid call.
+- **`assets/models/tripo/Meagan.glb`** has an uncommitted change by the user. Leave it alone: don't stage or process it.
+- **A real-phone performance check,** now with many open tiles.
 
-**Next, in order:**
-1. **Building and character models from the ink references** in `source_art/concept/ink/` (Meagan, a Jan, the Bunkhouse, the Lumber Yard; the furnace is done), following the `asset-pipeline` skill.
-   - The furnace's ChatGPT review (`source_art/direction/furnace_meshy/review.md`) says its fire mouth reads flat and its stonework is busy and muddy. Options: a simpler reference (fewer, larger stones, broad washes), a `meshy_retexture` (10 credits), or a brighter animated glow in `SiteView`.
-   - Meagan and the Jan are done (Meshy). Their ChatGPT review (`source_art/direction/characters_meshy/review.md`) asks for simpler textures (one wash per garment, fewer dark marks; a `meshy_retexture` at 10 credits each, or a simpler reference), more of Meagan's red in her silhouette, clearer head shapes, a smaller log bundle on her back, a more readable chop pose and softer shadows. The last three are about the game, not the models.
-   - Either the user makes them in Tripo Studio and drops the files in, or they're made with **Meshy** (below), which spends credits.
-   - Buildings need no rig; they replace the greybox parts in `SiteView`, keeping the fire light, embers and pad.
-2. **The rest of `BACKLOG.md`.** It can also run as an AFK `/loop` (see `AFK.md`).
-
-**Meshy (new, 2026-10-20).** The user installed the Meshy MCP server (`meshy-mcp-server`, user scope, npm `@meshy-ai/meshy-mcp-server` 0.6.4, key in its env).
-- **It loads from the next session on.** It was tested by hand and has 28 tools: image/multi-image/text to 3D, retexture, remesh, rig, animate, convert and resize.
-- **Credits:** the balance was 3,100 monthly credits, refreshing on 2026-11-20.
-- **It costs real credits:** say the cost and ask before every paid call. `meshy_check_balance`, `meshy_list_tasks`, `meshy_list_models` and `meshy_list_animations` are free.
-- **Output** goes through the same Blender cleanup as the Tripo models (decimate, 1024 texture, metres, export the active scene only).
+**Next, in order (pick with the user):**
+1. **The meta brainstorm,** then write it into the brief and build it.
+2. **Review items for the world** (`source_art/direction/world_tiles/review.md`):
+   - the gate as one platform with its cost above it;
+   - a ring-to-furnace animation when a tile opens;
+   - a pulse on the heat bar when the drain rises;
+   - a small-furnace model that echoes the main furnace.
+3. **Models:** the small furnace, chests, dens, and the remaining buildings from `source_art/concept/ink/`.
+4. **Balance play-through:** a full run from a fresh winter, to see whether the drain from small furnaces against Wood income feels strategic.
 
 **Gotchas:**
-- **The class cache.** After adding a `class_name` file, run `godot --headless --path . --import` and `swallowtail editor reload`. If the game still stops at "Identifier not found", call `EditorInterface.get_resource_filesystem().update_file("res://…")` via `swallowtail editor run_script` (details are in CLAUDE.md).
-- **Headless tests have no autoloads.** Pure helpers go in classes that don't touch `Game`, `Audio` or `UiTheme` (e.g. `CameraRig.keep_on_screen`, `HpBar`, `FadeCover`).
-- **Ink-painted meshes** use `ShaderMaterial`s (`ink_toon`, with `ink_toon_fade` for fading). Code that recolours or fades materials must handle them as well as `StandardMaterial3D`.
-- **Swallowtail input:** `swallowtail input click` uses viewport coordinates (1080×1920); `Input.parse_input_event` in `runtime eval` uses window coordinates (540×960). Drive it from Bash, not PowerShell.
-- **Blender's glTF exporter** needs `use_active_scene=True` and `use_active_collection=True`. Keep each model in its own `FB2_<Name>` scene.
-- **Writing files from Python on Windows:** use `newline='
-'`.
-- **Big Python edits:** write them to a script file with the Write tool, not a bash heredoc.
-- **`user://settings.cfg`** should be `[audio] music=false sfx=true` after tests. Delete `user://save.json` and any `[hints]`/`[milestones]` test values.
-- **ChatGPT budget this session:** 8 images and 6 reviews through the Codex CLI. These are free on the user's plan, but keep batches modest.
+- **The class cache.** After adding a `class_name` file:
+  - run `godot --headless --path . --import`;
+  - in the editor, call `EditorInterface.get_resource_filesystem().update_file("res://…")` via `swallowtail editor run_script`;
+  - then run `swallowtail editor reload`.
+  - Without the editor step, the open editor's play stops at "Identifier not found". The editor's error list keeps old errors, so judge by the game itself.
+- **Headless tests have no autoloads.** Views that tests load (`SiteView`, `NodeView`) take the `GameState` as a parameter, not `Game.engine.state`.
+- **Driving the game from Swallowtail:**
+  - `runtime eval` only runs single-line code;
+  - `WorldRules.open_tile(Game.engine.state, 0, Game.engine._events)` opens tiles fast for testing;
+  - the camera zoom is the rig's `_zoom`.
+- **Long Python edits from Bash:** heredocs over about 130 lines break, so write the script to the scratchpad and run it. Keep `newline='\n'` / LF.
+- **Ink-painted meshes** use `ShaderMaterial`s (`ink_toon`, `ink_toon_fade`). The warm wash now takes the main furnace plus up to 16 small furnaces (`warm_spots`).
+- **Blender's glTF exporter** needs `use_active_scene=True` and `use_active_collection=True`. `cleanup.py` saves only its own scene to `.blend` (`bpy.data.libraries.write`). Revert Blender to `trees.blend` after scratch work.
+- **Blender MCP updates:** `PYTHONIOENCODING=utf-8 UV_SYSTEM_CERTS=true uvx mcp-for-blender@latest update`, then restart Blender.
 
 ## Felt wrong while playing
 
