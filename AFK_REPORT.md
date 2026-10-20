@@ -80,6 +80,15 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 145 onwards (8 image
 - **Check in the game:** walk across open snow; watch Jans walk to work and haul.
 - **ChatGPT feedback** (`source_art/direction/hud_v1/review_v6.md`): all three points applied (boot-like shape and size, colour and fade, rhythm and spacing).
 
+### V7. Smoke and lantern glow
+- **What changed:**
+  - **Smoke** (`scripts/game/smoke.gd`): a soft blue-grey plume rises from the furnace's chimney, thicker as it burns harder (`burn_rate`) and thinning as the heat drops. A lighter one rises from each small furnace.
+  - **Lanterns:** every lantern post has a faint warm halo at its lantern (measured on the mesh), with no new lights.
+- **Gotcha:** GPU particles that are see-through with a colour ramp didn't draw at all in this setup, and see-through billboards come out far fainter than their alpha says. So the smoke is a dozen scripted billboard puffs that rise, drift, swell and shrink away, at near-full alpha with the soft texture doing the fading.
+- **FPS:** 162–165.
+- **Check in the game:** the furnace from the north (the plume shows best there), small furnaces, lantern posts by the plots.
+- **No ChatGPT review for this one**, to save budget: it's subtle at the game camera. A follow-up idea: a stronger, longer plume.
+
 ## Run 2026-10-20, 01:11 → 09:00
 
 ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.

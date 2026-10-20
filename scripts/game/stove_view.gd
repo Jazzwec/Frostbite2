@@ -15,6 +15,7 @@ var _pad_label: Label3D
 var _pad_at := Vector2.ZERO
 var _light: OmniLight3D
 var _embers: GPUParticles3D
+var _smoke: Smoke
 ## Where its embers rise: the model's chimney top (measured on the mesh), or the greybox one.
 var _chimney := Vector3(0.25, 1.75, -0.2)
 
@@ -53,6 +54,10 @@ func setup(stove_index: int, s: GameState) -> void:
 	add_child(_light)
 	_embers = _make_embers()
 	add_child(_embers)
+	# A lighter column than the main furnace's (AFK V7).
+	_smoke = Smoke.column(0.7, 7, 0.7, 3.5)
+	_smoke.position = _chimney + Vector3(0, 0.2, 0)
+	add_child(_smoke)
 	# Jans walk round it.
 	var body := StaticBody3D.new()
 	body.collision_layer = Layers.OBSTACLE
@@ -89,6 +94,8 @@ func refresh(s: GameState) -> void:
 	_glow.visible = frac > 0.01
 	_light.light_energy = 0.2 + 1.6 * frac
 	_embers.emitting = frac > 0.05
+	_smoke.visible = frac > 0.02
+	_smoke.rate = clampf(0.3 + 0.7 * frac, 0.3, 1.0)
 
 
 func _make_embers() -> GPUParticles3D:

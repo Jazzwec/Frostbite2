@@ -185,7 +185,7 @@ Make the game and its animations match the agreed visual, `source_art/direction/
 - [x] **V6. Footsteps in the snow (safe, animation).** Done 2026-10-20 (AFK).
   - **What:** a small snow puff on each step for Meagan and walking Jans, and short-lived footprint marks that fade, from a fixed pool.
   - **Done when:** a screenshot shows the prints, and FPS is unchanged with 20 Jans.
-- [ ] **V7. Smoke and lantern glow (safe, effects).**
+- [x] **V7. Smoke and lantern glow (safe, effects).** Done 2026-10-20 (AFK).
   - **What:**
     - a soft smoke column from the furnace chimney that grows with `burn_rate` and thins as the heat drops;
     - a lighter column from small furnaces;

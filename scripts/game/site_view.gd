@@ -39,6 +39,8 @@ var _body: StaticBody3D
 var _fire: MeshInstance3D
 var _light: OmniLight3D
 var _embers: GPUParticles3D
+## The furnace's smoke column (AFK V7), thicker while it burns hard.
+var _smoke: Smoke
 var _flare := 0.0
 ## A working Kitchen puffs steam from its chimney every so often.
 const STEAM_EVERY := 2.0
@@ -356,7 +358,10 @@ func _build_furnace(level: int) -> void:
 		add_child(_light)
 		_embers = _make_embers()
 		add_child(_embers)
+		_smoke = Smoke.column(1.2, 12, 1.0, 5.0)
+		add_child(_smoke)
 	_embers.position = embers_at
+	_smoke.position = embers_at + Vector3(0, 0.3, 0)
 
 
 func _make_embers() -> GPUParticles3D:
@@ -512,3 +517,6 @@ func _update_fire(s: GameState) -> void:
 	_light.light_energy = 0.3 + 4.0 * frac + 3.0 * _flare
 	_embers.emitting = frac > 0.05
 	_embers.amount_ratio = clampf(frac, 0.1, 1.0)
+	# Smoke grows with how hard it burns, and thins to a wisp as the heat drops.
+	_smoke.visible = frac > 0.02
+	_smoke.rate = clampf(0.25 + 0.5 * frac + 0.5 * s.burn_rate, 0.2, 1.0)

@@ -69,6 +69,10 @@ func _dress(s: GameState, tile: Vector2i) -> void:
 			count += 1
 
 
+## Where a lantern post's lantern hangs, on the pipeline model (measured on the mesh, AFK V7).
+const LANTERN_AT := Vector3(-0.25, 1.05, 0.0)
+
+
 ## A prop at `p`; fences, benches and sleds by a plot face the camera side-on, the rest turn freely.
 func _place(id: String, p: Vector2, rng: RandomNumberGenerator, spot: Vector2) -> void:
 	var yaw := rng.randf_range(0.0, 360.0)
@@ -78,6 +82,11 @@ func _place(id: String, p: Vector2, rng: RandomNumberGenerator, spot: Vector2) -
 	if node == null:
 		return
 	Props.use_vertex_colours(node)
+	if id == "prop_lantern_post":
+		# A faint warm halo round its lantern, like the visual's (AFK V7); no light, for mobile.
+		var glow := Smoke.halo(1.1, Color(0.98, 0.72, 0.4, 0.9))
+		glow.position = LANTERN_AT
+		node.add_child(glow)
 	node.position = Vector3(p.x, 0.0, p.y)
 	add_child(node)
 
