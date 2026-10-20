@@ -464,7 +464,7 @@ func _update_tell(enemy: Dictionary) -> void:
 	if not on:
 		return
 	var fade := clampf(t / 0.1, 0.0, 1.0)
-	var locked := t >= strike - Balance.ENEMY_AIM_LOCK
+	var locked := t >= strike - Combat.lock_of(_def)
 	_tell_zone_mat.set_shader_parameter("fade", fade)
 	_tell_zone_mat.set_shader_parameter("progress", clampf(t / strike, 0.0, 1.0) * 1.25)
 	_tell_line_thin.visible = not locked

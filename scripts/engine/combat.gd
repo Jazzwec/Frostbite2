@@ -187,6 +187,9 @@ static func _enemy(s: GameState, e: Dictionary, dt: float, events: Array) -> voi
 	var speed: float = def.speed
 	if e.mode == "leave":
 		e.pos = e.pos.move_toward(e.home, speed * (Balance.CARRY_SPEED if not e.carry.is_empty() else 1.0) * Balance.SPEED_SCALE * dt)
+		# A thief with loot waits at the edge while she's down and a little after (review 3).
+		if not e.carry.is_empty() and (s.meagan_injured or s.time < s.meagan_up_at + Balance.CATCH_GRACE):
+			return
 		if e.pos.distance_to(e.home) < 0.5:
 			s.wolves.erase(e)
 			events.append({"type": "wolf_left", "wolf": e.id, "carry": e.carry})
@@ -288,13 +291,17 @@ static func _steal(s: GameState, e: Dictionary, def: Dictionary, at: Vector2, dt
 
 static func _fight(s: GameState, e: Dictionary, def: Dictionary, foe: Dictionary, dt: float, events: Array) -> void:
 	e.mode = "fight"
+	e.foe_id = foe.id
 	var foe_pos: Vector2 = foe.pos
 	var away: Vector2 = e.pos - foe_pos
 	var dir := away.normalized() if away.length() > 0.001 else Vector2.RIGHT.rotated(float(e.id))
 	var t: float = e.bite_t
+	# Only the nearest few strike; the rest wait a body length back.
+	var striker: bool = def.shape == "shot" or t >= 0.0 or _is_striker(s, e, foe)
+	var hold: float = def.hold if striker else def.hold + def.width * Balance.ENEMY_WAIT_BACK
 	if t < 0.0:
 		# Hold its distance (a thrower stands off), closing in or backing off.
-		e.pos = e.pos.move_toward(foe_pos + dir * def.hold, def.speed * Balance.SPEED_SCALE * dt)
+		e.pos = e.pos.move_toward(foe_pos + dir * hold, def.speed * Balance.SPEED_SCALE * dt)
 		e.aim = foe_pos
 		e.fight_for = e.fight_for + dt if e.pos.distance_to(foe_pos) > def.hold + 0.4 else 0.0
 		if e.fight_for >= Balance.ENEMY_GIVE_UP:
@@ -306,7 +313,23 @@ static func _fight(s: GameState, e: Dictionary, def: Dictionary, foe: Dictionary
 		# The tell holds still (the window to step away); then a short lunge.
 		e.pos = e.pos.move_toward(e.aim + dir * (def.hold - 0.3), Balance.WOLF_BITE_LUNGE_DISTANCE / Balance.ENEMY_LUNGE * dt)
 	e.foe_pos = foe_pos
-	_attack(s, e, def, foe, dt, events)
+	if striker:
+		_attack(s, e, def, foe, dt, events)
+
+
+## Whether `e` is one of the ENEMY_MAX_ENGAGED melee enemies nearest `foe` (one already winding up
+## always counts).
+static func _is_striker(s: GameState, e: Dictionary, foe: Dictionary) -> bool:
+	var d: float = e.pos.distance_to(foe.pos)
+	var ahead := 0
+	for w in s.wolves:
+		if w.id == e.id or w.hp <= 0.0 or w.mode != "fight" or w.get("foe_id", -99) != foe.id:
+			continue
+		if Balance.ENEMIES[w.kind].shape == "shot":
+			continue
+		if w.bite_t >= 0.0 or w.pos.distance_to(foe.pos) < d:
+			ahead += 1
+	return ahead < Balance.ENEMY_MAX_ENGAGED
 
 
 ## An enemy's attack: its tell (it stands still, turning after its victim until ENEMY_AIM_LOCK
@@ -321,7 +344,7 @@ static func _attack(s: GameState, e: Dictionary, def: Dictionary, foe: Dictionar
 	if t < 0.0:
 		if e.bite_cd > 0.0 or e.pos.distance_to(foe.pos) > def.hold + 0.4:
 			return
-		if not _may_wind_up(s, def):
+		if not _may_wind_up(s, def, foe.id):
 			return
 		e.bite_t = 0.0
 		e.victim = foe.id
@@ -330,7 +353,7 @@ static func _attack(s: GameState, e: Dictionary, def: Dictionary, foe: Dictionar
 		s.wolf_windup_at = s.time
 		events.append({"type": "wolf_windup", "wolf": e.id, "kind": e.kind, "pos": e.pos, "aim": e.aim})
 		return
-	if def.shape != "ring" and t < strike - Balance.ENEMY_AIM_LOCK:
+	if def.shape != "ring" and t < strike - lock_of(def):
 		var victim := _victim_of(s, e)
 		if not victim.is_empty():
 			e.aim = victim.pos
@@ -350,9 +373,23 @@ static func _attack(s: GameState, e: Dictionary, def: Dictionary, foe: Dictionar
 		e.bite_cd = maxf(0.0, def.cooldown - def.recover)
 
 
-static func _may_wind_up(s: GameState, def: Dictionary) -> bool:
+## How long before its strike a kind's aim locks.
+static func lock_of(def: Dictionary) -> float:
+	return def.get("lock", Balance.ENEMY_AIM_LOCK)
+
+
+## A wind-up may start if the global limits allow it and, for a melee one, nobody else is winding
+## up against the same defender or struck them less than ENEMY_WINDUP_STAGGER ago.
+static func _may_wind_up(s: GameState, def: Dictionary, victim: int) -> bool:
 	if s.time - s.wolf_windup_at < Balance.WOLF_WINDUP_GAP:
 		return false
+	if def.shape != "shot":
+		for w in s.wolves:
+			var d2: Dictionary = Balance.ENEMIES[w.kind]
+			if w.bite_t < 0.0 or w.victim != victim or d2.shape == "shot":
+				continue
+			if w.bite_t < d2.tell + (Balance.ENEMY_LUNGE if d2.shape == "wedge" else 0.0) + Balance.ENEMY_WINDUP_STAGGER:
+				return false
 	var melee := 0
 	var shots := 0
 	for w in s.wolves:
@@ -689,6 +726,11 @@ static func _land_shots(s: GameState, dt: float, events: Array) -> void:
 ## Damage to an enemy: knocked back (as much as it takes), its theft interrupted, its outpost
 ## woken.
 static func _damage(s: GameState, e: Dictionary, damage: float, from: Vector2, knock: float, kind: String, events: Array) -> void:
+	# Caught recovering from its own strike, it takes more (review 3).
+	var def: Dictionary = Balance.ENEMIES[e.kind]
+	var exposed: bool = e.bite_t >= def.tell + (Balance.ENEMY_LUNGE if def.shape == "wedge" else 0.0)
+	if exposed:
+		damage *= Balance.RECOVERY_DAMAGE_MULT
 	e.hp -= damage
 	e.steal_t = 0.0 if not e.stolen else e.steal_t
 	var away: Vector2 = e.pos - from
@@ -698,7 +740,7 @@ static func _damage(s: GameState, e: Dictionary, damage: float, from: Vector2, k
 	if e.outpost >= 0 and not s.outposts[e.outpost].awake:
 		s.outposts[e.outpost].awake = true
 		s.outposts[e.outpost].woke_at = s.time
-	events.append({"type": "wolf_hit", "wolf": e.id, "kind": kind, "pos": e.pos, "from": from, "amount": damage})
+	events.append({"type": "wolf_hit", "wolf": e.id, "kind": kind, "pos": e.pos, "from": from, "amount": damage, "exposed": exposed})
 
 
 ## Whether a fight keeps Meagan from working (gathering, storing, paying pads). [agreed 2026-10-20]
@@ -766,6 +808,7 @@ static func _collect_dead(s: GameState, events: Array) -> void:
 static func _get_up(s: GameState, events: Array) -> void:
 	if s.meagan_injured and s.time >= s.meagan_down_at + Balance.MEAGAN_DOWN_TIME:
 		s.meagan_injured = false
+		s.meagan_up_at = s.time
 		s.meagan_hp = Balance.MEAGAN_HP * Balance.MEAGAN_GETUP_HP
 		events.append({"type": "meagan_up"})
 

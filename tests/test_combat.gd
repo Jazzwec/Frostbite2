@@ -167,10 +167,15 @@ func test_spreading_doesnt_push_a_wolf_out_of_the_fight() -> void:
 		w.hp = 1000.0
 		w.max_hp = 1000.0
 		i += 1
-	e.skip(4.0)
+	e.skip(2.0)
+	var striking := 0
 	for w in e.state.wolves:
-		check_eq(w.mode, "fight", "wolf %d is still fighting" % w.id)
-		check(w.pos.distance_to(e.state.meagan_pos) >= Balance.WOLF_FIGHT_DISTANCE - 0.3, "wolf %d isn't on top of her" % w.id)
+		var d: float = w.pos.distance_to(e.state.meagan_pos)
+		check(d >= Balance.WOLF_FIGHT_DISTANCE - 0.3, "wolf %d isn't on top of her" % w.id)
+		if d <= Balance.ENEMIES.wolf.hold + 0.3:
+			striking += 1
+	# Review 3: only the nearest two strike; the others wait a body length back.
+	check(striking <= Balance.ENEMY_MAX_ENGAGED, "at most two at striking distance (%d)" % striking)
 
 
 func test_every_wave_is_announced_15_s_ahead() -> void:
