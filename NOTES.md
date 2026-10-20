@@ -2,6 +2,31 @@
 
 What felt wrong while playing, and what's still open. This file is the prompt for the next session.
 
+## Fight v2: the Armory, waves and the review loop (2026-10-20/21, in progress)
+
+**The user's task:** keep working on the combat until Astra rates it at least 9/10 (elegant hypercasual fighting for phone controls, design and feel), researching best practices throughout. It includes:
+- the Armory: 10 levels for Meagan's weapons and the guards' kit;
+- waves that scale, so not upgrading in time loses the game;
+- new enemy kinds;
+- outposts on the map to attack for rewards.
+
+**Done:**
+- The engine and views: commits 59ca54a…d2bb6a1.
+- Review 1 (6/10, `source_art/direction/fight_v2/r1/review.md`): all seven points are in (commits 1862bef…5e87c6c). An earlier session crashed half-way through these; its partial work is in `git stash` ("crashed session…") for reference only.
+
+**The loop:**
+1. Capture with `bash tools/capture/fight_caps.sh source_art/direction/fight_v2/rN`, with the game playing.
+2. Review with `python tools/chatgpt/chatgpt.py review <strips> --focus ... --out .../rN/review.md`.
+3. Implement the points, one commit each.
+4. Repeat until 9/10.
+
+**Sims:** `godot --headless --path . -s res://tests/sim_waves.gd` shows thefts per wave for four Armory plans: none standing, none active, late and schedule. `tests/test_balance.gd` holds the targets.
+
+**New `[proto]` numbers awaiting the user's sign-off:**
+- wind-ups, recoveries and HP in `Balance.ENEMIES`;
+- `STEAL_FOOD_FLOOR_PER_JAN` (thieves leave 3 Food per Jan);
+- `MELEE_EXIT_MULT`, `MEAGAN_TARGET_HOLD`, `OUTPOST_WAKE`, `ENEMY_AIM_LOCK`, `ENEMY_GAP`.
+
 ## Hypercasual fighting (2026-10-20, late)
 
 Asked by the user: fighting as hypercasual as the rest. Everyone attacks the nearest opponent, and Meagan has two automatic modes, ranged and melee, swapping to melee when a wolf is within reach.
