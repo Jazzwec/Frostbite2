@@ -187,3 +187,14 @@ func test_knocked_down_she_gets_up_after_a_while() -> void:
 	e.skip(1.0)
 	check(not e.state.meagan_injured, "up again while the raid's still on")
 	check_near(e.state.meagan_hp, Balance.MEAGAN_HP * Balance.MEAGAN_GETUP_HP, 0.01, "with half her HP")
+
+
+## Her clips land when the engine does: the sweep's hit and the throw's release (review 2 made
+## both clips shorter so her ready stance shows between attacks).
+func test_her_attack_clips_hit_when_the_engine_does() -> void:
+	var sweep: Dictionary = Clips.CLIPS.sweep
+	var throw: Dictionary = Clips.CLIPS.throw
+	check_near(sweep.impact * sweep.length, Balance.MEAGAN_MELEE_IMPACT, 0.005, "the sweep hits on time")
+	check_near(throw.impact * throw.length, Balance.MEAGAN_RANGED_RELEASE, 0.005, "the snowball leaves on time")
+	check(sweep.length <= Balance.MEAGAN_MELEE_EVERY - 0.2, "the stick's ready stance shows 200 ms between sweeps")
+	check(throw.length <= Balance.MEAGAN_RANGED_EVERY - 0.2, "the snowball's between throws")

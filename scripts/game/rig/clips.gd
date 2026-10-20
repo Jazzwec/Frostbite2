@@ -261,27 +261,29 @@ const CLIPS := {
 			{"t": 0.5, "arm_r": Vector3(-146, 0, 22), "arm_l": Vector3(-47, 0, -14), "lean": 3.0, "turn": 12.0},
 		],
 	},
-	# Her stick sweep: a 0.1 s wind-up, a 0.06 s sweep to the hit at 0.16 s (fight_v2 review 1), 0.28 s
-	# recovery, rest. Played over her legs, so she can swing while she walks.
+	# Her stick sweep: a 0.1 s wind-up, a 0.06 s sweep to the hit at 0.16 s (fight_v2 review 1), a
+	# 0.34 s recovery, done by 0.5 s so her ready stance shows between attacks (review 2: at least
+	# 200 ms). Played over her legs, so she can swing while she walks.
 	"sweep": {
-		"length": 0.8, "loop": false, "tool": "stick", "impact": 0.2,
+		"length": 0.5, "loop": false, "tool": "stick", "impact": 0.32,
 		"keys": [
 			{"t": 0.0, "arm_r": Vector3(-45, 0, 10), "arm_l": Vector3(-35, 0, -14), "turn": 0.0, "tool": Vector3(0, 90, 0)},
-			{"t": 0.13, "arm_r": Vector3(-72, 0, -36), "arm_l": Vector3(-60, 0, -30), "turn": 32.0, "lean": -4.0, "tool": Vector3(0, 90, 0), "ease": "out"},
-			{"t": 0.2, "arm_r": Vector3(-78, 0, 24), "arm_l": Vector3(-64, 0, 18), "turn": -28.0, "lean": 8.0, "tool": Vector3(0, 90, 0), "ease": "in"},
-			{"t": 0.55, "arm_r": Vector3(-55, 0, 20), "arm_l": Vector3(-45, 0, 10), "turn": -15.0, "lean": 4.0, "tool": Vector3(0, 90, 0)},
+			{"t": 0.2, "arm_r": Vector3(-72, 0, -36), "arm_l": Vector3(-60, 0, -30), "turn": 32.0, "lean": -4.0, "tool": Vector3(0, 90, 0), "ease": "out"},
+			{"t": 0.32, "arm_r": Vector3(-78, 0, 24), "arm_l": Vector3(-64, 0, 18), "turn": -28.0, "lean": 8.0, "tool": Vector3(0, 90, 0), "ease": "in"},
+			{"t": 0.65, "arm_r": Vector3(-55, 0, 20), "arm_l": Vector3(-45, 0, 10), "turn": -15.0, "lean": 4.0, "tool": Vector3(0, 90, 0)},
 			{"t": 1.0, "arm_r": Vector3(-40, 0, 10), "arm_l": Vector3(-32, 0, -14), "turn": 0.0, "tool": Vector3(0, 90, 0)},
 		],
 	},
-	# Her snowball throw: 0.12 s hand back and up, a 0.06 s throw to the release at 0.18 s, 0.18 s
-	# recovery, rest. The snowball leaves her hand at the release.
+	# Her snowball throw: 0.12 s hand back and up, a 0.06 s throw to the release at 0.18 s, done by
+	# 0.5 s so her ready stance shows between throws (review 2). The snowball leaves her hand at the
+	# release.
 	"throw": {
-		"length": 0.75, "loop": false, "tool": "snowball", "impact": 0.24, "throws": true,
+		"length": 0.5, "loop": false, "tool": "snowball", "impact": 0.36, "throws": true,
 		"keys": [
 			{"t": 0.0, "arm_r": Vector3(-30, 0, 10), "arm_l": Vector3(-30, 0, -12), "turn": 0.0},
-			{"t": 0.16, "arm_r": Vector3(-160, 0, 16), "arm_l": Vector3(-70, 0, -10), "turn": 28.0, "lean": -6.0, "ease": "out"},
-			{"t": 0.24, "arm_r": Vector3(-70, 0, 4), "arm_l": Vector3(-30, 0, -12), "turn": -18.0, "lean": 10.0, "ease": "in"},
-			{"t": 0.48, "arm_r": Vector3(-40, 0, 8), "arm_l": Vector3(-28, 0, -12), "turn": -6.0, "lean": 4.0},
+			{"t": 0.24, "arm_r": Vector3(-160, 0, 16), "arm_l": Vector3(-70, 0, -10), "turn": 28.0, "lean": -6.0, "ease": "out"},
+			{"t": 0.36, "arm_r": Vector3(-70, 0, 4), "arm_l": Vector3(-30, 0, -12), "turn": -18.0, "lean": 10.0, "ease": "in"},
+			{"t": 0.7, "arm_r": Vector3(-40, 0, 8), "arm_l": Vector3(-28, 0, -12), "turn": -6.0, "lean": 4.0},
 			{"t": 1.0, "arm_r": Vector3(-30, 0, 10), "arm_l": Vector3(-30, 0, -12), "turn": 0.0},
 		],
 	},
