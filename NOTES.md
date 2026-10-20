@@ -24,7 +24,7 @@ What felt wrong while playing, and what's still open. This file is the prompt fo
 **Next, in order:**
 1. **Building and character models from the ink references** in `source_art/concept/ink/` (Meagan, a Jan, the Bunkhouse, the Lumber Yard; the furnace is done), following the `asset-pipeline` skill.
    - The furnace's ChatGPT review (`source_art/direction/furnace_meshy/review.md`) says its fire mouth reads flat and its stonework is busy and muddy. Options: a simpler reference (fewer, larger stones, broad washes), a `meshy_retexture` (10 credits), or a brighter animated glow in `SiteView`.
-   - Before a Meshy character: check whether Meshy's rig bone names fit `ModelRig` (Mixamo `mixamorig_*`).
+   - Meshy characters work with `ModelRig` after `cleanup_character` renames their bones (checked 2026-10-20). A Meshy Jan is made and rigged (`assets/models/meshy/jan_meshy6_rigged.glb`), closer to the ink reference than the Tripo Jan; **ask the user** whether it replaces `jan.glb`.
    - Either the user makes them in Tripo Studio and drops the files in, or they're made with **Meshy** (below), which spends credits.
    - Buildings need no rig; they replace the greybox parts in `SiteView`, keeping the fire light, embers and pad.
 2. **The rest of `BACKLOG.md`.** It can also run as an AFK `/loop` (see `AFK.md`).

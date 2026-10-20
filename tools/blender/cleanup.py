@@ -193,3 +193,87 @@ def cleanup(name, source, height=None, footprint=None, max_tris=8000, tex_size=1
     return (f"{scene_name}: {tris_in} -> {_tris(obj)} tris, size {size.x:.2f} x {size.y:.2f} x {size.z:.2f} m "
             f"(w x d x h), materials {len(obj.material_slots)}, textures {tex}"
             + (f"\nexported {glb}\nsaved {blend}" if export else ""))
+
+
+def cleanup_character(name, source, height, max_tris=9000, tex_size=1024, export=True):
+    """A rigged humanoid (Meshy or Tripo): bones renamed to Mixamo's (rig_names.py), the skinned
+    meshes decimated to `max_tris` in total with their weights kept, `height` metres tall, feet
+    at the origin, one opaque base-colour material, then exported like cleanup(). The armature,
+    its rest pose and the skin weights are otherwise left alone."""
+    names = {}
+    exec(open(PROJECT / "tools" / "blender" / "rig_names.py", encoding="utf-8").read(), names)
+    scene_name = "FB2_" + "".join(w.capitalize() for w in name.split("_"))
+    if scene_name in bpy.data.scenes:
+        bpy.data.scenes.remove(bpy.data.scenes[scene_name])
+    scene = bpy.data.scenes.new(scene_name)
+    bpy.context.window.scene = scene
+
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=str(source))
+    imported = [o for o in bpy.data.objects if o not in before]
+    arm = next((o for o in imported if o.type == "ARMATURE"), None)
+    if arm is None:
+        raise RuntimeError(f"no armature in {source}: use cleanup() for static models")
+    skinned = [o for o in imported if o.type == "MESH" and o.find_armature() is arm]
+    # The glTF importer's bone-display spheres and any other loose meshes go.
+    for o in imported:
+        if o.type == "MESH" and o not in skinned:
+            bpy.data.objects.remove(o)
+    renamed = names["to_mixamo"](arm)
+    tris_in = sum(_tris(o) for o in skinned)
+
+    # Decimate first in each stack (before the Armature modifier), so the rest mesh is what's reduced.
+    ratio = min(1.0, max_tris / tris_in)
+    for o in skinned:
+        if ratio < 1.0:
+            _select_only([o], o)
+            mod = o.modifiers.new("decimate", "DECIMATE")
+            mod.ratio = ratio
+            mod.use_collapse_triangulate = True
+            bpy.ops.object.modifier_move_to_index(modifier=mod.name, index=0)
+            bpy.ops.object.modifier_apply(modifier=mod.name)
+        for poly in o.data.polygons:
+            poly.use_smooth = True
+
+    # Scale the whole rig to height, then stand it on the origin.
+    lo = Vector((1e9, 1e9, 1e9))
+    hi = -lo
+    for o in skinned:
+        a, b = _world_bounds(o)
+        lo = Vector(map(min, lo, a))
+        hi = Vector(map(max, hi, b))
+    k = height / (hi.z - lo.z)
+    arm.scale = arm.scale * k
+    arm.location = Vector((arm.location.x - (lo.x + hi.x) / 2 * k, arm.location.y - (lo.y + hi.y) / 2 * k,
+                           arm.location.z - lo.z * k))
+    _select_only([arm] + skinned, arm)
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+
+    images = []
+    for o in skinned:
+        images += [_flatten_material(s.material, tex_size) for s in o.material_slots if s.material]
+    for image in images:
+        if image:
+            image.pack()
+
+    blend = PROJECT / "source_art" / "blender" / f"{name}.blend"
+    glb = PROJECT / "assets" / "models" / "blender" / f"{name}.glb"
+    if export:
+        _select_only([arm] + skinned, arm)
+        bpy.ops.export_scene.gltf(filepath=str(glb), export_format="GLB", use_active_scene=True,
+                                  use_active_collection=True, export_yup=True, export_apply=False,
+                                  export_skins=True, export_tangents=False, export_animations=False,
+                                  export_image_format="JPEG", export_jpeg_quality=90)
+        bpy.data.libraries.write(str(blend), {scene}, fake_user=True, compress=True)
+
+    lo = Vector((1e9, 1e9, 1e9))
+    hi = -lo
+    for o in skinned:
+        a, b = _world_bounds(o)
+        lo = Vector(map(min, lo, a))
+        hi = Vector(map(max, hi, b))
+    size = hi - lo
+    tex = ", ".join(f"{i.name} {i.size[0]}x{i.size[1]}" for i in images if i) or "none"
+    return (f"{scene_name}: {renamed}; {tris_in} -> {sum(_tris(o) for o in skinned)} tris, "
+            f"size {size.x:.2f} x {size.y:.2f} x {size.z:.2f} m, bottom {lo.z:.3f}, {len(arm.data.bones)} bones, "
+            f"textures {tex}" + (f"\nexported {glb}\nsaved {blend}" if export else ""))

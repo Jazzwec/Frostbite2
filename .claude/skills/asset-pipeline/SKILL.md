@@ -39,7 +39,7 @@ python tools/chatgpt/chatgpt.py image "<subject: what it is, its parts, material
 3. `meshy_get_task_status` until it succeeds, then `meshy_download_model` with `format: "glb"`, `save_to: <project>/assets/models/meshy/<name>_<model>.glb`.
 4. Write `assets/models/meshy/<name>.meshy.json`: task id, date, `ai_model`, every parameter sent, credits spent, the reference path. Keep the download untouched; it's the source for the cleanup.
 - **If a create call times out or returns a 5xx,** the task may exist and be charged: check `meshy_list_tasks` before calling it again. A wait that times out leaves the task running; poll the same id.
-- **Rigging (`meshy_rig`, 5 credits):** humanoids only, textured, facing +Z. The game's `ModelRig` expects Mixamo bone names (`mixamorig_*`); before the first Meshy character, check the bone names on a rigged result and plan a rename in Blender, or have the user make characters in Tripo Studio as before.
+- **Rigging (`meshy_rig`, 5 credits):** humanoids only, textured, facing +Z; generate them with `pose_mode: "t-pose"` and pass `input_task_id` plus `height_meters: 1.6`. The rig result isn't saved by `meshy_download_model`: fetch its `rigged_character_glb_url` with curl to `assets/models/meshy/<name>_meshy6_rigged.glb` (the walk/run clips aren't needed; the game makes its own). Meshy's skeleton has 24 bones: Mixamo's limb names without the `mixamorig:` prefix, no fingers, and a spine in the opposite order (Hips → Spine02 → Spine01 → Spine → neck). `tools/blender/rig_names.py` maps it to Mixamo, which `cleanup_character` applies.
 
 ## 3. Clean up (Blender)
 Blender must be open (Blender MCP). Check `get_scene_info`/`bpy.data.is_dirty` first and never discard the user's unsaved work. Static models (buildings, props):
@@ -52,7 +52,13 @@ It makes the scene `FB2_<Name>`, joins, welds, drops loose bits, recalculates no
 
 Then `look` with `mode: "angles"`, `shading: "material"`, and from the game's angle (`views: [[0, -0.62, 0.79]]`, the camera's 52° pitch). Fix by hand what the script can't: floating bits, holes, a shadow painted into the texture (paint it out, or retry Meshy with `meshy-6`).
 
-**Rigged characters** are cleaned by hand, following the steps in `CLAUDE.md` (Assets): own scene, decimate the mesh only, keep the armature and weights, feet at the origin, export with the active scene and collection.
+**Rigged characters** (Meshy or Tripo):
+```python
+exec(open(r"C:/Claude Code/Frostbite2/tools/blender/cleanup.py", encoding="utf-8").read())
+print(cleanup_character("<name>", r"C:/Claude Code/Frostbite2/assets/models/meshy/<name>_meshy6_rigged.glb",
+                        height=1.6, max_tris=9000))
+```
+It renames the bones to Mixamo's (`rig_names.py`), decimates only the skinned mesh (weights kept), scales the whole rig to `height`, stands it on the origin, flattens the material and exports with skins. Blender shows the bones very long after a glTF import (glTF has no bone tails); that's display only. Then pose-check it (`look` with the arms swung down and a lean at the waist) and add the name to `HUMANOIDS` in `tests/test_assets.gd`, which checks `ModelRig`'s bones are there.
 
 ## 4. Wire in (Godot)
 - `godot --headless --path . --import` imports the new GLB. Keep the default import options (they work for every model so far); for a static model without a normal map, untick Ensure Tangents in its `.import` (`meshes/ensure_tangents=false`).
@@ -77,3 +83,5 @@ Then `look` with `mode: "angles"`, `shading: "material"`, and from the game's an
 - Reading `look` front, back, three-quarter and from the game angle was enough to choose.
 - **ChatGPT review in game** (`source_art/direction/furnace_meshy/review.md`): it read too small at 3.6 m (re-exported at 4.2 m). The fire mouth reads flat, and the stonework is busier and muddier than the art direction. These are texture problems: next time, ask the reference for fewer, larger stones and broad washes, or try `meshy_retexture` (10 credits) with a style prompt.
 - **Anchors:** a model's spots the code needs (the furnace's mouth and chimney top) were measured on the imported mesh (vertex positions, texture colour at each vertex's UV), not guessed.
+
+**Jan, rig check 2026-10-20** (`assets/models/meshy/jan.meshy.json`, 35 credits): meshy-6 T-pose from `ink/jan.png`, rigged by Meshy. Bones as described under Rigging; after `cleanup_character` (10.3k → 9k triangles, 1.6 m), `ModelRig` finds all its bones, the arms swing down and the waist bends cleanly in Blender. It's much closer to the ink reference than the Tripo Jan; whether it replaces `jan.glb` is the user's call (not in the game yet).

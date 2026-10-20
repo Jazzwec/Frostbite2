@@ -17,6 +17,9 @@ const BUDGETS := {
 	"crate": [2000, 0.2, 1.5],
 	"log": [2000, 0.2, 1.5],
 }
+## Rigged characters posed by ModelRig: they need its bones under Mixamo names (tools/blender/rig_names.py
+## renames a Meshy rig's).
+const HUMANOIDS := ["jan", "meagan"]
 const MAX_MATERIALS := 2
 const MAX_TEXTURE := 1024
 const GROUND_TOLERANCE := 0.02
@@ -46,6 +49,19 @@ func _to_root(node: Node3D, root: Node3D) -> Transform3D:
 func test_every_model_has_a_budget() -> void:
 	for path in _models():
 		check(BUDGETS.has(path.get_file().get_basename()), "%s has no row in BUDGETS" % path)
+
+
+func test_humanoids_have_the_rig_bones() -> void:
+	for name in HUMANOIDS:
+		var root := (load("res://assets/models/blender/%s.glb" % name) as PackedScene).instantiate()
+		var skeletons := root.find_children("*", "Skeleton3D", true, false)
+		check(skeletons.size() == 1, "%s has %d skeletons" % [name, skeletons.size()])
+		if skeletons.size() == 1:
+			var skeleton := skeletons[0] as Skeleton3D
+			for key in ModelRig.BONES:
+				var bone: String = "mixamorig_" + ModelRig.BONES[key]
+				check(skeleton.find_bone(bone) >= 0, "%s has no bone %s" % [name, bone])
+		root.free()
 
 
 func test_models_keep_the_pipeline_rules() -> void:
