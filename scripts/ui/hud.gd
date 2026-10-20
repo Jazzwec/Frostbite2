@@ -161,14 +161,14 @@ func _process(delta: float) -> void:
 	_warn_low_heat(s, frac)
 	var caps := Economy.caps(s)
 	# Each number keeps its word next to its icon, so it says what it is.
-	_stat_labels.jans.text = "%s Jans %d/%d" % [UiTheme.icon("jans", 48), s.jans.size(), Economy.jan_cap(s)]
-	_stat_labels.wood.text = "%s Wood %s/%s" % [UiTheme.icon("wood"), Fmt.num(s.piles.wood), Fmt.num(caps.wood)]
-	_stat_labels.food.text = "%s Food %s" % [UiTheme.icon("food"), Fmt.num(s.piles.food)]
-	_stat_labels.materials.text = "%s Mat %s" % [UiTheme.icon("materials", 48), Fmt.num(s.piles.materials)]
+	_stat_labels.jans.text = "%s Jans %d/%d" % [UiTheme.icon("jans", 52), s.jans.size(), Economy.jan_cap(s)]
+	_stat_labels.wood.text = "%s Wood %s/%s" % [UiTheme.icon("wood", 52), Fmt.num(s.piles.wood), Fmt.num(caps.wood)]
+	_stat_labels.food.text = "%s Food %s" % [UiTheme.icon("food", 52), Fmt.num(s.piles.food)]
+	_stat_labels.materials.text = "%s Mat %s" % [UiTheme.icon("materials", 52), Fmt.num(s.piles.materials)]
 	_fit_stats()
 	var note := ""
 	if Economy.is_cold(s) and not s.jans.is_empty():
-		note = "   %s Cold: half speed" % UiTheme.icon("cold", 36)
+		note = "   %s Cold: half speed" % UiTheme.icon("cold", 44)
 	elif s.hungry:
 		note = "   Hungry!"
 	_forecast.text = _forecast_text(s) + note
@@ -326,16 +326,16 @@ func show_game_over(time_survived: float, best: float, new_best: bool) -> void:
 func _forecast_text(s: GameState) -> String:
 	var parts := []
 	if s.blizzard_active:
-		parts.append("%s BLIZZARD! %s left" % [UiTheme.icon("blizzard", 40), Fmt.clock(s.blizzard_ends_at - s.time)])
+		parts.append("%s BLIZZARD! %s left" % [UiTheme.icon("blizzard", 44), Fmt.clock(s.blizzard_ends_at - s.time)])
 	elif s.blizzard_warned:
-		parts.append("%s Blizzard in %s" % [UiTheme.icon("blizzard", 40), Fmt.clock(s.blizzard_at - s.time)])
+		parts.append("%s Blizzard in %s" % [UiTheme.icon("blizzard", 44), Fmt.clock(s.blizzard_at - s.time)])
 	else:
 		parts.append("Clear skies")
 	if not s.wolves.is_empty():
-		parts.append("%s Wolves: %d" % [UiTheme.icon("wolves", 40), s.wolves.size()])
+		parts.append("%s Wolves: %d" % [UiTheme.icon("wolves", 44), s.wolves.size()])
 	elif s.attack_warned:
 		var left := maxf(s.attack_at - s.time, 0.0)
-		var line := "%s Wolves in %s" % [UiTheme.icon("wolves", 40), Fmt.clock(left)]
+		var line := "%s Wolves in %s" % [UiTheme.icon("wolves", 44), Fmt.clock(left)]
 		# Orange only for the last seconds, so it reads as urgent rather than routine.
 		parts.append("[color=#%s]%s[/color]" % [UiTheme.FALU.to_html(false), line] if left <= WOLVES_URGENT else line)
 	if Game.engine.paused:

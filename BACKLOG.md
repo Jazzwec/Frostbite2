@@ -156,7 +156,7 @@ Make the game and its animations match the agreed visual, `source_art/direction/
     - Optional: one ChatGPT paper-card image as a 9-patch `StyleBoxTexture`, with `StyleBoxFlat` as the fallback.
     - Tap targets stay ≥ 120 px and text ≥ 30 px (item 11).
   - **Done when:** before and after screenshots of the top bar, a sheet, a banner and the game-over card read as one warm style, with no overlaps, and a ChatGPT review is applied.
-- [ ] **V2. Cosy watercolour icons (safe, ChatGPT).**
+- [x] **V2. Cosy watercolour icons (safe, ChatGPT).** Done 2026-10-20 (AFK).
   - **What:** the icon sheet (`source_art/icons/sheet.png`) is thick-outlined and sticker-like. Make one new sheet in the gameplay visual's softer ink & watercolour, with the same 12 subjects and layout.
   - **How:**
     - At most 2 images, with the lineup and gameplay pictures as `--ref`, plus the `.prompt.txt`.

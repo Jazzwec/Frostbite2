@@ -28,6 +28,14 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 145 onwards (8 image
   - thinner world-label outlines.
 - **Note:** the test played a winter to its game-over card and then started a new one, so your saved winter was reset.
 
+### V2. Cosy watercolour icons
+- **What changed:**
+  - A new icon sheet on Astra (`source_art/icons/v2/sheet.png` and its prompt; 1 image), with the gameplay painting and the lineup as references: thin warm ink lines, loose washes, no sticker outline. All 13 icons, including the house, are on one sheet now.
+  - `tools/chatgpt/cut_icons.py` cuts it into `assets/ui/icons/<name>.png` at 128 px, un-blends the white into transparency so the soft edges stay soft, and drops specks a neighbour spilled into a cell. The file names are the same, so no code changes.
+  - The top bar's icons are a little bigger (52 px).
+- **Check in the game:** the top bar, the bag readout, banners, the game-over card.
+- **ChatGPT feedback** (`source_art/icons/v2/review.md`; old 6/10, new 7/10). Applied: no padding in the cut, bigger top-bar icons. Not done, because it needs another image round: simpler small-size versions of Fish, Materials and Wood (fewer speckles, a bigger gear hole), a stronger slate-blue wind curl with two snowflakes, and a bolder thermometer.
+
 ## Run 2026-10-20, 01:11 → 09:00
 
 ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.
