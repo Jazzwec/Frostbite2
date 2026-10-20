@@ -32,7 +32,7 @@ PAL = {k: _linear(v) for k, v in {
     "falu": "B2412E", "falu_dark": "8A3122",
     "ochre": "C9973F", "ochre_dark": "9E7330",
     "teal": "5E8A87", "teal_dark": "35666B",
-    "snow": "EEF2F2", "snow_shade": "D3DDE5",
+    "snow": "EEF2F2", "snow_shade": "BDCAD6",
     "ink": "2C3440", "fire": "F2B266", "fire_light": "F8DCA4",
     "wood": "8A5E3C", "wood_dark": "5E3F2A", "wood_light": "B48D62",
     "stone": "8E8C88", "stone_dark": "6E6C6A",

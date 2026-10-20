@@ -16,7 +16,7 @@ uniform vec4 ink : source_color = vec4(0.2, 0.21, 0.26, 0.82);
 uniform float width_px = 1.8;
 // Colour-edge lines: their width and how strong they are against a silhouette.
 uniform float inner_width_px = 0.8;
-uniform float inner_strength = 0.4;
+uniform float inner_strength = 0.2;
 // A depth jump this big (metres) draws a line.
 uniform float depth_threshold = 0.18;
 // A colour difference this big draws a line (0 to about 3).

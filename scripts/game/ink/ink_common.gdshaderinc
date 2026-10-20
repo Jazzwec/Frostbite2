@@ -11,9 +11,9 @@ uniform int warm_spot_count = 0;
 // A gentle firelight glow on near-white snow, not orange ground (ink_v3 paintover, 2026-10-20).
 uniform vec3 warm_tint : source_color = vec3(1.05, 0.985, 0.9);
 uniform vec3 cool_tint : source_color = vec3(0.9, 0.94, 1.0);
-uniform float pool_radius = 4.6;
+uniform float pool_radius = 7.0;
 uniform vec3 pool_tint : source_color = vec3(1.09, 0.95, 0.84);
-uniform float pool_strength = 0.75;
+uniform float pool_strength = 0.6;
 // How much of a point light's strength paints (the furnace's fire is a strong light).
 uniform float point_light_scale = 0.2;
 

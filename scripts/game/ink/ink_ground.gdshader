@@ -14,8 +14,8 @@ uniform vec3 wash_mean : source_color = vec3(0.886, 0.908, 0.925);
 uniform vec3 shadow_tint : source_color = vec3(0.8, 0.86, 0.94);
 uniform float shadow_strength = 0.28;
 // Trodden snow: a cool blue-grey track broken into footprints, not a warm road (ink_v3, 2026-10-20).
-uniform vec3 path_color : source_color = vec3(0.8, 0.85, 0.92);
-uniform float path_strength = 0.55;
+uniform vec3 path_color : source_color = vec3(0.76, 0.81, 0.89);
+uniform float path_strength = 0.8;
 uniform float path_width = 1.6;
 // Each path is a segment from (x, y) to (z, w), in world x/z metres.
 uniform vec4 paths[64];

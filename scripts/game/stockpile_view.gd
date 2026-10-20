@@ -6,7 +6,7 @@ extends Node3D
 const HEAP_PIECES := 8
 const HEAPS := {"wood": -1.05, "food": 0.0, "materials": 1.05}
 const ITEMS := {"wood": "log", "food": "fish", "materials": "crate"}
-const PAD_COLOR := Color(0.45, 0.85, 0.5, 0.5)
+const PAD_COLOR := Color(0.55, 0.78, 0.6, 0.25)
 
 var _heaps := {}  # resource -> Array of Node3D, bottom first
 var _shown := {"wood": 0, "food": 0, "materials": 0}

@@ -10,7 +10,21 @@ Making the game look like `source_art/direction/round3/inked/gameplay.png`, aime
 3. **Set dressing:** `SetDressing`.
 4. **Special places:** the frozen-harbour pond, the ice block and the wild-snow frontier.
 
-Screens and reviews are in `source_art/direction/ink_v3/`. ChatGPT's last review (`review_final.md`) wants these next. They're design calls for the user, because they change layout or UI:
+**Ink v4 (same day):** all six points of `review_final.md` are in:
+- a 30% tighter layout with tracks to every spot;
+- pads only near Meagan;
+- tight contact shade and a furnace light pool;
+- one compact label;
+- characters about 20% bigger;
+- the harbour scene;
+- a chunkier kit, with the Stockpile, small furnace, chests and den matching it.
+
+The cheap points of ChatGPT's follow-up (`review_v4.md`, **5/10**) are also in: darker tracks, half the internal linework, darker shaded roof slopes, faint pads, a smaller "Upgrade" and a wider furnace glow. Its other points need the user:
+- Move the four corner buttons (Jans, Music, Sound, DEV) into one collapsible button, a UI change.
+- Simplify Meagan into three colour masses and enlarge her head and hair by 10–15%: a Meshy retexture or remodel, which costs credits.
+- Fill the empty snow between clusters with work areas.
+
+Screens and reviews are in `source_art/direction/ink_v3/`. The list below is what ChatGPT's earlier review (`review_final.md`) wanted; it's now done. They're design calls for the user, because they change layout or UI:
 - **Town layout:** tighter clusters (gaps 25–35% smaller) and one packed path linking the furnace, the Stockpile, the houses and the harbour.
 - **Pads:** no persistent coloured pad discs; show them only while targeting. A bigger peach light pool at the furnace.
 - **Silhouettes:** three big masses per building, thicker posts and snow edges, and the same treatment for the furnace, dock and boat.

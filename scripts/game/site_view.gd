@@ -20,7 +20,7 @@ const SNOW := Color(0.94, 0.96, 1.0)
 ## The build pad's look: its disc colour by state, and the progress ring.
 const PAD_RADIUS_SHOWN := 1.1
 const PAD_COLORS := {
-	"plot": Color(0.72, 0.8, 0.92, 0.3), "idle": Color(0.5, 0.66, 0.88, 0.35),
+	"plot": Color(0.72, 0.8, 0.92, 0.2), "idle": Color(0.55, 0.68, 0.86, 0.22),
 	"paying": Color(1.0, 0.78, 0.3, 0.55), "maxed": Color(0.6, 0.6, 0.65, 0.35),
 }
 const RING_COLOR := Color(1.0, 0.92, 0.5)
@@ -476,7 +476,7 @@ func _update_pad(s: GameState, site: Dictionary) -> void:
 	# The disc shows only as she comes near or while it's being paid for; otherwise the building
 	# or staked plot is the cue (ink_v3 review: no placement circles all over the town).
 	_pad.visible = state == "paying" or s.meagan_pos.distance_to(MapData.pad_pos(s, index)) <= PAD_SHOW
-	_pad_label.font_size = 34 if state == "paying" else 46
+	_pad_label.font_size = 30 if state == "paying" else 34
 	if absf(frac - _ring_frac) > 0.004:
 		_ring_frac = frac
 		_ring.mesh = _ring_mesh(frac)
