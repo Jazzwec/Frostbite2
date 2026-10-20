@@ -130,6 +130,7 @@ const BUILDINGS := {
 	"barracks": {"name": "Barracks", "max": 20, "unlock": 2, "start": 0, "cost": {"wood": 60.0, "materials": 10.0}, "growth": 1.15},
 	"bunkhouse": {"name": "Bunkhouse", "max": 10, "unlock": 3, "start": 0, "cost": {"wood": 120.0, "materials": 30.0}, "growth": 1.25},
 	"watchtower": {"name": "Watchtower", "max": 10, "unlock": 4, "start": 0, "cost": {"wood": 120.0, "materials": 30.0}, "growth": 1.25},
+	"hot_springs": {"name": "Hot Springs", "max": 5, "unlock": 7, "start": 0, "cost": {"wood": 120.0, "materials": 30.0}, "growth": 1.25},
 }
 ## The Furnace's first upgrade is Wood only, before Materials exist. [brief]
 const FURNACE_FIRST_UPGRADE_COST := {"wood": 100.0}
@@ -144,6 +145,9 @@ const BLIZZARD_WARNING := 3.0 * 60.0  # [brief]
 const WATCHTOWER_BLIZZARD_WARNING_PER_LEVEL := 60.0
 const BLIZZARD_DURATION := 2.0 * 60.0  # [brief]
 const BLIZZARD_DRAIN_MULT := 3.0  # [brief]
+## Each Hot Springs level cuts the heat drain by this share (additive, so Lv 5 halves it).
+## [brief] + [f1] hotSpringsReductionPerLevel
+const HOT_SPRINGS_DRAIN_CUT_PER_LEVEL := 0.1
 ## The dev panel's "force blizzard" starts one this soon. [proto]
 const BLIZZARD_FORCED_DELAY := 10.0
 

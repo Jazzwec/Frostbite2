@@ -102,7 +102,12 @@ static func heat_drain(s: GameState) -> float:
 	var drain := Balance.DRAIN_BASE + Balance.DRAIN_PER_JAN * s.jans.size() + Balance.DRAIN_PER_BUILDING_LEVEL * building_levels(s)
 	if s.blizzard_active:
 		drain *= Balance.BLIZZARD_DRAIN_MULT
-	return drain
+	return drain * (1.0 - hot_springs_cut(s))
+
+
+## The share of the heat drain the Hot Springs take off. [brief]
+static func hot_springs_cut(s: GameState) -> float:
+	return minf(level(s, "hot_springs") * Balance.HOT_SPRINGS_DRAIN_CUT_PER_LEVEL, 1.0)
 
 
 ## Seconds until the fire goes out at the current drain, or INF while there's fuel to burn.

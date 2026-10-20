@@ -133,6 +133,10 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - [ ] At Furnace Lv 4 a Watchtower can be built (120 Wood + 30 Materials): a hut with a tall lookout, a cone roof and a red flag.
 - [ ] With it, a wolf attack is announced 15 s ahead per level ("The Watchtower spots wolves coming!", then "Wolves in 0:29" in the forecast), and blizzards a minute sooner per level. Without one, wolves still come unannounced.
 
+**Hot Springs (2026-10-20)** (DEV → Furnace +1 six times)
+- [ ] At Furnace Lv 7, Hot Springs can be built (120 Wood + 30 Materials): a bath house with a steaming turquoise pool ringed with pale stones beside it.
+- [ ] Each level lowers the heat drain by 10% (Lv 5 halves it); its sheet shows the cut and the drain now. The −/s in the top bar drops when it's built.
+
 **Objective: keep the fire burning**
 - [ ] A winter starts at 100/100 heat. With no Wood it lasts about 2½ minutes.
 - [ ] Below 25%: the bar pulses red, banner and horn. Below 10%: "Fire out in 0:12" on the bar.

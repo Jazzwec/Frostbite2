@@ -224,3 +224,16 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.
 - **ChatGPT feedback:**
   - Applied: the banner no longer carries a countdown that could disagree with the forecast's; a bolder lookout silhouette.
   - Not applied: a wolf icon in the warning, which waits on HUD icons (on hold with the style).
+
+### 6. Hot Springs
+- **Commits:** "Hot Springs: heat drain 10% lower per level".
+- **What changed:**
+  - The building comes from the brief: Furnace Lv 7 (Tier 3), max Lv 5, 120 Wood + 30 Materials, ×1.25.
+  - The heat drain (after the blizzard multiplier) is cut by 10% per level, additive as in Frostbite 1's `hotSpringsReductionPerLevel`, so Lv 5 halves it.
+  - Greybox look: a blue-grey bath house with a steaming turquoise pool beside it, ringed with pale stones and clear of the build pad.
+  - The sheet shows "Heat drain 10% lower: 0.59 heat a second now."
+- **Check in the game:** DEV → Furnace +1 six times, then build Hot Springs.
+- **Tests:** two new ones (the cut at Lv 1 and Lv 5, inside a blizzard too, and the unlock at Furnace Lv 7). 73 pass.
+- **ChatGPT feedback:**
+  - Applied: a bigger, deeper pool with a pale rim, and steam every second.
+  - Not applied: a curved roof with timber posts (building art, on hold with the style).

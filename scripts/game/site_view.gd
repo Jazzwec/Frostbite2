@@ -15,6 +15,7 @@ const LOOKS := {
 	"bunkhouse": {"wall": Color(0.85, 0.7, 0.4), "roof": Color(0.5, 0.25, 0.15)},
 	"kitchen": {"wall": Color(0.93, 0.88, 0.76), "roof": Color(0.78, 0.38, 0.16)},
 	"watchtower": {"wall": Color(0.5, 0.42, 0.34), "roof": Color(0.28, 0.33, 0.42)},
+	"hot_springs": {"wall": Color(0.62, 0.66, 0.7), "roof": Color(0.3, 0.5, 0.55)},
 }
 const SNOW := Color(0.94, 0.96, 1.0)
 ## The build pad's look: its disc colour by state, and the progress ring.
@@ -40,6 +41,8 @@ var _embers: GPUParticles3D
 var _flare := 0.0
 ## A working Kitchen puffs steam from its chimney every so often.
 const STEAM_EVERY := 2.0
+## Where the Hot Springs' pool sits, beside the hut and clear of the build pad.
+const HOT_SPRINGS_POOL := Vector3(2.5, 0, 0.7)
 var _steam_in := 0.0
 var _pad: MeshInstance3D
 var _pad_label: Label3D
@@ -99,11 +102,16 @@ func refresh(s: GameState) -> void:
 	_update_labels(s, site)
 	if index == 0:
 		_update_fire(s)
-	if site.building == "kitchen" and site.level > 0:
+	if site.level > 0 and (site.building == "kitchen" or site.building == "hot_springs"):
 		_steam_in -= get_process_delta_time()
 		if _steam_in <= 0.0:
-			_steam_in = STEAM_EVERY
-			Fx.burst("steam", global_position + Vector3(-1.0, 1.6 + 0.08 * site.level + 1.6, -0.6))
+			# The springs steam all the time; the Kitchen's chimney now and then.
+			_steam_in = STEAM_EVERY if site.building == "kitchen" else STEAM_EVERY / 2.0
+			if site.building == "kitchen":
+				Fx.burst("steam", global_position + Vector3(-1.0, 1.6 + 0.08 * site.level + 1.6, -0.6))
+			else:
+				Fx.burst("steam", global_position + HOT_SPRINGS_POOL + Vector3(0.3, 0.3, 0.2))
+				Fx.burst("steam", global_position + HOT_SPRINGS_POOL + Vector3(-0.4, 0.3, -0.3))
 
 
 func bounce() -> void:
@@ -231,6 +239,14 @@ func _build_house(b: String, level: int) -> void:
 			_shapes.add_child(Shapes.cone(1.3, 0.9, LOOKS.watchtower.roof, Vector3(1.1, top + 1.4, 1.2)))
 			_shapes.add_child(Shapes.cylinder(0.04, 0.9, wood, Vector3(1.1, top + 2.2, 1.2)))
 			_shapes.add_child(Shapes.box(Vector3(0.75, 0.42, 0.04), Color(0.95, 0.15, 0.15), Vector3(1.5, top + 2.4, 1.2)))
+		"hot_springs":
+			# A steaming pool ringed with stones beside the bath house, clear of the build pad.
+			var pool := HOT_SPRINGS_POOL
+			_shapes.add_child(Shapes.cylinder(1.4, 0.14, Color(0.8, 0.8, 0.78), pool + Vector3(0, 0.07, 0)))
+			_shapes.add_child(Shapes.cylinder(1.15, 0.16, Color(0.1, 0.62, 0.72), pool + Vector3(0, 0.09, 0), -1.0, 0.35))
+			for i in 10:
+				var a := TAU * i / 10.0
+				_shapes.add_child(Shapes.sphere(0.27, Color(0.86, 0.85, 0.82), pool + Vector3(cos(a) * 1.35, 0.16, sin(a) * 1.35)))
 		"barracks":
 			_shapes.add_child(Shapes.cylinder(0.04, 2.6, Color(0.4, 0.3, 0.2), Vector3(1.5, 1.3, 1.7)))
 			_shapes.add_child(Shapes.box(Vector3(0.7, 0.45, 0.04), Color(0.8, 0.2, 0.2), Vector3(1.85, 2.3, 1.7)))

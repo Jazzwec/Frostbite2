@@ -128,3 +128,29 @@ func test_a_watchtower_warns_of_blizzards_a_minute_sooner_per_level() -> void:
 	e.skip(400.0 - 360.0 + 0.2)
 	check(e.state.blizzard_warned, "warned 6 minutes ahead")
 	check(not e.state.blizzard_active, "not here yet")
+
+
+func test_hot_springs_cut_the_drain_10_percent_a_level() -> void:
+	var e := engine()
+	for i in 5:
+		add_jan(e, "")
+	var plain := Economy.heat_drain(e.state)
+	var i := give_building(e, "hot_springs", 1)
+	# The Hot Springs are a building level themselves, which adds a little drain first.
+	var base := plain + Balance.DRAIN_PER_BUILDING_LEVEL
+	check_near(Economy.heat_drain(e.state), base * 0.9, 0.0001, "Lv 1: 10% less")
+	e.state.sites[i].level = 5
+	base = plain + Balance.DRAIN_PER_BUILDING_LEVEL * 5
+	check_near(Economy.heat_drain(e.state), base * 0.5, 0.0001, "Lv 5: half")
+	e.state.blizzard_active = true
+	check_near(Economy.heat_drain(e.state), base * Balance.BLIZZARD_DRAIN_MULT * 0.5, 0.0001, "and in a blizzard")
+
+
+func test_hot_springs_unlock_at_furnace_7() -> void:
+	var e := engine()
+	e.state.sites[0].level = 6
+	check(not Economy.is_unlocked(e.state, "hot_springs"), "locked at Furnace Lv 6")
+	e.state.sites[0].level = 7
+	check(Economy.is_unlocked(e.state, "hot_springs"), "open at Furnace Lv 7")
+	check(Economy.buildable(e.state).has("hot_springs"), "on the build list")
+	check_eq(Balance.BUILDINGS.hot_springs.max, 5, "five levels")

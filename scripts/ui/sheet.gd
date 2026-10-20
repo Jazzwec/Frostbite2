@@ -195,6 +195,8 @@ func _summary(s: GameState, b: String) -> String:
 			return "Storage: Wood %s, Food %s, Materials %s." % [Fmt.num(caps.wood), Fmt.num(caps.food), Fmt.num(caps.materials)]
 		"bunkhouse":
 			return "Room for %d Jans in the city." % Economy.jan_cap(s)
+		"hot_springs":
+			return "Heat drain %d%% lower: %s heat a second now." % [roundi(Economy.hot_springs_cut(s) * 100.0), "%.2f" % Economy.heat_drain(s)]
 		"watchtower":
 			return "Blizzards warned %s ahead, wolves %s ahead." % [Fmt.clock(Economy.blizzard_warning(s)), Fmt.clock(Economy.attack_warning(s))]
 		"kitchen":

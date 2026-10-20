@@ -80,7 +80,7 @@ Polish and quality first, then new content.
   - **Attack warnings:** with a Watchtower, wolves are announced ahead with a banner and the forecast strip ("Wolves in 0:30"). Without one there's still no warning, as now.
   - **Done when:** tests cover both warning lengths, and the warning banner shows in the game.
 
-- [ ] **6. Hot Springs (safe).**
+- [x] **6. Hot Springs (safe).** Done 2026-10-20 (AFK).
   - **What:** a new building from the brief: heat drain −10% per level, Tier 3 (Furnace Lv 7). The cost comes from the brief's economy table.
   - **Done when:** a test covers the drain reduction, and it's in the build list at Furnace Lv 7.
 
