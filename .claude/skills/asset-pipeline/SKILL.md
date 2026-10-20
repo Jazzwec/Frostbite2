@@ -5,7 +5,7 @@ description: Make a 3D game model for Frostbite2 end to end — a ChatGPT refere
 
 # Asset pipeline: ChatGPT → Meshy → Blender → Godot
 
-One model at a time, in five steps. Meshy spends the user's credits: **state the model and the cost and wait for an OK before every paid call.** ChatGPT runs on the user's ChatGPT plan (no credits), Blender and Godot are free.
+One model at a time, in five steps. Meshy spends the user's credits: **state the model and the cost and wait for an OK before every paid call,** unless the user has approved a standing budget for a batch (then log every call in `assets/models/meshy/ledger.json` and stop at the cap). ChatGPT runs on the user's ChatGPT plan (no credits), Blender and Godot are free.
 
 | Step | Tool | Output |
 |---|---|---|
@@ -32,7 +32,7 @@ python tools/chatgpt/chatgpt.py image "<subject: what it is, its parts, material
   Start the subject with the prompt template block from `docs/art-direction.md`. ChatGPT runs on `gpt-6-astra` (the script's default).
 - Always pass `--ref` from the same set: the round-3 lineup for the first asset of a kind, and the last approved reference of that kind as a second `--ref` after that, so a set matches.
 - **Read the image** before going on. Regenerate (at most twice) if there are shadows on the object or the ground, more than one object, a cut-off part, strong perspective, text, or heavy surface noise (Meshy bakes all of it into the model).
-- **Characters:** T-pose, arms straight out, legs apart, nothing in the hands. For a better model, make separate front, side and back images (same prompt plus "front view" / "side view" / "back view", each with the front as `--ref`) for `meshy_multi_image_to_3d`, front first. Never one combined turnaround sheet.
+- **Characters:** T-pose, arms straight out, legs apart, nothing in the hands (`tools/chatgpt/refs_characters.py` does all three views). For a better model, make separate front, side and back images (same prompt plus "front view" / "side view" / "back view", each with the front as `--ref`) for `meshy_multi_image_to_3d`, front first. Never one combined turnaround sheet.
 
 ## 2. Generate (Meshy)
 1. `meshy_check_balance` (free). Tell the user the model, the cost and what they get, and wait for an OK.
@@ -55,7 +55,10 @@ print(cleanup("<name>", r"C:/Claude Code/Frostbite2/assets/models/meshy/<name>_<
 ```
 Options (2026-10-20):
 - `palette=0.5` pulls the base-colour texture towards the art-direction palette after a light blur (`palette_snap`: the "one palette" rule, so Meshy textures sit with everything else).
-- `split_lid_at=<m>` cuts a chest into its body and a `<name>_lid` node hinged at the top back edge, for `ChestView`'s opening swing.
+- `split_lid_at=<m>` (after sizing) cuts a chest into its body and a `<name>_lid` node hinged at the top back edge, for `ChestView`'s opening swing; the filled cut is a plain warm-wood inside (it adds about 1k triangles). Find the seam from a slice histogram of the vertex heights and a front `look`.
+- `stretch=(x, y, z)` scales before sizing (a taller furnace or boon chest).
+- `strip_rig=True` keeps the rest-pose mesh when Meshy rigs a prop (a t2.5 shrub came with a skeleton).
+- `hold="down" | "forward" | "centre"` with `grip=<fraction>` makes a held tool (`Tools.make`): draw the reference upright with the head on top; the handle goes on the hand (origin) `grip` of its length up from the butt; "down" hangs the head along Godot -Y with its far side (or a symmetric head's length) towards the swing, "forward" points the tip along +Z (the rod), "centre" centres a carried thing. **Meshy mirrors a picture's left and right,** so the head's side is measured, never assumed. Held tools have `HELD` rows in `tests/test_assets.gd` instead of `BUDGETS`.
 
 Meshy exports keep the names the code loads (`house_<building>`, `prop_<name>`, `furnace`, `pine_a`…); the hand-built kit's versions of the same names live in `assets/models/kit/` and are what `Props.make` falls back to.
 
@@ -98,3 +101,12 @@ It renames the bones to Mixamo's (`rig_names.py`), decimates only the skinned me
 **Jan, rig check 2026-10-20** (`assets/models/meshy/jan.meshy.json`, 35 credits): meshy-6 T-pose from `ink/jan.png`, rigged by Meshy. Bones as described under Rigging; after `cleanup_character` (10.3k → 9k triangles, 1.6 m), `ModelRig` finds all its bones, the arms swing down and the waist bends cleanly in Blender. It's much closer to the ink reference than the Tripo Jan; it replaced the Tripo Jan the same day.
 
 **Meagan and Jan in the game, 2026-10-20** (`meagan.meshy.json`, 35 credits for Meagan): the same recipe; Meagan at 1.7 m and 9k triangles, Jan at 1.6 m and **5k** triangles, because up to 20 Jans share the screen (`BUDGETS` caps Jan at 6k). No game code changed: `ModelRig` took both as they were. The ChatGPT review (`source_art/direction/characters_meshy/review.md`) found the Meshy textures busier than the art direction wants (mottled washes, dark marks inside garments). Next time, try a reference with flatter, broader washes, or `meshy_retexture` with a style prompt.
+
+**Every model, 2026-10-20 evening** (plan `make-sure-there-is-ancient-avalanche.md`, 1,060 credits): buildings, town pieces, props, pines and chests on meshy-6 (30 each) or t2.5 (15, small props and tools), Meagan and the Jan by multi-image (30) plus rig (5).
+- **What worked:** references on `gpt-6-astra` with the lineup and the approved Storehouse as `--ref`; `palette=0.4`; pilot-review notes in the prompt (short front overhang, oversized sign, three value groups); multi-image characters (cleaner and truer to the reference than single-image).
+- **Gotchas:**
+  - `Props.use_vertex_colours` turned textured models white (it now skips meshes without vertex colours).
+  - The shader's snow caps whitened decks (pipeline models get `no_snow`).
+  - A high `wash_blur` mixed neighbouring UV islands (now 0.8).
+  - A re-run's objects came out as `<name>.001` until `_drop_scene`.
+- **Astra reviews:** 5/10 after the buildings, 5.5/10 after the characters and chests. The rest is camera, outlines and simpler character shapes, not the pipeline (`source_art/direction/meshy_v1/review_phase_de.md`).

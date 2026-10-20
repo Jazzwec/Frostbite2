@@ -14,6 +14,14 @@ The game's art direction is now ink & watercolour (`docs/art-direction.md`). The
 | `ink/bunkhouse.png` | `bunkhouse.glb` | — | Falu-red cabin, mittens on the door. |
 | `ink/lumber_yard.png` | `lumber_yard.glb` | — | Ochre woodshed, crooked-sun sign. |
 
+### The full pipeline run (2026-10-20, evening)
+
+Every model now goes ChatGPT (gpt-6-astra) → Meshy → Blender → Godot (`asset-pipeline` skill). The references are in `ink/`, named after their export (`house_<building>.png`, `prop_<name>.png`, `pine_a/b/c.png`, `chest_<kind>.png`, `tool_<id>.png`, `meagan_v2_{front,side,back}.png`, `jan_v2_*.png`). The prompts are in `tools/chatgpt/refs_buildings.py` and `refs_characters.py`, and the task, model and credits for each are in `assets/models/meshy/ledger.json`. Everything is made and in the game except the wolf:
+
+| Reference | Export as | Rig | Status |
+|---|---|---|---|
+| `ink/wolf_v2.png` | `wolf.glb` | Quadruped (Tripo) | **For the user to make in Tripo Studio** (Image to Model, then Rig: quadruped), dropped in `assets/models/tripo/`. |
+
 Tip for Tripo and Meshy: ask for **flat, even lighting** in the texture (Meshy's `meshy-6` with `remove_lighting` also strips it), so the game's own light and shade aren't fighting light baked into the model.
 
 ## Earlier references (soft cartoon, 2026-10-19)

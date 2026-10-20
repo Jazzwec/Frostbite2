@@ -4,29 +4,29 @@ What felt wrong while playing, and what's still open. This file is the prompt fo
 
 ## Model pipeline: every model through GPT -> Meshy -> Blender (2026-10-20, evening)
 
-Plan: `~/.claude/plans/make-sure-there-is-ancient-avalanche.md`. The user approved a 1,200-credit Meshy cap; **750 spent** (balance 2,985 -> 2,235) (`assets/models/meshy/ledger.json`, one `<name>.meshy.json` per model). References come from ChatGPT on **gpt-6-astra** (`tools/chatgpt/refs_buildings.py` holds every subject).
+Plan: `~/.claude/plans/make-sure-there-is-ancient-avalanche.md`. The user approved a 1,200-credit Meshy cap; **1,060 spent** (`assets/models/meshy/ledger.json`, one `<name>.meshy.json` per model). References come from ChatGPT on **gpt-6-astra** (`tools/chatgpt/refs_buildings.py` for buildings, props, trees, chests and tools; `refs_characters.py` for the front/side/back character views).
 
-**Done and in the game:**
-- all nine buildings;
-- the furnace (30% taller);
-- the small furnace, wolf den and Stockpile;
-- rocks a and b, the boulder and the fence;
-- the woodpile, boat and jetty;
-- the shrub, lantern post, sled and bench;
-- the crate, the log and `pine_a`.
+**Done and in the game (phases B-G):**
+- all nine buildings, the furnace (30% taller), the small furnace, wolf den and Stockpile;
+- rocks a and b, the boulder, fence, woodpile, boat, jetty, shrub, lantern post, sled, bench, crate and log;
+- all three pines;
+- the three chests, split into a body and a hinged lid (warm-wood inside; the boon chest 20% taller; opening throws sparks and snow);
+- Meagan and the Jan (multi-image from T-pose views, rigged by Meshy);
+- the held tools: axe, pickaxe, hammer, rod, spear and the carried fish (`cleanup(hold=..., grip=...)`).
 
-The hand-built kit stays as the fallback (`assets/models/kit/`, `Props.make` falls back blender -> kit -> polyhaven).
+The hand-built kit stays as the fallback (`assets/models/kit/`, `Props.make` falls back blender -> kit -> polyhaven); `Tools.make` keeps its greybox.
 
-**Stopped:** ChatGPT hit the plan's usage limit at 17:23 ("try again at 7:16 PM").
+**Waiting on the user:** the wolf. Its reference is `source_art/concept/ink/wolf_v2.png` (side three-quarter, grey and cream). Make and rig it in Tripo Studio, drop it in `assets/models/tripo/`, and I clean it up and re-check `WolfView`'s posing.
 
-**Still to do, in order:**
-1. **Pines and chests:** references for `pine_b`, `pine_c` and the three chests (`python tools/chatgpt/refs_buildings.py pine_b pine_c chest_cache chest_boon chest_gear`), then Meshy (pines meshy-6 30, chests 30 each, `split_lid_at` in cleanup). `ChestView` already loads `chest_<kind>`.
-2. **Phase E, characters:** front, side and back T-pose references for Meagan and the Jan, then `meshy_multi_image_to_3d` and `meshy_rig` (about 70).
-3. **Phase F, the wolf:** an ink reference for the user to make in Tripo Studio.
-4. **Phase G, held tools:** about 90, if the budget allows.
-5. **Reviews:** the ChatGPT reviews for Phases D and E.
+**Reviews (Astra):**
+- Phase C, 5/10: the roofs dominate at the game camera, and the snow wants a warm-ivory lit side and a pale-lavender shaded side.
+- Phases D/E, 5.5/10 (`source_art/direction/meshy_v1/review_phase_de.md`). Done: the chest fixes. Open, and they need your call:
+  1. A camera 8-12° lower and characters 10-15% bigger, so faces and fronts show.
+  2. Simpler characters: broad hair masses, a thicker braid, a bigger scarf, a compact beard, smooth fur bands. That's a v3 round, about 70 credits.
+  3. Softer, thinner outlines and blue-grey snow.
+  4. Pines with three uneven tiers and more visible green.
 
-**Open from the Phase C review (5/10):** roofs still dominate at the game camera, and the snow wants a warm-ivory lit side and a pale-lavender shaded side.
+**Note:** the dev save (`user://save.json`) has 16 extra tiles open from the chest check; Play again resets it.
 
 ## Ink look v3 (2026-10-20, late)
 
