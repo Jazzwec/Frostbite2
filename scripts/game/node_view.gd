@@ -5,8 +5,6 @@ extends Node3D
 
 const PIECES := 6
 const POND_RADIUS := 2.0
-const HOLES := 4
-const HOLE_RADIUS := 1.0
 ## Where she stands to work a tree or crate, and to fish a hole: off to one side and a little
 ## towards the camera, clear of the canopy.
 const WORK_OFFSET := Vector2(1.2, 0.6)
@@ -57,31 +55,49 @@ const ICE := Color(0.7, 0.81, 0.85)
 const WATER := Color(0.17, 0.27, 0.33)
 
 
+## A working harbour scene (ink_v3 review): the jetty comes in from the west shore with the boat
+## moored along it, the two ice holes, a log stool and a supply crate sit together at its end, and
+## the middle of the ice stays quiet.
+const HOLE_SPOTS := [Vector3(-0.85, 0, -0.15), Vector3(-0.8, 0, 0.8)]
+
+
 func _build_pond() -> void:
-	add_child(Shapes.cylinder(POND_RADIUS + 0.35, 0.04, ICE, Vector3(0, 0.02, 0)))
+	# An irregular outline: three overlapping discs of ice.
+	for disc in [[Vector3.ZERO, POND_RADIUS + 0.35], [Vector3(0.8, 0, 0.6), 1.7], [Vector3(-0.6, 0, -0.7), 1.6]]:
+		add_child(Shapes.cylinder(disc[1], 0.04, ICE, disc[0] + Vector3(0, 0.02, 0)))
 	var rng := RandomNumberGenerator.new()
 	rng.seed = index * 104729 + 7
-	for i in 5:
-		var crack := Shapes.box(Vector3(rng.randf_range(0.6, 1.3), 0.012, 0.035), ICE.darkened(0.3), Vector3(0, 0.045, 0))
-		var a := rng.randf_range(0.0, TAU)
-		crack.position = Vector3(cos(a), 0, sin(a)) * rng.randf_range(0.6, 1.6) + Vector3(0, 0.045, 0)
+	# A few dark cracks out towards the east shore, away from the jetty and the holes.
+	for i in 4:
+		var crack := Shapes.box(Vector3(rng.randf_range(0.6, 1.1), 0.012, 0.035), ICE.darkened(0.3), Vector3.ZERO)
+		var a := rng.randf_range(-1.2, 1.2)
+		crack.position = Vector3(cos(a), 0, sin(a)) * rng.randf_range(1.3, 1.9) + Vector3(0, 0.045, 0)
 		crack.rotation.y = a + rng.randf_range(-0.6, 0.6)
 		add_child(crack)
-	for i in 10:
-		var a := TAU * i / 10.0 + rng.randf_range(-0.15, 0.15)
-		var drift := Shapes.sphere(0.5, Shapes.SNOW_COLOR, Vector3(cos(a), 0, sin(a)) * (POND_RADIUS + 0.45))
-		drift.scale = Vector3(rng.randf_range(1.6, 2.2), rng.randf_range(0.3, 0.42), 0.9)
+	# A raised, uneven rim of snow round the shore, open where the jetty comes in.
+	for i in 12:
+		var a := TAU * i / 12.0 + rng.randf_range(-0.12, 0.12)
+		if cos(a) < -0.85:
+			continue
+		var r := POND_RADIUS + 0.55 + 0.3 * sin(a * 3.0)
+		var drift := Shapes.sphere(0.5, Shapes.SNOW_COLOR, Vector3(cos(a), 0, sin(a)) * r)
+		drift.scale = Vector3(rng.randf_range(1.6, 2.3), rng.randf_range(0.45, 0.65), rng.randf_range(0.9, 1.2))
 		drift.rotation.y = -a + PI / 2.0
 		add_child(drift)
-	for i in HOLES:
-		var angle := TAU * i / HOLES + PI / 4.0
-		var p := Vector3(cos(angle), 0, sin(angle)) * HOLE_RADIUS
+	for p: Vector3 in HOLE_SPOTS:
 		var rim := Shapes.sphere(0.4, Shapes.SNOW_COLOR, p + Vector3(0, 0.02, 0))
-		rim.scale = Vector3(1.0, 0.14, 1.0)
+		rim.scale = Vector3(1.15, 0.18, 1.15)
 		add_child(rim)
 		add_child(Shapes.cylinder(0.3, 0.05, WATER, p + Vector3(0, 0.05, 0)))
 		_holes.append(p)
-	for spec in [["prop_jetty", Vector3(-POND_RADIUS - 0.4, 0, -0.9), 70.0], ["prop_boat", Vector3(POND_RADIUS - 0.1, 0, -1.3), 25.0]]:
+	# A log stool and a supply crate at the fishing spot.
+	add_child(Shapes.cylinder(0.22, 0.4, Color(0.54, 0.37, 0.24), Vector3(-1.35, 0.2, 0.35)))
+	add_child(Shapes.cylinder(0.2, 0.03, Color(0.71, 0.55, 0.38), Vector3(-1.35, 0.415, 0.35)))
+	var crate := Props.make("crate", 0.65, 20.0)
+	if crate:
+		crate.position = Vector3(-1.75, 0, 1.15)
+		add_child(crate)
+	for spec in [["prop_jetty", Vector3(-POND_RADIUS - 0.7, 0, -0.35), 90.0], ["prop_boat", Vector3(-POND_RADIUS - 0.75, 0, -1.25), 92.0]]:
 		var prop := Props.make(spec[0], 1.0, spec[2])
 		if prop:
 			Props.use_vertex_colours(prop)
