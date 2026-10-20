@@ -103,7 +103,7 @@ const CLIPS := {
 	},
 	# Jans walking their work to a stockpile (agreed 2026-10-20): the walk's legs, the load hugged.
 	"haul_log": {
-		"length": 0.7, "loop": true, "tool": "log", "socket": "chest", "impact": -1.0,
+		"length": 0.7, "loop": true, "tool": "bundle", "socket": "chest", "impact": -1.0,
 		"keys": [
 			{"t": 0.0, "arm_r": Vector3(-72, 0, -14), "arm_l": Vector3(-72, 0, -14), "lean": 4.0, "leg_l": 26.0, "leg_r": -26.0},
 			{"t": 0.25, "arm_r": Vector3(-76, 0, -14), "arm_l": Vector3(-76, 0, -14), "rise": 0.1, "lean": 4.0},
@@ -112,7 +112,7 @@ const CLIPS := {
 		],
 	},
 	"haul_fish": {
-		"length": 0.7, "loop": true, "tool": "fish", "socket": "chest", "impact": -1.0,
+		"length": 0.7, "loop": true, "tool": "basket", "socket": "chest", "impact": -1.0,
 		"keys": [
 			{"t": 0.0, "arm_r": Vector3(-72, 0, -14), "arm_l": Vector3(-72, 0, -14), "lean": 4.0, "leg_l": 26.0, "leg_r": -26.0},
 			{"t": 0.25, "arm_r": Vector3(-76, 0, -14), "arm_l": Vector3(-76, 0, -14), "rise": 0.1, "lean": 4.0},
@@ -121,7 +121,7 @@ const CLIPS := {
 		],
 	},
 	"haul_materials": {
-		"length": 0.7, "loop": true, "tool": "materials", "socket": "chest", "impact": -1.0,
+		"length": 0.7, "loop": true, "tool": "load_crate", "socket": "chest", "impact": -1.0,
 		"keys": [
 			{"t": 0.0, "arm_r": Vector3(-72, 0, -14), "arm_l": Vector3(-72, 0, -14), "lean": 4.0, "leg_l": 26.0, "leg_r": -26.0},
 			{"t": 0.25, "arm_r": Vector3(-76, 0, -14), "arm_l": Vector3(-76, 0, -14), "rise": 0.1, "lean": 4.0},

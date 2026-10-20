@@ -45,6 +45,22 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 145 onwards (8 image
 - **Check in the game:** the open snow and the furnace glow at the default zoom and wide. DEV → Ink look still compares.
 - **ChatGPT feedback** (`source_art/direction/ink_v5/review.md`). Applied: the snow and ink colours. Not done: a selective line treatment (breaking sunlit snow-rim lines while keeping undersides) and rounded snow-cap volume with a shaded lower band. Both need shader work beyond a tweak.
 
+### V4. Hauled loads that read
+- **What changed:**
+  - **Loads:** Jans now carry three distinct loads held in front of the chest, about a third of their height (`Tools`: `bundle`, `basket`, `load_crate`, used by the `haul_*` clips):
+    - a bundle of three logs tied with two ropes;
+    - a honey wicker basket with two fish;
+    - a banded crate.
+  - **The drop:** at the stockpile a Jan pauses 0.35 s with a snow puff, then walks back empty-handed.
+  - **Snow caps:** held tools and loads never get the ink look's snow caps. This also fixes a bug: InkLook ignored `no_snow` on `material_override` meshes (all Shapes). Meshes marked no-snow now get their own copy of the shared ink material, instead of switching snow off for every mesh of that colour.
+- **FPS:** 165, unchanged.
+- **Check in the game:** follow a Jan from his producer to the Stockpile.
+- **ChatGPT feedback** (`source_art/direction/levels_v1/review_v4.md`). Applied: the honey-ochre wicker with a dark rim, the medium-brown bark with pale ends. Not done:
+  - fish poking above the basket's sides;
+  - a wider, waist-height carrying pose with elbows out;
+  - a staged put-down (lower 0.15 s, release, 0.2 s);
+  - checking the loads at the normal camera (my shots were close-ups).
+
 ## Run 2026-10-20, 01:11 → 09:00
 
 ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.

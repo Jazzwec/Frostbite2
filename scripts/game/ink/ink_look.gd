@@ -43,6 +43,7 @@ var _sun_saved := {}
 var _lines: MeshInstance3D
 var _ink_of := {}  # original material -> ink material
 var _original_of := {}  # ink material -> original material
+var _no_snow_of := {}  # shared ink material -> its copy without snow caps
 var _restore := {}  # MeshInstance3D -> {surface index: original surface override (or null)}
 var _paper: CanvasLayer
 var _scan_in := 0.0
@@ -124,10 +125,13 @@ func _scan() -> void:
 
 
 func _convert(mi: MeshInstance3D) -> void:
+	# Snow doesn't settle on people and wolves (their rigged meshes have a skin), nor on what's
+	# marked "no_snow" (a warm furnace, pipeline models, held tools and loads).
+	var no_snow := mi.skin != null or mi.get_parent() is Skeleton3D or mi.has_meta("no_snow")
 	if mi.material_override:
 		var ink := _ink(mi.material_override)
 		if ink:
-			mi.material_override = ink
+			mi.material_override = _without_snow(ink) if no_snow else ink
 		return
 	if mi.mesh == null:
 		return
@@ -137,15 +141,24 @@ func _convert(mi: MeshInstance3D) -> void:
 		var ink := _ink(source)
 		if ink == null:
 			continue
-		# Snow doesn't settle on people and wolves (their rigged meshes have a skin).
-		# Nor on a warm furnace (its meshes carry the "no_snow" meta, set by SiteView).
-		if mi.skin != null or mi.get_parent() is Skeleton3D or mi.has_meta("no_snow"):
-			ink.set_shader_parameter("snow_caps", 0.0)
+		if no_snow:
+			ink = _without_snow(ink)
 		if not _restore.has(mi):
 			_restore[mi] = {}
 		if not _restore[mi].has(i):
 			_restore[mi][i] = current
 		mi.set_surface_override_material(i, ink)
+
+
+## A copy of shared ink material `ink` with no snow caps, made once. Ink materials are shared by
+## every mesh of a colour, so switching snow off on the shared one would bare them all.
+func _without_snow(ink: ShaderMaterial) -> ShaderMaterial:
+	if not _no_snow_of.has(ink):
+		var bare := ink.duplicate() as ShaderMaterial
+		bare.set_shader_parameter("snow_caps", 0.0)
+		_no_snow_of[ink] = bare
+		_original_of[bare] = _original_of[ink]
+	return _no_snow_of[ink]
 
 
 ## The ink version of a material, or null if it should stay as it is (already ink, transparent,

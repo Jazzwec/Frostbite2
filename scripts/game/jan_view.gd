@@ -42,6 +42,9 @@ var _station: Node3D
 var _station_job := ""
 ## The resource he's carrying to a stockpile, or "".
 var _hauling := ""
+## After a drop, he stands a moment (set the load down) before walking back empty-handed.
+var _drop_left := 0.0
+const DROP_PAUSE := 0.35
 
 
 func setup(is_frozen: bool, arrival_id := -1) -> void:
@@ -150,6 +153,11 @@ func go_to(target: Vector3, nav_map: RID) -> void:
 
 ## Carrying `resource` to a stockpile ("" for nothing): he walks with it hugged.
 func haul(resource: String) -> void:
+	if _hauling != "" and resource == "":
+		# He's dropped his load at the stockpile: a beat of setting it down, a puff of snow.
+		_drop_left = DROP_PAUSE
+		_rig.play("idle")
+		Fx.burst("snow", global_position + Vector3(0, 0.3, 0.5))
 	_hauling = resource
 
 
@@ -221,6 +229,9 @@ func _process(delta: float) -> void:
 		_rig.rotation.z = sin(Time.get_ticks_msec() / 300.0) * 0.03
 		return
 	if leaving:
+		return
+	if _drop_left > 0.0:
+		_drop_left -= delta
 		return
 	if _path.is_empty():
 		if _path_walking:

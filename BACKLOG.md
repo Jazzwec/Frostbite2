@@ -170,7 +170,7 @@ Make the game and its animations match the agreed visual, `source_art/direction/
     - fewer dark inner marks.
   - **How:** the uniforms and constants in `scripts/game/ink/`, with the old values noted in comments. The DEV toggle still compares.
   - **Done when:** before and after screenshots at the default zoom and wide, FPS unchanged, and a review is applied.
-- [ ] **V4. Hauled loads that read (safe, animation).**
+- [x] **V4. Hauled loads that read (safe, animation).** Done 2026-10-20 (AFK).
   - **What:**
     - A Jan's load is a distinct shape about a third of his height, held clear of his body: a log bundle, a fish basket or a crate.
     - At the stockpile he pauses 0.3 s, the bundle goes into the store, and he walks back visibly empty-handed.

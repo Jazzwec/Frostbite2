@@ -1,0 +1,9 @@
+V4 makes **“carrying something” clearer**, but resource identity still needs work. Images 2–3 are close-ups; they don’t establish readability at image 1’s gameplay scale. Image 4’s useful reference is the broad, horizontal load silhouette, separated from the carrier’s coat.
+
+1. **Make the resource define the silhouette.** The fish basket reads as a pale bucket with grey marks; the upright logs in image 3 resemble one brown object beside Jan. On a phone, neither reliably says “fish” or “wood.” Arrange the three logs horizontally in a triangular bundle, with three light cut ends facing the camera and one broad binding. Let two fish project above opposite sides of the basket, with distinct heads and tails.
+
+2. **Separate the load’s colours from Jan and the snow.** The basket’s cream front merges with his pale cuffs and collar; the fish sit close to his coat’s blue-green palette. Fine wicker detail won’t help at gameplay size. Use honey-ochre wicker, a dark brown rim, and slate-blue fish with broad silver flanks. Give logs medium warm-brown bark and pale ochre ends. Keep each resource to three large colour areas with restrained ink edges.
+
+3. **Widen and centre the carrying pose; check it at the normal camera.** The fish sit low between the cuffs, while the wood hangs beside Jan’s torso. Both lose the deliberate, two-handed carrying read visible in image 4. Keep loads around **30–35% of Jan’s height**, but make them **80–100% of his torso width**. Hold them across the waist, slightly forward, with elbows out and hands beneath. During the described **0.35 s** stockpile pause, lower the load for **0.15 s**, remove it on contact, then leave **0.20 s** before returning; place the snow puff below the load so the handoff stays visible.
+
+Verdict: fix first — carrying reads better, but fish versus wood needs a clearer silhouette at the normal gameplay camera.

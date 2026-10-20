@@ -6,6 +6,12 @@ extends RefCounted
 const WOOD := Color(0.5, 0.33, 0.18)
 const STEEL := Color(0.8, 0.83, 0.88)
 const DARK_STEEL := Color(0.35, 0.37, 0.42)
+## Load colours, from the palette (docs/art-direction.md).
+const LOG_BARK := Color("8a5e3c")
+const LOG_END := Color("e6c58a")
+const ROPE := Color("5e3f2a")
+const WICKER := Color("c9973f")
+const CRATE_WOOD := Color("b48d62")
 
 
 ## The ones with a pipeline model (assets/models/blender/tool_<id>.glb, cleanup.py hold=...), each
@@ -66,9 +72,39 @@ static func make(id: String) -> Node3D:
 			n.get_child(-1).rotation_degrees.z = 90.0
 			n.add_child(Shapes.cone(0.08, 0.12, Color(0.45, 0.6, 0.72), Vector3(-0.22, 0, 0)))
 			n.get_child(-1).rotation_degrees.z = -90.0
+		# A Jan's load on the way to a stockpile (AFK V4, 2026-10-20): big, distinct shapes held
+		# clear of his chest, about a third of his height, so a hauler reads at a glance.
+		"bundle":
+			for p in [Vector3(-0.1, 0.0, 0), Vector3(0.1, 0.0, 0), Vector3(0.0, 0.17, 0)]:
+				var piece := Shapes.cylinder(0.1, 0.62, LOG_BARK, p)
+				piece.rotation_degrees.z = 90.0
+				n.add_child(piece)
+				var end := Shapes.cylinder(0.085, 0.02, LOG_END, p + Vector3(0.31, 0, 0))
+				end.rotation_degrees.z = 90.0
+				n.add_child(end)
+			for x in [-0.17, 0.17]:
+				var rope := Shapes.cylinder(0.2, 0.05, ROPE, Vector3(x, 0.06, 0))
+				rope.rotation_degrees.z = 90.0
+				n.add_child(rope)
+		"basket":
+			n.add_child(Shapes.cylinder(0.19, 0.26, WICKER, Vector3(0, 0, 0), 0.24))
+			n.add_child(Shapes.cylinder(0.25, 0.04, ROPE, Vector3(0, 0.13, 0)))
+			for k in 2:
+				var fish := make("fish")
+				fish.scale = Vector3.ONE * 0.8
+				fish.position = Vector3(-0.06 + k * 0.12, 0.18 + k * 0.03, 0.0)
+				fish.rotation_degrees = Vector3(0, 20 - k * 40, 35 - k * 70)
+				n.add_child(fish)
+		"load_crate":
+			n.add_child(Shapes.box(Vector3(0.5, 0.36, 0.38), CRATE_WOOD))
+			n.add_child(Shapes.box(Vector3(0.52, 0.07, 0.4), DARK_STEEL, Vector3(0, 0.1, 0)))
+			n.add_child(Shapes.box(Vector3(0.52, 0.07, 0.4), DARK_STEEL, Vector3(0, -0.1, 0)))
 		"materials":
 			n.add_child(Shapes.box(Vector3(0.3, 0.12, 0.2), DARK_STEEL))
 			n.add_child(Shapes.box(Vector3(0.12, 0.2, 0.12), Color(0.55, 0.38, 0.25), Vector3(0.05, 0.12, 0)))
+	# Held and carried things never wear the ink look's snow caps (a basket's rim went white).
+	for mi in n.find_children("*", "MeshInstance3D", true, false):
+		mi.set_meta("no_snow", true)
 	return n
 
 
