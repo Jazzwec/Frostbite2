@@ -191,7 +191,7 @@ Make the game and its animations match the agreed visual, `source_art/direction/
     - a lighter column from small furnaces;
     - a warm glow on the lantern posts as an emissive sprite, with no new lights.
   - **Done when:** screenshots, FPS unchanged.
-- [ ] **V8. Stations and idle life like the visual (safe, animation).**
+- [x] **V8. Stations and idle life like the visual (safe, animation).** Done 2026-10-20 (AFK).
   - **What:**
     - Fishing Jans sit on a small stool at the ice hole (a `fish_sit` clip).
     - Split logs lie scattered round the chopping stump.

@@ -72,6 +72,19 @@ const CLIPS := {
 			{"t": 0.9, "arm_r": Vector3(-115, 0, 6), "arm_l": Vector3(-60, 0, 10), "rise": -0.2, "lean": -4.0, "head": -6.0},
 		],
 	},
+	# A Jan ice-fishing sat on his stool, like the agreed visual (AFK V8): knees forward, the rod
+	# out over the hole, a lift at the bite.
+	"fish_sit": {
+		"length": 2.6, "loop": true, "tool": "rod", "impact": 0.8,
+		"keys": [
+			{"t": 0.0, "arm_r": Vector3(-55, 0, 6), "arm_l": Vector3(-40, 0, -10), "rise": -0.5, "lean": 8.0, "head": 10.0, "leg_l": 72.0, "leg_r": 72.0},
+			{"t": 0.3, "arm_r": Vector3(-49, 0, 6), "arm_l": Vector3(-40, 0, -10), "rise": -0.5, "lean": 8.0, "head": 12.0, "leg_l": 72.0, "leg_r": 72.0},
+			{"t": 0.6, "arm_r": Vector3(-53, 0, 6), "arm_l": Vector3(-40, 0, -10), "rise": -0.5, "lean": 10.0, "head": 12.0, "leg_l": 72.0, "leg_r": 72.0},
+			{"t": 0.72, "arm_r": Vector3(-46, 0, 6), "arm_l": Vector3(-40, 0, -10), "rise": -0.5, "lean": 12.0, "head": 14.0, "leg_l": 72.0, "leg_r": 72.0},
+			{"t": 0.8, "arm_r": Vector3(-120, 0, 6), "arm_l": Vector3(-68, 0, 10), "rise": -0.46, "lean": -6.0, "head": -8.0, "leg_l": 70.0, "leg_r": 70.0, "ease": "in"},
+			{"t": 0.9, "arm_r": Vector3(-110, 0, 6), "arm_l": Vector3(-58, 0, 10), "rise": -0.48, "lean": -2.0, "head": -4.0, "leg_l": 72.0, "leg_r": 72.0},
+		],
+	},
 	# A pickaxe into the scrap heap: like chopping, but lower and heavier.
 	"scavenge": {
 		"length": 1.1, "loop": true, "tool": "pickaxe", "impact": 0.6,
@@ -186,6 +199,26 @@ const CLIPS := {
 			{"t": 0.25, "arm_r": Vector3(-68, 0, -22), "arm_l": Vector3(-72, 0, -28), "rise": 0.06, "roll": 3.0, "head": 8.0},
 			{"t": 0.5, "arm_r": Vector3(-72, 0, -28), "arm_l": Vector3(-68, 0, -22), "head": 8.0},
 			{"t": 0.75, "arm_r": Vector3(-68, 0, -22), "arm_l": Vector3(-72, 0, -28), "rise": 0.06, "roll": -3.0, "head": 8.0},
+		],
+	},
+	# Resting Jans, cold or waiting (AFK V8): stamping warmth into their feet, arms hugged...
+	"stamp": {
+		"length": 0.9, "loop": true, "tool": "", "impact": -1.0,
+		"keys": [
+			{"t": 0.0, "arm_r": Vector3(-30, 0, -40), "arm_l": Vector3(-30, 0, -40), "leg_l": 16.0, "rise": 0.03, "head": 4.0},
+			{"t": 0.25, "arm_r": Vector3(-32, 0, -42), "arm_l": Vector3(-32, 0, -42), "rise": -0.03, "head": 4.0},
+			{"t": 0.5, "arm_r": Vector3(-30, 0, -40), "arm_l": Vector3(-30, 0, -40), "leg_r": 16.0, "rise": 0.03, "head": 4.0},
+			{"t": 0.75, "arm_r": Vector3(-32, 0, -42), "arm_l": Vector3(-32, 0, -42), "rise": -0.03, "head": 4.0},
+		],
+	},
+	# ...or looking round the town, hands behind his back.
+	"look_round": {
+		"length": 4.0, "loop": true, "tool": "", "impact": -1.0,
+		"keys": [
+			{"t": 0.0, "arm_r": Vector3(18, 0, 6), "arm_l": Vector3(18, 0, 6), "turn": 0.0, "head": -4.0},
+			{"t": 0.3, "arm_r": Vector3(18, 0, 6), "arm_l": Vector3(18, 0, 6), "turn": 35.0, "head": -6.0},
+			{"t": 0.5, "arm_r": Vector3(18, 0, 6), "arm_l": Vector3(18, 0, 6), "turn": 30.0, "head": 2.0},
+			{"t": 0.8, "arm_r": Vector3(18, 0, 6), "arm_l": Vector3(18, 0, 6), "turn": -30.0, "head": -6.0},
 		],
 	},
 	# A guard at rest, spear upright.

@@ -19,7 +19,12 @@ static var _speaker: JanView
 ## How far a chatter bubble keeps from the screen's edge, in pixels.
 const BUBBLE_MARGIN := 24.0
 const PARKA := Color(0.21, 0.4, 0.42)  # deep teal (#35666B, docs/art-direction.md)
-const JOB_CLIPS := {"chop": "chop", "hunt": "fish", "build": "build"}
+const JOB_CLIPS := {"chop": "chop", "hunt": "fish_sit", "build": "build"}
+## What a resting Jan does, in turn (AFK V8), changing every REST_CHANGE seconds.
+const REST_CLIPS := ["warm_hands", "stamp", "look_round"]
+const REST_CHANGE := 6.0
+## Split logs round the chopping stump: x, yaw (degrees), z, relative to the stump.
+const CHOP_SPLITS := [Vector3(0.45, 30, 0.2), Vector3(-0.42, -50, 0.3), Vector3(0.3, 80, -0.4), Vector3(-0.2, 10, 0.5)]
 ## Where his station sits in front of him, by job.
 const STATION_GAP := {"chop": 0.85, "hunt": 1.4, "build": 0.65}
 
@@ -172,7 +177,8 @@ func work(job: String, speed: float) -> void:
 		return
 	_place_station(job)
 	if job == "":
-		_rig.play("warm_hands")
+		var turn := int(Time.get_ticks_msec() / 1000.0 / REST_CHANGE) + maxi(jan_id, 0)
+		_rig.play(REST_CLIPS[turn % REST_CLIPS.size()])
 		return
 	_rig.rotation.y = 0.0
 	_rig.play(JOB_CLIPS[job], speed)
@@ -278,9 +284,21 @@ func _place_station(job: String) -> void:
 			var log := Shapes.cylinder(0.1, 0.45, Color(0.5, 0.33, 0.18), Vector3(0, 0.5, 0))
 			log.rotation_degrees.z = 90.0
 			_station.add_child(log)
+			# Split logs scattered round the stump, like the visual's (AFK V8).
+			for k in CHOP_SPLITS.size():
+				var at: Vector3 = CHOP_SPLITS[k]
+				var split := Shapes.box(Vector3(0.24, 0.08, 0.1), Color(0.86, 0.68, 0.42) if k % 2 == 0 else Color(0.55, 0.36, 0.2), Vector3(at.x, 0.04, at.z))
+				split.rotation_degrees.y = at.y
+				_station.add_child(split)
 		"hunt":
 			_station.add_child(Shapes.cylinder(0.55, 0.03, Color(0.68, 0.84, 0.95), Vector3(0, 0.015, 0)))
 			_station.add_child(Shapes.cylinder(0.25, 0.04, Color(0.12, 0.2, 0.32), Vector3(0, 0.025, 0)))
+			# His stool, under him back from the hole (AFK V8).
+			var stool := Vector3(0, 0, -STATION_GAP.hunt - 0.05)
+			_station.add_child(Shapes.cylinder(0.2, 0.06, Color(0.55, 0.36, 0.2), stool + Vector3(0, 0.42, 0)))
+			for k in 3:
+				var leg := Vector3(cos(TAU * k / 3.0), 0, sin(TAU * k / 3.0)) * 0.13
+				_station.add_child(Shapes.cylinder(0.025, 0.42, Color(0.36, 0.24, 0.14), stool + leg + Vector3(0, 0.21, 0)))
 		"build":
 			_station.add_child(Shapes.box(Vector3(0.35, 0.3, 0.3), Color(0.35, 0.3, 0.28), Vector3(0, 0.15, 0)))
 			_station.add_child(Shapes.box(Vector3(0.55, 0.12, 0.25), Color(0.32, 0.34, 0.38), Vector3(0, 0.36, 0)))

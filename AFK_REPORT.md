@@ -89,6 +89,16 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 145 onwards (8 image
 - **Check in the game:** the furnace from the north (the plume shows best there), small furnaces, lantern posts by the plots.
 - **No ChatGPT review for this one**, to save budget: it's subtle at the game camera. A follow-up idea: a stronger, longer plume.
 
+### V8. Stations and idle life like the visual
+- **What changed:**
+  - **Fishing:** Jans ice-fish sat on a little three-legged stool, with a new `fish_sit` clip (knees forward, the rod out over the hole, a lift at the bite). Meagan keeps her crouched `fish`.
+  - **Chopping:** split logs lie scattered round the chopping stump.
+  - **Resting Jans** change between warming their hands, stamping their feet (`stamp`) and looking round with hands behind their back (`look_round`), every 6 s, staggered by Jan.
+  - **Cold:** Meagan's breath puffs every 2.4 s while it's cold (`Fx` "breath").
+- **Check in the game:** a fishing pond's Jans, a Lumber Yard's stump, Jans resting while the store is full, Meagan when the heat drops below a quarter.
+- **Felt wrong:** the rig has no knee joint, so the seated legs stick straight out a little. It reads as sitting at the game camera.
+- **No ChatGPT review** (budget).
+
 ## Run 2026-10-20, 01:11 → 09:00
 
 ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.

@@ -31,6 +31,9 @@ var _steer := Vector2.ZERO
 ## Whether she moved this physics frame.
 var moving := false
 var _step_in := 0.0
+## Seconds to her next breath puff while it's cold (AFK V8).
+var _breath_in := 0.0
+const BREATH_EVERY := 2.4
 
 
 func _ready() -> void:
@@ -216,6 +219,11 @@ func _physics_process(delta: float) -> void:
 			_turn_towards(_face - global_position, delta)
 
 	_stack.sync(s.bag, Economy.bag_cap(s), _source, _dest, _landed, 1.0 if moving else 0.0, delta)
+	if Economy.is_cold(s):
+		_breath_in -= delta
+		if _breath_in <= 0.0:
+			_breath_in = BREATH_EVERY
+			Fx.burst("breath", head_position() + _rig.global_transform.basis.z.normalized() * 0.3, _rig.global_transform.basis.z.normalized() + Vector3.UP * 0.3)
 	# Health only matters in a fight.
 	_hp_bar.visible = not s.wolves.is_empty() or s.meagan_hp < Balance.MEAGAN_HP
 	_hp_bar.set_value(s.meagan_hp / Balance.MEAGAN_HP)
