@@ -34,8 +34,16 @@ func _ready() -> void:
 	_add_line(v, Fmt.clock(time_survived), 110, Color.WHITE)
 	_add_line(v, "New best!" if new_best else "Best: %s" % Fmt.clock(best), 44, UiTheme.ACCENT if new_best else UiTheme.COLD)
 	var built := s.sites.filter(func(site): return site.building != "" and site.level >= 1).size()
-	_add_line(v, "Jans rescued: %d\nBuildings: %d\nFurnace level: %d\nWolf attacks fought off: %d" % [
-		s.rescued_total, built, Economy.furnace_level(s), s.attacks_repelled], 36, Color(0.9, 0.92, 1.0))
+	# The winter's numbers as four big tiles, each with its icon and what it counts.
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 20)
+	grid.add_theme_constant_override("v_separation", 20)
+	v.add_child(grid)
+	_add_stat(grid, "jans", s.rescued_total, "Jans rescued")
+	_add_stat(grid, "build", built, "Buildings")
+	_add_stat(grid, "heat", Economy.furnace_level(s), "Furnace level")
+	_add_stat(grid, "wolves", s.attacks_repelled, "Wolf attacks\nfought off")
 	var again := UiTheme.button("Play again", Game.new_game)
 	again.custom_minimum_size = Vector2(0, 150)
 	again.add_theme_font_size_override("font_size", 52)
@@ -49,6 +57,23 @@ func _ready() -> void:
 	var t := create_tween().set_parallel(true)
 	t.tween_property(panel, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	t.tween_property(panel, "modulate:a", 1.0, 0.25)
+
+
+func _add_stat(grid: GridContainer, icon: String, value: int, caption: String) -> void:
+	var tile := PanelContainer.new()
+	tile.add_theme_stylebox_override("panel", UiTheme.panel_style(Color(1, 1, 1, 0.06)))
+	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.add_child(tile)
+	var t := VBoxContainer.new()
+	t.add_theme_constant_override("separation", 0)
+	tile.add_child(t)
+	var number := UiTheme.rich_label(72, Color.WHITE)
+	number.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	number.text = "%s %s" % [UiTheme.icon(icon, 72), Fmt.num(value)]
+	t.add_child(number)
+	var label := UiTheme.label(caption, 32, Color(0.8, 0.84, 0.95))
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	t.add_child(label)
 
 
 func _add_line(parent: Control, text: String, size: int, color: Color) -> void:

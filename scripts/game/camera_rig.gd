@@ -86,6 +86,18 @@ static func wheel_size(size: float, notches: int) -> float:
 
 
 ## The view height the camera is easing to.
+## How far (pixels) to slide something centred at `centre`, `half` pixels either side, to keep it
+## `margin` inside a screen `width` wide; anything too wide to fit is centred. (Jan bubbles.)
+static func keep_on_screen(centre: float, half: float, width: float, margin: float) -> float:
+	if half * 2.0 > width - margin * 2.0:
+		return width / 2.0 - centre
+	if centre - half < margin:
+		return margin - (centre - half)
+	if centre + half > width - margin:
+		return width - margin - (centre + half)
+	return 0.0
+
+
 func zoom() -> float:
 	return _zoom
 

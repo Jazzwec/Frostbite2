@@ -11,6 +11,8 @@ const WALK_SPEED := 3.0
 const MODEL_PATH := "res://assets/models/blender/jan.glb"
 ## A little smaller than Meagan's 1.2, so she stands out.
 const MODEL_SCALE := 1.15
+## How far a chatter bubble keeps from the screen's edge, in pixels.
+const BUBBLE_MARGIN := 24.0
 const PARKA := Color(0.21, 0.4, 0.42)  # deep teal (#35666B, docs/art-direction.md)
 const JOB_CLIPS := {"chop": "chop", "hunt": "fish", "build": "build"}
 ## Where his station sits in front of him, by job.
@@ -97,6 +99,7 @@ func thaw(new_jan_id: int, line: String) -> void:
 func say(text: String, seconds := 3.0) -> void:
 	_bubble.text = text
 	_bubble_timer = seconds
+	_bubble.position.x = 0.0
 	if text != "":
 		Audio.play("blip", global_position)
 
@@ -173,6 +176,8 @@ func _process(delta: float) -> void:
 		_bubble_timer -= delta
 		if _bubble_timer <= 0.0:
 			_bubble.text = ""
+		else:
+			_keep_bubble_on_screen()
 	if frozen:
 		_rig.rotation.z = sin(Time.get_ticks_msec() / 300.0) * 0.03
 		return
@@ -246,6 +251,21 @@ func _on_impact(clip: String) -> void:
 		"build":
 			Fx.burst("sparks", _station.global_position + Vector3(0, 0.45, 0))
 	worked.emit(self, clip)
+
+
+## Slides his chatter bubble sideways so none of it is cut off by the screen's edge. The camera
+## never turns, so screen x is world x.
+func _keep_bubble_on_screen() -> void:
+	var cam := get_viewport().get_camera_3d()
+	if cam == null or _bubble.text == "":
+		return
+	var view := get_viewport().get_visible_rect().size
+	var px_per_m := view.y / cam.size
+	var font := _bubble.font if _bubble.font else ThemeDB.fallback_font
+	var text_px := minf(font.get_string_size(_bubble.text, HORIZONTAL_ALIGNMENT_LEFT, -1, _bubble.font_size).x, _bubble.width)
+	var half := (text_px + _bubble.outline_size) * _bubble.pixel_size * px_per_m / 2.0
+	var centre := cam.unproject_position(global_position + Vector3(0, _bubble.position.y, 0)).x
+	_bubble.position.x = CameraRig.keep_on_screen(centre, half, view.x, BUBBLE_MARGIN) / px_per_m
 
 
 func _face(dir: Vector3) -> void:
