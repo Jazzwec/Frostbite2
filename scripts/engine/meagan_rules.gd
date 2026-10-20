@@ -133,6 +133,10 @@ static func _deliver_upgrade(s: GameState, building: String, pad: Dictionary, bu
 ## Raises every built plot of `building` a level and ends its upgrade.
 static func level_up(s: GameState, building: String, events: Array) -> void:
 	s.upgrades.erase(building)
+	if building == "stockpile":
+		s.stockpile_level += 1
+		events.append({"type": "levelled", "site": -1, "building": building, "level": s.stockpile_level})
+		return
 	var first := -1
 	var lv := 0
 	for i in s.sites.size():

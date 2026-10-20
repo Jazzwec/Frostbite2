@@ -27,6 +27,8 @@ static func gather_rate(s: GameState, resource: String) -> float:
 ## Level of a building, shared by all its built plots (agreed 2026-10-20), 0 if none is built
 ## yet (a first-time construction site is level 0).
 static func level(s: GameState, building: String) -> int:
+	if building == "stockpile":
+		return s.stockpile_level
 	var best := 0
 	for site in s.sites:
 		if site.building == building:
@@ -84,6 +86,9 @@ static func upgrade_pads(s: GameState, building: String) -> Array:
 	if building == "furnace":
 		for k in s.stoves.size():
 			out.append({"pos": MapData.stove_pad(s, k), "site": -1})
+	elif building == "stockpile":
+		for k in s.stockpiles.size():
+			out.append({"pos": MapData.stockpile_pad(s, k), "site": -1})
 	return out
 
 
@@ -106,6 +111,7 @@ static func pay_rate(s: GameState) -> float:
 
 static func caps(s: GameState) -> Dictionary:
 	var store := pow(Balance.STOREHOUSE_CAP_GROWTH, level(s, "storehouse")) * (1.0 + mod(s, "cap_mult"))
+	store *= pow(Balance.STOCKPILE_CAP_GROWTH, s.stockpile_level - 1)
 	# Every Lumber Yard level above the first adds Wood room, across all the Lumber Yards.
 	var lumber := 0
 	for site in s.sites:

@@ -56,6 +56,8 @@ const CAP_MATERIALS := 100.0  # [brief]
 ## Lumber Yard adds this much Wood cap per level above 1. [brief]
 const WOOD_CAP_PER_LUMBER_LEVEL := 50.0
 ## Storehouse multiplies every cap by this per level, compounding. [brief]
+## Every Stockpile level above the first multiplies every cap by this. [proto, agreed 2026-10-20]
+const STOCKPILE_CAP_GROWTH := 1.2
 const STOREHOUSE_CAP_GROWTH := 1.25
 
 # ---------- Jans ----------
@@ -134,6 +136,8 @@ const BUILDINGS := {
 	"bunkhouse": {"name": "Bunkhouse", "max": 10, "unlock": 3, "start": 0, "cost": {"wood": 120.0, "materials": 30.0}, "growth": 1.25},
 	"watchtower": {"name": "Watchtower", "max": 10, "unlock": 4, "start": 0, "cost": {"wood": 120.0, "materials": 30.0}, "growth": 1.25},
 	"hot_springs": {"name": "Hot Springs", "max": 5, "unlock": 7, "start": 0, "cost": {"wood": 120.0, "materials": 30.0}, "growth": 1.25},
+	# Not a plot: the stockpiles share this level (agreed 2026-10-20). [proto]
+	"stockpile": {"name": "Stockpile", "max": 10, "unlock": 1, "start": 1, "cost": {"wood": 60.0, "materials": 10.0}, "growth": 1.5},
 }
 ## The Furnace's first upgrade is Wood only, before Materials exist. [brief]
 const FURNACE_FIRST_UPGRADE_COST := {"wood": 100.0}
@@ -212,6 +216,10 @@ const GATE_PAD_INSET := 1.8
 ## A small furnace's pad sits this far into its tile; the furnace's upgrade can be paid there.
 ## [proto, agreed 2026-10-20]
 const STOVE_PAD_INSET := 2.4
+## Each opened tile's small stockpile stands one of these far into the tile from its small
+## furnace and one of these far to a side, whichever leaves the most room. [proto, agreed 2026-10-20]
+const STOCKPILE_STOVE_INSETS := [3.0, 2.6, 3.8]
+const STOCKPILE_STOVE_SIDES := [2.6, 4.0, 5.5]
 ## The frontier (agreed 2026-10-20): along every edge between open and closed ground, a single
 ## frozen Jan can wait this far inside it and this far to one side of its gate, and wolves come in
 ## on the border this far to the other side. [proto]

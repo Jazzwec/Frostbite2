@@ -58,8 +58,18 @@ static func start_bounds() -> Rect2:
 
 
 ## The Stockpile's pad, where she stands to drop off everything she carries.
-static func stockpile_pad() -> Vector2:
-	return STOCKPILE_POS + Vector2(0, 1.8)
+## Stockpile `k`'s pad, in front of it (the main one is 0).
+static func stockpile_pad(s: GameState, k := 0) -> Vector2:
+	return s.stockpiles[k].pos + Vector2(0, 1.8)
+
+
+## The stockpile whose pad is nearest `pos`.
+static func nearest_stockpile(s: GameState, pos: Vector2) -> int:
+	var best := 0
+	for k in range(1, s.stockpiles.size()):
+		if pos.distance_to(stockpile_pad(s, k)) < pos.distance_to(stockpile_pad(s, best)):
+			best = k
+	return best
 
 
 static func site_pos(s: GameState, i: int) -> Vector2:

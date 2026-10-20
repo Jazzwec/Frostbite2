@@ -83,14 +83,16 @@ func _open_gate() -> void:
 	Game.engine.start_gate(_gate_index())
 
 
-## The Stockpile's sheet: what's in store against the caps.
+## The Stockpile's sheet: what's in store against the caps, and its shared upgrade.
 func open_stockpile() -> void:
 	_start(-1)
 	stockpile = true
 	_title.text = "Stockpile"
-	_body.add_child(UiTheme.label("The town's store. Everything Meagan and the Jans gather lands here, and build pads, gates and the furnace draw from it.", 34, Color(0.8, 0.85, 0.95)))
+	_body.add_child(UiTheme.label("The town's store. Every stockpile is a door into it: everything Meagan and the Jans gather lands here, and build pads, gates and the furnace draw from it. Its level is shared by them all and raises every cap.", 34, Color(0.8, 0.85, 0.95)))
 	_status = UiTheme.label("", 38)
 	_body.add_child(_status)
+	_upgrade = UiTheme.button("", func() -> void: Game.engine.start_upgrade_of("stockpile"))
+	_body.add_child(_upgrade)
 	visible = true
 	_refresh()
 
@@ -235,6 +237,20 @@ func _refresh() -> void:
 		var lines := []
 		for res in ["wood", "food", "materials"]:
 			lines.append("%s  %s / %s" % [str(res).capitalize(), Fmt.num(s.piles[res]), Fmt.num(caps[res])])
+		_title.text = "Stockpile  Lv %d" % s.stockpile_level
+		var need := Economy.cost("stockpile", s.stockpile_level)
+		if s.upgrades.has("stockpile"):
+			var parts := []
+			for res in need:
+				parts.append("%s %s/%s" % [str(res).capitalize(), Fmt.num(s.upgrades.stockpile.get(res, 0.0)), Fmt.num(need[res])])
+			lines.append("Upgrading: " + ", ".join(parts) + "\nStand on any stockpile's pad.")
+			_upgrade.visible = false
+		elif s.stockpile_level >= Balance.BUILDINGS.stockpile.max:
+			lines.append("Fully upgraded.")
+			_upgrade.visible = false
+		else:
+			_upgrade.visible = true
+			_upgrade.text = "Upgrade to Lv %d  ·  %s" % [s.stockpile_level + 1, Fmt.cost(need)]
 		_status.text = "\n".join(lines)
 		return
 	if site_index < 0:

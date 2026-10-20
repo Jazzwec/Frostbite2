@@ -7,8 +7,8 @@ extends RefCounted
 ## 2: the layout lives in the state; 3: tiles, gates and small furnaces; 4: Jans work at a
 ## producer; 5: chests, boons and gear; 6: camps, the frontier and dens; 7: no bag, gathering
 ## goes to the Stockpile; 8: no Sled Shed plot; 9: the tighter town layout; 10: global building
-## levels, upgrades in `upgrades` (2026-10-20).
-const SAVE_VERSION := 10
+## levels, upgrades in `upgrades`; 11: a stockpile per opened tile, the Stockpile's level (2026-10-20).
+const SAVE_VERSION := 11
 
 var state: GameState
 var rng := RandomNumberGenerator.new()
@@ -33,6 +33,7 @@ func _init(seed_value := 0) -> void:
 static func new_winter(run_seed := 1) -> GameState:
 	var s := GameState.new()
 	WorldRules.start(s, run_seed)
+	s.stockpiles.append({"pos": MapData.STOCKPILE_POS, "tile": Vector2i.ZERO})
 	for def in MapData.START_SITES:
 		var b: String = def.type
 		s.sites.append({

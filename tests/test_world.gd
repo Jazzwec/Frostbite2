@@ -122,6 +122,56 @@ func test_opening_a_tile_lights_a_small_furnace_that_adds_to_the_drain() -> void
 	check(events.any(func(ev): return ev.type == "tile_opened"), "tile_opened event")
 
 
+## Agreed 2026-10-20: a small stockpile beside every small furnace, another door into the store.
+func test_opening_a_tile_puts_a_stockpile_beside_its_small_furnace() -> void:
+	var e := engine()
+	check_eq(e.state.stockpiles.size(), 1, "the main stockpile")
+	check_eq(e.state.stockpiles[0].pos, MapData.STOCKPILE_POS, "by the furnace")
+	_open(e, Vector2i(2, 0))
+	check_eq(e.state.stockpiles.size(), 2, "one more")
+	var sp: Dictionary = e.state.stockpiles[1]
+	check_eq(sp.tile, Vector2i(2, 0), "in the opened tile")
+	check(MapData.tile_rect(Vector2i(2, 0)).has_point(sp.pos), "inside it")
+	check(sp.pos.distance_to(e.state.stoves[0].pos) < 7.0, "beside its small furnace")
+	check(MapData.tile_rect(Vector2i(2, 0)).has_point(MapData.stockpile_pad(e.state, 1)), "its pad too")
+
+
+func test_small_stockpiles_stand_clear_of_what_tiles_hold() -> void:
+	# Every tile round the first ring and the next, from either neighbour's side.
+	for x in range(-4, 5):
+		for y in range(-4, 5):
+			var tile := Vector2i(x, y)
+			if absi(x) <= MapData.START_RADIUS and absi(y) <= MapData.START_RADIUS:
+				continue
+			var c := WorldGen.tile_contents(77, tile)
+			for dir in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				var border := (MapData.tile_rect(tile - dir).get_center() + MapData.tile_rect(tile).get_center()) / 2.0
+				var p := WorldRules.stockpile_spot(tile, border, c)
+				for node in c.nodes:
+					check(p.distance_to(node.pos) > 3.0, "%s clear of a spot (%.1f m)" % [tile, p.distance_to(node.pos)])
+				for site in c.sites:
+					check(p.distance_to(site.pos) > 3.5, "%s clear of a plot (%.1f m)" % [tile, p.distance_to(site.pos)])
+				for key in ["camp", "chest", "den"]:
+					if not c[key].is_empty():
+						check(p.distance_to(c[key].pos) > 2.0, "%s clear of its %s" % [tile, key])
+
+
+func test_a_stockpile_level_raises_every_cap_and_is_paid_at_any_stockpile() -> void:
+	var e := engine()
+	var caps := Economy.caps(e.state)
+	_open(e, Vector2i(2, 0))
+	check(e.start_upgrade_of("stockpile"), "the Stockpile's upgrade")
+	put_meagan(e, MapData.stockpile_pad(e.state, 1))
+	for k in 10:
+		e.state.fuel = 1000.0
+		e.state.piles = {"wood": 300.0, "food": 0.0, "materials": 100.0}
+		e.skip(1.0)
+	check_eq(e.state.stockpile_level, 2, "paid at the small one")
+	var after := Economy.caps(e.state)
+	for res in caps:
+		check_near(after[res], caps[res] * Balance.STOCKPILE_CAP_GROWTH, 0.01, "%s cap x1.2" % res)
+
+
 func test_new_producer_plots_can_be_built() -> void:
 	var e := engine()
 	for x in range(2, 8):
@@ -142,6 +192,7 @@ func test_the_world_survives_a_save() -> void:
 	check(loaded != null, "loads")
 	check_eq(loaded.state.tiles.size(), 10, "open tiles kept")
 	check_eq(loaded.state.stoves.size(), 1, "small furnace kept")
+	check_eq(loaded.state.stockpiles.size(), 2, "its stockpile kept")
 	check_eq(loaded.state.run_seed, e.state.run_seed, "seed kept")
 	check_eq(loaded.state.gates.size(), e.state.gates.size(), "gates kept")
 	check_eq(loaded.state.bounds, e.state.bounds, "ground kept")

@@ -29,7 +29,7 @@ var _chests: Array[ChestView] = []
 const VEIL_COLOR := Color(0.6, 0.68, 0.82)
 const VEIL_HEIGHT := 1.2
 var _people: PeopleLayer
-var _stockpile: StockpileView
+var _stockpiles: Array[StockpileView] = []
 ## Woodpiles, fences, rocks and shrubs round the plots and over open snow. [ink_v3, 2026-10-20]
 var _dressing: SetDressing
 ## For showing a build pad or gate taking from the Stockpile: each one's progress last frame.
@@ -73,9 +73,8 @@ func _ready() -> void:
 	for den in Game.engine.state.dens:
 		_add_den_view(den.pos)
 	_rebuild_frontier()
-	_stockpile = StockpileView.new()
-	add_child(_stockpile)
-	_stockpile.setup()
+	for k in Game.engine.state.stockpiles.size():
+		_add_stockpile_view(k)
 	_people = PeopleLayer.new()
 	add_child(_people)
 
@@ -159,7 +158,8 @@ func _refresh_views(delta: float) -> void:
 			hidden = v.fade_covers(cam, her, delta) or hidden
 	if _meagan:
 		_meagan.show_silhouette(hidden)
-	_stockpile.refresh(s)
+	for v in _stockpiles:
+		v.refresh(s)
 	_people.refresh(s, delta)
 	for g in _gates:
 		if g.index < s.gates.size():
@@ -238,7 +238,9 @@ func _set_contacts(m: ShaderMaterial) -> void:
 			var p := MapData.site_pos(s, i)
 			var r := MapData.FURNACE_RADIUS * 1.1 if i == 0 else MapData.SITE_HALF_SIZE * 1.05
 			contacts.append(Vector4(p.x, p.y, r, 0.0))
-	contacts.append(Vector4(MapData.STOCKPILE_POS.x, MapData.STOCKPILE_POS.y, 2.0, 0.0))
+	for k in s.stockpiles.size():
+		var p: Vector2 = s.stockpiles[k].pos
+		contacts.append(Vector4(p.x, p.y, 2.0 if k == 0 else 1.3, 0.0))
 	for i in s.node_defs.size():
 		var kind := MapData.node_kind(s, i)
 		if CONTACT_RADIUS.has(kind):
@@ -270,9 +272,10 @@ func _update_label_focus(s: GameState) -> void:
 		if d > Balance.GATHER_RANGE + 1.0 and d < best:
 			best = d
 			focus = v
-	if me.distance_to(MapData.stockpile_pad()) < best:
-		best = me.distance_to(MapData.stockpile_pad())
-		focus = _stockpile
+	for v in _stockpiles:
+		if me.distance_to(MapData.stockpile_pad(s, v.index)) < best:
+			best = me.distance_to(MapData.stockpile_pad(s, v.index))
+			focus = v
 	for g in _gates:
 		if g.index < s.gates.size() and me.distance_to(s.gates[g.index].pad) < best:
 			best = me.distance_to(s.gates[g.index].pad)
@@ -281,7 +284,8 @@ func _update_label_focus(s: GameState) -> void:
 		v.focused = v == focus
 	for v in _nodes:
 		v.focused = v == focus
-	_stockpile.focused = _stockpile == focus
+	for v in _stockpiles:
+		v.focused = v == focus
 	for g in _gates:
 		g.focused = g == focus
 
@@ -385,6 +389,13 @@ func _add_chest_view(i: int) -> void:
 	_chests.append(view)
 
 
+func _add_stockpile_view(k: int) -> void:
+	var view := StockpileView.new()
+	_nav.add_child(view)
+	view.setup(k, Game.engine.state)
+	_stockpiles.append(view)
+
+
 func _add_stove_view(i: int) -> void:
 	var view := StoveView.new()
 	_nav.add_child(view)
@@ -471,6 +482,7 @@ func _open_tile(ev: Dictionary) -> void:
 	for i in ev.dens:
 		_add_den_view(Game.engine.state.dens[i].pos)
 	_add_stove_view(Game.engine.state.stoves.size() - 1)
+	_add_stockpile_view(ev.stockpile)
 	_rebuild_frontier()
 	_set_paths(_ground)
 	_rig.bounds = _camera_bounds()
@@ -526,7 +538,7 @@ func _on_tap(screen_pos: Vector2) -> void:
 			_walk(_nodes[hit.index].work_spot(_meagan.global_position))
 			_hud.sheet.close()
 		"stockpile":
-			_walk(_v3(MapData.stockpile_pad()))
+			_walk(_v3(MapData.stockpile_pad(s, hit.index)))
 			_hud.sheet.open_stockpile()
 		"stove":
 			# A small furnace shares the furnace's level: its pad opens the furnace's sheet.
@@ -585,8 +597,9 @@ func _update_pad_stop(delta: float) -> void:
 		if me.distance_to(MapData.pad_pos(s, i)) <= Balance.PAD_RADIUS:
 			on = i
 			break
-	if me.distance_to(MapData.stockpile_pad()) <= Balance.PAD_RADIUS:
-		on = STOCKPILE_PAD
+	for k in s.stockpiles.size():
+		if me.distance_to(MapData.stockpile_pad(s, k)) <= Balance.PAD_RADIUS:
+			on = STOCKPILE_PAD + k
 	for i in s.gates.size():
 		if me.distance_to(s.gates[i].pad) <= Balance.PAD_RADIUS:
 			on = GATE_PAD + i
@@ -603,12 +616,12 @@ func _update_pad_stop(delta: float) -> void:
 		return
 	_pad_still = 0.0 if _meagan.moving else _pad_still + delta
 	if _pad_still >= PAD_STOP_TIME:
-		if on == STOCKPILE_PAD:
-			_hud.sheet.open_stockpile()
-		elif on >= STOVE_PAD:
+		if on >= STOVE_PAD:
 			_hud.sheet.open_site(0)
 		elif on >= GATE_PAD:
 			_hud.sheet.open_gate(on - GATE_PAD)
+		elif on >= STOCKPILE_PAD:
+			_hud.sheet.open_stockpile()
 		else:
 			_hud.sheet.open_site(on)
 		Audio.play("tap")
@@ -776,6 +789,12 @@ func _on_event(ev: Dictionary) -> void:
 			_float_text(_meagan.global_position + Vector3(0, 3.0, 0), "New %s!" % Balance.GEAR[ev.slot].name.to_lower(), UiTheme.ACCENT, true)
 		"built", "levelled":
 			var s := Game.engine.state
+			if ev.building == "stockpile":
+				# Shared by every stockpile: the words float over the nearest one.
+				Audio.play("build_done")
+				var sp := MapData.stockpile_pad(s, MapData.nearest_stockpile(s, s.meagan_pos))
+				_float_text(Vector3(sp.x, 4.0, sp.y), "Stockpile Lv %d!" % ev.level, UiTheme.ACCENT, true)
+				return
 			# A level is shared by every plot of the building (agreed 2026-10-20): they all celebrate,
 			# and the words float over the one she's nearest.
 			var at: int = ev.site

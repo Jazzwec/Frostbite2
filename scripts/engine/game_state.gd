@@ -13,9 +13,13 @@ var fuel := 0.0
 ## Wood burned per second last tick, for the fire's look.
 var burn_rate := 0.0
 
-## The Stockpile by the furnace, the town's store: Jans' output and everything Meagan gathers.
-## Build pads, gates and the furnace draw from it.
+## The town's store: Jans' output and everything Meagan gathers. Build pads, gates and the
+## furnace draw from it. Every stockpile is a door into it (agreed 2026-10-20): the main one by
+## the furnace and a small one beside each small furnace, {pos, tile}; the main one is first.
+## The Stockpile's level is shared by all of them and raises every cap.
 var piles := {"wood": 0.0, "food": 0.0, "materials": 0.0}
+var stockpiles: Array = []
+var stockpile_level := 1
 ## What Meagan has gathered by hand this winter, by resource (it goes straight into the piles).
 var gathered := {"wood": 0.0, "food": 0.0, "materials": 0.0}
 

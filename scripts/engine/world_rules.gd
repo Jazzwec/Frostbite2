@@ -66,11 +66,13 @@ static func open_tile(s: GameState, gate_index: int, events: Array) -> void:
 	s.tiles[key(tile)] = true
 	s.bounds = s.bounds.merge(MapData.tile_rect(tile))
 	s.stoves.append({"tile": tile, "pos": gate.pos})
+	var c := WorldGen.tile_contents(s.run_seed, tile)
+	# A small stockpile beside it, another door into the town's store. [agreed 2026-10-20]
+	s.stockpiles.append({"pos": stockpile_spot(tile, gate.pos, c), "tile": tile})
 	var first_site := s.sites.size()
 	var first_node := s.node_defs.size()
 	var first_chest := s.chests.size()
 	var first_den := s.dens.size()
-	var c := WorldGen.tile_contents(s.run_seed, tile)
 	for node in c.nodes:
 		s.node_defs.append({"kind": node.kind, "pos": node.pos, "tile": tile})
 		s.nodes.append(Balance.NODES[node.kind].stock)
@@ -93,7 +95,42 @@ static func open_tile(s: GameState, gate_index: int, events: Array) -> void:
 		"type": "tile_opened", "tile": tile, "pos": gate.pos,
 		"sites": range(first_site, s.sites.size()), "nodes": range(first_node, s.node_defs.size()),
 		"chests": range(first_chest, s.chests.size()), "dens": range(first_den, s.dens.size()),
+		"stockpile": s.stockpiles.size() - 1,
 	})
+
+
+## Where a newly opened tile's small stockpile stands: a little way into the tile from its small
+## furnace on the border, to one side of its pad, at whichever of a few spots leaves the most room
+## round what the tile holds (the tile's layout is seeded and doesn't know where she'll come in).
+## [proto, agreed 2026-10-20]
+static func stockpile_spot(tile: Vector2i, stove_pos: Vector2, c: Dictionary) -> Vector2:
+	var into := (MapData.tile_rect(tile).get_center() - stove_pos).normalized()
+	var side := into.rotated(PI / 2.0)
+	var things := []  # [pos, room it needs]
+	for node in c.nodes:
+		things.append([node.pos, STOCKPILE_ROOM.node])
+	for site in c.sites:
+		things.append([site.pos, STOCKPILE_ROOM.site])
+	for key in ["camp", "chest", "den"]:
+		if not c[key].is_empty():
+			things.append([c[key].pos, STOCKPILE_ROOM.thing])
+	var best := Vector2.ZERO
+	var best_room := -INF
+	for inset in Balance.STOCKPILE_STOVE_INSETS:
+		for aside in Balance.STOCKPILE_STOVE_SIDES:
+			for sign in [1.0, -1.0]:
+				var p: Vector2 = stove_pos + into * inset + side * aside * sign
+				var room := INF
+				for t in things:
+					room = minf(room, p.distance_to(t[0]) - t[1])
+				if room > best_room + 0.001:
+					best_room = room
+					best = p
+	return best
+
+
+## How far a small stockpile keeps from what a tile holds, by kind.
+const STOCKPILE_ROOM := {"node": 3.5, "site": 4.0, "thing": 2.5}
 
 
 ## Where single frozen Jans wait and wolf packs come in from: along every edge between open and

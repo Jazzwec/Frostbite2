@@ -83,8 +83,11 @@ func _place(id: String, p: Vector2, rng: RandomNumberGenerator, spot: Vector2) -
 
 
 func _clear(s: GameState, p: Vector2, paths: Array, own_site: int) -> bool:
-	if p.distance_to(MapData.site_pos(s, 0)) < CLEAR_FURNACE or p.distance_to(MapData.STOCKPILE_POS) < CLEAR_STOCKPILE:
+	if p.distance_to(MapData.site_pos(s, 0)) < CLEAR_FURNACE:
 		return false
+	for k in s.stockpiles.size():
+		if p.distance_to(s.stockpiles[k].pos) < (CLEAR_STOCKPILE if k == 0 else CLEAR_THING + 0.6):
+			return false
 	for i in range(1, s.sites.size()):
 		if p.distance_to(MapData.pad_pos(s, i)) < CLEAR_PAD:
 			return false
@@ -119,7 +122,7 @@ const TRACK_SPOT_GAP := 2.4
 static func tracks(s: GameState) -> Array[Vector4]:
 	var out: Array[Vector4] = []
 	var furnace := MapData.site_pos(s, 0)
-	var ends: Array[Vector2] = [MapData.stockpile_pad()]
+	var ends: Array[Vector2] = [MapData.stockpile_pad(s, 0)]
 	for i in range(1, s.sites.size()):
 		if not s.sites[i].has("tile"):
 			ends.append(MapData.pad_pos(s, i))
@@ -131,6 +134,12 @@ static func tracks(s: GameState) -> Array[Vector4]:
 		# From the furnace's rim, so the tracks don't pool into one blot in the middle.
 		var start := furnace + (end - furnace).normalized() * (MapData.FURNACE_RADIUS + 1.0)
 		out.append(Vector4(start.x, start.y, end.x, end.y))
+	for k in range(1, s.stockpiles.size()):
+		# From each small furnace to its tile's stockpile.
+		for stove in s.stoves:
+			if stove.tile == s.stockpiles[k].tile:
+				var end := MapData.stockpile_pad(s, k)
+				out.append(Vector4(stove.pos.x, stove.pos.y, end.x, end.y))
 	for stove in s.stoves:
 		for i in s.sites.size():
 			if s.sites[i].get("tile", Vector2i(9999, 9999)) == stove.tile:
