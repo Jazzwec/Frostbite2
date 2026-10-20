@@ -121,6 +121,10 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - [ ] A building that finishes or levels up bounces, shoots coloured confetti from its roof with a snow puff at its base, and the camera gives a short shake. "Lumber Yard Lv 2!" pops in big above the roof and floats away, while the nameplate steps aside for a second.
 - [ ] The furnace levelling up flares twice as hard, shakes harder, and sends a soft ring of warm light out across the ground. FPS stays high.
 
+**Phone UI audit (2026-10-20)**
+- [ ] Music, Sound and DEV sit in a row under the top bar without touching, each a comfortable thumb size; the DEV panel opens below them.
+- [ ] Every button (sheet buttons, Close, −/+, build list) is at least 120 px tall at 1080 wide.
+
 **Objective: keep the fire burning**
 - [ ] A winter starts at 100/100 heat. With no Wood it lasts about 2½ minutes.
 - [ ] Below 25%: the bar pulses red, banner and horn. Below 10%: "Fire out in 0:12" on the bar.

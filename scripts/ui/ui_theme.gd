@@ -3,7 +3,8 @@ extends RefCounted
 ## One theme for every screen: big type and thumb-sized buttons on the 1080-wide layout.
 
 const FONT_SIZE := 40
-const BUTTON_HEIGHT := 112
+## Tap targets are at least 120 px at 1080 wide (phone UI audit, 2026-10-20).
+const BUTTON_HEIGHT := 120
 const PANEL := Color(0.08, 0.11, 0.2, 0.86)
 const ACCENT := Color(0.98, 0.62, 0.25)
 const COLD := Color(0.55, 0.78, 1.0)

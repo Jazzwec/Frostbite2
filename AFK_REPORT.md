@@ -125,3 +125,27 @@ ChatGPT budget: counted from `tools/chatgpt/calls.log` line 56 onwards.
   - Applied: nameplate hidden during the burst, the level line raised above the roof and smaller, a fainter and quicker furnace ring, fewer but bigger confetti pieces.
   - Not applied: an orange rim and white-hot centre for the furnace flare (fire art, on hold with the style), and a single banner replacing the world text.
 - **Felt wrong:** the confetti still reads a little pastel against the snow under the current lighting.
+
+### 11. Phone UI audit
+- **Commits:** "Phone UI audit: 120 px tap targets, no overlapping corner buttons".
+- **How:** a runtime audit script walked every visible HUD control and checked three things:
+  - tap targets at least 120 px
+  - text at least 30 px
+  - no overlaps between the top bar, sheet, banner, hint line, the Music/Sound/DEV buttons and the dev panel
+
+  It ran in six states (plot sheet, building sheet, Stockpile sheet, dev panel, banner, game-over card) at 1080×1920. It ran again at 1080×2400, emulated by letterboxing the root viewport, because the OS ignores window resizes and a 1200 px window doesn't fit the screen.
+- **Before:**
+  - Every themed button was 112 px tall, and the sheet's Close button was 96 px.
+  - Music, Sound and DEV were 90–112 px tall, and Music overlapped Sound by 6 px.
+  - The dev panel overlapped the corner buttons.
+  - No text was under 30 px.
+- **After:**
+  - `BUTTON_HEIGHT` is 120 and Close is 120.
+  - The corner buttons have fixed slots (Music, Sound, DEV), 120 px tall, 16 px apart, and clip long labels.
+  - The dev panel opens below them.
+  - The audit is clean in every state at both sizes. The only exception is the debug-only dev panel over the hint line.
+- **ChatGPT feedback, not applied:**
+  - The tall-phone panels look shrunk. That's the letterbox emulation: on a real 1080×2400 phone the expand stretch keeps the UI the same size.
+  - The faded Music button is deliberate: it shows music is off.
+  - Your call: a dedicated chatter bubble kept 48 px inside the screen edges (Jans' chatter Label3Ds clip at the screen edge when a Jan stands near it), and larger, brighter game-over stats.
+- **Felt wrong:** world labels near the screen edge (chatter, nameplates) get cut off. They're world-space, so this audit doesn't cover them.

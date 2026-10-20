@@ -192,9 +192,15 @@ func blocks(pos: Vector2) -> bool:
 
 # ---------- Sound ----------
 
+## The row of small buttons under the top bar, from the right: DEV, Sound, Music. Each has its
+## own slot (in pixels from the right edge) so longer labels like "Music off" never overlap.
+const CORNER_TOP := 360
+const CORNER_SLOTS := {"dev": [-174, -24], "sound": [-380, -190], "music": [-586, -396]}
+
+
 func _build_sound_toggles() -> void:
-	_music_button = _corner_button(-520, _toggle_music)
-	_sound_button = _corner_button(-345, _toggle_sound)
+	_music_button = _corner_button(CORNER_SLOTS.music, _toggle_music)
+	_sound_button = _corner_button(CORNER_SLOTS.sound, _toggle_sound)
 	_label_sound_toggles()
 
 
@@ -208,14 +214,15 @@ func _toggle_sound() -> void:
 	_label_sound_toggles()
 
 
-## A small button in the row under the top bar, `left` pixels in from the right edge.
-func _corner_button(left: int, on_press: Callable) -> Button:
-	var b := UiTheme.button("", on_press)
+## A small button in the row under the top bar, in `slot` ([left, right] from the right edge).
+func _corner_button(slot: Array, on_press: Callable, text := "") -> Button:
+	var b := UiTheme.button(text, on_press)
 	b.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	b.offset_left = left
-	b.offset_right = left + 160
-	b.offset_top = 360
-	b.offset_bottom = 360 + 90
+	b.offset_left = slot[0]
+	b.offset_right = slot[1]
+	b.offset_top = CORNER_TOP
+	b.offset_bottom = CORNER_TOP + UiTheme.BUTTON_HEIGHT
+	b.clip_text = true
 	b.add_theme_font_size_override("font_size", 30)
 	_root.add_child(b)
 	return b
@@ -231,19 +238,12 @@ func _label_sound_toggles() -> void:
 # ---------- Dev panel (debug builds) ----------
 
 func _build_dev() -> void:
-	_dev_button = UiTheme.button("DEV", _toggle_dev)
-	_dev_button.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	_dev_button.offset_left = -170
-	_dev_button.offset_right = -24
-	_dev_button.offset_top = 360
-	_dev_button.offset_bottom = 360 + 90
-	_dev_button.add_theme_font_size_override("font_size", 30)
-	_root.add_child(_dev_button)
+	_dev_button = _corner_button(CORNER_SLOTS.dev, _toggle_dev, "DEV")
 	_dev_panel = PanelContainer.new()
 	_dev_panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	_dev_panel.offset_left = -520
 	_dev_panel.offset_right = -24
-	_dev_panel.offset_top = 470
+	_dev_panel.offset_top = CORNER_TOP + UiTheme.BUTTON_HEIGHT + 20
 	_dev_panel.visible = false
 	_root.add_child(_dev_panel)
 	var v := VBoxContainer.new()

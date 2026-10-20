@@ -57,7 +57,7 @@ Polish and quality first, then new content.
   - **What:** a confetti and snow burst, a short camera shake and a level-up pop number when a building finishes or levels up. The furnace levelling up gets a bigger flare and a ring of light.
   - **Done when:** screenshots show it, and FPS stays high.
 
-- [ ] **11. Phone UI audit (safe).**
+- [x] **11. Phone UI audit (safe).** Done 2026-10-20 (AFK).
   - **What:** every tap target is at least 120 px at 1080 wide, no text is under 30 px, and the HUD, banner, sheet, DEV and sound buttons, joystick and game-over card don't overlap.
   - **Sizes:** check with screenshots at 1080×1920, and also at 1080×2400 (a tall phone) by changing the window size in `runtime eval`.
   - **Done when:** whatever needed fixing is fixed, with before and after screenshots described in the report.

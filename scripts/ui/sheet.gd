@@ -74,7 +74,7 @@ func _start(index: int) -> void:
 	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(_title)
 	var close_button := UiTheme.button("Close", close)
-	close_button.custom_minimum_size = Vector2(200, 96)
+	close_button.custom_minimum_size = Vector2(200, UiTheme.BUTTON_HEIGHT)
 	header.add_child(close_button)
 
 
