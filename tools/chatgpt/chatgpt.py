@@ -2,6 +2,7 @@
 
     python tools/chatgpt/chatgpt.py review shot1.png [shot2.png ...] --focus "HUD readability" [--out review.md]
     python tools/chatgpt/chatgpt.py image "a flat wood-log icon" --out assets/ui/icons/wood.png [--ref concept.png]
+    python tools/chatgpt/chatgpt.py image "the village furnace" --out source_art/concept/ink/furnace.png --for-3d --ref lineup.png
     python tools/chatgpt/chatgpt.py ask "Is 6 m/s too fast for a phone screen?" [--image shot.png] [--out answer.md]
 
 Every call is logged to tools/chatgpt/calls.log (time, kind, seconds, output, prompt summary) so
@@ -25,9 +26,19 @@ GENERATED = Path.home() / ".codex" / "generated_images"
 STYLE = (
     "Frostbite2 is a cosy, hypercasual mobile survival game: a small arctic town around a big furnace, "
     "seen from an angled top-down camera on a portrait phone. The player is Meagan; every villager is a "
-    "Jan. Art style: chunky, rounded, low-detail cartoon shapes, bold readable silhouettes, warm firelight "
-    "against cool snow blues, readable at phone size. Original work only: never copy Whiteout Survival "
-    "or any other game's assets or characters."
+    "Jan. Art style: an ink and watercolour picture book brought into 3D (docs/art-direction.md): soft "
+    "watercolour washes with paper grain, gently simplified chunky shapes, few materials, large clean "
+    "colour areas, warm firelight against cool snow blues, readable at phone size. Original work only: "
+    "never copy Whiteout Survival or any other game's assets or characters."
+)
+
+# Added by `image --for-3d`: what an image-to-3D generator (Meshy, Tripo) needs from a reference.
+FOR_3D = (
+    "This is a reference for an image-to-3D model generator. ONE object only, whole and centred with "
+    "space around it, front three-quarter view from slightly above, close to orthographic (no strong "
+    "perspective), square framing, plain flat light grey background, flat even lighting with no cast "
+    "shadows and no baked highlights, no ground, base, pedestal or scenery, no text. Only light, thin "
+    "outlines on the object itself, because the game draws its own ink lines."
 )
 
 REVIEW_PROMPT = """You are an experienced art director and game designer for hypercasual mobile games.
@@ -122,11 +133,29 @@ def _thread_images(thread):
     return sorted(folder.glob("*.png"), key=lambda p: p.stat().st_mtime)
 
 
+def _pad_square(path):
+    """Pads an image to a square with its own corner colour; 3D generators prefer 1:1."""
+    try:
+        from PIL import Image
+    except ImportError:
+        print("PIL not installed; left the image unpadded", file=sys.stderr)
+        return
+    im = Image.open(path).convert("RGB")
+    side = max(im.size)
+    if im.width == im.height:
+        return
+    square = Image.new("RGB", (side, side), im.getpixel((2, 2)))
+    square.paste(im, ((side - im.width) // 2, (side - im.height) // 2))
+    square.save(path)
+
+
 def cmd_image(args):
     start = time.time()
     out = Path(args.out)
     refs = [args.ref] if args.ref else []
     prompt = IMAGE_PROMPT.format(style=STYLE, prompt=args.prompt)
+    if args.for_3d:
+        prompt += "\n" + FOR_3D
     if refs:
         prompt += "\nMatch the style of the attached reference image."
     reply, thread = codex(prompt, refs, timeout=args.timeout)
@@ -135,6 +164,8 @@ def cmd_image(args):
         sys.exit(f"no image was generated. Codex said:\n{reply[-1500:]}")
     out.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(made[-1], out)
+    if args.for_3d:
+        _pad_square(out)
     # Keep the prompt beside the asset so it can be regenerated.
     out.with_suffix(".prompt.txt").write_text(args.prompt + "\n", encoding="utf-8")
     log("image", time.time() - start, str(out), args.prompt)
@@ -160,6 +191,7 @@ def main():
     i.add_argument("prompt")
     i.add_argument("--out", required=True)
     i.add_argument("--ref")
+    i.add_argument("--for-3d", action="store_true", help="a reference for Meshy/Tripo: one object, plain grey, flat light, square")
     i.add_argument("--timeout", type=int, default=300)
     i.set_defaults(fn=cmd_image)
     args = p.parse_args()

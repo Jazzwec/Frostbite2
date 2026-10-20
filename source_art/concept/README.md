@@ -1,6 +1,6 @@
-# Concept references for Tripo Studio
+# Concept references for 3D models (Tripo or Meshy)
 
-The PNGs here are reference images, made with ChatGPT (`tools/chatgpt/chatgpt.py image`, prompts in `*.prompt.txt`). They're for making the 3D models in Tripo Studio and are never used in the game directly. This folder is `.gdignore`d.
+The PNGs here are reference images, made with ChatGPT (`tools/chatgpt/chatgpt.py image --for-3d`, prompts in `*.prompt.txt`). They're for making the 3D models, by hand in Tripo Studio or with Meshy following the `asset-pipeline` skill (`.claude/skills/asset-pipeline/`), and are never used in the game directly. This folder is `.gdignore`d.
 
 ## Ink & watercolour references (2026-10-20)
 
@@ -14,7 +14,7 @@ The game's art direction is now ink & watercolour (`docs/art-direction.md`). The
 | `ink/bunkhouse.png` | `bunkhouse.glb` | — | Falu-red cabin, mittens on the door. |
 | `ink/lumber_yard.png` | `lumber_yard.glb` | — | Ochre woodshed, crooked-sun sign. |
 
-Tip for Tripo: ask for **flat, even lighting** in the texture, so the game's own light and shade aren't fighting light baked into the model.
+Tip for Tripo and Meshy: ask for **flat, even lighting** in the texture (Meshy's `meshy-6` with `remove_lighting` also strips it), so the game's own light and shade aren't fighting light baked into the model.
 
 ## Earlier references (soft cartoon, 2026-10-19)
 

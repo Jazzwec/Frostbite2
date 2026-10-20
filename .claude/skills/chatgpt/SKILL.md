@@ -10,12 +10,13 @@ ChatGPT is reached through the user's Codex CLI, which is logged in with their C
 ```
 python tools/chatgpt/chatgpt.py review <shot.png> [<shot2.png> ...] --focus "<what to judge>" [--out <file.md>]
 python tools/chatgpt/chatgpt.py ask "<question>" [--image <shot.png>] [--out <file.md>]
-python tools/chatgpt/chatgpt.py image "<what to draw>" --out <path.png> [--ref <style reference.png>]
+python tools/chatgpt/chatgpt.py image "<what to draw>" --out <path.png> [--ref <style reference.png>] [--for-3d]
 ```
 
 - A review or ask takes about 30 s; an image about 40 s. The script prints the result. Images are written to `--out`, with the prompt saved beside them as `<name>.prompt.txt`.
 - Every call is logged in `tools/chatgpt/calls.log`, which is gitignored. Check it to stay within a budget.
-- The script adds the game's style brief to every prompt by itself (cosy arctic town, chunky readable cartoon, original work only), so prompts only need to say what's specific.
+- The script adds the game's style brief to every prompt by itself (cosy arctic town, ink & watercolour picture book, original work only), so prompts only need to say what's specific.
+- `--for-3d` makes a reference for a 3D generator (Meshy or Tripo): it adds the generator's needs (one object, plain grey, flat light, no shadows) and pads the image to a square. The `asset-pipeline` skill has the whole route to a game model.
 - Use the Bash tool. Screenshots come from `swallowtail runtime screenshot --save_path <file>`.
 
 ## When to use it
@@ -33,7 +34,7 @@ python tools/chatgpt/chatgpt.py image "<what to draw>" --out <path.png> [--ref <
   - Then key the white background out to transparency, using PIL, which comes with the installed Python.
   - Check the icon at 64 px.
 - **Textures** go in `assets/textures/`. Ask for "seamless tileable", then check the tiling by placing two copies side by side.
-- **Concept and model sheets for Tripo** go in `source_art/concept/`. Ask for "character model sheet, front, side and back views, T-pose, plain light grey background", and keep one sheet as `--ref` for the others so the style stays consistent. These are references for the user to upload to Tripo Studio (image to 3D). They're never used in the game directly.
+- **Concept and model references for Tripo or Meshy** go in `source_art/concept/ink/`, made with `--for-3d`. Ask for "character model sheet, front, side and back views, T-pose, plain light grey background", and keep one sheet as `--ref` for the others so the style stays consistent. These are references for the user to upload to Tripo Studio (image to 3D). They're never used in the game directly.
 
 ## Rules
 - **Look at every generated image with the Read tool before using or committing it.** Regenerate (at most twice) if it's off-style, has text or watermarks, or isn't what was asked.
