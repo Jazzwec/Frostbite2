@@ -11,7 +11,7 @@ const WOLF_RED := Color(0.95, 0.25, 0.2)
 
 ## The border's colour while it's accented (Meagan's chosen target, fight_v2 reviews 2 and 3: a
 ## 2 px muted ochre border, quieter than the hit itself).
-const ACCENT := Color(0.79, 0.59, 0.25, 1.0)
+const ACCENT := Color(0.98, 0.94, 0.86, 1.0)
 const ACCENT_TIME := 0.3
 
 var width := WIDTH

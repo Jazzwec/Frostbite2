@@ -243,14 +243,49 @@ func _nudge_wolves(s: GameState, delta: float) -> void:
 				var dir := apart / d if d > 0.001 else Vector2.RIGHT.rotated(float(wolf.id * 7 - other.id * 3))
 				push += dir * (spacing - d) * 0.5
 		view.nudge = view.nudge.lerp(Vector3(push.x, 0, push.y), minf(1.0, WOLF_NUDGE_EASE * delta))
-		var below := 0
-		# Clear of Meagan's bar too (review 5: 8 px from hers).
-		if absf(s.meagan_pos.x - wolf.pos.x) < BAR_CLEAR_X and absf(s.meagan_pos.y - wolf.pos.y) < BAR_CLEAR_Z:
-			below += 1
-		for other in s.wolves:
-			if other.id < wolf.id and absf(other.pos.x - wolf.pos.x) < BAR_CLEAR_X and absf(other.pos.y - wolf.pos.y) < BAR_CLEAR_Z:
-				below += 1
-		view.bar_lift = BAR_STEP * mini(below, 2)
+	_stack_bars(s)
+
+
+## Health bars never collide on screen (review 6): working in screen terms (world X across; the
+## ground's depth and a bar's height foreshortened by the camera's pitch), each bar from the
+## lowest on screen up steps clear of the ones already placed, Meagan's bar and her head with a
+## 6 px gap, two steps at most.
+const PITCH := deg_to_rad(52.0)
+const BAR_HALF := 0.68
+const BAR_TALL := 0.3
+const HEAD_CLEAR := Vector2(0.5, 0.75)
+
+
+func _stack_bars(s: GameState) -> void:
+	var screen := func(p: Vector2, height: float) -> Vector2:
+		return Vector2(p.x, p.y * sin(PITCH) - height * cos(PITCH))
+	# What's fixed: her bar and her head.
+	var placed := [[screen.call(s.meagan_pos, 2.45), Vector2(BAR_HALF, BAR_TALL)], [screen.call(s.meagan_pos, 1.85), HEAD_CLEAR]]
+	var bars := []
+	for wolf in s.wolves:
+		var view: WolfView = _wolves.get(wolf.id)
+		if view and wolf.hp > 0.0 and wolf.hp < wolf.max_hp:
+			bars.append([view, screen.call(wolf.pos, WolfView.LOOK[wolf.kind].bar)])
+	bars.sort_custom(func(a, b): return a[1].y > b[1].y)
+	for bar in bars:
+		var at: Vector2 = bar[1]
+		var lift := 0
+		for step in 3:
+			var clash := false
+			for p in placed:
+				if absf(p[0].x - at.x) < BAR_HALF + p[1].x and absf(p[0].y - at.y) < (BAR_TALL + p[1].y) / 2.0:
+					clash = true
+					break
+			if not clash or lift == 2:
+				break
+			lift += 1
+			at.y -= BAR_STEP * cos(PITCH)
+		bar[0].bar_lift = BAR_STEP * lift
+		placed.append([at, Vector2(BAR_HALF, BAR_TALL)])
+	for wolf in s.wolves:
+		var view: WolfView = _wolves.get(wolf.id)
+		if view and not (wolf.hp > 0.0 and wolf.hp < wolf.max_hp):
+			view.bar_lift = 0.0
 
 
 ## Every 20 to 30 s while the city is calm, a working Jan says something. [brief]

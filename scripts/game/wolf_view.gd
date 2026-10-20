@@ -60,10 +60,10 @@ const TELL_LINE_WIDTH := 0.075
 ## spear, 7 px for her sweep, 10 px for a heavy blow), out and back over RECOIL_TIME.
 const FLASH_TIME := 0.08
 const FLASH_STRENGTH := 0.7
-const RECOIL := {"light": 0.11, "sweep": 0.14, "heavy": 0.16}
-const RECOIL_TIME := 0.17
-## Struck, it freezes this long (its own hit-stop; the game keeps running, review 4).
-const HIT_FREEZE := 0.06
+const RECOIL := {"light": 0.14, "sweep": 0.16, "heavy": 0.18}
+const RECOIL_TIME := 0.1
+## Struck, it freezes this long (its own hit-stop; the game keeps running, reviews 4 and 6).
+const HIT_FREEZE := 0.08
 const RIM_FLASH := preload("res://scripts/game/ink/rim_flash.gdshader")
 ## Where each kind's health bar and sack sit, and how far back it stands from whoever it fights
 ## (so its front, not its middle, is at the engine's fight distance; view only). [proto]
@@ -112,10 +112,14 @@ var _tell_line: MeshInstance3D
 var _tell_key: MeshInstance3D
 const TELL_KEY := Color(0.98, 0.94, 0.86, 1.0)
 const TELL_KEY_WIDTH := 0.075
-## While it recovers from its strike (the counter window, Balance.RECOVERY_DAMAGE_MULT), a broken
-## ochre halo lies under its feet, for exactly that long (review 5).
-var _halo: MeshInstance3D
-const HALO := Color(0.86, 0.62, 0.22, 0.9)
+const EDGE_PULSE := 0.18
+## While it recovers from its strike (the counter window, Balance.RECOVERY_DAMAGE_MULT), an ochre
+## ring of four segments lies just outside its feet, a segment going out each quarter of the
+## window (reviews 5 and 6). Ochre is for recovery only.
+var _halo: Node3D
+var _halo_parts: Array[MeshInstance3D] = []
+const HALO := Color(0.86, 0.62, 0.22, 0.95)
+const HALO_WIDTH := 0.12
 ## How far its health bar is raised to clear a neighbour's (PeopleLayer sets it; review 2), with a
 ## thin line down to its owner once it's lifted (review 3).
 var bar_lift := 0.0
@@ -130,7 +134,7 @@ var _load: Node3D
 ## The nearest thief's badge (fight_v2 review 2, only that one; the rest show their sacks): a cream
 ## capsule with a terracotta border (review 5: a pursuit objective, not loot), a sack and how
 ## much it carries, on a stem from its bar.
-const BADGE_PIXEL := 0.0045
+const BADGE_PIXEL := 0.0058
 const LADEN_LEAN := 9.0
 static var _disc: Texture2D
 ## Whether this one wears the badge (PeopleLayer picks the nearest thief).
@@ -215,7 +219,7 @@ func _init(enemy_kind := "wolf") -> void:
 	_badge_bag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_badge_bag.no_depth_test = true
 	_badge_bag.render_priority = 11
-	_badge_bag.pixel_size = 0.0026
+	_badge_bag.pixel_size = 0.0029
 	_badge_bag.visible = false
 	add_child(_badge_bag)
 	_badge_stem = MeshInstance3D.new()
@@ -363,8 +367,10 @@ func _build_troll() -> void:
 	for x in [-0.6, 0.6]:
 		body.add_child(Shapes.sphere(0.42, hide, Vector3(x, 2.2, 0.05)))
 	# The ice on its back, bigger on the left: its outline is lopsided from every side.
-	var spikes := [[Vector3(-0.3, 2.45, -0.45), 0.3, 0.9], [Vector3(-0.42, 2.0, -0.55), 0.25, 0.75],
-			[Vector3(0.22, 2.3, -0.48), 0.18, 0.5], [Vector3(-0.1, 2.75, -0.3), 0.2, 0.6]]
+	# Three clusters (review 6), the biggest on the left so its outline is lopsided.
+	var spikes := [[Vector3(-0.32, 2.45, -0.45), 0.32, 0.95], [Vector3(-0.5, 2.3, -0.42), 0.2, 0.6],
+			[Vector3(0.2, 2.3, -0.48), 0.2, 0.55], [Vector3(0.32, 2.2, -0.42), 0.14, 0.4],
+			[Vector3(-0.05, 1.85, -0.58), 0.22, 0.6]]
 	for sp in spikes:
 		var c := Shapes.cone(sp[1], sp[2], ice, sp[0])
 		c.rotation_degrees.x = -40.0
@@ -376,8 +382,10 @@ func _build_troll() -> void:
 		arm.position = Vector3(x, 2.25, 0.1)
 		body.add_child(arm)
 		# Oversized forearms and fists (review 1): its slam reads from its outline.
-		arm.add_child(Shapes.capsule(0.24, 0.9, hide, Vector3(0, -0.38, 0)))
-		arm.add_child(Shapes.capsule(0.33, 0.95, hide, Vector3(0, -1.0, 0.03)))
+		# One tapered limb, narrow at the shoulder, heavy at the fist.
+		var limb := Shapes.cylinder(0.2, 1.3, hide, Vector3(0, -0.7, 0.02))
+		(limb.mesh as CylinderMesh).bottom_radius = 0.36
+		arm.add_child(limb)
 		arm.add_child(Shapes.sphere(0.46, dark, Vector3(0, -1.48, 0.06)))
 		_parts["arm_r" if x > 0 else "arm_l"] = arm
 	_parts.body = body
@@ -449,21 +457,16 @@ func _build_tell() -> void:
 	for mi in [_tell_zone, _tell_key, _tell_line_thin, _tell_line]:
 		_tell.add_child(mi)
 	_tell_key.position.y = 0.005
-	_halo = MeshInstance3D.new()
-	var quad := QuadMesh.new()
-	quad.orientation = PlaneMesh.FACE_Y
-	quad.size = Vector2.ONE * _def.width * 1.9
-	_halo.mesh = quad
-	var halo_mat := StandardMaterial3D.new()
-	halo_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	halo_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	halo_mat.albedo_texture = Fx.broken_ring_texture()
-	halo_mat.albedo_color = HALO
-	_halo.material_override = halo_mat
-	_halo.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_halo = Node3D.new()
 	_halo.position.y = 0.05
 	_halo.visible = false
 	add_child(_halo)
+	var r: float = _def.width * 0.5 + 0.22
+	for k in 4:
+		var part := _ground_mesh(sector(r, r + HALO_WIDTH, 62.0), HALO)
+		part.rotation.y = deg_to_rad(90.0 * k + 45.0)
+		_halo.add_child(part)
+		_halo_parts.append(part)
 	_tell_line_thin.position.y = 0.01
 	_tell_line.position.y = 0.01
 	if _def.shape == "shot":
@@ -550,6 +553,11 @@ func _update_tell(enemy: Dictionary) -> void:
 	_tell_line_thin.visible = not locked
 	_tell_line.visible = locked
 	_tell_key.visible = locked
+	# One stronger pulse of the edge in the last moment before it lands (review 6).
+	var last := strike - t
+	var pulse := 1.0 + 0.06 * sin(clampf(1.0 - last / EDGE_PULSE, 0.0, 1.0) * PI) if last <= EDGE_PULSE else 1.0
+	_tell_line.scale = Vector3(pulse, 1.0, pulse)
+	_tell_key.scale = _tell_line.scale
 	(_tell_line_thin.material_override as StandardMaterial3D).albedo_color.a = 0.85 * fade
 	var from: Vector2 = enemy.get("tell_from", enemy.pos)
 	var at := Vector3(from.x, 0.04, from.y)
@@ -684,17 +692,20 @@ func sync(enemy: Dictionary, delta: float) -> void:
 		_bar_link.position.y = _bar_height - 0.1 + lifted / 2.0
 		_bar_link.scale.y = lifted
 	# The thief's badge hangs just above its bar on a short stem, a sack beside the amount.
-	_sack_disc.position = Vector3(0.0, _hp_bar.position.y + 0.5, 0)
-	_badge_amount.position = _sack_disc.position + Vector3(0.16, 0, 0)
-	_badge_bag.position = _sack_disc.position + Vector3(-0.2, 0, 0)
+	_sack_disc.position = Vector3(0.0, _hp_bar.position.y + 0.55, 0)
+	_badge_amount.position = _sack_disc.position + Vector3(0.2, 0, 0)
+	_badge_bag.position = _sack_disc.position + Vector3(-0.24, 0, 0)
 	_badge_stem.position = Vector3(0, _hp_bar.position.y + 0.2, 0)
 	_badge_stem.scale.y = 0.28
 	_update_tell(enemy)
 	_update_sack(enemy)
 	var t: float = enemy.get("bite_t", -1.0)
-	_halo.visible = t >= _def.tell + (Balance.ENEMY_LUNGE if _def.shape == "wedge" else 0.0)
+	var struck: float = _def.tell + (Balance.ENEMY_LUNGE if _def.shape == "wedge" else 0.0)
+	_halo.visible = t >= struck
 	if _halo.visible:
-		_halo.rotation.y += delta * 1.5
+		var left: float = clampf(1.0 - (t - struck) / _def.recover, 0.0, 1.0)
+		for k in 4:
+			_halo_parts[k].visible = left > k / 4.0
 
 
 ## A carrier shows what it took: a sack-sized icon of the resource it carries most of.
@@ -745,7 +756,7 @@ static func _badge_disc() -> Texture2D:
 func pulse_badge() -> void:
 	var t := create_tween()
 	for i in 2:
-		t.tween_property(_sack_disc, "scale", Vector3.ONE * 1.35, 0.15)
+		t.tween_property(_sack_disc, "scale", Vector3.ONE * 1.15, 0.15)
 		t.tween_property(_sack_disc, "scale", Vector3.ONE, 0.15)
 
 
@@ -824,12 +835,12 @@ func _pose_greybox(fighting: bool, lunge: float, moving: bool) -> void:
 			# recovery is its own shape: low, head down, the paw planted out in front.
 			# Recovering, head and shoulders right down (review 4: 8-10 px), the paw stays planted.
 			_parts.rear.rotation_degrees.x = -24.0 * wound + 10.0 * strike + 20.0 * slump
-			_parts.rear.rotation_degrees.y = 26.0 * wound - 18.0 * strike
+			_parts.rear.rotation_degrees.y = 34.0 * wound - 22.0 * strike
 			_parts.rear.position.y = 0.04 * bob - 0.22 * slump
 			_parts.paw_r.rotation_degrees.x = 60.0 * wound - 85.0 * strike + (0.0 if fighting else 18.0 * sin(_t))
 			_parts.paw_r.rotation_degrees.y = -30.0 * wound + 45.0 * strike
 			# Drawn out to the side, clear of its body (review 3: 15-20 px).
-			_parts.paw_r.rotation_degrees.z = 42.0 * wound
+			_parts.paw_r.rotation_degrees.z = 62.0 * wound
 			_parts.paw_l.rotation_degrees.x = -35.0 * wound + (0.0 if fighting else -18.0 * sin(_t))
 		"troll":
 			# The tell: both fists up over its head and spread apart, clear of its head (review 2);
@@ -840,9 +851,11 @@ func _pose_greybox(fighting: bool, lunge: float, moving: bool) -> void:
 				var sway := 0.0 if fighting else 14.0 * sin(_t + (0.0 if arm == "arm_l" else PI))
 				_parts[arm].rotation_degrees.x = -160.0 * wound - 30.0 * strike + 45.0 * slump + sway
 				_parts[arm].rotation_degrees.z = side * (34.0 * wound + 26.0 * slump)
-			_parts.body.rotation_degrees.x = -8.0 * wound + 12.0 * strike + 26.0 * slump
-			# Review 3: the slam drops it 12-16 px.
+			_parts.body.rotation_degrees.x = -8.0 * wound + 20.0 * strike + 26.0 * slump
+			# Review 3: the slam drops it 12-16 px; review 6: a squash as it winds up, a forward drop.
 			_parts.body.position.y = 0.05 * bob - 0.32 * strike - 0.08 * slump
+			_parts.body.scale = Vector3(1.0 + 0.06 * wound, 1.0 - 0.15 * wound, 1.0 + 0.06 * wound) * TROLL_SCALE
+			_parts.body.position.z = 0.25 * strike
 		"raider":
 			# The shard goes up behind its head (the tell), then forward in the throw.
 			_parts.arm_r.rotation_degrees.x = 150.0 * wound - 70.0 * strike + (0.0 if fighting else 20.0 * sin(_t))

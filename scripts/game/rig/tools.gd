@@ -83,13 +83,13 @@ static func make(id: String) -> Node3D:
 		# inside, and a tapered terracotta trail behind (fight_v2 review 5: a hostile silhouette,
 		# about 11 px plus a 20 px trail).
 		"shard":
-			var edge := Shapes.cone(0.12, 0.3, Color(0.22, 0.3, 0.42))
+			var edge := Shapes.cone(0.09, 0.4, Color(0.22, 0.3, 0.42))
 			edge.rotation_degrees.x = -90.0
 			n.add_child(edge)
-			var ice := Shapes.cone(0.085, 0.34, Color(0.82, 0.93, 1.0), Vector3(0, 0, -0.02))
+			var ice := Shapes.cone(0.06, 0.44, Color(0.82, 0.93, 1.0), Vector3(0, 0, -0.02))
 			ice.rotation_degrees.x = -90.0
 			n.add_child(ice)
-			var trail := Shapes.cone(0.09, 0.5, Color(0.66, 0.3, 0.2, 0.75), Vector3(0, 0, 0.38))
+			var trail := Shapes.cone(0.08, 0.5, Color(0.66, 0.3, 0.2, 0.75), Vector3(0, 0, 0.44))
 			trail.rotation_degrees.x = 90.0
 			n.add_child(trail)
 		# A snowball in her mitten, for her throw.

@@ -302,21 +302,7 @@ func _process(delta: float) -> void:
 		if _strip_timer <= 0.0 or sheet.visible:
 			_strip_timer = 0.0
 			_strip.visible = false
-	# Between news, a warned wave's countdown owns the strip (review 4).
-	if _strip_timer <= 0.0:
-		_strip.visible = s.attack_warned and not sheet.visible and not s.game_over
-		if _strip.visible:
-			var troll: bool = s.next_wave.get("mix", {}).get("troll", 0) > 0
-			var left := ceili(maxf(s.attack_at - s.time, 0.0))
-			var urgent := left <= COUNTDOWN_URGENT
-			var look := (2 if urgent else 0) + int(troll)
-			if look != _countdown_look:
-				_countdown_look = look
-				var wash: Color = (TROLL_COMING_WASH if troll else COMING_WASH) if urgent else COUNTDOWN_WASH
-				_strip.add_theme_stylebox_override("panel", _strip_style(wash))
-				_strip_label.add_theme_color_override("default_color", UiTheme.PAPER_TEXT if urgent else UiTheme.INK)
-			_strip_label.text = "%s  %s  ·  %ds" % [UiTheme.icon("troll" if troll else "wolves", 44), "Troll raid" if troll else "Next raid", left]
-			_strip.modulate.a = 1.0
+
 
 
 ## The stats line steps down a size when big numbers would push it past the panel, and back up
@@ -490,6 +476,15 @@ func _forecast_text(s: GameState) -> String:
 	var wave_line := ""
 	if s.raid_on and raiders > 0:
 		wave_line = "%s Wave %d  ·  %d left" % [UiTheme.icon("wolves", 44), s.wave, raiders]
+	# One status row (review 6): the raid on now and the next one's countdown, amber only for the
+	# last seconds (a troll's in its own deeper amber).
+	if s.attack_warned:
+		var troll: bool = s.next_wave.get("mix", {}).get("troll", 0) > 0
+		var secs := ceili(maxf(s.attack_at - s.time, 0.0))
+		var next := "%s %s %ds" % [UiTheme.icon("troll" if troll else "wolves", 44), "Troll raid" if troll else "Next raid", secs]
+		if secs <= COUNTDOWN_URGENT:
+			next = "[color=#%s][b]%s[/b][/color]" % [(UiTheme.OCHRE_DEEP if troll else UiTheme.OCHRE).to_html(false), next]
+		wave_line = next if wave_line == "" else wave_line + "  ·  " + next
 	# What's coming, by kind, on its own row (review 4); the strip has the countdown.
 	var left := maxf(s.attack_at - s.time, 0.0)
 	var shown_for := Economy.attack_warning(s) - left

@@ -220,12 +220,13 @@ func _armory_grid() -> GridContainer:
 	grid.add_theme_constant_override("h_separation", 28)
 	grid.add_theme_constant_override("v_separation", 6)
 	_armory_cells = {}
-	# A fourth row says what the next level does to a wolf, when it does something (review 2).
-	for row in ARMORY_ROWS + [["wolf", "Hits to beat a wolf"]]:
-		var name := UiTheme.label(row[1], 36, UiTheme.INK_SOFT)
+	# What the next level does to a wolf leads, big (reviews 2 and 6); the numbers follow, smaller.
+	for row in [["wolf", "Hits to beat a wolf"]] + ARMORY_ROWS:
+		var lead: bool = row[0] == "wolf"
+		var name := UiTheme.label(row[1], 44 if lead else 34, UiTheme.INK if lead else UiTheme.INK_SOFT)
 		name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var now := UiTheme.label("", 40)
-		var next := UiTheme.label("", 40, UiTheme.TEAL_DEEP)
+		var now := UiTheme.label("", 46 if lead else 36)
+		var next := UiTheme.label("", 46 if lead else 36, UiTheme.TEAL_DEEP)
 		for l in [now, next]:
 			l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 			l.custom_minimum_size.x = 150
@@ -256,7 +257,7 @@ func _refresh_armory(s: GameState) -> void:
 	var counts: Array = sweeps if by_sweep else balls
 	now["wolf"] = "%d" % counts[0]
 	next["wolf"] = "%d" % counts[1]
-	_armory_cells.wolf[2].text = "Sweeps to beat a wolf" if by_sweep else "Snowballs to beat a wolf"
+	_armory_cells.wolf[2].text = "Wolves: sweeps" if by_sweep else "Wolves: snowballs"
 	for key in _armory_cells:
 		var cells: Array = _armory_cells[key]
 		cells[0].text = now[key]
@@ -382,7 +383,7 @@ func _refresh() -> void:
 		var short := _shortfall(s, Economy.site_cost(s, site_index))
 		_upgrade.text = "Upgrade to Lv %d" % (site.level + 1) if short == "" else "Start Lv %d delivery" % (site.level + 1)
 		if short != "":
-			_status.text += "\nDeliver what's missing to its pad."
+			_status.text += "\n%s more needed: deliver it to the pad." % short
 		if (short != "") != _upgrade_muted:
 			_upgrade_muted = short != ""
 			if _upgrade_muted:
