@@ -75,6 +75,7 @@ func _ready() -> void:
 	add_child(_hud)
 	_rig.ui_blocker = _hud.blocks
 	_rig.joystick = _hud.joystick
+	_hud.hints.setup(_rig.camera, _meagan, Game.tips.get("hints", {}))
 	Audio.listener = _meagan
 	Game.engine_event.connect(_on_event)
 	_ink = InkLook.new(_env, _sun)

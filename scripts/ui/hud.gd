@@ -8,6 +8,7 @@ signal ink_toggled
 
 var sheet: Sheet
 var joystick: Joystick
+var hints: Hints
 
 var _root: Control
 var _top: PanelContainer
@@ -38,10 +39,13 @@ func _ready() -> void:
 	add_child(_root)
 	_build_top()
 	_build_banner()
+	hints = Hints.new()
+	_root.add_child(hints)
 	joystick = Joystick.new()
 	_root.add_child(joystick)
 	sheet = Sheet.new()
 	_root.add_child(sheet)
+	hints.sheet = sheet
 	_build_sound_toggles()
 	if OS.is_debug_build():
 		_build_dev()

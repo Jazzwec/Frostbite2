@@ -12,6 +12,8 @@ const TICK := 0.1
 const MAX_ADVANCE := 1.0
 ## The winter is saved this often while playing, and on pause, focus loss and quit. [backlog]
 const AUTOSAVE_INTERVAL := 10.0
+## The "Drag anywhere to move" hint counts as done once Meagan is this far from where she started. [proto]
+const HINT_MOVED_ENOUGH := 2.0
 
 # ---------- Heat and fuel ----------
 

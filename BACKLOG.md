@@ -19,7 +19,7 @@ Polish and quality first, then new content.
     - In the game, quitting and relaunching continues where it left off.
     - Game over shows the card again, not a frozen world.
 
-- [ ] **2. First-minute hints (safe).**
+- [x] **2. First-minute hints (safe).** Done 2026-10-20 (AFK).
   - **What:** a new player learns the loop with no text wall.
   - **How:** a short chain of hints, each shown until it's done:
     1. "Drag anywhere to move"

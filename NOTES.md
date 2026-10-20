@@ -92,6 +92,11 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
 - [ ] Play a minute (build something, rescue a Jan), close the window, start again: the winter continues where it was, with the same Jans, buildings, bag and timers.
 - [ ] Let the fire go out, close and reopen: the game-over card shows again. Play again starts a fresh winter, and reopening after that starts fresh too.
 
+**First-minute hints (2026-10-20)** (to see them again, delete the `[hints]` section of `user://settings.cfg`)
+- [ ] A fresh profile shows "Drag anywhere to move", then "Chop Wood" with an arrow to the nearest forest, "Bring Wood to the furnace", "Tap the frozen Jan" (arrow to him) and "Drop extras at the Stockpile", each until it's done.
+- [ ] Off-screen targets get an arrow on the screen edge; on-screen ones a bobbing arrow above them. The line moves up when a sheet opens, and dragging on it still steers Meagan.
+- [ ] Once all five are done they never come back, not after Play again or a restart.
+
 **Objective: keep the fire burning**
 - [ ] A winter starts at 100/100 heat. With no Wood it lasts about 2½ minutes.
 - [ ] Below 25%: the bar pulses red, banner and horn. Below 10%: "Fire out in 0:12" on the bar.
