@@ -68,8 +68,24 @@ func setup(is_frozen: bool, arrival_id := -1) -> void:
 	add_child(_hp_bar)
 	if frozen:
 		var ice := Vector3(maxf(1.0, height * 0.7), height + 0.3, maxf(1.0, height * 0.6))
-		_ice = Shapes.box(ice, Color(0.7, 0.88, 1.0, 0.55), Vector3(0, ice.y / 2.0, 0))
+		_ice = Shapes.box(ice, Color(0.66, 0.85, 0.95, 0.5), Vector3(0, ice.y / 2.0, 0))
 		add_child(_ice)
+		# Reads as a block of ice in the picture-book style (ink_v3): pale opaque edges for the
+		# ink to catch, two highlight streaks, snow on top and a drift round its foot.
+		var edge := Color(0.8, 0.92, 0.98)
+		for x in [-1, 1]:
+			for z in [-1, 1]:
+				_ice.add_child(Shapes.box(Vector3(0.07, ice.y, 0.07), edge, Vector3(x * ice.x / 2.0, 0, z * ice.z / 2.0)))
+		for streak in [Vector3(-0.15, 0.2, 0.0), Vector3(0.05, -0.15, 0.0)]:
+			var s := Shapes.box(Vector3(0.08, ice.y * 0.45, 0.02), Color(0.96, 0.99, 1.0), streak + Vector3(0, 0, ice.z / 2.0 + 0.01))
+			s.rotation.z = 0.5
+			_ice.add_child(s)
+		var cap := Shapes.sphere(0.5, Shapes.SNOW_COLOR, Vector3(0, ice.y / 2.0 + 0.03, 0))
+		cap.scale = Vector3(ice.x * 1.05, 0.22, ice.z * 1.05)
+		_ice.add_child(cap)
+		var foot := Shapes.sphere(0.5, Shapes.SNOW_COLOR, Vector3(0, -ice.y / 2.0, 0))
+		foot.scale = Vector3(ice.x * 1.6, 0.35, ice.z * 1.6)
+		_ice.add_child(foot)
 		_hint = Shapes.label("Frozen Jan!", Vector3(0, height + 0.8, 0), 44, Color(0.75, 0.9, 1.0))
 		add_child(_hint)
 		_tap = Shapes.tap_area(Vector3(2.2, 2.5, 2.2), "arrival", arrival_id)

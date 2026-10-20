@@ -50,13 +50,43 @@ func setup(node_index: int, s: GameState) -> void:
 	add_child(Shapes.tap_area(Vector3(5, 3, 5), "node", index))
 
 
+## The frozen pond as a little harbour corner (ink_v3, 2026-10-20): pale ice with a few dark
+## cracks, ice holes ringed with snow, soft drifts round the shore, and a jetty and a frozen-in
+## rowing boat from the house kit, clear of the holes the Jans fish at.
+const ICE := Color(0.7, 0.81, 0.85)
+const WATER := Color(0.17, 0.27, 0.33)
+
+
 func _build_pond() -> void:
-	add_child(Shapes.cylinder(POND_RADIUS, 0.04, Color(0.68, 0.84, 0.95), Vector3(0, 0.02, 0)))
+	add_child(Shapes.cylinder(POND_RADIUS + 0.35, 0.04, ICE, Vector3(0, 0.02, 0)))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = index * 104729 + 7
+	for i in 5:
+		var crack := Shapes.box(Vector3(rng.randf_range(0.6, 1.3), 0.012, 0.035), ICE.darkened(0.3), Vector3(0, 0.045, 0))
+		var a := rng.randf_range(0.0, TAU)
+		crack.position = Vector3(cos(a), 0, sin(a)) * rng.randf_range(0.6, 1.6) + Vector3(0, 0.045, 0)
+		crack.rotation.y = a + rng.randf_range(-0.6, 0.6)
+		add_child(crack)
+	for i in 10:
+		var a := TAU * i / 10.0 + rng.randf_range(-0.15, 0.15)
+		var drift := Shapes.sphere(0.5, Shapes.SNOW_COLOR, Vector3(cos(a), 0, sin(a)) * (POND_RADIUS + 0.45))
+		drift.scale = Vector3(rng.randf_range(1.6, 2.2), rng.randf_range(0.3, 0.42), 0.9)
+		drift.rotation.y = -a + PI / 2.0
+		add_child(drift)
 	for i in HOLES:
 		var angle := TAU * i / HOLES + PI / 4.0
 		var p := Vector3(cos(angle), 0, sin(angle)) * HOLE_RADIUS
-		add_child(Shapes.cylinder(0.3, 0.05, Color(0.12, 0.2, 0.32), p + Vector3(0, 0.03, 0)))
+		var rim := Shapes.sphere(0.4, Shapes.SNOW_COLOR, p + Vector3(0, 0.02, 0))
+		rim.scale = Vector3(1.0, 0.14, 1.0)
+		add_child(rim)
+		add_child(Shapes.cylinder(0.3, 0.05, WATER, p + Vector3(0, 0.05, 0)))
 		_holes.append(p)
+	for spec in [["prop_jetty", Vector3(-POND_RADIUS - 0.4, 0, -0.9), 70.0], ["prop_boat", Vector3(POND_RADIUS - 0.1, 0, -1.3), 25.0]]:
+		var prop := Props.make(spec[0], 1.0, spec[2])
+		if prop:
+			Props.use_vertex_colours(prop)
+			prop.position = spec[1]
+			add_child(prop)
 
 
 func _make_piece(rng: RandomNumberGenerator) -> Node3D:

@@ -475,9 +475,34 @@ def bench():
     return h
 
 
+def boat():
+    """A little rowing boat frozen in at the edge of the ice, snow in its bottom."""
+    h = House("prop_boat")
+    h.blob((0, 0, 0.22), (1.0, 2.2, 0.55), "wood")
+    h.blob((0, 0, 0.36), (0.8, 1.9, 0.36), "wood_dark")
+    h.blob((0, 0, 0.3), (0.66, 1.6, 0.2), "snow")
+    h.box((0, 0.2, 0.42), (0.86, 0.16, 0.06), "wood_light")
+    h.box((0, -0.5, 0.42), (0.82, 0.16, 0.06), "wood_light")
+    h.cyl((0.42, 0.1, 0.5), 0.03, 1.6, "wood_light", axis='Y', segments=5, rx=0.2)
+    return h
+
+
+def jetty():
+    """A short plank jetty out over the ice, on four posts, snow along its boards."""
+    h = House("prop_jetty")
+    for x in (-0.45, 0.45):
+        for y in (-1.0, 1.0):
+            h.cyl((x, y, 0.3), 0.08, 0.6, "wood_dark", segments=6)
+            h.blob((x, y, 0.62), (0.2, 0.2, 0.12), "snow")
+    for i in range(9):
+        h.box((0, -1.1 + i * 0.275, 0.5), (1.1, 0.24, 0.06), "wood", rz=0.03 * ((i % 3) - 1))
+    h.box((0.3, 0.0, 0.56), (0.35, 2.2, 0.06), "snow", bevel=0.025)
+    return h
+
+
 PROPS = {
     "rock_a": rock_a, "rock_b": rock_b, "fence": fence, "shrub": shrub, "lantern_post": lantern_post,
-    "woodpile": woodpile, "sled": sled, "bench": bench,
+    "woodpile": woodpile, "sled": sled, "bench": bench, "boat": boat, "jetty": jetty,
 }
 
 

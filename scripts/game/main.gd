@@ -389,11 +389,48 @@ func _rebuild_frontier() -> void:
 				veiled[n] = true
 				var r := MapData.tile_rect(n)
 				_frontier.add_child(Shapes.box(Vector3(r.size.x, VEIL_HEIGHT, r.size.y), VEIL_COLOR, Vector3(r.get_center().x, VEIL_HEIGHT / 2.0, r.get_center().y)))
+				_dress_veil(s, n, r)
 	for i in s.gates.size():
 		var g := GateView.new()
 		_frontier.add_child(g)
 		g.setup(i, s.gates[i])
 		_gates.append(g)
+
+
+## A closed tile reads as deep, wild snow rather than a slate block (ink_v3, 2026-10-20): soft
+## drift lips spill over its edge wherever it meets open ground (clear of the gates), and a few
+## dark pines stand on it, seeded by the tile.
+const VEIL_LIP_STEP := 2.4
+const VEIL_PINES := 4
+
+
+func _dress_veil(s: GameState, tile: Vector2i, r: Rect2) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash([s.run_seed, tile.x, tile.y, "veil"])
+	for side: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+		if not WorldRules.is_open(s, tile + side):
+			continue
+		var normal := Vector2(side)
+		var along := Vector2(-normal.y, normal.x)
+		var edge := r.get_center() + normal * MapData.TILE_SIZE / 2.0
+		var steps := int(MapData.TILE_SIZE / VEIL_LIP_STEP)
+		for i in steps + 1:
+			var p := edge + along * (-MapData.TILE_SIZE / 2.0 + i * VEIL_LIP_STEP) - normal * 0.2
+			if s.gates.any(func(g): return p.distance_to(g.pos) < 3.2):
+				continue
+			var lip := Shapes.sphere(0.5, Shapes.SNOW_COLOR, Vector3(p.x, VEIL_HEIGHT * 0.78, p.y))
+			lip.scale = Vector3(rng.randf_range(2.4, 3.2), rng.randf_range(0.7, 1.0), rng.randf_range(1.4, 1.9))
+			lip.rotation.y = atan2(along.x, along.y) + PI / 2.0
+			lip.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			_frontier.add_child(lip)
+	for i in VEIL_PINES:
+		var p := Vector2(rng.randf_range(r.position.x + 3.0, r.end.x - 3.0), rng.randf_range(r.position.y + 3.0, r.end.y - 3.0))
+		var pine_id: String = Props.PINE_HEIGHTS.keys()[rng.randi() % Props.PINE_HEIGHTS.size()]
+		var pine := Props.make(pine_id, rng.randf_range(0.8, 1.2), rng.randf_range(0, 360))
+		if pine:
+			Props.use_vertex_colours(pine)
+			pine.position = Vector3(p.x, VEIL_HEIGHT, p.y)
+			_frontier.add_child(pine)
 
 
 ## Where the camera may go: the open tiles, plus enough to see the closed ring round them.

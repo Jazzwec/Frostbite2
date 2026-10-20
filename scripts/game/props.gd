@@ -32,6 +32,8 @@ const PATHS := {
 	"prop_woodpile": "res://assets/models/blender/prop_woodpile.glb",
 	"prop_sled": "res://assets/models/blender/prop_sled.glb",
 	"prop_bench": "res://assets/models/blender/prop_bench.glb",
+	"prop_boat": "res://assets/models/blender/prop_boat.glb",
+	"prop_jetty": "res://assets/models/blender/prop_jetty.glb",
 }
 ## The pines' own height in metres (base of the trunk to the tip), to scale them to a tree's height.
 const PINE_HEIGHTS := {"pine_a": 3.45, "pine_b": 3.55, "pine_c": 2.55}
