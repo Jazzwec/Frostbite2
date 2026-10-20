@@ -3,6 +3,9 @@ cell in assets/ui/icons/, its white background un-blended into transparency so t
 watercolour edges stay soft on any panel. Needs Pillow.
 
     python tools/chatgpt/cut_icons.py source_art/icons/v2/sheet.png 4 4
+    python tools/chatgpt/cut_icons.py source_art/icons/enemies/sheet.png 2 2 fox bear raider troll
+
+Names after the grid size name the cells instead of the v2 sheet's NAMES.
 """
 import sys
 from pathlib import Path
@@ -72,8 +75,9 @@ def keep_main(cell, step=4, keep=0.25):
 def main():
     sheet = Image.open(sys.argv[1]).convert("RGB")
     cols, rows = int(sys.argv[2]), int(sys.argv[3])
+    names = sys.argv[4:] or NAMES
     w, h = sheet.size[0] / cols, sheet.size[1] / rows
-    for i, name in enumerate(NAMES):
+    for i, name in enumerate(names):
         cx, cy = i % cols, i // cols
         cell = unblend(sheet.crop((round(cx * w), round(cy * h), round((cx + 1) * w), round((cy + 1) * h))))
         cell = keep_main(cell)

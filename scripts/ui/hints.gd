@@ -4,8 +4,8 @@ extends Control
 ## with an arrow to where it happens (over the target, or at the screen edge when it's off screen).
 ## Hints that are done are remembered in settings.cfg, so they never repeat, even after Play again.
 ## Nothing here takes touches. The rules (order, when each is done, where) are in HintRules.
-## Once the hints are done, a full bag still gets a nudge: the line and an arrow to the nearest
-## stockpile, every time (AFK V10, from the Astra review, 2026-10-20).
+## During a fight they keep out of the way, and the arrow hides while a sheet is open (fight_v2
+## review 1). A full bag shows in the top bar, not here.
 
 const ARROW_SIZE := 46.0
 ## Where an off-screen arrow may sit: this far in from each screen edge (left, top, right,
@@ -63,7 +63,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	var s := Game.engine.state
-	if s.game_over or _meagan == null:
+	if s.game_over or _meagan == null or Combat.meagan_busy(s):
 		_show("")
 		return
 	_time += delta
@@ -79,15 +79,10 @@ func _process(delta: float) -> void:
 			continue
 		next = id
 		break
-	if next == "" and Economy.bag_total(s) >= Economy.bag_cap(s) - 0.01:
-		_show("bag_full")
-		_place_pill()
-		_place_arrow(MapData.stockpile_pad(s, MapData.nearest_stockpile(s, s.meagan_pos)))
-		return
 	_show(next)
 	if next != "":
 		_place_pill()
-		_place_arrow(HintRules.target(next, s))
+		_place_arrow(HintRules.target(next, s) if not sheet.visible else Vector2.INF)
 
 
 ## The line sits above the bottom of the screen, or above the sheet when it's open.

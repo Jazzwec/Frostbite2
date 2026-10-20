@@ -114,6 +114,7 @@ func _ready() -> void:
 	_rig.joystick = _hud.joystick
 	_hud.hints.setup(_rig.camera, _meagan, Game.tips.get("hints", {}))
 	_hud.bag_readout.setup(_rig.camera, _meagan)
+	_hud.threat_arrows.setup(_rig.camera)
 	Audio.listener = _meagan
 	Game.engine_event.connect(_on_event)
 	_ink = InkLook.new(_env, _sun)
@@ -968,11 +969,16 @@ func _on_event(ev: Dictionary) -> void:
 			_hud.show_banner(Game.random_message("blizzardEnd"), 4.0, GOOD_GREEN)
 		"attack_warning":
 			Audio.play("warning")
-			# The countdown itself is in the forecast strip, so the banner can't disagree with it.
-			_hud.show_banner("Wave %d is coming!" % ev.wave, 4.0, UiTheme.WARN_WASH, "wolves")
+			# A short strip with what's coming; the countdown and the kinds stay in the forecast
+			# line, and edge arrows point at the sides (fight_v2 review 1). A troll is louder.
+			if ev.mix.get("troll", 0) > 0:
+				Audio.play("crash", Vector3.INF, 0.4, -4.0)
+				_hud.show_strip("An ice troll comes with wave %d!  %s" % [ev.wave, Hud.mix_icons(ev.mix, 40)], "", TROLL_WASH, 2.5)
+			else:
+				_hud.show_strip("Wave %d soon  %s" % [ev.wave, Hud.mix_icons(ev.mix, 40)], "wolves")
 		"wolves_arrived":
 			Audio.play("howl")
-			_hud.show_banner("Wave %d: %s, after the store!" % [ev.wave, _mix_text(ev.mix)], 4.0, UiTheme.WARN_WASH, "wolves")
+			_hud.show_strip("Wave %d is here!" % ev.wave, "wolves")
 		"wolf_windup":
 			# Each kind's wind-up has its own sound (the steer's readability rule 2).
 			var sound: Array = WINDUP_SOUNDS[ev.kind]
@@ -1034,10 +1040,10 @@ func _on_event(ev: Dictionary) -> void:
 			Audio.play("coin")
 			_gather_loot(ev)
 		"meagan_injured":
-			Audio.play("yelp", Vector3.INF, 1.6)
-			_hud.show_banner("Meagan is hurt! She'll be back up when the raid is over.", 4.0)
+			Audio.play("hurt", Vector3.INF, 0.8)
+			_hud.show_strip("Meagan is down until the raid is over", "", UiTheme.WARN_WASH, 2.5)
 		"attack_over":
-			_hud.show_banner("Wave %d held!" % ev.wave, 3.0, GOOD_GREEN)
+			_hud.show_strip("Wave %d held!" % ev.wave, "", GOOD_GREEN)
 
 
 ## Each kind's wind-up sound: [sound, pitch, volume dB].
@@ -1045,6 +1051,8 @@ const WINDUP_SOUNDS := {
 	"fox": ["breath", 1.6, -6.0], "wolf": ["breath", 0.9, -4.0], "bear": ["howl", 0.45, -6.0],
 	"troll": ["crash", 0.4, -8.0], "raider": ["whoosh", 0.6, -8.0],
 }
+## A troll's warning strip: a deeper rust than the usual warning.
+const TROLL_WASH := Color(0.5, 0.17, 0.12)
 const KILL_PITCH := {"fox": 1.5, "wolf": 1.0, "bear": 0.6, "troll": 0.45, "raider": 1.2}
 const STRIKE_PITCH := {"fox": 1.3, "wolf": 1.0, "bear": 0.7, "troll": 0.5, "raider": 1.1}
 ## Loot from kills close together is added up for this long, then shown once, above the fight's

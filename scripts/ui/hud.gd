@@ -11,6 +11,11 @@ const STATS_FONT := 36
 const STATS_FONT_SMALL := 31
 ## The wolves countdown turns orange for its last this many seconds.
 const WOLVES_URGENT := 10.0
+## Fight news (a wave announced or arriving, Meagan down, a theft) is a one-line strip under the
+## buttons for this long, then lives on in the forecast line (fight_v2 review 1: give the middle
+## of the screen back to the fight).
+const STRIP_TIME := 1.5
+const STRIP_FONT := 34
 ## Resources fly between their number in the top bar and the world (into it as she gathers, out
 ## of it as a pad or gate takes them) as icons this big, along a curve this wide, in this long.
 ## [agreed 2026-10-20, from ChatGPT's review]
@@ -25,6 +30,7 @@ const FLY_TRAIL_COLOR := Color(1.0, 0.93, 0.78, 0.9)
 var sheet: Sheet
 var joystick: Joystick
 var hints: Hints
+var threat_arrows: ThreatArrows
 var bag_readout: BagReadout
 var milestone_cards: MilestoneCards
 
@@ -36,11 +42,15 @@ var _heat_label: RichTextLabel
 ## The stats line: one label each, so a gathered resource can fly to its own number.
 var _stats: HBoxContainer
 var _stat_labels := {}
+## When even the small font doesn't fit, the stats drop their words and keep icon and number.
+var _stats_compact := false
 var _forecast: RichTextLabel
 var _banner: PanelContainer
 var _banner_label: RichTextLabel
 var _banner_timer := 0.0
-var _dev_button: Button
+var _strip: PanelContainer
+var _strip_label: RichTextLabel
+var _strip_timer := 0.0
 var _game_over: GameOverCard
 ## A chest's offer while it's waiting for her choice. [agreed 2026-10-20]
 var _offer_card: OfferCard
@@ -49,6 +59,9 @@ var _low_warned := false
 var _time := 0.0
 var _music_button: Button
 var _sound_button: Button
+## Music, Sound and (in debug builds) DEV live in one Menu (fight_v2 review 1).
+var _menu_button: Button
+var _menu_panel: PanelContainer
 var _dev_panel: PanelContainer
 var _jans_button: Button
 
@@ -61,6 +74,7 @@ func _ready() -> void:
 	add_child(_root)
 	_build_top()
 	_build_banner()
+	_build_strip()
 	milestone_cards = MilestoneCards.new()
 	_root.add_child(milestone_cards)
 	milestone_cards.setup(Game.milestones)
@@ -69,15 +83,18 @@ func _ready() -> void:
 	_root.add_child(bag_readout)
 	hints = Hints.new()
 	_root.add_child(hints)
+	threat_arrows = ThreatArrows.new()
+	_root.add_child(threat_arrows)
 	joystick = Joystick.new()
 	_root.add_child(joystick)
 	sheet = Sheet.new()
 	_root.add_child(sheet)
 	hints.sheet = sheet
-	_build_sound_toggles()
+	threat_arrows.sheet = sheet
 	_jans_button = _corner_button(CORNER_SLOTS.jans, _toggle_jans, "Jans")
 	if OS.is_debug_build():
 		_build_dev()
+	_build_menu()
 
 
 func _build_top() -> void:
@@ -113,7 +130,7 @@ func _build_top() -> void:
 	_stats.add_theme_constant_override("separation", 22)
 	_stats.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v.add_child(_stats)
-	for key in ["jans", "wood", "food", "materials"]:
+	for key in ["jans", "wood", "food", "materials", "bag"]:
 		var l := UiTheme.rich_label(STATS_FONT)
 		l.autowrap_mode = TextServer.AUTOWRAP_OFF
 		_stats.add_child(l)
@@ -135,6 +152,36 @@ func _build_banner() -> void:
 	_banner_label = UiTheme.rich_label(42, UiTheme.PAPER_TEXT)
 	_banner_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_banner.add_child(_banner_label)
+
+
+## The strip for fight news: one short line high up, under the buttons, gone in `seconds`.
+func _build_strip() -> void:
+	_strip = PanelContainer.new()
+	_strip.add_theme_stylebox_override("panel", UiTheme.panel_style(UiTheme.WARN_WASH))
+	_strip.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_strip.offset_left = 40
+	_strip.offset_right = -40
+	_strip.offset_top = CORNER_TOP + UiTheme.BUTTON_HEIGHT + 14
+	_strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_strip.visible = false
+	_root.add_child(_strip)
+	_strip_label = UiTheme.rich_label(STRIP_FONT, UiTheme.PAPER_TEXT)
+	_strip_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_strip_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_strip.add_child(_strip_label)
+
+
+## Fight news in the strip; `icon` (a UiTheme icon name) leads it. Not while a sheet is open:
+## the forecast line still has it (fight_v2 review 1).
+func show_strip(text: String, icon := "", color := UiTheme.WARN_WASH, seconds := STRIP_TIME) -> void:
+	if sheet.visible:
+		return
+	_strip.add_theme_stylebox_override("panel", UiTheme.panel_style(color))
+	_strip_label.text = (UiTheme.icon(icon, 44) + "  " if icon != "" else "") + text
+	_strip.visible = true
+	_strip_timer = seconds
+	_strip.modulate.a = 0.0
+	create_tween().tween_property(_strip, "modulate:a", 1.0, 0.15)
 
 
 ## A warning across the screen; `icon` (a UiTheme icon name) leads the text.
@@ -160,11 +207,16 @@ func _process(delta: float) -> void:
 	_heat_label.text = "%s Heat %s / %s   (−%.1f/s)" % [UiTheme.icon("heat", 44), Fmt.num(s.heat), Fmt.num(cap), drain]
 	_warn_low_heat(s, frac)
 	var caps := Economy.caps(s)
-	# Each number keeps its word next to its icon, so it says what it is.
-	_stat_labels.jans.text = "%s Jans %d/%d" % [UiTheme.icon("jans", 52), s.jans.size(), Economy.jan_cap(s)]
-	_stat_labels.wood.text = "%s Wood %s/%s" % [UiTheme.icon("wood", 52), Fmt.num(s.piles.wood), Fmt.num(caps.wood)]
-	_stat_labels.food.text = "%s Food %s" % [UiTheme.icon("food", 52), Fmt.num(s.piles.food)]
-	_stat_labels.materials.text = "%s Mat %s" % [UiTheme.icon("materials", 52), Fmt.num(s.piles.materials)]
+	# Each number keeps its word next to its icon, so it says what it is, while there's room.
+	var w := func(word: String) -> String: return "" if _stats_compact else word + " "
+	_stat_labels.jans.text = "%s %s%d/%d" % [UiTheme.icon("jans", 52), w.call("Jans"), s.jans.size(), Economy.jan_cap(s)]
+	_stat_labels.wood.text = "%s %s%s/%s" % [UiTheme.icon("wood", 52), w.call("Wood"), Fmt.num(s.piles.wood), Fmt.num(caps.wood)]
+	_stat_labels.food.text = "%s %s%s" % [UiTheme.icon("food", 52), w.call("Food"), Fmt.num(s.piles.food)]
+	_stat_labels.materials.text = "%s %s%s" % [UiTheme.icon("materials", 52), w.call("Mat"), Fmt.num(s.piles.materials)]
+	# Her bag beside the store, coral when it's full (fight_v2 review 1: instead of a toast).
+	var bag := "%s %d/%d" % [UiTheme.icon("bag", 52), roundi(Economy.bag_total(s)), roundi(Economy.bag_cap(s))]
+	var full := Economy.bag_total(s) >= Economy.bag_cap(s) - 0.01
+	_stat_labels.bag.text = "[color=#%s]%s[/color]" % [UiTheme.FALU.to_html(false), bag] if full else bag
 	_fit_stats()
 	var note := ""
 	if Economy.is_cold(s) and not s.jans.is_empty():
@@ -177,6 +229,11 @@ func _process(delta: float) -> void:
 		_banner_timer -= delta
 		if _banner_timer <= 0.0:
 			_banner.visible = false
+	if _strip_timer > 0.0:
+		_strip_timer -= delta
+		if _strip_timer <= 0.0 or sheet.visible:
+			_strip_timer = 0.0
+			_strip.visible = false
 
 
 ## The stats line steps down a size when big numbers would push it past the panel, and back up
@@ -187,8 +244,14 @@ func _fit_stats() -> void:
 		width += (l as RichTextLabel).get_content_width()
 	var size: int = _stat_labels.wood.get_theme_font_size("normal_font_size")
 	var next := size
-	if size == STATS_FONT and width > _stats.size.x:
+	if _stats_compact:
+		# The words take about a third of the line: put them back once there's clearly room.
+		if width < _stats.size.x * 0.6:
+			_stats_compact = false
+	elif size == STATS_FONT and width > _stats.size.x:
 		next = STATS_FONT_SMALL
+	elif size == STATS_FONT_SMALL and width > _stats.size.x:
+		_stats_compact = true
 	elif size == STATS_FONT_SMALL and width < _stats.size.x * 0.85:
 		next = STATS_FONT
 	if next != size:
@@ -325,45 +388,97 @@ func show_game_over(time_survived: float, best: float, new_best: bool) -> void:
 
 func _forecast_text(s: GameState) -> String:
 	var parts := []
+	var raiders := s.wolves.filter(func(w): return w.outpost < 0).size() + s.wave_queue.size()
+	var wave_line := ""
+	if s.raid_on and raiders > 0:
+		wave_line = "%s Wave %d: %d left" % [UiTheme.icon("wolves", 44), s.wave, raiders]
+	if s.attack_warned:
+		if wave_line != "":
+			wave_line += "  ·  "
+		var left := maxf(s.attack_at - s.time, 0.0)
+		# What's coming, by kind, with a troll in red (fight_v2 review 1).
+		var next := "Wave %d in %s  %s" % [s.wave + 1, Fmt.clock(left), mix_icons(s.next_wave.get("mix", {}), 40)]
+		# Orange only for the last seconds, so it reads as urgent rather than routine.
+		if left <= WOLVES_URGENT:
+			next = "[color=#%s]%s[/color]" % [UiTheme.FALU.to_html(false), next]
+		wave_line += next
 	if s.blizzard_active:
 		parts.append("%s BLIZZARD! %s left" % [UiTheme.icon("blizzard", 44), Fmt.clock(s.blizzard_ends_at - s.time)])
 	elif s.blizzard_warned:
 		parts.append("%s Blizzard in %s" % [UiTheme.icon("blizzard", 44), Fmt.clock(s.blizzard_at - s.time)])
-	else:
+	elif wave_line == "":
 		parts.append("Clear skies")
-	var raiders := s.wolves.filter(func(w): return w.outpost < 0).size() + s.wave_queue.size()
-	if s.raid_on and raiders > 0:
-		parts.append("%s Wave %d: %d left" % [UiTheme.icon("wolves", 44), s.wave, raiders])
-	elif s.attack_warned:
-		var left := maxf(s.attack_at - s.time, 0.0)
-		var line := "%s Wave %d in %s" % [UiTheme.icon("wolves", 44), s.wave + 1, Fmt.clock(left)]
-		# Orange only for the last seconds, so it reads as urgent rather than routine.
-		parts.append("[color=#%s]%s[/color]" % [UiTheme.FALU.to_html(false), line] if left <= WOLVES_URGENT else line)
+	if wave_line != "":
+		parts.append(wave_line)
 	if Game.engine.paused:
 		parts.append("PAUSED")
 	return "  ·  ".join(parts)
 
 
+## What a wave brings, as each kind's icon and count ("<wolf> 6  <fox> 4  <troll> 1"), a troll in
+## red. Kinds without an icon yet are named.
+static func mix_icons(mix: Dictionary, size := 40) -> String:
+	var parts := []
+	for kind in ["troll", "bear", "raider", "wolf", "fox"]:
+		var n: int = mix.get(kind, 0)
+		if n <= 0:
+			continue
+		var name: String = "wolves" if kind == "wolf" else kind
+		var part := ("%s%d" % [UiTheme.icon(name, size), n]) if ResourceLoader.exists(UiTheme.ICON_DIR + name + ".png") \
+				else "%d %s" % [n, Balance.ENEMIES[kind].name.to_lower()]
+		if kind == "troll":
+			part = "[color=#%s]%s[/color]" % [UiTheme.FALU.to_html(false), part]
+		parts.append(part)
+	return "  ".join(parts)
+
+
 ## True when a screen point is over UI, so the world shouldn't get the touch.
 func blocks(pos: Vector2) -> bool:
-	for c in [_top, sheet, _dev_button, _dev_panel, _music_button, _sound_button, _jans_button, _game_over, _offer_card]:
+	for c in [_top, sheet, _menu_button, _menu_panel, _dev_panel, _jans_button, _game_over, _offer_card]:
 		if c and c.is_visible_in_tree() and c.get_global_rect().has_point(pos):
 			return true
 	return false
 
 
-# ---------- Sound ----------
+# ---------- The button row: Jans and Menu ----------
 
-## The row of small buttons under the top bar, from the right: DEV, Sound, Music. Each has its
-## own slot (in pixels from the right edge) so longer labels like "Music off" never overlap.
+## The row of small buttons under the top bar, from the right: Menu, Jans. Each has its own slot
+## (in pixels from the right edge).
 const CORNER_TOP := 360
-const CORNER_SLOTS := {"dev": [-174, -24], "sound": [-380, -190], "music": [-586, -396], "jans": [-772, -602]}
+const CORNER_SLOTS := {"menu": [-194, -24], "jans": [-380, -214]}
 
 
-func _build_sound_toggles() -> void:
-	_music_button = _corner_button(CORNER_SLOTS.music, _toggle_music)
-	_sound_button = _corner_button(CORNER_SLOTS.sound, _toggle_sound)
+## Menu opens a small panel of Music, Sound and (debug builds) DEV.
+func _build_menu() -> void:
+	_menu_button = _corner_button(CORNER_SLOTS.menu, _toggle_menu, "Menu")
+	_menu_panel = PanelContainer.new()
+	_menu_panel.add_theme_stylebox_override("panel", UiTheme.panel_style(Color(UiTheme.PAPER, 0.96)))
+	_menu_panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_menu_panel.offset_left = -380
+	_menu_panel.offset_right = -24
+	_menu_panel.offset_top = CORNER_TOP + UiTheme.BUTTON_HEIGHT + 16
+	_menu_panel.visible = false
+	_root.add_child(_menu_panel)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 12)
+	_menu_panel.add_child(v)
+	_music_button = UiTheme.button("", _toggle_music)
+	_sound_button = UiTheme.button("", _toggle_sound)
+	v.add_child(_music_button)
+	v.add_child(_sound_button)
+	if OS.is_debug_build():
+		var dev := UiTheme.button("DEV", func() -> void:
+			_menu_panel.visible = false
+			_toggle_dev())
+		UiTheme.style_utility(dev)
+		v.add_child(dev)
 	_label_sound_toggles()
+
+
+func _toggle_menu() -> void:
+	_menu_panel.visible = not _menu_panel.visible
+	if _dev_panel:
+		_dev_panel.visible = false
 
 
 ## The Jans button opens the Jans screen, or closes it again.
@@ -410,7 +525,6 @@ func _label_sound_toggles() -> void:
 # ---------- Dev panel (debug builds) ----------
 
 func _build_dev() -> void:
-	_dev_button = _corner_button(CORNER_SLOTS.dev, _toggle_dev, "DEV")
 	_dev_panel = PanelContainer.new()
 	_dev_panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	_dev_panel.offset_left = -520
