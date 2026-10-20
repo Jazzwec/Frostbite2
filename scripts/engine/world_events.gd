@@ -11,11 +11,14 @@ static func arrivals(s: GameState, dt: float, rng: RandomNumberGenerator, events
 	if s.next_arrival_in > 0.0:
 		return
 	s.next_arrival_in = Economy.arrival_interval(s)
-	if s.arrivals.size() >= Balance.ARRIVAL_MAX_WAITING:
+	# Camps' frozen Jans wait as well, but only single arrivals count towards the most at once.
+	if s.arrivals.filter(func(a): return not a.get("camp", false)).size() >= Balance.ARRIVAL_MAX_WAITING:
 		return
+	# Spots move out with the frontier, so a spot is free when nobody waits on it.
 	var free := []
 	for i in s.arrival_spots.size():
-		if not s.arrivals.any(func(a): return a.spot == i):
+		var spot: Vector2 = s.arrival_spots[i]
+		if not s.arrivals.any(func(a): return a.pos.distance_to(spot) < 1.0):
 			free.append(i)
 	if free.is_empty():
 		return

@@ -4,7 +4,8 @@
     "chop": "Chop Wood",
     "fuel": "Bring Wood to the furnace",
     "thaw": "Tap the frozen Jan",
-    "store": "Drop extras at the Stockpile"
+    "store": "Drop extras at the Stockpile",
+    "open": "Open new ground at a stone ring"
   },
   "loading": [
     "Wood burns. Jans don't. Keep it that way.",

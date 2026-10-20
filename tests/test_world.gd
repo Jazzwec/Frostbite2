@@ -14,10 +14,15 @@ func _open(e: GameEngine, tile: Vector2i) -> void:
 	var i := _gate_to(e, tile)
 	e.start_gate(i)
 	var gate: Dictionary = e.state.gates[i]
-	e.state.fuel = 1000.0
-	e.state.piles = {"wood": 300.0, "food": 0.0, "materials": 100.0}
 	put_meagan(e, gate.pad)
-	e.skip(10.0)
+	# Further out costs more than she can pay in one go: keep the Stockpile topped up until it opens.
+	for k in 30:
+		if WorldRules.is_open(e.state, tile):
+			break
+		e.state.fuel = 1000.0
+		e.state.piles = {"wood": 300.0, "food": 0.0, "materials": 100.0}
+		e.skip(2.0)
+	check(WorldRules.is_open(e.state, tile), "tile %s opened" % tile)
 
 
 func test_a_winter_starts_on_the_3_by_3_grid_with_gates_round_it() -> void:
@@ -140,3 +145,74 @@ func test_the_world_survives_a_save() -> void:
 	check_eq(loaded.state.run_seed, e.state.run_seed, "seed kept")
 	check_eq(loaded.state.gates.size(), e.state.gates.size(), "gates kept")
 	check_eq(loaded.state.bounds, e.state.bounds, "ground kept")
+
+
+func test_single_arrivals_and_wolves_come_from_the_frontier() -> void:
+	var e := engine()
+	check_eq(e.state.arrival_spots.size(), 12, "a spot by every edge of the starting grid")
+	for spot in e.state.arrival_spots:
+		check(WorldRules.is_open_at(e.state, spot), "frozen Jans wait on open ground")
+		var near_edge := false
+		for d in [Vector2(4, 0), Vector2(-4, 0), Vector2(0, 4), Vector2(0, -4)]:
+			if not WorldRules.is_open_at(e.state, spot + d):
+				near_edge = true
+		check(near_edge, "right by the edge")
+		for gate in e.state.gates:
+			check(spot.distance_to(gate.pad) > 3.0, "clear of the gates' pads")
+	var before: Array = e.state.arrival_spots.duplicate()
+	_open(e, Vector2i(2, 0))
+	check(not e.state.arrival_spots.has(Vector2(27, 5)), "the old east spot is no longer on the edge")
+	check(e.state.arrival_spots.any(func(p): return p.x > 40.0), "the frontier moved out east")
+	check_eq(e.state.arrival_spots.size(), before.size() + 2, "the new tile's three open edges replace one")
+
+
+func test_a_camp_waits_frozen_in_its_tile() -> void:
+	var e := engine()
+	var tile := Vector2i.ZERO
+	for x in range(2, 30):
+		if not WorldGen.tile_contents(e.state.run_seed, Vector2i(x, 0)).camp.is_empty():
+			tile = Vector2i(x, 0)
+			break
+	check(tile != Vector2i.ZERO, "some tile has a camp")
+	var camp: Dictionary = WorldGen.tile_contents(e.state.run_seed, tile).camp
+	for x in range(2, tile.x + 1):
+		_open(e, Vector2i(x, 0))
+	var frozen: Array = e.state.arrivals.filter(func(a): return a.get("camp", false))
+	check_eq(frozen.size(), camp.jans, "the camp's Jans wait")
+	check(_events_have(e, "camp_found"), "found")
+	e.state.sites[0].level = 5
+	put_meagan(e, frozen[0].pos)
+	e.skip(0.1)
+	check(not e.state.arrivals.has(frozen[0]), "one thawed")
+
+
+func test_camp_jans_dont_stop_single_arrivals() -> void:
+	var e := engine()
+	for i in 3:
+		e.state.arrivals.append({"id": 900 + i, "spot": -1, "pos": Vector2(40, i), "camp": true})
+	e.state.next_arrival_in = 0.05
+	e.state.fuel = 1000.0
+	put_meagan(e, Vector2(0, 20))
+	e.skip(0.2)
+	check_eq(e.state.arrivals.filter(func(a): return not a.get("camp", false)).size(), 1, "a single arrival still comes")
+
+
+func test_a_wolf_den_becomes_a_spawn_point() -> void:
+	var e := engine()
+	e.state.dens.append({"pos": Vector2(70, 5), "tile": Vector2i(3, 0)})
+	WorldRules.refresh_edges(e.state)
+	check(e.state.wolf_spawns.has(Vector2(70, 5)), "the den is a spawn point")
+
+
+func test_the_last_hint_points_at_a_gate() -> void:
+	var e := engine()
+	check(HintRules.ORDER.has("open"), "an opening hint")
+	put_meagan(e, Vector2(25, 0))
+	check_eq(HintRules.target("open", e.state), e.state.gates[_gate_to(e, Vector2i(2, 0))].pad, "the nearest gate's pad")
+	check(not HintRules.is_done("open", e.state, Vector2.ZERO), "not done yet")
+	e.start_gate(0)
+	check(HintRules.is_done("open", e.state, Vector2.ZERO), "done once she's chosen a gate")
+
+
+func _events_have(e: GameEngine, type: String) -> bool:
+	return e.drain_events().any(func(ev): return ev.type == type)

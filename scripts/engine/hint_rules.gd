@@ -4,7 +4,7 @@ extends RefCounted
 ## The Hints UI (scripts/ui/hints.gd) shows them; the text is in data/tips.json under "hints".
 
 ## In order.
-const ORDER := ["move", "chop", "fuel", "thaw", "store"]
+const ORDER := ["move", "chop", "fuel", "thaw", "store", "open"]
 
 
 ## Whether the player has done hint `id` in this state. Meagan started the winter at `start`.
@@ -20,6 +20,8 @@ static func is_done(id: String, s: GameState, start: Vector2) -> bool:
 			return s.rescued_total > 0
 		"store":
 			return s.meagan_activity == "store"
+		"open":
+			return not s.stoves.is_empty() or s.gates.any(func(g): return g.paying)
 	return true
 
 
@@ -43,4 +45,10 @@ static func target(id: String, s: GameState) -> Vector2:
 			return best
 		"store":
 			return MapData.stockpile_pad()
+		"open":
+			var best := Vector2.INF
+			for gate in s.gates:
+				if s.meagan_pos.distance_to(gate.pad) < s.meagan_pos.distance_to(best):
+					best = gate.pad
+			return best
 	return Vector2.INF

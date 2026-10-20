@@ -5,8 +5,8 @@ extends RefCounted
 
 ## Bumped when a save from an older version can't be read as it is.
 ## 2: the layout lives in the state; 3: tiles, gates and small furnaces; 4: Jans work at a
-## producer; 5: chests, boons and gear (2026-10-20).
-const SAVE_VERSION := 5
+## producer; 5: chests, boons and gear; 6: camps, the frontier and dens (2026-10-20).
+const SAVE_VERSION := 6
 
 var state: GameState
 var rng := RandomNumberGenerator.new()
@@ -40,8 +40,6 @@ static func new_winter(run_seed := 1) -> GameState:
 	for node in MapData.START_NODES:
 		s.node_defs.append({"kind": node.kind, "pos": node.pos})
 		s.nodes.append(Balance.NODES[node.kind].stock)
-	s.arrival_spots = MapData.START_ARRIVAL_SPOTS.duplicate()
-	s.wolf_spawns = MapData.START_WOLF_SPAWNS.duplicate()
 	# The furnace starts full; keeping it burning is the goal. [agreed 2026-10-19]
 	s.heat = Economy.heat_cap(s)
 	return s

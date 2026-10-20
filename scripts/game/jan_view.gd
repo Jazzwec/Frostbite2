@@ -79,6 +79,12 @@ func setup(is_frozen: bool, arrival_id := -1) -> void:
 		_rig.scale = _rig_scale * Vector3(1, 0.97, 1)
 
 
+## A frozen Jan's "Frozen Jan!" label, hidden for all but one of a camp's huddle.
+func show_frozen_label(on: bool) -> void:
+	if _hint:
+		_hint.visible = on
+
+
 func thaw(new_jan_id: int, line: String) -> void:
 	frozen = false
 	jan_id = new_jan_id

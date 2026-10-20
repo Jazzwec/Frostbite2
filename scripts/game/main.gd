@@ -66,6 +66,8 @@ func _ready() -> void:
 		_add_stove_view(i)
 	for i in Game.engine.state.chests.size():
 		_add_chest_view(i)
+	for den in Game.engine.state.dens:
+		_add_den_view(den.pos)
 	_rebuild_frontier()
 	_stockpile = StockpileView.new()
 	add_child(_stockpile)
@@ -299,6 +301,12 @@ func _add_node_view(i: int) -> void:
 	_nodes.append(view)
 
 
+func _add_den_view(pos: Vector2) -> void:
+	var view := DenView.new()
+	_nav.add_child(view)
+	view.setup(pos)
+
+
 func _add_chest_view(i: int) -> void:
 	var view := ChestView.new()
 	add_child(view)
@@ -352,6 +360,8 @@ func _open_tile(ev: Dictionary) -> void:
 		_add_node_view(i)
 	for i in ev.chests:
 		_add_chest_view(i)
+	for i in ev.dens:
+		_add_den_view(Game.engine.state.dens[i].pos)
 	_add_stove_view(Game.engine.state.stoves.size() - 1)
 	_rebuild_frontier()
 	_set_paths(_ground)
@@ -619,6 +629,8 @@ func _on_event(ev: Dictionary) -> void:
 			_open_tile(ev)
 		"chest_opened":
 			Audio.play("build_done", _v3(ev.pos))
+		"camp_found":
+			_float_text(_v3(ev.pos) + Vector3(0, 2.5, 0), "%d frozen Jans!" % ev.count if ev.count > 1 else "A frozen Jan!", UiTheme.ACCENT, true)
 		"cache":
 			var name: String = {"wood": "Wood", "food": "Food", "materials": "Materials"}[ev.resource]
 			_float_text(_v3(ev.pos) + Vector3(0, 2.0, 0), "+%s %s" % [Fmt.num(ev.amount), name], UiTheme.ACCENT, true)

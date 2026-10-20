@@ -63,6 +63,9 @@ func _sync_frozen(s: GameState) -> void:
 		if not _frozen.has(a.id):
 			var p: Vector2 = a.pos
 			_frozen[a.id] = _new_jan(Vector3(p.x, 0, p.y), true, a.id)
+	# A camp's frozen Jans stand close together: only the first of a huddle says so.
+	for a in s.arrivals:
+		_frozen[a.id].show_frozen_label(not s.arrivals.any(func(b): return b.id < a.id and b.pos.distance_to(a.pos) < 3.0))
 	for id in _frozen.keys():
 		if not seen.has(id):
 			_frozen[id].queue_free()

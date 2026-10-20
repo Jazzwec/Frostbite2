@@ -44,6 +44,9 @@ func _ready() -> void:
 	_add_stat(grid, "house", built, "Buildings")
 	_add_stat(grid, "heat", Economy.furnace_level(s), "Furnace level")
 	_add_stat(grid, "wolves", s.attacks_repelled, "Wolf attacks\nfought off")
+	# The roguelite world (agreed 2026-10-20): how far the winter reached, and what it found.
+	_add_stat(grid, "build", s.stoves.size(), "Areas opened")
+	_add_stat(grid, "bag", s.chests.filter(func(c): return c.opened).size(), "Chests opened")
 	var again := UiTheme.button("Play again", Game.new_game)
 	again.custom_minimum_size = Vector2(0, 150)
 	again.add_theme_font_size_override("font_size", 52)

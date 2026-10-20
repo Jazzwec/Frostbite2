@@ -25,6 +25,7 @@ static func start(s: GameState, run_seed: int) -> void:
 			s.tiles[key(Vector2i(x, y))] = true
 	s.bounds = MapData.start_bounds()
 	refresh_gates(s)
+	refresh_edges(s)
 
 
 ## What opening a tile costs. [proto] Wood 40 × 1.6^(d − 1), Materials 10 × 1.6^(d − 2) from d = 2.
@@ -68,6 +69,7 @@ static func open_tile(s: GameState, gate_index: int, events: Array) -> void:
 	var first_site := s.sites.size()
 	var first_node := s.node_defs.size()
 	var first_chest := s.chests.size()
+	var first_den := s.dens.size()
 	var c := WorldGen.tile_contents(s.run_seed, tile)
 	for node in c.nodes:
 		s.node_defs.append({"kind": node.kind, "pos": node.pos, "tile": tile})
@@ -76,16 +78,44 @@ static func open_tile(s: GameState, gate_index: int, events: Array) -> void:
 		s.sites.append({"type": site.type, "pos": site.pos, "tile": tile, "building": "", "level": 0, "upgrading": false, "progress": {}})
 	if not c.camp.is_empty():
 		s.camps.append({"pos": c.camp.pos, "jans": c.camp.jans, "tile": tile})
+		# A camp of frozen Jans, waiting to be thawed like any arrival.
+		for k in c.camp.jans:
+			var at: Vector2 = c.camp.pos + Vector2.RIGHT.rotated(TAU * k / c.camp.jans + 0.4) * (Balance.CAMP_SPREAD if c.camp.jans > 1 else 0.0)
+			s.arrivals.append({"id": s.new_id(), "spot": -1, "pos": at, "camp": true})
+		events.append({"type": "camp_found", "pos": c.camp.pos, "count": c.camp.jans})
 	if not c.chest.is_empty():
 		s.chests.append({"pos": c.chest.pos, "kind": c.chest.kind, "rarity": c.chest.rarity, "tile": tile, "opened": false})
 	if not c.den.is_empty():
 		s.dens.append({"pos": c.den.pos, "tile": tile})
 	refresh_gates(s)
+	refresh_edges(s)
 	events.append({
 		"type": "tile_opened", "tile": tile, "pos": gate.pos,
 		"sites": range(first_site, s.sites.size()), "nodes": range(first_node, s.node_defs.size()),
-		"chests": range(first_chest, s.chests.size()),
+		"chests": range(first_chest, s.chests.size()), "dens": range(first_den, s.dens.size()),
 	})
+
+
+## Where single frozen Jans wait and wolf packs come in from: along every edge between open and
+## closed ground, to either side of its gate, plus the wolf dens in opened tiles. [agreed 2026-10-20]
+static func refresh_edges(s: GameState) -> void:
+	var spots := []
+	var spawns := []
+	var open_tiles := s.tiles.keys().map(func(k): return tile_from_key(k))
+	open_tiles.sort_custom(func(a, b): return _order(a) < _order(b))
+	for from in open_tiles:
+		for dir in [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]:
+			if is_open(s, from + dir):
+				continue
+			var border := (MapData.tile_rect(from).get_center() + MapData.tile_rect(from + dir).get_center()) / 2.0
+			var d := Vector2(dir)
+			var side := Vector2(-d.y, d.x)
+			spots.append(border - d * Balance.ARRIVAL_INSET + side * Balance.ARRIVAL_SIDE)
+			spawns.append(border - side * Balance.WOLF_SPAWN_SIDE)
+	for den in s.dens:
+		spawns.append(den.pos)
+	s.arrival_spots = spots
+	s.wolf_spawns = spawns
 
 
 static func tile_from_key(k: String) -> Vector2i:

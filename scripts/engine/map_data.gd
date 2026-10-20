@@ -37,15 +37,6 @@ const START_NODES := [
 	{"kind": "scrap", "pos": Vector2(0, -7)},
 ]
 
-## Where frozen Jans wait, near the starting grid's edge.
-const START_ARRIVAL_SPOTS := [
-	Vector2(-26, -26), Vector2(26, -26), Vector2(-27, 6), Vector2(27, 8),
-	Vector2(-12, 27), Vector2(12, 27), Vector2(-6, -27), Vector2(26, 13),
-]
-
-## Where wolf packs come in from, on the starting grid's edge.
-const START_WOLF_SPAWNS := [Vector2(0, -30), Vector2(-30, -10), Vector2(30, 12), Vector2(-30, 20), Vector2(30, -20)]
-
 ## The Stockpile, the town's store, just right of the furnace. [agreed 2026-10-19]
 const STOCKPILE_POS := Vector2(5, 1.5)
 

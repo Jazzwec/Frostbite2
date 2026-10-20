@@ -212,6 +212,14 @@ const GATE_MATERIALS := 10.0
 const GATE_GROWTH := 1.6
 ## The gate's pad sits this far inside the open tile, in front of the border. [proto]
 const GATE_PAD_INSET := 1.8
+## The frontier (agreed 2026-10-20): along every edge between open and closed ground, a single
+## frozen Jan can wait this far inside it and this far to one side of its gate, and wolves come in
+## on the border this far to the other side. [proto]
+const ARRIVAL_INSET := 3.0
+const ARRIVAL_SIDE := 5.0
+const WOLF_SPAWN_SIDE := 5.0
+## A camp's frozen Jans stand this far apart round its middle. [proto]
+const CAMP_SPREAD := 1.2
 ## A small furnace's warm patch at full heat, in metres. [proto]
 const STOVE_WARM_RADIUS := 3.5
 
