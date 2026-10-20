@@ -179,7 +179,7 @@ Press Play in the editor (F5), or run `godot --path .`. The window is 540×960, 
     - watercolour-painted Tripo textures
     - redesigned characters
     - a painted ground
-  - Not decided yet: whether to commit to it, and then the art direction doc and the new references.
+  - **Decided (2026-10-20, after the AFK run):** the game commits to it. The rules are in `docs/art-direction.md`; the Jans' parkas go faded teal. The follow-up work is in `BACKLOG.md` (Art: ink & watercolour).
 - **Score:** the game-over card scores minutes:seconds survived. Would "days survived" (e.g. one day = 2 minutes) feel better?
 - **Art direction:** the Poly Haven props are photoreal, while the brief wants chunky cartoon. Decide whether to keep them as placeholders or go straight to Tripo models.
 

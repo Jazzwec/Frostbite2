@@ -301,22 +301,7 @@ Each phase ends with the game running on an iPhone: over Wi-Fi from the dev serv
 
 ## Art & assets
 
-A flat, chunky cartoon style with thick outlines reads well at phone size and is forgiving of mixed sources. Avoid anything that copies the look of Whiteout Survival's assets; the loop is fair game, the art is not.
-
-| Asset | Count | Source |
-| --- | --- | --- |
-| Meagan sprite, 4 directions, idle and walk | 1 set | Jan supplies: a cartoon avatar app or a commissioned artist, from photos |
-| Base Jan sprite, same frames | 1 set | Same source as Meagan |
-| Variant overlays (apron, blanket, clipboard, headphones, beard, axe) | 10 to 12 | Claude can generate as SVG; export to PNG at 2x and 3x |
-| Buildings, 3 tier states each | 11 × 3 | Claude can generate placeholder SVG; replace later if wanted |
-| Furnace with 5 heat states | 1 set | Claude SVG placeholder |
-| Resource icons | 6 | Claude SVG |
-| UI icons | \~15 | Inline SVG, Claude can generate |
-| Snow, embers, breath puffs | particles | Phaser particle emitters, Claude can write them |
-| App icon | 1 | Meagan at the furnace, as 192 px and 512 px PNG for the web manifest; needs the real avatar |
-| Sound | \~10 effects, 1 ambient wind loop | Free CC0 packs; no music needed |
-
-Start with coloured rectangles and the real text. The game is playable and tunable long before any art exists, and the avatars are the only assets that genuinely have to be good.
+The art direction is ink & watercolour, a Nordic picture book (agreed 2026-10-20). Its rules, palette, character designs and prompt template are in `docs/art-direction.md`, which replaces the flat-cartoon plan and the sprite and SVG asset list that were here. Avoid anything that copies the look of Whiteout Survival's assets; the loop is fair game, the art is not. Meagan and the Jans are the assets that genuinely have to be good.
 
 ## Open questions
 

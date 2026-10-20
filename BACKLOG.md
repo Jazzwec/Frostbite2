@@ -2,7 +2,7 @@
 
 Work for unattended runs (see AFK.md), in priority order.
 - **safe** items have rules in the brief or need no design call. Claude does them in order and ticks them off.
-- **on hold** items wait for a decision (currently the art direction); Claude skips them.
+- **on hold** items wait for a decision; Claude skips them.
 - **needs you** items wait for the user.
 
 Add, reorder or delete items freely; Claude only reads this file at the start of each iteration.
@@ -106,33 +106,44 @@ Polish and quality first, then new content.
   - **Where:** `source_art/concept/`, with a `README.md` on how to upload each one to Tripo Studio (image to 3D, auto-rig for the characters).
   - **Done when:** 5 sheets are checked by eye and committed with their prompts. Budget: up to 7 images, counting retries.
 
-## On hold: art direction not settled (2026-10-20)
+## Art: ink & watercolour (decided 2026-10-20)
 
-The user is keeping the current style for now (see NOTES.md, Art direction). Don't do these until the style is decided.
+The user committed to the ink & watercolour direction; the rules are in `docs/art-direction.md`. These come in this order, each its own commit with a ChatGPT review. The user's `Meagan.glb` stays untouched.
 
-- [ ] **1b. Resource and HUD icons (on hold, ChatGPT).**
-  - **What:** icons for Wood, Food (fish), Materials, Heat (flame), Jans and Bag, made with the `chatgpt` skill, with the white keyed out to transparency.
-  - **Where:** `assets/ui/icons/`, shown at 48–64 px next to the numbers in the HUD's top bar, the Stockpile label and Meagan's counter (Label3D can't show images, so use a Sprite3D or a small icon row).
-  - **Done when:**
-    - Screenshots show the icons.
-    - A ChatGPT review says they read at phone size.
-    - The text still says what each number is the first time it's seen.
-
-- [ ] **1c. Snow ground texture (on hold, ChatGPT).**
-  - **What:** a seamless, tileable snow texture made with the `chatgpt` skill, at 1k with mipmaps, replacing the flat snow colour on the ground plane. Keep it subtle, so the characters and pads still pop.
-  - **Done when:** a screenshot shows no visible seams and a ChatGPT review finds it doesn't hurt readability. Check the FPS too.
-
-- [ ] **14. Low-poly trees (on hold, needs Blender open).**
-  - **What:** model two or three chunky low-poly pines (under 1,500 triangles each) in Blender through the Blender MCP.
-  - **Where:** save them in `source_art/blender/trees.blend`, export them to `assets/models/blender/`, and use them in `NodeView` forests in place of the cone greybox. Keep the stump/crown split, so felling still works.
-  - **If Blender isn't reachable,** skip it and note that in the report.
-  - **Done when:** a screenshot shows the new trees, and chopping and toppling still work.
+- [x] **A1. Art direction doc.** `docs/art-direction.md`; the brief, CLAUDE.md and NOTES.md point to it.
+- [ ] **A2. Ink look: steadier and on by default.**
+  - **What:** following ChatGPT's review of the test (`source_art/direction/ink_test/chatgpt_review.md`):
+    - 1–2 px silhouette lines and thinner inner lines in blue-brown ink.
+    - Small colour speckle ignored, and no 8 fps wobble.
+    - Less paper grain.
+    - Amber light around the furnace, cool blue beyond it.
+  - **Done when:** `InkLook` is on at start (the DEV toggle still compares), before/after screenshots and FPS are logged, and a ChatGPT review is folded in.
+- [ ] **1c. Painted snow ground (ChatGPT).**
+  - **What:** a tileable watercolour snow wash on the ground, blue-grey shadow patches, and warm packed paths between the furnace, the Stockpile and the plots. The routes stay quieter than the pads.
+  - **Done when:** there are no visible seams, the FPS is checked, and a ChatGPT review finds it readable.
+- [ ] **A3. Jans in faded teal (Blender).** Recolour `jan.glb`'s parka and the greybox Jan colours, so no Jan wears Meagan's red.
+- [ ] **1b. Watercolour icons (ChatGPT).**
+  - **What:** Wood, Food, Materials, Heat, Jans and Bag, plus blizzard, wolves, cold and a milestone star.
+  - **Where:**
+    - In `assets/ui/icons/`.
+    - Shown in the top bar, `BagReadout`, the sheets, the warning banners and the milestone cards.
+  - **Rule:** the text still says what each number is the first time it's seen.
+- [ ] **14. Low-poly pines (Blender).**
+  - **What:** 2–3 chunky pines under 1,500 triangles, with flat watercolour colours.
+  - **Where:** `source_art/blender/trees.blend`, exported to `assets/models/blender/`, used in `NodeView` forests.
+  - **Keep:** the stump/crown split (felling, toppling) and the crown fading.
+- [ ] **U1. Meagan's health bar** green and wider; the guards' bars blue.
+- [ ] **U2. Meagan's outline** shown through whatever hides her.
+- [ ] **U3. Bubbles and stats:** chatter bubbles kept inside the screen; bigger game-over stats.
+- [ ] **U4. Milestone chime:** its own sound in `tools/audio/make_audio.py`.
+- [ ] **A4. New Tripo references in the ink style:**
+  - Meagan, Jan, and the furnace, cabin and wood store kit.
+  - In `source_art/concept/ink/`, for the user to remake in Tripo Studio.
 
 ## Needs you (Claude won't touch these unattended)
 
 - The `[proto]` numbers in `balance.gd`: walk speed, pad size, furnace feed, warning thresholds, ranges.
 - Score as minutes or as "days survived".
-- Art direction: the user leans to round 3's ink-and-watercolour (`source_art/direction/board.html`), but the style stays as it is for now. The ink look (`InkLook`) stays off.
 - Research Hut, Knowledge and the Research tree: big, and its place in the hypercasual loop needs a call.
 - Caravans and the Signal Beacon, Expedition Post and scavenging, guard kits and gear, bears, Jan variants and the Collection screen, Prestige: all big systems to plan with you first.
 - ElevenLabs music and sound: needs an API key.
