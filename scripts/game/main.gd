@@ -129,14 +129,17 @@ func _refresh_views(delta: float) -> void:
 	# Trees and buildings between the camera and Meagan fade so she's never hidden.
 	var cam := _rig.camera.global_transform if _rig else Transform3D()
 	var her := _meagan.global_position if _meagan else Vector3.INF
+	var hidden := false
 	for v in _sites:
 		v.refresh(s)
 		if _rig:
-			v.fade_covers(cam, her, delta)
+			hidden = v.fade_covers(cam, her, delta) or hidden
 	for v in _nodes:
 		v.refresh(s)
 		if _rig:
-			v.fade_covers(cam, her, delta)
+			hidden = v.fade_covers(cam, her, delta) or hidden
+	if _meagan:
+		_meagan.show_silhouette(hidden)
 	_stockpile.refresh(s)
 	_people.refresh(s, delta)
 

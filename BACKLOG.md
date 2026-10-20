@@ -133,7 +133,7 @@ The user committed to the ink & watercolour direction; the rules are in `docs/ar
   - **Where:** `source_art/blender/trees.blend`, exported to `assets/models/blender/`, used in `NodeView` forests.
   - **Keep:** the stump/crown split (felling, toppling) and the crown fading.
 - [x] **U1. Meagan's health bar** green and wider; the guards' bars blue.
-- [ ] **U2. Meagan's outline** shown through whatever hides her.
+- [x] **U2. Meagan's outline** shown through whatever hides her.
 - [ ] **U3. Bubbles and stats:** chatter bubbles kept inside the screen; bigger game-over stats.
 - [ ] **U4. Milestone chime:** its own sound in `tools/audio/make_audio.py`.
 - [ ] **A4. New Tripo references in the ink style:**

@@ -13,11 +13,14 @@ const LINGER := 0.35
 const MODEL_PATH := "res://assets/models/blender/meagan.glb"
 ## Drawn a little larger than life, so she reads at phone size.
 const MODEL_SCALE := 1.2
+const SILHOUETTE := preload("res://scripts/game/ink/silhouette.gdshader")
 
 var _agent: NavigationAgent3D
 var _rig: CharacterRig
 var _stack: CarryStack
 var _hp_bar: HpBar
+var _silhouette: ShaderMaterial
+var _silhouette_on := false
 var _clip := ""
 var _face := Vector3.INF
 var _linger := 0.0
@@ -61,6 +64,8 @@ func _ready() -> void:
 	_stack.position = Vector3(0, 0.45, -0.5) if _rig is GreyboxRig else Vector3(0, 0.55, -0.5)
 	_rig.body.add_child(_stack)
 	_rig.impact.connect(func(clip: String): worked.emit(clip))
+	_silhouette = ShaderMaterial.new()
+	_silhouette.shader = SILHOUETTE
 	_hp_bar = HpBar.new(HpBar.MEAGAN_GREEN, 1.8, 0.22)
 	_hp_bar.position = Vector3(0, 1.85, 0)
 	add_child(_hp_bar)
@@ -73,6 +78,16 @@ func _ready() -> void:
 	_agent.path_height_offset = 0.5
 	add_child(_agent)
 	_agent.target_position = global_position
+
+
+## While a tree or building stands in front of her, her hidden parts show through it as a flat
+## silhouette in her red (on top of the cover's own fading), so she's never lost.
+func show_silhouette(on: bool) -> void:
+	if on == _silhouette_on:
+		return
+	_silhouette_on = on
+	for mi in _rig.find_children("*", "MeshInstance3D", true, false):
+		(mi as MeshInstance3D).material_overlay = _silhouette if on else null
 
 
 ## The joystick: 0..1 in screen directions. The camera looks north, so screen up is world -Z.

@@ -124,14 +124,16 @@ func refresh(s: GameState) -> void:
 
 
 ## Fades the tree crowns that stand between the camera and Meagan. A felled tree comes back to
-## solid as it falls, so the topple reads as the reward for chopping.
-func fade_covers(camera: Transform3D, meagan: Vector3, delta: float) -> void:
+## solid as it falls, so the topple reads as the reward for chopping. Returns whether any tree
+## stands in front of her right now.
+func fade_covers(camera: Transform3D, meagan: Vector3, delta: float) -> bool:
 	if kind != "forest":
-		return
+		return false
 	var near := global_position.distance_to(meagan) < 9.0
 	if not near and not _faded:
-		return
+		return false
 	_faded = false
+	var covering := false
 	for i in _pieces.size():
 		var piece := _pieces[i]
 		var crown := piece.get_node_or_null("Crown") as Node3D
@@ -139,6 +141,8 @@ func fade_covers(camera: Transform3D, meagan: Vector3, delta: float) -> void:
 			continue
 		var cover := near and _up[i] and FadeCover.covers(camera, meagan, piece.global_position, crown.get_meta("height", 3.0), 0.9)
 		_faded = FadeCover.fade(crown, cover, delta) or _faded
+		covering = covering or cover
+	return covering
 
 
 ## What Meagan works at from `from`: the nearest standing tree or crate, or the nearest ice hole.

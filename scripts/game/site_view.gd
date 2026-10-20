@@ -334,12 +334,14 @@ func _update_labels(s: GameState, site: Dictionary) -> void:
 
 
 ## Fades the building while it stands between the camera and Meagan.
-func fade_covers(camera: Transform3D, meagan: Vector3, delta: float) -> void:
+## Returns whether the building stands in front of her right now.
+func fade_covers(camera: Transform3D, meagan: Vector3, delta: float) -> bool:
 	var near := _body != null and global_position.distance_to(meagan) < 8.0
 	if not near and not _faded:
-		return
+		return false
 	var cover := near and FadeCover.covers(camera, meagan, global_position, 4.0, MapData.SITE_HALF_SIZE)
 	_faded = FadeCover.fade(_shapes, cover, delta)
+	return cover
 
 
 ## The biggest font size (down to `smallest`) at which `text` is no wider than `width` metres.
