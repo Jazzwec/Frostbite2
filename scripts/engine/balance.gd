@@ -372,13 +372,13 @@ const GEAR := {
 ## because the longer wind-ups made every raid easier (tests/sim_waves.gd).
 const ENEMIES := {
 	"fox": {"name": "Frost fox", "hp": 14.0, "speed": 3.6, "shape": "wedge", "hold": 1.0, "reach": 1.5, "arc": 45.0,
-		"tell": 0.65, "recover": 0.28, "damage": 2.0, "cooldown": 1.4, "steal": 5.0, "loot": 1.0, "cost": 1, "first": 3, "knocked": 1.0, "weight": 1, "width": 0.56},
+		"tell": 0.65, "recover": 0.6, "damage": 2.0, "cooldown": 1.4, "steal": 5.0, "loot": 1.0, "cost": 1, "first": 3, "knocked": 1.0, "weight": 1, "width": 0.56},
 	"wolf": {"name": "Wolf", "hp": 29.0, "speed": 2.5, "shape": "wedge", "hold": 1.3, "reach": 1.9, "arc": 60.0,
-		"tell": 0.65, "recover": 0.28, "damage": 3.0, "cooldown": 1.5, "steal": 8.0, "loot": 1.0, "cost": 2, "first": 1, "knocked": 1.0, "weight": 1, "width": 0.7},
+		"tell": 0.65, "recover": 0.6, "damage": 3.0, "cooldown": 1.5, "steal": 8.0, "loot": 1.0, "cost": 2, "first": 1, "knocked": 1.0, "weight": 1, "width": 0.7},
 	"bear": {"name": "Bear", "hp": 135.0, "speed": 1.4, "shape": "wedge", "hold": 1.8, "reach": 2.8, "arc": 110.0,
-		"tell": 0.9, "lock": 0.45, "recover": 0.45, "damage": 10.0, "cooldown": 2.6, "steal": 20.0, "loot": 5.0, "cost": 8, "first": 5, "knocked": 0.25, "weight": 1, "width": 1.05},
+		"tell": 0.9, "lock": 0.45, "recover": 0.65, "damage": 10.0, "cooldown": 2.6, "steal": 20.0, "loot": 5.0, "cost": 8, "first": 5, "knocked": 0.25, "weight": 1, "width": 1.05},
 	"raider": {"name": "Raider", "hp": 43.0, "speed": 2.1, "shape": "shot", "hold": 5.0, "reach": 0.7, "arc": 0.0,
-		"tell": 1.0, "recover": 0.3, "damage": 4.0, "cooldown": 2.0, "steal": 15.0, "loot": 3.0, "cost": 4, "first": 4, "knocked": 1.0, "weight": 0, "width": 0.6},
+		"tell": 1.0, "recover": 0.6, "damage": 4.0, "cooldown": 2.0, "steal": 15.0, "loot": 3.0, "cost": 4, "first": 4, "knocked": 1.0, "weight": 0, "width": 0.6},
 	"troll": {"name": "Ice troll", "hp": 320.0, "speed": 1.1, "shape": "ring", "hold": 2.0, "reach": 3.0, "arc": 360.0,
 		"tell": 1.2, "lock": 0.55, "recover": 0.7, "damage": 16.0, "cooldown": 4.5, "steal": 40.0, "loot": 15.0, "cost": 20, "first": 6, "knocked": 0.0, "weight": 2, "width": 1.26},
 }
@@ -392,13 +392,13 @@ const ENEMY_AIM_LOCK := 0.4
 ## (ENEMY_WAIT_BACK widths) farther out, and give up as usual (review 3: spacing round Meagan).
 const ENEMY_MAX_ENGAGED := 2
 const ENEMY_WAIT_BACK := 1.8
-## The strikers round one defender keep this many degrees apart (review 5: 100-120 when there's
-## room; at least 70), and out of the arc this wide straight towards the camera (south), where
-## they'd be drawn over her (fight_v2 review 4). Waiting enemies keep WAIT_SEPARATION off the
-## strikers' lines, so they never stand behind one.
-const SLOT_SEPARATION := 110.0
-const SLOT_CLEAR_SOUTH := 40.0
-const WAIT_SEPARATION := 45.0
+## Where enemies stand round a defender, as angles on the ground (0 east, 90 south towards the
+## camera, -90 north; fight_v2 reviews 4-7): the two strikers at her sides, a little north of
+## east and west, so on screen they're side by side and clear of her; waiting enemies on the
+## diagonals behind. Each takes the nearer slot (the pair the one with less turning), and
+## circles to it between attacks.
+const STRIKE_SLOTS := [-10.0, 190.0]
+const WAIT_SLOTS := [-55.0, 235.0]
 ## Only one melee wind-up at a time against one defender, the next starting at least this long
 ## after the last one struck (review 3: one committed danger shape at her feet). [proto]
 const ENEMY_WINDUP_STAGGER := 0.3
