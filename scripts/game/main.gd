@@ -175,7 +175,7 @@ func _refresh_views(delta: float) -> void:
 		if _rig:
 			hidden = v.fade_covers(cam, her, delta) or hidden
 	if _meagan:
-		_meagan.show_silhouette(hidden)
+		_meagan.show_silhouette(hidden or _enemy_covers_her(s))
 	for v in _stockpiles:
 		v.refresh(s)
 	_people.refresh(s, delta)
@@ -282,7 +282,8 @@ func _update_label_focus(s: GameState) -> void:
 	var me := s.meagan_pos
 	# No labels while she fights or lies hurt in a raid: nothing like "Upgrade" over a theft
 	# (fight_v2 review 1).
-	var best := 0.0 if Combat.meagan_busy(s) or s.raid_on or _hud.sheet.visible else SiteView.LABEL_NEAR
+	var camp_fight := s.outposts.any(func(o): return o.awake and not o.cleared and s.meagan_pos.distance_to(o.pos) < 14.0)
+	var best := 0.0 if Combat.meagan_busy(s) or s.raid_on or camp_fight or _hud.sheet.visible else SiteView.LABEL_NEAR
 	var focus: Node = null
 	for v in _sites:
 		var d := me.distance_to(MapData.pad_pos(s, v.index))
@@ -1032,8 +1033,8 @@ func _on_event(ev: Dictionary) -> void:
 				if exposed and ev.kind == "melee":
 					_meagan.hit_stop(WolfView.COUNTER_FREEZE)
 				var counter: bool = ev.get("exposed", false)
-				# About 25 px for a hit, 32 px for a counter or a kill (review 7).
-				Fx.impact(wolf.contact_point(from), 1.0 if killing or counter else 0.8, counter, from)
+				# A 13 px core for a hit, bigger for a counter or a kill (reviews 7, 10).
+				Fx.impact(wolf.contact_point(from), 1.2 if killing or counter else 1.0, counter, from)
 				if counter:
 					_show_counter(wolf.global_position)
 				# One secondary flourish: ink flecks flung away from the blow (fight_v2 review 1).
@@ -1131,6 +1132,20 @@ func _show_counter(at: Vector3) -> void:
 	t.tween_interval(0.3)
 	t.tween_property(l, "modulate:a", 0.0, 0.15)
 	t.tween_callback(l.queue_free)
+
+
+## Whether an enemy stands between her and the camera, close enough to hide her (review 10:
+## she stays visible beside the big ones).
+func _enemy_covers_her(s: GameState) -> bool:
+	for e in s.wolves:
+		var view := _people.wolf_view(e.id)
+		if view == null:
+			continue
+		var d: Vector3 = view.global_position - _meagan.global_position
+		var f: Vector2 = WolfView.FOOTPRINT[e.kind]
+		if d.z > -0.2 and d.z < f.y + 1.6 and absf(d.x) < f.y + 0.3:
+			return true
+	return false
 
 
 ## A beat of stillness on a kill or a heavy blow, and only then (review 2: 35-50 ms).

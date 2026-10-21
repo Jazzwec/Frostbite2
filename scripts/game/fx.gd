@@ -46,7 +46,7 @@ var _sweeps := {}  # "reach" -> crescent MeshInstance3D
 ## Impact marks: a cream star with a rust rim where a blow lands, for IMPACT_TIME, drawn over
 ## bodies and bars: the brightest thing in a fight (fight_v2 reviews 2 and 3: about 24 px on the
 ## phone, 30 px for a kill, 150 ms).
-const IMPACT_SIZE := 0.8
+const IMPACT_SIZE := 0.82
 ## It pops in at full size, holds IMPACT_HOLD, then shrinks away by IMPACT_TIME (review 9).
 const IMPACT_TIME := 0.14
 const IMPACT_HOLD := 0.07

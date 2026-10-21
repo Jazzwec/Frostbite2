@@ -60,8 +60,10 @@ const TELL_LINE_WIDTH := 0.075
 ## spear, 7 px for her sweep, 10 px for a heavy blow), out and back over RECOIL_TIME.
 const FLASH_TIME := 0.08
 const FLASH_STRENGTH := 0.7
-const RECOIL := {"light": 0.14, "sweep": 0.16, "heavy": 0.18}
-const RECOIL_TIME := 0.09
+const RECOIL := {"light": 0.1, "sweep": 0.12, "heavy": 0.14}
+## Out over RECOIL_OUT, back over the rest (review 10: 80-100 ms out, 140 ms back).
+const RECOIL_TIME := 0.23
+const RECOIL_OUT := 0.09
 ## Struck, it freezes this long (its own hit-stop; the game keeps running, reviews 4, 6 and 8):
 ## a plain hit, a counter.
 const HIT_FREEZE := 0.055
@@ -109,6 +111,8 @@ var _tell_zone: MeshInstance3D
 var _tell_zone_mat: ShaderMaterial
 var _tell_line_thin: MeshInstance3D
 var _tell_line: MeshInstance3D
+var _tell_front: MeshInstance3D
+const TELL_FRONT := Color(0.86, 0.42, 0.3, 0.95)
 ## Once locked, a cream keyline just outside the dark boundary (review 4: the lock reads as a
 ## change of state, not a shade of the warning; review 5: 3 px each).
 var _tell_key: MeshInstance3D
@@ -482,7 +486,12 @@ func _build_tell() -> void:
 	_tell_zone.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_tell_line_thin = _ground_mesh(thin, TELL_LINE)
 	_tell_line = _ground_mesh(line, TELL_LINE)
-	for mi in [_tell_zone, _tell_key, _tell_line_thin, _tell_line]:
+	# The timing edge: the advancing front as a 3 px brighter line (an arc, or a ring), scaled out
+	# from the attacker to the boundary as the strike comes.
+	var front_arc: float = _def.arc if _def.shape == "wedge" else 360.0
+	_tell_front = _ground_mesh(sector(0.965, 1.0, front_arc), TELL_FRONT)
+	_tell_front.position.y = 0.008
+	for mi in [_tell_zone, _tell_key, _tell_line_thin, _tell_line, _tell_front]:
 		_tell.add_child(mi)
 	_tell_key.position.y = 0.005
 	_halo = Node3D.new()
@@ -515,7 +524,7 @@ func _build_tell() -> void:
 	_halo_bead.no_depth_test = true
 	_halo_bead.render_priority = 18
 	_halo_bead.shaded = false
-	_halo_bead.pixel_size = 0.0045
+	_halo_bead.pixel_size = 0.0058
 	_halo_bead.visible = false
 	add_child(_halo_bead)
 	_tell_line_thin.position.y = 0.01
@@ -598,9 +607,13 @@ func _update_tell(enemy: Dictionary) -> void:
 	var fade := clampf(t / 0.1, 0.0, 1.0)
 	var locked := t >= strike - Combat.lock_of(_def)
 	_tell_zone_mat.set_shader_parameter("fade", fade)
-	# The fill advances until the lock, then holds (review 4).
+	# The fill advances until the lock, then holds (review 4); its front is a line (review 10).
 	var lock_at: float = strike - Combat.lock_of(_def)
-	_tell_zone_mat.set_shader_parameter("progress", clampf(minf(t, lock_at) / strike, 0.0, 1.0) * 1.25)
+	var front := clampf(minf(t, lock_at) / strike, 0.0, 1.0) * 1.25
+	_tell_zone_mat.set_shader_parameter("progress", front)
+	var front_r: float = clampf(front - 0.12, 0.05, 1.0) * _def.reach
+	_tell_front.scale = Vector3(front_r, 1.0, front_r)
+	_tell_front.visible = front_r < _def.reach * 0.97
 	_tell_line_thin.visible = not locked
 	_tell_line.visible = locked
 	_tell_key.visible = locked
@@ -718,8 +731,9 @@ func sync(enemy: Dictionary, delta: float) -> void:
 	_recoil = maxf(0.0, _recoil - delta)
 	# Out and back: half a sine over the recoil's time.
 	# A quick shove out, an easier return.
-	var u := 1.0 - _recoil / RECOIL_TIME
-	var recoil := _recoil_dir * _recoil_size * (sin(PI * minf(u * 2.5, 1.0) / 2.0) * (1.0 - smoothstep(0.3, 1.0, u))) if _recoil > 0.0 else Vector3.ZERO
+	var since := RECOIL_TIME - _recoil
+	var push := smoothstep(0.0, 1.0, since / RECOIL_OUT) if since < RECOIL_OUT else 1.0 - smoothstep(0.0, 1.0, (since - RECOIL_OUT) / (RECOIL_TIME - RECOIL_OUT))
+	var recoil := _recoil_dir * _recoil_size * push if _recoil > 0.0 else Vector3.ZERO
 	var asleep := rest > 0.99
 	_t += delta * (0.0 if asleep else (14.0 if fighting else TROT_SPEED * _def.speed / 2.5))
 	var lunge := _lunge() if fighting else 0.0
@@ -955,7 +969,9 @@ func _pose_greybox(fighting: bool, lunge: float, moving: bool) -> void:
 			# Review 3: the slam drops it 12-16 px; review 6: a squash as it winds up, a forward drop.
 			_parts.body.position.y = 0.05 * bob - 0.32 * strike - 0.08 * slump
 			_parts.body.scale = Vector3(1.0 + 0.06 * wound, 1.0 - 0.15 * wound, 1.0 + 0.06 * wound) * TROLL_SCALE
-			_parts.body.position.z = 0.25 * strike
+			# Its body keeps a little back from whoever it slams, so they stay in view (review 10);
+			# the ring on the ground is where it really lands.
+			_parts.body.position.z = 0.25 * strike - 0.3 * maxf(wound, strike)
 		"raider":
 			# The shard goes up behind its head (the tell), then forward in the throw.
 			_parts.arm_r.rotation_degrees.x = 150.0 * wound - 70.0 * strike + (0.0 if fighting else 20.0 * sin(_t))

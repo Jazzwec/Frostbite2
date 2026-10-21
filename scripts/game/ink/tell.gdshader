@@ -6,8 +6,8 @@ shader_type spatial;
 render_mode unshaded, blend_mix, cull_disabled, depth_draw_never, shadows_disabled, fog_disabled;
 
 uniform vec4 color : source_color = vec4(0.66, 0.3, 0.2, 1.0);
-uniform float wash = 0.12;
-uniform float fill = 0.07;
+uniform float wash = 0.09;
+uniform float fill = 0.04;
 // How far the fill has come, as a share of the reach, and how soft its leading edge is.
 uniform float progress = 0.0;
 uniform float soft = 0.25;

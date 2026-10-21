@@ -155,7 +155,7 @@ func _build_top() -> void:
 		l.autowrap_mode = TextServer.AUTOWRAP_OFF
 		_stats.add_child(l)
 		_stat_labels[key] = l
-	_forecast = UiTheme.rich_label(36, UiTheme.INK_SOFT)
+	_forecast = UiTheme.rich_label(38, UiTheme.INK_SOFT)
 	v.add_child(_forecast)
 	_mix_row = UiTheme.rich_label(36, UiTheme.INK)
 	_mix_row.visible = false
@@ -475,13 +475,16 @@ func _forecast_text(s: GameState) -> String:
 	var raiders := s.wolves.filter(func(w): return w.outpost < 0).size() + s.wave_queue.size()
 	var wave_line := ""
 	if s.raid_on and raiders > 0:
-		wave_line = "%s Wave %d  ·  %d left" % [UiTheme.icon("wolves", 44), s.wave, raiders]
+		wave_line = "%s Wave %d  ·  %d enemies" % [UiTheme.icon("wolves", 44), s.wave, raiders]
 	# One status row (review 6): the raid on now and the next one's countdown, amber only for the
 	# last seconds (a troll's in its own deeper amber).
 	if s.attack_warned:
 		var troll: bool = s.next_wave.get("mix", {}).get("troll", 0) > 0
 		var secs := ceili(maxf(s.attack_at - s.time, 0.0))
-		var next := "%s %s %ds" % [UiTheme.icon("troll" if troll else "wolves", 44), "Troll raid" if troll else "Next raid", secs]
+		# The next wave comes on its clock whether this one's beaten or not: while one's on, the
+		# next is its reinforcements (review 10).
+		var what := "Troll raid" if troll else ("Reinforcements" if s.raid_on and raiders > 0 else "Next raid")
+		var next := "%s %s %ds" % [UiTheme.icon("troll" if troll else "wolves", 44), what, secs]
 		if secs <= COUNTDOWN_URGENT:
 			next = "[color=#%s][b]%s[/b][/color]" % [(UiTheme.OCHRE_DEEP if troll else UiTheme.OCHRE).to_html(false), next]
 		wave_line = next if wave_line == "" else wave_line + "  ·  " + next

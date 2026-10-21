@@ -24,6 +24,7 @@ const ATTACKER_STRIKING := Color(0.66, 0.3, 0.2)
 const ATTACKERS_SHOWN := 2
 ## Markers closer than this on screen are one, with a count.
 const MERGE := 120.0
+const MERGE_ANGLE := 25.0
 const KEYLINE := Color(0.98, 0.94, 0.86)
 const ICON_SIZE := 64.0
 
@@ -71,6 +72,10 @@ func _process(delta: float) -> void:
 			for res in thief.carry:
 				total += thief.carry[res]
 			_mark(thief.pos, THIEF, Fmt.num(total))
+		# A shard flying in from off screen at her (review 10): a small terracotta cue its way.
+		for shot in s.enemy_shots:
+			if shot.to.distance_to(s.meagan_pos) < 1.6:
+				_mark(shot.from, ATTACKER_STRIKING, "", ATTACKER_SIZE, "")
 		var shown := 0
 		for e in _attackers_by_distance(s):
 			if shown >= ATTACKERS_SHOWN or (not thief.is_empty() and e.id == thief.id):
@@ -83,7 +88,8 @@ func _process(delta: float) -> void:
 				# Two the same way share one marker: the nearer, with how many.
 				var merged := false
 				for k in before:
-					if _marks[k][5] != "" and _marks[k][0].distance_to(_marks[before][0]) < MERGE:
+					var same_way: bool = absf(_marks[k][1].angle_to(_marks[before][1])) < deg_to_rad(MERGE_ANGLE)
+					if _marks[k][5] != "" and (same_way or _marks[k][0].distance_to(_marks[before][0]) < MERGE):
 						_marks[k][6] += 1
 						merged = true
 				if merged:

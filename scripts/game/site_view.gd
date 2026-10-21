@@ -416,7 +416,9 @@ func _add_body(half: float) -> void:
 ## Nameplates and pad text fade in only while she's this close (or the plot is being paid for), so
 ## the town reads as a picture rather than a sign board. [ink_v3, 2026-10-20]
 const LABEL_NEAR := 9.0
+## Labels fade in over a quarter second, and out faster (review 10: gone within 150 ms of a fight).
 const LABEL_FADE := 4.0
+const LABEL_FADE_OUT := 8.0
 var _label_alpha := 0.0
 
 
@@ -427,7 +429,7 @@ func _update_labels(s: GameState, site: Dictionary) -> void:
 	# never stack (ink_v3 review).
 	# During a fight they step back, so they don't cover the action (fighting review).
 	var show := focused and s.meagan_activity != "fight"
-	_label_alpha = move_toward(_label_alpha, 1.0 if show else 0.0, get_process_delta_time() * LABEL_FADE)
+	_label_alpha = move_toward(_label_alpha, 1.0 if show else 0.0, get_process_delta_time() * (LABEL_FADE if show else LABEL_FADE_OUT))
 	for label: Label3D in [_title, _pad_label]:
 		label.modulate.a = _label_alpha
 		label.outline_modulate.a = _label_alpha

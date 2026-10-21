@@ -2,8 +2,8 @@
 
     python tools/fx/make_fx_textures.py
 
-- impact.png / impact_counter.png: a blow's burst (review 9: concentrated), an opaque cream core
-  about 9 px across on the phone, three thick rays fanned along +X (Fx turns them out of the body,
+- impact.png / impact_counter.png: a blow's burst (reviews 9, 10: concentrated), an opaque cream
+  core about 13 px across on the phone, three thick rays reaching about 9 px past it fanned along +X (Fx turns them out of the body,
   towards the blow) and three short accents, terracotta (ochre for a counter), with a 2 px
   warm-ink outline round the whole shape so it reads over bodies and snow.
 
@@ -22,8 +22,8 @@ CREAM = (255, 245, 220, 255)
 INK = (52, 40, 34, 255)
 RAYS = {"impact": (168, 69, 41, 255), "impact_counter": (219, 158, 56, 255)}
 # Each ray: its angle in degrees from +X and its length as a share of the half-size.
-RAY_SET = [(-34, 0.86, 0.27), (0, 1.0, 0.3), (36, 0.8, 0.27), (-78, 0.5, 0.17), (74, 0.46, 0.17), (180, 0.42, 0.15)]
-CENTRE = 0.34
+RAY_SET = [(-36, 0.92, 0.24), (0, 1.0, 0.26), (38, 0.88, 0.24), (-80, 0.6, 0.15), (78, 0.58, 0.15), (180, 0.52, 0.13)]
+CENTRE = 0.42
 
 
 def shape(draw, colour, grow):
