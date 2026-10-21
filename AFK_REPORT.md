@@ -20,8 +20,25 @@ A "Needs you" list goes at the end.
   `tests/sim_waves.gd` now prints it as Markdown, and `WaveSim` counts the extra columns. No balance number changed. Tests: 178 passed.
 - **Check:** read the report's "What it says".
 - **Felt wrong:**
-  - Past the spending cap (wave 12+), enemy HP keeps growing ×1.2 a wave, and nothing on the player's side grows after Armory 10. So even on schedule, wave 18 (about 32:00) loses 100 and wave 19 loses 223. Every winter ends there whatever she buys.
+  - Past the spending cap (wave 12+), enemy HP keeps growing ×1.2 a wave, and nothing on the player's side grows after Armory 10. So even on schedule, wave 18 (about 32:00) loses 88 and wave 19 loses 166 (after F2's cooldown fix). Every winter ends there whatever she buys.
   - The Armory sheet's "a wolf in N sweeps" counts a strength-1 wolf, which understates it from wave 13.
+
+### F2. Fight v2 test coverage
+- **What:** `tests/test_fight_coverage.gd`, 14 tests, for what wasn't covered:
+  - outposts: rewards and HP by ring, the bear cave's chest, waking from a hit, going back to sleep, leaving her be while she's down;
+  - the Armory at every level, for her sweeps and snowballs and for the guards (strike and HP, Barracks 1 and 3);
+  - getting up and the thieves' grace, to the tick;
+  - a save round trip of `next_wave`, `meagan_down_at`, `meagan_up_at`, `meagan_foe` and the outposts;
+  - snowballs and shards landing exactly on a tick boundary, and the attack cadence.
+
+  Tests: 192 passed, none weakened.
+- **Bugs the tests found, each fixed in its own commit:**
+  - **3adaf4d, cooldowns a tick late.** Counted down in 0.1 s ticks, 0.8 s and 1 s leave a float hair over 0. Her stick at Armory 1 swung every 0.9 s instead of 0.8 s, and guards struck every 1.1 s instead of 1 s. Enemy cooldowns, getting up and the catch grace could slip a tick too, and differently after loading a save. The F1 report is regenerated with the fix: Armory 1 now holds to wave 8 instead of 6, and the late waves lose a little less.
+  - **8f04bde, outpost defenders froze.** Once she left the leash, they fell asleep wherever they'd chased her. Now they walk back to their spot.
+- **Check in the game:**
+  - Her stick should feel a touch faster at Armory 1.
+  - Wake an outpost, run off past 10 m, and its defenders walk home.
+- **Your save:** the check run loaded the existing `user://save.json` and autosaved my test raid over it (wave 12 with an extra outpost). I moved that file to `save.afk-test-2026-10-21.json` rather than delete it, so the game starts a fresh winter. I'm sorry: I should have backed it up first, and from now on I do. `settings.cfg` is untouched.
 
 ## Run 2026-10-20, 20:15 → done (animation polish)
 

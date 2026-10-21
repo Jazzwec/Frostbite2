@@ -237,7 +237,7 @@ Fight v2 is paused at 8.9/10 (NOTES.md top). These need no credits, no design ca
     - Add when guards fall.
   - **Where:** `docs/balance/fight_v2_sims.md`, with tables.
   - **Done when:** the report is committed and every fight `[proto]` number in NOTES.md's list has a row saying what it does in the sim. Balance numbers don't change.
-- [ ] **F2. Fight v2 test coverage (safe, engine only).**
+- [x] **F2. Fight v2 test coverage (safe, engine only).**
   - **What:** tests for what isn't covered yet:
     - outposts (the wake, rewards and chests);
     - Armory scaling at every level, for Meagan and the guards;
