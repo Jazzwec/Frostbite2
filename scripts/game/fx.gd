@@ -31,7 +31,8 @@ const KINDS := {
 ## Her stick's sweep on the snow (fight_v2 review 2): a pale-gold crescent at her reach that runs
 ## across exactly the arc it hits in SWEEP_TIME, then fades; no filled sector. Gold is hers; rust
 ## is theirs.
-const SWEEP_COLOR := Color(0.93, 0.74, 0.36, 0.95)
+## Cream, no ochre (review 8: ochre is the counter window's alone).
+const SWEEP_COLOR := Color(1.0, 0.95, 0.82, 0.95)
 const SWEEP_WIDTH := 0.1
 const SWEEP_SPAN := 28.0
 const SWEEP_TIME := 0.12
@@ -45,14 +46,14 @@ var _sweeps := {}  # "reach" -> crescent MeshInstance3D
 ## Impact marks: a cream star with a rust rim where a blow lands, for IMPACT_TIME, drawn over
 ## bodies and bars: the brightest thing in a fight (fight_v2 reviews 2 and 3: about 24 px on the
 ## phone, 30 px for a kill, 150 ms).
-const IMPACT_SIZE := 0.72
+const IMPACT_SIZE := 0.8
 const IMPACT_TIME := 0.12
 ## The bursts, drawn by tools/fx/make_fx_textures.py with a 2 px ink outline (review 6).
 const IMPACT_TEXTURE := preload("res://assets/textures/fx/impact.png")
 const COUNTER_TEXTURE := preload("res://assets/textures/fx/impact_counter.png")
 ## A troll's slam: one broken ring of snow puffing out on the ground (review 4: 70-90 px, ~200 ms).
-const SLAM_PUFF_SIZE := 1.9
-const SLAM_PUFF_TIME := 0.2
+const SLAM_PUFF_SIZE := 2.4
+const SLAM_PUFF_TIME := 0.13
 const IMPACT_POOL := 8
 var _impacts: Array[Sprite3D] = []
 var _next_impact := 0
@@ -166,7 +167,11 @@ func _slam_puff(pos: Vector3) -> void:
 		_puff.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(_puff)
 	_puff.global_position = pos + Vector3(0, 0.06, 0)
-	_puff.scale = Vector3.ONE * SLAM_PUFF_SIZE * 0.5
+	_puff.scale = Vector3.ONE * SLAM_PUFF_SIZE * 0.7
+	# And an irregular splash of snow thrown up, heavier than its wind-up (review 8).
+	burst("snow_big", pos + Vector3(0, 0.25, 0))
+	burst("snow_big", pos + Vector3(0.6, 0.15, 0.3))
+	burst("snow", pos + Vector3(-0.7, 0.2, -0.2))
 	_puff.visible = true
 	var m := _puff.material_override as StandardMaterial3D
 	m.albedo_color = Color.WHITE

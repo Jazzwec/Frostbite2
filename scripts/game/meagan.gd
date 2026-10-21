@@ -163,6 +163,11 @@ func throw_point() -> Vector3:
 	return global_position + Vector3(0, 1.7, 0) + forward() * 0.3
 
 
+## Holds her pose a beat (a counter landing, review 8).
+func hit_stop(seconds: float) -> void:
+	_rig.hit_stop(seconds)
+
+
 ## A bite landed on her: a flinch and a red rim flash.
 func hurt() -> void:
 	_rig.flinch()

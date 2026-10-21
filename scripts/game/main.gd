@@ -1027,7 +1027,10 @@ func _on_event(ev: Dictionary) -> void:
 			if wolf:
 				var from := _v3(ev.from)
 				var killing: bool = Game.engine.state.wolves.all(func(w): return w.id != ev.wolf or w.hp <= 0.0)
-				wolf.hit(from, "heavy" if killing else ("sweep" if ev.kind == "melee" else "light"))
+				var exposed: bool = ev.get("exposed", false)
+				wolf.hit(from, "heavy" if killing else ("sweep" if ev.kind == "melee" else "light"), exposed)
+				if exposed and ev.kind == "melee":
+					_meagan.hit_stop(WolfView.COUNTER_FREEZE)
 				var counter: bool = ev.get("exposed", false)
 				# About 25 px for a hit, 32 px for a counter or a kill (review 7).
 				Fx.impact(wolf.contact_point(from), 1.0 if killing or counter else 0.8, counter, from)
@@ -1238,7 +1241,7 @@ func _throw_snowball(wolf_id: int, flight: float) -> void:
 		return
 	Audio.play("whoosh", _meagan.global_position, 1.4, -6.0)
 	var to := wolf.global_position + Vector3(0, 0.6, 0)
-	Fx.throw("snowball", _meagan.throw_point(), to, maxf(flight, 0.12), 0.6, func() -> void:
+	Fx.throw("snowball_flying", _meagan.throw_point(), to, maxf(flight, 0.12), 0.6, func() -> void:
 		Fx.burst("snow", to))
 
 

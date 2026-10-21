@@ -51,7 +51,7 @@ const ATTACK_LEAN_BACK := 12.0
 ## as the strike comes (15-20% in all), and a dark-rust boundary, about 2 px on a 540-wide phone
 ## while the aim follows and 3 px once it locks. Rust is for tells only.
 const TELL_SHADER := preload("res://scripts/game/ink/tell.gdshader")
-const TELL_COLOR := Color(0.66, 0.3, 0.2)
+const TELL_COLOR := Color("b75f49")
 const TELL_LINE := Color(0.38, 0.12, 0.07, 1.0)
 const TELL_LINE_THIN := 0.05
 const TELL_LINE_WIDTH := 0.075
@@ -61,9 +61,11 @@ const TELL_LINE_WIDTH := 0.075
 const FLASH_TIME := 0.08
 const FLASH_STRENGTH := 0.7
 const RECOIL := {"light": 0.14, "sweep": 0.16, "heavy": 0.18}
-const RECOIL_TIME := 0.1
-## Struck, it freezes this long (its own hit-stop; the game keeps running, reviews 4 and 6).
-const HIT_FREEZE := 0.08
+const RECOIL_TIME := 0.09
+## Struck, it freezes this long (its own hit-stop; the game keeps running, reviews 4, 6 and 8):
+## a plain hit, a counter.
+const HIT_FREEZE := 0.055
+const COUNTER_FREEZE := 0.085
 const RIM_FLASH := preload("res://scripts/game/ink/rim_flash.gdshader")
 ## Where each kind's health bar and sack sit, and how far back it stands from whoever it fights
 ## (so its front, not its middle, is at the engine's fight distance; view only). [proto]
@@ -122,8 +124,11 @@ var _halo_parts: Array[Node3D] = []
 const HALO := Color(0.86, 0.62, 0.22, 1.0)
 const HALO_EDGE := Color(0.2, 0.15, 0.1, 0.9)
 const HALO_WIDTH := 0.07
-## How far round its middle a kind's body reaches on the ground (its length, for the long ones).
-const FOOTPRINT := {"fox": 0.75, "wolf": 1.0, "bear": 1.45, "troll": 1.15, "raider": 0.45}
+## A kind's body on the ground: half its width and half its length (review 8: the ring fits it).
+const FOOTPRINT := {"fox": Vector2(0.35, 0.75), "wolf": Vector2(0.45, 1.0), "bear": Vector2(0.8, 1.35),
+	"troll": Vector2(0.9, 0.8), "raider": Vector2(0.4, 0.4)}
+const HALO_CLEAR := 0.22
+var _halo_bead: MeshInstance3D
 ## How far its health bar is raised to clear a neighbour's (PeopleLayer sets it; review 2), with a
 ## thin line down to its owner once it's lifted (review 3).
 var bar_lift := 0.0
@@ -183,7 +188,7 @@ func _init(enemy_kind := "wolf") -> void:
 	_hp_bar.position = Vector3(0, look.bar, 0)
 	_bar_link = MeshInstance3D.new()
 	var link := BoxMesh.new()
-	link.size = Vector3(0.024, 1.0, 0.024)
+	link.size = Vector3(0.034, 1.0, 0.034)
 	_bar_link.mesh = link
 	var link_mat := StandardMaterial3D.new()
 	link_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -198,8 +203,8 @@ func _init(enemy_kind := "wolf") -> void:
 	# The stem ends in a small dot right over its owner (review 7).
 	_bar_dot = MeshInstance3D.new()
 	var dot := SphereMesh.new()
-	dot.radius = 0.04
-	dot.height = 0.08
+	dot.radius = 0.045
+	dot.height = 0.09
 	_bar_dot.mesh = dot
 	_bar_dot.material_override = link_mat
 	_bar_dot.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -476,15 +481,16 @@ func _build_tell() -> void:
 	_halo.position.y = 0.05
 	_halo.visible = false
 	add_child(_halo)
-	var r: float = FOOTPRINT[kind] + 0.2
+	# Built round a unit circle and stretched to its body each frame (_fit_halo).
+	var r := 1.0
 	for k in 4:
 		# Segment k runs clockwise on screen from (k * 90) degrees past twelve o'clock (north).
 		# A sector is centred on local +Z; turning it by phi points it at ground angle 90 - phi.
 		var part := Node3D.new()
 		var mid := -90.0 + 90.0 * k + 45.0
 		part.rotation.y = deg_to_rad(90.0 - mid)
-		var edge := _ground_mesh(sector(r - 0.025, r + HALO_WIDTH + 0.025, 68.0), HALO_EDGE)
-		var stroke := _ground_mesh(sector(r, r + HALO_WIDTH, 64.0), HALO)
+		var edge := _ground_mesh(sector(r - 0.02, r + 0.075, 86.0), HALO_EDGE)
+		var stroke := _ground_mesh(sector(r, r + 0.055, 84.0), HALO)
 		stroke.position.y = 0.005
 		# Drawn after its edge, so the ochre sits on top.
 		(stroke.material_override as StandardMaterial3D).render_priority = 1
@@ -492,6 +498,20 @@ func _build_tell() -> void:
 		part.add_child(stroke)
 		_halo.add_child(part)
 		_halo_parts.append(part)
+	# The bead at the edge that's emptying, cream on ink (kept round: not inside the stretched ring).
+	_halo_bead = MeshInstance3D.new()
+	var bead := SphereMesh.new()
+	bead.radius = 0.09
+	bead.height = 0.06
+	_halo_bead.mesh = bead
+	var bead_mat := StandardMaterial3D.new()
+	bead_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	bead_mat.albedo_color = Color(1.0, 0.96, 0.86)
+	bead_mat.render_priority = 2
+	_halo_bead.material_override = bead_mat
+	_halo_bead.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_halo_bead.visible = false
+	add_child(_halo_bead)
 	_tell_line_thin.position.y = 0.01
 	_tell_line.position.y = 0.01
 	if _def.shape == "shot":
@@ -610,8 +630,13 @@ func _update_tell(enemy: Dictionary) -> void:
 func contact_point(from: Vector3) -> Vector3:
 	var to := from - global_position
 	to.y = 0.0
-	var reach: float = _def.width * 0.5
-	return global_position + (to.normalized() * reach if to.length() > 0.01 else Vector3.ZERO) + Vector3(0, LOOK[kind].bar * 0.45, 0)
+	# On the outline facing the blow: its body is long, so how far that is depends on which way
+	# it faces.
+	var f: Vector2 = FOOTPRINT[kind]
+	var dir := to.normalized() if to.length() > 0.01 else Vector3.ZERO
+	var along := absf(dir.dot(-_model.global_basis.z))
+	var reach := lerpf(f.x, f.y, along) * 0.9
+	return global_position + dir * reach + Vector3(0, LOOK[kind].bar * 0.45, 0)
 
 
 ## The badge's look, for the thief's edge arrow (ThreatArrows draws the same disc and number).
@@ -627,11 +652,11 @@ func accent() -> void:
 
 ## Struck from `from`: a short warm rim flash and a recoil away from the hit (fight_v2 review 1;
 ## the ink flecks are main's).
-func hit(from := Vector3.INF, blow := "light") -> void:
+func hit(from := Vector3.INF, blow := "light", counter := false) -> void:
 	_flash = FLASH_TIME
 	_recoil = RECOIL_TIME
 	_recoil_size = RECOIL[blow]
-	_freeze = HIT_FREEZE
+	_freeze = COUNTER_FREEZE if counter else HIT_FREEZE
 	var away := global_position - from if from != Vector3.INF else -_model.basis.z
 	away.y = 0.0
 	_recoil_dir = away.normalized() if away.length() > 0.01 else Vector3.BACK
@@ -729,11 +754,16 @@ func sync(enemy: Dictionary, delta: float) -> void:
 	var t: float = enemy.get("bite_t", -1.0)
 	var struck: float = _def.tell + (Balance.ENEMY_LUNGE if _def.shape == "wedge" else 0.0)
 	_halo.visible = t >= struck
+	_halo_bead.visible = _halo.visible
 	if _halo.visible:
-		var left: float = clampf(1.0 - (t - struck) / _def.recover, 0.0, 1.0)
+		var gone: float = clampf((t - struck) / _def.recover, 0.0, 1.0)
+		var size := _fit_halo()
 		for k in 4:
-			# The twelve-to-three segment goes first.
-			_halo_parts[k].visible = left > 1.0 - (k + 1) / 4.0
+			# The twelve-to-three segment goes first, and is gone once the front has passed it.
+			_halo_parts[k].visible = gone < (k + 1) / 4.0
+		# The bead rides the front, clockwise from twelve o'clock.
+		var front := deg_to_rad(-90.0 + 360.0 * gone)
+		_halo_bead.position = Vector3(cos(front) * size.x, 0.08, sin(front) * size.y)
 
 
 ## A carrier shows what it took: a sack-sized icon of the resource it carries most of.
@@ -778,6 +808,17 @@ static func _badge_disc() -> Texture2D:
 				img.set_pixel(x, y, col)
 		_disc = ImageTexture.create_from_image(img)
 	return _disc
+
+
+## Stretches the counter ring round its body as it faces now (screen-fixed axes, so "twelve
+## o'clock" stays at the top), and returns its half-sizes across and deep.
+func _fit_halo() -> Vector2:
+	var f: Vector2 = FOOTPRINT[kind]
+	var facing := _model.rotation.y
+	var across := absf(sin(facing)) * f.y + absf(cos(facing)) * f.x + HALO_CLEAR
+	var deep := absf(cos(facing)) * f.y + absf(sin(facing)) * f.x + HALO_CLEAR
+	_halo.scale = Vector3(across, 1.0, deep)
+	return Vector2(across, deep)
 
 
 ## A quick pulse on the badge (twice over 600 ms, review 5), when she's back up to chase it.

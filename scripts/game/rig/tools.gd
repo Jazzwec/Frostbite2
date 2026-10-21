@@ -93,9 +93,19 @@ static func make(id: String) -> Node3D:
 			trail.rotation_degrees.x = 90.0
 			n.add_child(trail)
 		# A snowball in her mitten, for her throw.
-		# Hers: cream (review 5: cream and blue, apart from the raiders' terracotta).
+		# Hers: cream in a blue-grey rim (reviews 5 and 8: about 11 px), apart from the raiders'
+		# terracotta.
 		"snowball":
-			n.add_child(Shapes.sphere(0.16, Color(1.0, 0.96, 0.86), Vector3(0, -0.1, 0)))
+			n.add_child(Shapes.sphere(0.125, Color(1.0, 0.96, 0.86), Vector3(0, -0.1, 0)))
+			n.add_child(_rim(0.15, SNOWBALL_RIM, Vector3(0, -0.1, 0)))
+		# A snowball in flight: the same, with a short pale-blue trail behind it (along +Z; Fx.throw
+		# aims it).
+		"snowball_flying":
+			n.add_child(Shapes.sphere(0.125, Color(1.0, 0.96, 0.86)))
+			n.add_child(_rim(0.15, SNOWBALL_RIM))
+			var tail := Shapes.cone(0.1, 0.55, Color(0.78, 0.86, 0.95, 0.7), Vector3(0, 0, 0.36))
+			tail.rotation_degrees.x = 90.0
+			n.add_child(tail)
 		# A Jan's load on the way to a stockpile (AFK V4, 2026-10-20): big, distinct shapes held
 		# clear of his chest, about a third of his height, so a hauler reads at a glance.
 		"bundle":
@@ -158,3 +168,25 @@ static func _far_end(model: Node3D, dir: Vector3) -> Vector3:
 	var c := box.get_center()
 	var half := box.size / 2.0
 	return c + dir * Vector3(half.x, half.y, half.z).dot(dir.abs())
+
+
+## The snowball's outline colour (review 8: a 1.5 px blue-grey rim).
+const SNOWBALL_RIM := Color(0.42, 0.52, 0.64)
+
+
+## An outline shell round a ball: a sphere drawn inside out (its back faces only), unshaded, so
+## only its rim shows round whatever it encloses. The ink look leaves unshaded materials alone.
+static func _rim(radius: float, color: Color, pos := Vector3.ZERO) -> MeshInstance3D:
+	var mesh := SphereMesh.new()
+	mesh.radius = radius
+	mesh.height = radius * 2.0
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.cull_mode = BaseMaterial3D.CULL_FRONT
+	m.albedo_color = color
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = m
+	mi.position = pos
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return mi
