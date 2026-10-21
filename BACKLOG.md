@@ -225,15 +225,64 @@ Asked by the user on 2026-10-20: Astra's review of the animations (`source_art/d
 - [x] **N7. Clear overlays (safe).** Done 2026-10-20 (AFK).
 - [x] **N8. From Astra's second review (safe).** Done 2026-10-20 (AFK). The Jans' overhead `split` onto the stump, a harder rod dip at the bite, a lower stack that sways less, and no stockpile label during fights. The bag readout is 25% smaller and sits above her highest head position. Gather pops sit to the side, not over her. The raid text over wolves is smaller and higher.
 
+## Fight v2 follow-ups (added 2026-10-21)
+
+Fight v2 is paused at 8.9/10 (NOTES.md top). These need no credits, no design call and no change of art style. Don't resume the Astra review loop unattended: that's "needs you".
+
+- [ ] **F1. Wave balance report (safe, engine only).**
+  - **What:** evidence for the user's sign-off of the fight `[proto]` numbers.
+  - **How:**
+    - Run `tests/sim_waves.gd` for its four Armory plans out to wave 20.
+    - Add time-to-kill per enemy kind at each Armory level (hits and sweeps, the numbers the Armory sheet's "a wolf in N sweeps" line uses).
+    - Add when guards fall.
+  - **Where:** `docs/balance/fight_v2_sims.md`, with tables.
+  - **Done when:** the report is committed and every fight `[proto]` number in NOTES.md's list has a row saying what it does in the sim. Balance numbers don't change.
+- [ ] **F2. Fight v2 test coverage (safe, engine only).**
+  - **What:** tests for what isn't covered yet:
+    - outposts (the wake, rewards and chests);
+    - Armory scaling at every level, for Meagan and the guards;
+    - the `_get_up` and `CATCH_GRACE` timings;
+    - a save round-trip of the new state fields (`next_wave`, `meagan_down_at`, `meagan_up_at`, `meagan_foe`, outposts);
+    - shots landing exactly on the tick boundary.
+  - **Done when:** the new tests pass and no existing test was weakened. A test that exposes a bug gets the fix in its own commit.
+- [ ] **F3. Raid performance pass (safe).**
+  - **What:** measure FPS and draw calls at wave 12+ (DEV → Next wave): mixed kinds, trolls and bears, 4 guards, a blizzard.
+  - **Suspects:**
+    - `WolfView` tell meshes and shaders, the counter halo, the bars;
+    - `Fx.impact` and the `clumps` bursts;
+    - `ThreatArrows`.
+  - **Fix:** the biggest costs, e.g. share or pool meshes and materials, and skip tells for enemies off screen.
+  - **Done when:** the numbers before and after are in the report, and the fight looks the same.
+- [ ] **F4. `wolf_view.gd` cleanup (safe).**
+  - **What:** it grew through 17 review rounds. Remove dead constants and paths left from dropped ideas (the impact rim, unused textures, the forced-silhouette remnants), and group the per-kind greybox builders.
+  - **Done when:**
+    - behaviour is identical;
+    - the tests pass;
+    - `fight_caps.sh` strips match r17's by eye;
+    - `runtime errors` is empty.
+- [ ] **F5. Phone audit of the raid UI (safe).**
+  - **What:** item 11 again for the new UI: the raid status row and fold mark, `ThreatArrows`, the Armory sheet, the down callout. Check at 1080×1920 and 1080×2400.
+  - **Rules:** tap targets ≥ 120 px, text ≥ 30 px, no overlaps.
+  - **Done when:** whatever needed fixing is fixed, with before and after screenshots described in the report.
+- [ ] **F6. Ink references for the new enemies (safe, ChatGPT, ≤ 4 images).**
+  - **What:** model sheets of the bear, troll, raider and fox in the ink style, with `source_art/concept/ink/wolf_v2.png` as `--ref`.
+  - **Where:** `source_art/concept/ink/`, each with its `.prompt.txt`, checked by eye.
+  - **Don't:** call Meshy (that's "needs you").
+  - **Done when:** 4 checked sheets are committed for the user to decide on models.
+
 ## Needs you (Claude won't touch these unattended)
 
+- **Fight v2 sign-off:**
+  - play it at full speed (DEV → Next wave, or Armory +1);
+  - sign off the fight `[proto]` numbers (NOTES.md list);
+  - decide on Meshy models for the bear, troll, raider and fox;
+  - decide whether to resume the Astra loop with round 17's points.
 - Meagan carrying her load in her arms (like the visual) instead of stacked on her back.
-- Folding Music, Sound and DEV into one settings button.
 - The camera angle and character size from the reviews (a camera 8–12° lower, characters 10–15% bigger).
 - A hand-lettered font, which would be a new third-party asset.
 
 - The `[proto]` numbers in `balance.gd`: walk speed, pad size, furnace feed, warning thresholds, ranges.
 - Score as minutes or as "days survived".
 - Research Hut, Knowledge and the Research tree: big, and its place in the hypercasual loop needs a call.
-- Caravans and the Signal Beacon, Expedition Post and scavenging, guard kits and gear, bears, Jan variants and the Collection screen, Prestige: all big systems to plan with you first.
+- Caravans and the Signal Beacon, Expedition Post and scavenging, personal gear, Jan variants and the Collection screen, Prestige: all big systems to plan with you first.
 - ElevenLabs music and sound: needs an API key.
