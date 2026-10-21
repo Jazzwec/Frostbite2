@@ -2,7 +2,7 @@
 
 What felt wrong while playing, and what's still open. This file is the prompt for the next session.
 
-## Fight v2: the Armory, waves and the review loop (2026-10-20/21, in progress)
+## Fight v2: the Armory, waves and the review loop (2026-10-20/21, paused at 8.9/10)
 
 **The user's task:** keep working on the combat until Astra rates it at least 9/10 (elegant hypercasual fighting for phone controls, design and feel), researching best practices throughout. It includes:
 - the Armory: 10 levels for Meagan's weapons and the guards' kit;
@@ -12,14 +12,22 @@ What felt wrong while playing, and what's still open. This file is the prompt fo
 
 **Done:**
 - The engine and views: commits 59ca54a…d2bb6a1.
-- Reviews 1–12 (`source_art/direction/fight_v2/rN/review.md`), every point implemented, one commit each. The score went 6, 7, 7.5, 8, 8.5, 8.6, 8.8, 8.9, 8.9, 8.9, 8.9, 8.9.
-- Readability, design/progression and (at times) phone UX are at 9. Feel sits at 8.8–8.9.
-- Astra says the remaining gap is contact and crowding, not the creature models. Several times it noted that still strips can't show how fighting feels at full speed.
+- Reviews 1–16 are implemented, one commit per round (`source_art/direction/fight_v2/rN/review.md`). Round 17's review is open.
+- The score went 6, 7, 7.5, 8, 8.5, 8.6, 8.8, then 8.9 for ten rounds (r8–r17).
+- In round 17, design/progression and phone UX are at 9, readability 8.9 and feel 8.8.
+- **Paused at round 17, because the loop stopped converging.** The sub-scores swap places round to round, and the advice reverses itself (the hit splash was to be smaller in r14, bigger in r17; hit-stop 55/85 ms in r8, 25–35 ms in r15). Astra keeps saying that still strips can't show how the fighting feels at full speed, and feel is the score holding it below 9.
+- **Real feel bugs the close-up strip found (`contact_closeup`, a hit at 1/20 speed), now fixed (7acda90):**
+  - Hits landed a tick early, so the burst came before the stick connected and shards hit before arriving.
+  - Enemy attack poses and tells stepped at 10 fps.
+- Round 17's open points, if the loop resumes:
+  - a longer splash (18 px, 95 ms), most of it beyond the body;
+  - a bigger yield (8–10 px, muzzle 12–15° away, a 40 ms hold);
+  - heavier troll and bear impact silhouettes.
 - An earlier session crashed half-way through review 1. Its partial work is in `git stash` ("crashed session…"), for reference only.
 - The rules are in the brief's **Raids and fighting** section.
 
 **Open, for the user:**
-- Play it at full speed; the strips are slowed.
+- Play it at full speed (DEV → Next wave, or Armory +1); the strips are slowed. Your feel judgement is what the loop now needs.
 - Sign off the `[proto]` numbers below.
 - Decide whether to make real bear, troll, raider and fox models (Meshy credits; Astra calls the greybox "mechanically jointed").
 - Things tried and dropped: revealing her stick through bodies during every attack (the reveal also draws what her own body hides, so she looked blotchy).
