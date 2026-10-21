@@ -71,6 +71,18 @@ A "Needs you" list goes at the end.
   - **Building a view is still about 1 ms for a wolf or fox,** most of it instancing the GLB. Pooling views would remove that, but it changes their life cycle (the death tumble), so it's worth doing only if a phone shows hitches.
   - **A test-setup artifact, not a game bug:** `swallowtail runtime await_signal` blocks the game while it waits, which made the game look slow. Plain waits don't.
 
+### F4. `wolf_view.gd` cleanup
+- **Removed:**
+  - the thief's sack sprite, always hidden since the load on its back and the badge replaced it, but still loading an icon texture whenever a thief's loot changed;
+  - the unused `HALO_WIDTH`;
+  - a loop over a single value in the bear's legs;
+  - comments left from superseded rounds: the cream keyline (now terracotta), a "half a sine" recoil, and doubled troll and bear notes.
+- **Grouped:** sections for the wolf model (wolves and foxes) and for the greybox bodies by kind.
+- **Same behaviour:**
+  - The `fight_caps.sh` strips match r17's by eye (theft, bear swipe, troll slam): the same tells, counter arc, bars and badges, with only small timing shifts from F2's cooldown fix.
+  - Runtime errors: none. Tests: 192 passed.
+- **Not found:** the backlog's "impact rim" and "forced-silhouette" remnants. The rim flash is the live hit flash (`rim_flash.gdshader`, all its uniforms used), and no silhouette code is left in `wolf_view.gd`.
+
 ## Run 2026-10-20, 20:15 → done (animation polish)
 
 The task: Astra's review of the animations, best practices from the web, then polish. Frame strips of every clip were captured at quarter speed (`source_art/direction/anim_v1/`), and Astra reviewed them (`review.md`). Two of its lowest scores (Jan fishing and chopping, Meagan storing) were my capture's fault, not the game's: the camera followed the wrong Jan, and Meagan was still walking. Its real findings are backlog items N1–N7.

@@ -253,7 +253,7 @@ Fight v2 is paused at 8.9/10 (NOTES.md top). These need no credits, no design ca
     - `ThreatArrows`.
   - **Fix:** the biggest costs, e.g. share or pool meshes and materials, and skip tells for enemies off screen.
   - **Done when:** the numbers before and after are in the report, and the fight looks the same.
-- [ ] **F4. `wolf_view.gd` cleanup (safe).**
+- [x] **F4. `wolf_view.gd` cleanup (safe).**
   - **What:** it grew through 17 review rounds. Remove dead constants and paths left from dropped ideas (the impact rim, unused textures, the forced-silhouette remnants), and group the per-kind greybox builders.
   - **Done when:**
     - behaviour is identical;

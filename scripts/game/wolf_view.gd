@@ -122,10 +122,10 @@ var _tell_line: MeshInstance3D
 var _tell_front: MeshInstance3D
 var _tell_root: MeshInstance3D
 const TELL_FRONT := Color(0.86, 0.42, 0.3, 0.95)
-## Once locked, a cream keyline just outside the dark boundary (review 4: the lock reads as a
-## change of state, not a shade of the warning; review 5: 3 px each).
+## Once locked, a second, darker terracotta line just outside the dark boundary (review 4: the
+## lock reads as a change of state, not a shade of the warning; review 5: 3 px each; review 11:
+## terracotta, not cream, which is hers alone).
 var _tell_key: MeshInstance3D
-## The lock's outer edge: a second, darker terracotta line (review 11: cream is hers alone).
 const TELL_KEY := Color(0.5, 0.18, 0.11, 1.0)
 const TELL_KEY_WIDTH := 0.04
 ## The full footprint stays this long past the impact (review 12: 80-120 ms).
@@ -141,7 +141,6 @@ var _halo: Node3D
 var _halo_parts: Array[Node3D] = []
 const HALO := Color(0.86, 0.62, 0.22, 1.0)
 const HALO_EDGE := Color(0.2, 0.15, 0.1, 0.9)
-const HALO_WIDTH := 0.07
 ## A kind's body on the ground: half its width and half its length (review 8: the ring fits it).
 const FOOTPRINT := {"fox": Vector2(0.35, 0.75), "wolf": Vector2(0.45, 1.0), "bear": Vector2(0.8, 1.35),
 	"troll": Vector2(0.9, 0.8), "raider": Vector2(0.4, 0.4)}
@@ -158,14 +157,12 @@ var _bar_height := 0.0
 var _bar_link: MeshInstance3D
 var _bar_dot: MeshInstance3D
 var _shot_line: MeshInstance3D
-var _sack: Sprite3D
 var _sack_disc: Sprite3D
-var _sack_res := ""
 ## The stolen load on its back while it runs off (fight_v2 review 1: a laden retreat that reads).
 var _load: Node3D
-## The nearest thief's badge (fight_v2 review 2, only that one; the rest show their sacks): a cream
-## capsule with a terracotta border (review 5: a pursuit objective, not loot), a sack and how
-## much it carries, on a stem from its bar.
+## The nearest thief's badge (fight_v2 review 2, only that one; the rest show the load on their
+## backs): a cream capsule with a terracotta border (review 5: a pursuit objective, not loot), a
+## sack and how much it carries, on a stem from its bar.
 const BADGE_PIXEL := 0.0058
 const LADEN_LEAN := 9.0
 static var _disc: Texture2D
@@ -254,14 +251,6 @@ func _init(enemy_kind := "wolf") -> void:
 	_sack_disc.position = Vector3(0, look.bar + 0.5, 0)
 	_sack_disc.visible = false
 	add_child(_sack_disc)
-	_sack = Sprite3D.new()
-	_sack.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	_sack.no_depth_test = true
-	_sack.render_priority = 11
-	_sack.pixel_size = BADGE_PIXEL * 0.7
-	_sack.position = _sack_disc.position
-	_sack.visible = false
-	add_child(_sack)
 	_badge_amount = Shapes.label("", _sack_disc.position, 64, Color("2c3440"))
 	_badge_amount.pixel_size = 0.0062
 	_badge_amount.outline_size = 0
@@ -297,7 +286,7 @@ func _init(enemy_kind := "wolf") -> void:
 	_load.add_child(Shapes.cylinder(0.08, 0.14, Color(0.45, 0.33, 0.2), Vector3(0, height + 0.27, -0.15)))
 
 
-# ---------- Bodies ----------
+# ---------- The wolf model (wolves and foxes) ----------
 
 func _build_model() -> void:
 	_pivot = Node3D.new()
@@ -346,6 +335,9 @@ func _tint(mesh: MeshInstance3D, tint: Color) -> void:
 		mesh.set_surface_override_material(i, _tinted[key])
 
 
+# ---------- Greybox bodies, by kind, until their models are made ----------
+
+## The wolf and fox without wolf.glb.
 func _build_greybox_wolf() -> void:
 	var fur := FOX_FUR if kind == "fox" else Color(0.42, 0.42, 0.46)
 	var body := Node3D.new()
@@ -406,9 +398,8 @@ func _build_bear() -> void:
 	for x in [-0.22, 0.22]:
 		neck.add_child(Shapes.sphere(0.11, dark, Vector3(x, 0.22, 0.22)))
 	_parts.neck = neck
-	for z in [-0.55]:
-		for x in [-0.34, 0.34]:
-			rear.add_child(Shapes.cylinder(0.18, 0.62, dark, Vector3(x, 0.31, 0.55 + z)))
+	for x in [-0.34, 0.34]:
+		rear.add_child(Shapes.cylinder(0.18, 0.62, dark, Vector3(x, 0.31, 0.0)))
 	# Forelegs set out from the chest, so a notch of snow shows between (review 15).
 	for x in [-0.46, 0.46]:
 		var paw := Node3D.new()
@@ -441,8 +432,8 @@ func _build_troll() -> void:
 	# Broad shoulders that run into the arms, so the joints don't read as separate balls.
 	for x in [-0.6, 0.6]:
 		body.add_child(Shapes.sphere(0.42, hide, Vector3(x, 2.2, 0.05)))
-	# The ice on its back, bigger on the left: its outline is lopsided from every side.
-	# Three clusters (review 6), the biggest on the left so its outline is lopsided.
+	# The ice on its back in three clusters (review 6), the biggest on the left, so its outline
+	# is lopsided from every side.
 	var spikes := [[Vector3(-0.32, 2.45, -0.45), 0.32, 0.95], [Vector3(-0.5, 2.3, -0.42), 0.2, 0.6],
 			[Vector3(0.2, 2.3, -0.48), 0.2, 0.55], [Vector3(0.32, 2.2, -0.42), 0.14, 0.4],
 			[Vector3(-0.05, 1.85, -0.58), 0.22, 0.6]]
@@ -456,9 +447,8 @@ func _build_troll() -> void:
 		var arm := Node3D.new()
 		arm.position = Vector3(x, 2.25, 0.1)
 		body.add_child(arm)
-		# Oversized forearms and fists (review 1): its slam reads from its outline.
-		# One tapered limb, narrow at the shoulder, heavy at the fist.
-		# Forearms a fifth shorter than they were (review 13), tapering to the fist.
+		# Oversized forearms and fists (review 1), so its slam reads from its outline: one limb
+		# tapering from the shoulder to a heavy fist, a fifth shorter since review 13.
 		var limb := Shapes.cylinder(0.2, 1.08, hide, Vector3(0, -0.6, 0.02))
 		(limb.mesh as CylinderMesh).bottom_radius = 0.34
 		arm.add_child(limb)
@@ -798,7 +788,6 @@ func hit(from := Vector3.INF, blow := "light", counter := false) -> void:
 func die() -> void:
 	_hp_bar.visible = false
 	_tell.visible = false
-	_sack.visible = false
 	_sack_disc.visible = false
 	_badge_amount.visible = false
 	_badge_bag.visible = false
@@ -843,7 +832,6 @@ func sync(enemy: Dictionary, delta: float) -> void:
 	_flash = maxf(0.0, _flash - delta)
 	_recoil = maxf(0.0, _recoil - delta)
 	_react = maxf(0.0, _react - delta)
-	# Out and back: half a sine over the recoil's time.
 	# A quick shove out, an easier return.
 	var since := RECOIL_TIME - _recoil
 	var push := smoothstep(0.0, 1.0, since / RECOIL_OUT) if since < RECOIL_OUT else 1.0 - smoothstep(0.0, 1.0, (since - RECOIL_OUT) / (RECOIL_TIME - RECOIL_OUT))
@@ -914,16 +902,12 @@ func sync(enemy: Dictionary, delta: float) -> void:
 		_halo_bead.modulate = Color(1.4, 1.3, 1.1) if opened < 0.08 else Color.WHITE
 
 
-## A carrier shows what it took: a sack-sized icon of the resource it carries most of.
+## A carrier shows what it took: the load on its back, and on the nearest thief the badge with
+## how much.
 func _update_sack(enemy: Dictionary) -> void:
 	var carry: Dictionary = enemy.get("carry", {})
-	var most := ""
-	for res in carry:
-		if most == "" or carry[res] > carry[most]:
-			most = res
-	_load.visible = most != ""
-	_sack.visible = false
-	_sack_disc.visible = most != "" and badge
+	_load.visible = not carry.is_empty()
+	_sack_disc.visible = _load.visible and badge
 	_badge_amount.visible = _sack_disc.visible
 	_badge_bag.visible = _sack_disc.visible
 	_badge_stem.visible = _sack_disc.visible
@@ -932,9 +916,6 @@ func _update_sack(enemy: Dictionary) -> void:
 		for res in carry:
 			total += carry[res]
 		_badge_amount.text = Fmt.num(total)
-	if most != "" and most != _sack_res:
-		_sack_res = most
-		_sack.texture = load("res://assets/ui/icons/%s.png" % most)
 
 
 ## The capsule behind a thief's badge: cream with a terracotta border, drawn once.
@@ -1070,8 +1051,8 @@ func _pose_greybox(fighting: bool, lunge: float, moving: bool) -> void:
 		"bear":
 			# The tell: it rears a little, twists its shoulders and draws its right paw well back
 			# (review 2: the swipe reads from the pose); then it comes down swiping across. Its
-			# recovery is its own shape: low, head down, the paw planted out in front.
-			# Recovering, head and shoulders right down (review 4: 8-10 px), the paw stays planted.
+			# recovery is its own shape: head and shoulders right down (review 4: 8-10 px), the
+			# paw planted out in front.
 			_parts.rear.rotation_degrees.x = -24.0 * wound + 10.0 * strike + 20.0 * slump
 			_parts.rear.rotation_degrees.y = 34.0 * wound - 22.0 * strike
 			_parts.rear.position.y = 0.04 * bob - 0.22 * slump
