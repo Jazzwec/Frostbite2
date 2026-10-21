@@ -83,6 +83,22 @@ A "Needs you" list goes at the end.
   - Runtime errors: none. Tests: 192 passed.
 - **Not found:** the backlog's "impact rim" and "forced-silhouette" remnants. The rim flash is the live hit flash (`rim_flash.gdshader`, all its uniforms used), and no silhouette code is left in `wolf_view.gd`.
 
+### F5. Phone audit of the raid UI
+- **How:** a runtime audit walked every visible HUD control: tap targets at least 120 px, text at least 30 px, no overlaps, nothing off screen. A second check computed `ThreatArrows`' drawn marks (arrows, distance cards, the thief's badge) and checked them against each other and the HUD.
+  - **States:** a raid with the resource row folded, with edge markers, the thief's badge and the "Up in 4s" callout; the Armory sheet open; the furnace sheet open; a wave warning; a raid with the row unfolded.
+  - **Sizes:** 1080×1920, and 1080×2400 emulated by letterboxing the root viewport.
+- **Before:**
+  - The fight reviews had made several controls smaller than a tap target: the Jans and Menu row was 96 px (r2: "48 px on the phone"), a sheet's Upgrade 108 px (r13), its close × 88 px and the Armory's Details 88 px (r12).
+  - The BAG FULL readout's resource line was 28 px.
+  - Nothing overlapped. The fold mark sits inside the top panel by design, and the edge markers never collided in any sample.
+- **After:**
+  - The new `UiTheme.pad_touch` keeps each of those controls drawn at the reviews' size but makes it take touches over 120 px (its styles inset by the difference).
+  - The readout's line is 30 px.
+  - The audit is clean in every state at both sizes.
+  - The sheet header is 32 px taller, because the close button's touch area sets the row.
+- **Screenshots:** `source_art/direction/fight_v2/f5_phone_audit/`: before and after of the furnace sheet in a raid, and the Armory sheet after. They look the same apart from the slightly taller sheet.
+- **ChatGPT review (1 call):** it caught a bug in my first version. `pad_touch` copied the button's theme style before the button was in the tree, which gave Godot's default grey, so Upgrade looked disabled. Fixed: it now reads UiTheme's own theme. The rest is style and design, so it's listed under "ChatGPT feedback" below.
+
 ## Run 2026-10-20, 20:15 → done (animation polish)
 
 The task: Astra's review of the animations, best practices from the web, then polish. Frame strips of every clip were captured at quarter speed (`source_art/direction/anim_v1/`), and Astra reviewed them (`review.md`). Two of its lowest scores (Jan fishing and chopping, Meagan storing) were my capture's fault, not the game's: the camera followed the wrong Jan, and Meagan was still walking. Its real findings are backlog items N1–N7.

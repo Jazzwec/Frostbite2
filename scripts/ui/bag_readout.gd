@@ -41,7 +41,7 @@ func _ready() -> void:
 	_count.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_count.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(_count)
-	_contents = UiTheme.rich_label(28, UiTheme.INK)
+	_contents = UiTheme.rich_label(30, UiTheme.INK)
 	_contents.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_contents.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(_contents)

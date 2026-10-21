@@ -161,9 +161,9 @@ func _start(index: int) -> void:
 	header.add_child(_title)
 	# A quiet close control (review 12: the sheet's action is the filled button, not this).
 	var close_button := UiTheme.button("×", close)
-	close_button.custom_minimum_size = Vector2(88, 88)
 	close_button.add_theme_font_size_override("font_size", 52)
 	UiTheme.style_utility(close_button)
+	UiTheme.pad_touch(close_button, 88, 88)
 	header.add_child(close_button)
 
 
@@ -194,16 +194,16 @@ func _open_building(b: String) -> void:
 		_body.add_child(_status)
 		_body.add_child(_cost_line)
 	_upgrade = UiTheme.button("", _start_upgrade)
-	# 54 px on the phone (review 13: 52-56).
-	_upgrade.custom_minimum_size.y = 108
+	# Drawn 54 px on the phone (review 13: 52-56), a full tap target to touch.
+	UiTheme.pad_touch(_upgrade, 108)
 	_upgrade_muted = false
 	_body.add_child(_upgrade)
 	if b == "armory":
 		# The description behind Details (review 12).
 		var details := UiTheme.button("Details", func() -> void: _effect.visible = not _effect.visible)
-		details.custom_minimum_size = Vector2(0, 88)
 		details.add_theme_font_size_override("font_size", 30)
 		UiTheme.style_utility(details)
+		UiTheme.pad_touch(details, 88)
 		details.size_flags_horizontal = Control.SIZE_SHRINK_END
 		_body.add_child(details)
 		_effect.visible = false

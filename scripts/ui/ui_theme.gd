@@ -103,6 +103,27 @@ static func style_utility(b: Button, color := UTILITY) -> void:
 		b.add_theme_color_override(c, INK)
 
 
+## A button drawn smaller than a tap target (the fight reviews' lighter look) that still takes
+## touches over BUTTON_HEIGHT: its rect is the full height (and width, with `drawn_width`) and its
+## looks are inset to the drawn size, centred (phone audit F5, 2026-10-21). Call it after styling.
+static func pad_touch(b: Button, drawn_height: float, drawn_width := -1.0) -> void:
+	var inset := Vector2(maxf(0.0, (BUTTON_HEIGHT - drawn_width) / 2.0) if drawn_width > 0.0 else 0.0,
+		maxf(0.0, (BUTTON_HEIGHT - drawn_height) / 2.0))
+	b.custom_minimum_size = Vector2(BUTTON_HEIGHT if drawn_width > 0.0 else b.custom_minimum_size.x, BUTTON_HEIGHT)
+	for state in ["normal", "hover", "pressed", "disabled"]:
+		# Its own style, or the theme's (read from the theme itself: before the button is in the
+		# tree, get_theme_stylebox would give Godot's default grey).
+		var own := b.get_theme_stylebox(state) if b.has_theme_stylebox_override(state) else get_theme().get_stylebox(state, "Button")
+		var s := own.duplicate() as StyleBoxFlat
+		if s == null:
+			continue
+		s.expand_margin_left = -inset.x
+		s.expand_margin_right = -inset.x
+		s.expand_margin_top = -inset.y
+		s.expand_margin_bottom = -inset.y
+		b.add_theme_stylebox_override(state, s)
+
+
 ## Back to the theme's own (primary) button look, undoing style_utility.
 static func style_primary(b: Button) -> void:
 	for state in ["normal", "hover", "pressed", "disabled"]:

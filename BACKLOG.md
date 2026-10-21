@@ -260,7 +260,7 @@ Fight v2 is paused at 8.9/10 (NOTES.md top). These need no credits, no design ca
     - the tests pass;
     - `fight_caps.sh` strips match r17's by eye;
     - `runtime errors` is empty.
-- [ ] **F5. Phone audit of the raid UI (safe).**
+- [x] **F5. Phone audit of the raid UI (safe).**
   - **What:** item 11 again for the new UI: the raid status row and fold mark, `ThreatArrows`, the Armory sheet, the down callout. Check at 1080×1920 and 1080×2400.
   - **Rules:** tap targets ≥ 120 px, text ≥ 30 px, no overlaps.
   - **Done when:** whatever needed fixing is fixed, with before and after screenshots described in the report.

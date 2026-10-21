@@ -566,9 +566,13 @@ const CORNER_SLOTS := {"menu": [-194, -24], "jans": [-380, -210]}
 ## The row follows the top panel's bottom edge, which grows if the forecast wraps.
 func _place_row() -> void:
 	var top := maxf(CORNER_TOP, _top.get_rect().end.y + 12.0)
-	for c in [_jans_button, _menu_button, _strip]:
-		c.offset_top = top
-		c.offset_bottom = top + CORNER_HEIGHT
+	_strip.offset_top = top
+	_strip.offset_bottom = top + CORNER_HEIGHT
+	# The buttons are drawn CORNER_HEIGHT tall but take touches over a full tap target.
+	var pad := (UiTheme.BUTTON_HEIGHT - CORNER_HEIGHT) / 2.0
+	for c in [_jans_button, _menu_button]:
+		c.offset_top = top - pad
+		c.offset_bottom = top + CORNER_HEIGHT + pad
 	for c in [_menu_panel, _dev_panel]:
 		if c:
 			c.offset_top = top + CORNER_HEIGHT + 14
@@ -633,10 +637,10 @@ func _corner_button(slot: Array, on_press: Callable, text := "") -> Button:
 	b.offset_right = slot[1]
 	b.offset_top = CORNER_TOP
 	b.offset_bottom = CORNER_TOP + CORNER_HEIGHT
-	b.custom_minimum_size.y = CORNER_HEIGHT
 	b.clip_text = true
 	b.add_theme_font_size_override("font_size", 30)
 	UiTheme.style_utility(b)
+	UiTheme.pad_touch(b, CORNER_HEIGHT)
 	_root.add_child(b)
 	return b
 
