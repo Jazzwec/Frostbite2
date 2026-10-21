@@ -12,7 +12,17 @@ What felt wrong while playing, and what's still open. This file is the prompt fo
 
 **Done:**
 - The engine and views: commits 59ca54a…d2bb6a1.
-- Review 1 (6/10, `source_art/direction/fight_v2/r1/review.md`): all seven points are in (commits 1862bef…5e87c6c). An earlier session crashed half-way through these; its partial work is in `git stash` ("crashed session…") for reference only.
+- Reviews 1–12 (`source_art/direction/fight_v2/rN/review.md`), every point implemented, one commit each. The score went 6, 7, 7.5, 8, 8.5, 8.6, 8.8, 8.9, 8.9, 8.9, 8.9, 8.9.
+- Readability, design/progression and (at times) phone UX are at 9. Feel sits at 8.8–8.9.
+- Astra says the remaining gap is contact and crowding, not the creature models. Several times it noted that still strips can't show how fighting feels at full speed.
+- An earlier session crashed half-way through review 1. Its partial work is in `git stash` ("crashed session…"), for reference only.
+- The rules are in the brief's **Raids and fighting** section.
+
+**Open, for the user:**
+- Play it at full speed; the strips are slowed.
+- Sign off the `[proto]` numbers below.
+- Decide whether to make real bear, troll, raider and fox models (Meshy credits; Astra calls the greybox "mechanically jointed").
+- Things tried and dropped: revealing her stick through bodies during every attack (the reveal also draws what her own body hides, so she looked blotchy).
 
 **The loop:**
 1. Capture with `bash tools/capture/fight_caps.sh source_art/direction/fight_v2/rN`, with the game playing.
@@ -23,9 +33,13 @@ What felt wrong while playing, and what's still open. This file is the prompt fo
 **Sims:** `godot --headless --path . -s res://tests/sim_waves.gd` shows thefts per wave for four Armory plans: none standing, none active, late and schedule. `tests/test_balance.gd` holds the targets.
 
 **New `[proto]` numbers awaiting the user's sign-off:**
-- wind-ups, recoveries and HP in `Balance.ENEMIES`;
-- `STEAL_FOOD_FLOOR_PER_JAN` (thieves leave 3 Food per Jan);
-- `MELEE_EXIT_MULT`, `MEAGAN_TARGET_HOLD`, `OUTPOST_WAKE`, `ENEMY_AIM_LOCK`, `ENEMY_GAP`.
+- In `Balance.ENEMIES`: the wind-ups, locks, recoveries (0.6–0.7 s), HP (35–45% over the steer's) and widths.
+- `STEAL_FOOD_FLOOR_PER_JAN`: thieves leave 3 Food per Jan.
+- `MEAGAN_DOWN_TIME` and `MEAGAN_GETUP_HP`: she's up after 6 s at half HP.
+- `CATCH_GRACE`: thieves wait 3 s after she's up.
+- `RECOVERY_DAMAGE_MULT`: 1.5× counters.
+- `ENEMY_MAX_ENGAGED`: two strikers.
+- `ENEMY_WINDUP_STAGGER`, `STRIKE_SLOTS`/`WAIT_SLOTS`, `MELEE_EXIT_MULT`, `MEAGAN_TARGET_HOLD`, `OUTPOST_WAKE`, `ENEMY_AIM_LOCK` and `ENEMY_GAP`.
 
 ## Hypercasual fighting (2026-10-20, late)
 

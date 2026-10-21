@@ -204,7 +204,66 @@ Blizzards are always announced and are about preparing, not reacting. Animal att
 
 **Keeping the fire burning is the objective (agreed for Frostbite2 on 2026-10-19).** If Heat reaches zero the fire goes out and the winter is over: a card shows how long the village was kept warm (the score; the best time is remembered), a few numbers from the winter, and Play again. It must never feel unfair, so the game warns loudly first: below 25% heat the bar pulses red and a banner and horn fire, and below 10% the bar counts down to the fire going out [proto thresholds]. With no Wood at all, the starting town's fire lasts about 2½ minutes.
 
-### Animal attacks
+### Raids and fighting (fight v2, 2026-10-20/21)
+
+The user asked for this on 2026-10-20: hypercasual fighting that suits phone controls, an Armory, raids that scale so a town that doesn't upgrade falls, new enemy kinds, and outposts on the map worth attacking. The numbers come from Astra's steer (`source_art/direction/fight_v2/steer.md`); twelve review rounds (`fight_v2/r1` … `r12`) then shaped the readability. Every number is in `balance.gd`. Those marked `[proto]` still need the user's sign-off.
+
+**The Armory** (a starting-grid building) has 10 levels (`ARMORY_LEVELS`). Each level raises:
+- Meagan's snowball (range, damage, interval);
+- her stick (reach, damage, interval, knockback);
+- the guards' kit (damage per strike, HP).
+
+The sheet leads with what the next level does to a wolf ("a wolf in 2 sweeps, not 3").
+
+**Raids come in waves on a clock, not from the Furnace level:**
+- **Timing:** the first raid is at 4:00. After that a new wave starts every max(75, 150 × 0.94^(n−1)) s, whether the last one is beaten or not.
+- **Warning:** 15 s ahead, saying what is coming and from which sides.
+- **Size:** each wave has a budget of round(10 × 1.2^(n−1) × 1.15^⌊(n−1)/5⌋), spent up to 96. Beyond that, enemies get tougher instead.
+- **Mix:** waves 1–2 are wolves only. Wave 3 adds foxes, wave 4 raiders, wave 5 a bear. Every sixth wave brings an ice troll. Packs come in groups of up to 6 from one side, or from two sides from wave 5.
+- **Enemies** (`Balance.ENEMIES`):
+
+| Kind | Size | Attack | Wind-up | Notes |
+| --- | --- | --- | --- | --- |
+| Frost fox | 0.8 | bite | 0.65 s | fast |
+| Wolf | 1.0 | bite | 0.65 s | the baseline |
+| Raider | — | thrown ice shard | 1.0 s | aimed where she stood |
+| Bear | 1.5 | swipe | 0.9 s | big wedge |
+| Ice troll | 1.8 | slam all round it | 1.2 s | |
+
+**Fighting is hypercasual.** Nobody presses a button: everyone fights the nearest opponent in discrete, telegraphed attacks.
+- **Meagan:**
+  - She throws snowballs at range and sweeps her stick up close. She switches to the stick at its reach and back to snowballs beyond 1.25× the reach, and holds a target for at least 0.4 s.
+  - Her stance shows which weapon comes next.
+  - Knocked down, she gets up after 6 s with half her HP, raid or not `[proto]`.
+- **The two-striker rule:** at most two melee enemies strike her at once. They take her sides, one each, and the rest wait farther back on the diagonals. Only one wind-up at a time is aimed at her, 0.3 s after the last one struck `[proto]`.
+- **Dodging and countering:**
+  - An attack's aim follows her until it locks: 0.4 s before the strike, 0.45 s for a bear, 0.55 s for a troll. The strike lands exactly where its tell shows, so stepping out of it dodges.
+  - After striking, an enemy recovers for 0.6–0.7 s. Hits in that window do 1.5× damage `[proto]`, shown by a gold ring round it.
+- **Theft:** an enemy that reaches the store steals. It takes Food first, but never the last 3 Food per Jan `[proto]`, then Wood, then Materials, and runs off laden.
+  - Killing a thief gives everything back.
+  - A thief waits at the edge while she's down and for 3 s after she's up `[proto]`, so it can still be caught.
+- **Outposts** are camps of sleeping defenders in opened tiles: fox dens, wolf hollows, raider camps and bear caves. They wake when she comes within 5 m and take 0.8 s to get up. Clearing a camp pays Materials, or a chest.
+
+**Balance target:** with the Armory left at level 1, raids break through decisively in waves 9–11. An Armory upgraded on schedule holds past wave 16. One three minutes behind breaks partly but never collapses. `tests/sim_waves.gd` plays these out and `tests/test_balance.gd` checks them.
+
+**Reading it on a phone.** One meaning per colour:
+- terracotta for enemy danger;
+- cream for Meagan's attacks and her target;
+- gold for a counter window;
+- muted teal for objectives.
+
+The cues themselves:
+- **Danger zones:**
+  - A tell is a light wash over the exact danger zone, with a 2 px edge.
+  - A brighter line marks the timing as it advances.
+  - At the lock the edge doubles.
+- **Hits:** a burst at the point of contact, the struck enemy freezing 55 ms (85 ms on a counter) and recoiling.
+- **Health bars:** they never collide on screen.
+- **Edge markers:** enemies off screen get terracotta chevrons with their distance, and a thief carries a capsule showing what it took.
+
+The rest of this section is the design copied from Frostbite 1. Fight v2 replaced its Furnace-based scaling and wolf-only packs.
+
+### Animal attacks (Frostbite 1's design, superseded where fight v2 differs)
 
 The furnace's warmth draws wild animals, and a bigger Furnace draws stronger ones: their HP, damage and loot grow ×1.6 per Furnace level above 2. Fights happen on the map in real time.
 
