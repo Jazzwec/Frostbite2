@@ -38,7 +38,7 @@ What felt wrong while playing, and what's still open. This file is the prompt fo
 3. Implement the points, one commit each.
 4. Repeat until 9/10.
 
-**Sims:** `godot --headless --path . -s res://tests/sim_waves.gd` shows thefts per wave for four Armory plans: none standing, none active, late and schedule. `tests/test_balance.gd` holds the targets.
+**Sims:** `godot --headless --path . -s res://tests/sim_waves.gd` shows thefts per wave for four Armory plans: none standing, none active, late and schedule. `tests/test_balance.gd` holds the targets. `docs/balance/fight_v2_sims.md` is the full report, out to wave 20, with time-to-kill per kind and Armory level and a row for every number below.
 
 **New `[proto]` numbers awaiting the user's sign-off:**
 - In `Balance.ENEMIES`: the wind-ups, locks, recoveries (0.6–0.7 s), HP (35–45% over the steer's) and widths.

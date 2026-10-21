@@ -8,6 +8,21 @@ What happened during unattended runs, newest run first. Each run starts with a h
 
 A "Needs you" list goes at the end.
 
+## Run 2026-10-21, 07:54 → 10:00 (Fight v2 follow-ups)
+
+### F1. Wave balance report
+- **What:** `docs/balance/fight_v2_sims.md`, which covers:
+  - the four Armory plans out to wave 20;
+  - time-to-kill per kind at every Armory level (sweeps, snowballs, guard strikes, counters);
+  - when guards and Meagan fall;
+  - a row for every fight `[proto]` number.
+
+  `tests/sim_waves.gd` now prints it as Markdown, and `WaveSim` counts the extra columns. No balance number changed. Tests: 178 passed.
+- **Check:** read the report's "What it says".
+- **Felt wrong:**
+  - Past the spending cap (wave 12+), enemy HP keeps growing ×1.2 a wave, and nothing on the player's side grows after Armory 10. So even on schedule, wave 18 (about 32:00) loses 100 and wave 19 loses 223. Every winter ends there whatever she buys.
+  - The Armory sheet's "a wolf in N sweeps" counts a strength-1 wolf, which understates it from wave 13.
+
 ## Run 2026-10-20, 20:15 → done (animation polish)
 
 The task: Astra's review of the animations, best practices from the web, then polish. Frame strips of every clip were captured at quarter speed (`source_art/direction/anim_v1/`), and Astra reviewed them (`review.md`). Two of its lowest scores (Jan fishing and chopping, Meagan storing) were my capture's fault, not the game's: the camera followed the wrong Jan, and Meagan was still walking. Its real findings are backlog items N1–N7.

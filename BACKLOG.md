@@ -229,7 +229,7 @@ Asked by the user on 2026-10-20: Astra's review of the animations (`source_art/d
 
 Fight v2 is paused at 8.9/10 (NOTES.md top). These need no credits, no design call and no change of art style. Don't resume the Astra review loop unattended: that's "needs you".
 
-- [ ] **F1. Wave balance report (safe, engine only).**
+- [x] **F1. Wave balance report (safe, engine only).**
   - **What:** evidence for the user's sign-off of the fight `[proto]` numbers.
   - **How:**
     - Run `tests/sim_waves.gd` for its four Armory plans out to wave 20.

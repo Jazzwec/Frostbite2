@@ -4,6 +4,9 @@ extends RefCounted
 ## two guards, the store kept full, waves 1..`waves` on their clock; per wave, how many enemies
 ## got away with something and how much (net of what kills gave back). With `active`, she plays:
 ## she runs at the raider nearest the store, as a player defending would.
+## Each row also counts what the fight `[proto]` rules did (docs/balance/fight_v2_sims.md): her
+## knock-downs, guards falling, hits on recovering enemies, bites landed, thieves caught, the most
+## melee enemies attacking her at once (tell, strike or recovery), and her mode swaps.
 
 ## How far out from the furnace an active Meagan goes after raiders, and her run speed.
 const ACTIVE_RANGE := 14.0
@@ -32,7 +35,7 @@ static func run(plan: String, waves: int, seed := 7, active := false) -> Array:
 	var stand := MapData.site_pos(s, 0) + Vector2(0, 3.0)
 	var rows := []
 	var row := {}
-	var stolen := 0.0
+	var mode := s.meagan_mode
 	while s.wave <= waves and s.time < 3600.0:
 		# Armory by the clock.
 		var lv := 1
@@ -50,12 +53,24 @@ static func run(plan: String, waves: int, seed := 7, active := false) -> Array:
 			elif not active:
 				e.set_meagan_position(stand)
 			e.skip(0.1)
+			if not row.is_empty():
+				var winding := 0
+				for w in s.wolves:
+					if w.bite_t >= 0.0 and w.victim == -1 and Balance.ENEMIES[w.kind].shape != "shot":
+						winding += 1
+				row.most_winding = maxi(row.most_winding, winding)
+				if s.meagan_mode != mode:
+					row.swaps += 1
+				row.alive = maxi(row.alive, s.wolves.size())
+			mode = s.meagan_mode
 		for ev in e.drain_events():
 			match ev.type:
 				"wolves_arrived":
 					if not row.is_empty():
 						rows.append(row)
-					row = {"wave": ev.wave, "clock": "%d:%02d" % [int(s.time) / 60, int(s.time) % 60], "armory": lv, "enemies": ev.count, "thieves": 0, "stolen": 0.0, "injured": false}
+					row = {"wave": ev.wave, "clock": _clock(s.time), "armory": lv, "enemies": ev.count, "thieves": 0, "stolen": 0.0, "injured": false,
+						"downs": 0, "guards_down": 0, "guard_fall": "", "hits": 0, "exposed": 0, "guard_hits": 0, "guard_exposed": 0,
+						"bites": 0, "landed": 0, "caught": 0, "most_winding": 0, "swaps": 0, "alive": 0, "over": ""}
 				"theft":
 					row.thieves += 1
 					for res in ev.carry:
@@ -64,11 +79,35 @@ static func run(plan: String, waves: int, seed := 7, active := false) -> Array:
 					if not row.is_empty():
 						for res in ev.carry:
 							row.stolen -= ev.carry[res]
+						if not ev.carry.is_empty():
+							row.caught += 1
 				"meagan_injured":
 					row.injured = true
+					row.downs += 1
+				"guard_down":
+					row.guards_down += 1
+					if row.guard_fall == "":
+						row.guard_fall = _clock(s.time)
+				"wolf_hit":
+					if ev.kind == "guard":
+						row.guard_hits += 1
+						row.guard_exposed += int(ev.exposed)
+					else:
+						row.hits += 1
+						row.exposed += int(ev.exposed)
+				"wolf_bite":
+					row.bites += 1
+					row.landed += int(ev.hit)
+				"attack_over":
+					if not row.is_empty() and row.over == "":
+						row.over = _clock(s.time)
 	if not row.is_empty() and row.wave <= waves:
 		rows.append(row)
 	return rows
+
+
+static func _clock(t: float) -> String:
+	return "%d:%02d" % [int(t) / 60, int(t) % 60]
 
 
 ## Where an active Meagan heads: a couple of metres short of the raider nearest the store, or
