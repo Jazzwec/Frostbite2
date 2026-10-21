@@ -245,7 +245,7 @@ Fight v2 is paused at 8.9/10 (NOTES.md top). These need no credits, no design ca
     - a save round-trip of the new state fields (`next_wave`, `meagan_down_at`, `meagan_up_at`, `meagan_foe`, outposts);
     - shots landing exactly on the tick boundary.
   - **Done when:** the new tests pass and no existing test was weakened. A test that exposes a bug gets the fix in its own commit.
-- [ ] **F3. Raid performance pass (safe).**
+- [x] **F3. Raid performance pass (safe).**
   - **What:** measure FPS and draw calls at wave 12+ (DEV → Next wave): mixed kinds, trolls and bears, 4 guards, a blizzard.
   - **Suspects:**
     - `WolfView` tell meshes and shaders, the counter halo, the bars;

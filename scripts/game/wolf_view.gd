@@ -174,6 +174,13 @@ var badge := false
 var _badge_amount: Label3D
 var _badge_bag: Sprite3D
 var _badge_stem: MeshInstance3D
+## Off screen, it isn't posed (most of a body's cost; F3, 2026-10-21), as CharacterRig does.
+var _screen: VisibleOnScreenNotifier3D
+var _flashing := false
+## The ground meshes every view of a kind shares, and the halo's materials (F3: a view was 1-2 ms
+## to build, mostly these and its model).
+static var _meshes := {}
+static var _shared_mats := {}
 
 
 func _init(enemy_kind := "wolf") -> void:
@@ -205,6 +212,11 @@ func _init(enemy_kind := "wolf") -> void:
 		mesh.set_meta("no_snow", true)
 	_build_tell()
 	var look: Dictionary = LOOK[kind]
+	var foot: Vector2 = FOOTPRINT[kind]
+	var span := maxf(foot.x, foot.y) + 0.5
+	_screen = VisibleOnScreenNotifier3D.new()
+	_screen.aabb = AABB(Vector3(-span, 0, -span), Vector3(span * 2.0, look.bar + 0.8, span * 2.0))
+	add_child(_screen)
 	_hp_bar = HpBar.new(HpBar.WOLF_RED)
 	_bar_height = look.bar
 	_hp_bar.position = Vector3(0, look.bar, 0)
@@ -315,15 +327,23 @@ func _build_model() -> void:
 			_tint(mesh, FOX_TINT)
 
 
-## Its own copy of each material, the colour multiplied by `tint` (the ink look keeps it).
+## A copy of each material, the colour multiplied by `tint` (the ink look keeps it), made once and
+## shared by every fox: a copy per fox made InkLook convert and keep each one, so its per-frame
+## warmth update grew with every fox a winter spawned (F3, 2026-10-21).
+static var _tinted := {}
+
+
 func _tint(mesh: MeshInstance3D, tint: Color) -> void:
 	for i in mesh.mesh.get_surface_count():
 		var m := mesh.mesh.surface_get_material(i) as BaseMaterial3D
 		if m == null:
 			continue
-		var copy := m.duplicate() as BaseMaterial3D
-		copy.albedo_color = m.albedo_color * tint
-		mesh.set_surface_override_material(i, copy)
+		var key := "%d/%s" % [m.get_instance_id(), tint.to_html()]
+		if not _tinted.has(key):
+			var copy := m.duplicate() as BaseMaterial3D
+			copy.albedo_color = m.albedo_color * tint
+			_tinted[key] = copy
+		mesh.set_surface_override_material(i, _tinted[key])
 
 
 func _build_greybox_wolf() -> void:
@@ -495,18 +515,18 @@ func _build_tell() -> void:
 	var line: Mesh
 	match _def.shape:
 		"wedge":
-			full = sector(0.0, _def.reach, _def.arc)
-			thin = _wedge_outline(_def.reach, _def.arc, TELL_LINE_THIN)
+			full = _sector(0.0, _def.reach, _def.arc)
+			thin = _outline(_def.reach, _def.arc, TELL_LINE_THIN)
 			# The striking arc heavy, its sides thin (review 16).
-			line = _wedge_outline(_def.reach, _def.arc, TELL_LINE_WIDTH, TELL_LINE_THIN * 0.7)
+			line = _outline(_def.reach, _def.arc, TELL_LINE_WIDTH, TELL_LINE_THIN * 0.7)
 			var widen: float = rad_to_deg(TELL_KEY_WIDTH * 1.4 / _def.reach) * 2.0
-			_tell_key = _ground_mesh(_wedge_outline(_def.reach + TELL_KEY_WIDTH, _def.arc + widen, TELL_KEY_WIDTH * 1.6), TELL_KEY)
+			_tell_key = _ground_mesh(_outline(_def.reach + TELL_KEY_WIDTH, _def.arc + widen, TELL_KEY_WIDTH * 1.6), TELL_KEY)
 		_:
 			# A slam's ring round it, or a shard's target where it will land.
-			full = sector(0.0, _def.reach, 360.0)
-			thin = sector(_def.reach - TELL_LINE_THIN, _def.reach, 360.0)
-			line = sector(_def.reach - TELL_LINE_WIDTH, _def.reach, 360.0)
-			_tell_key = _ground_mesh(sector(_def.reach, _def.reach + TELL_KEY_WIDTH, 360.0), TELL_KEY)
+			full = _sector(0.0, _def.reach, 360.0)
+			thin = _sector(_def.reach - TELL_LINE_THIN, _def.reach, 360.0)
+			line = _sector(_def.reach - TELL_LINE_WIDTH, _def.reach, 360.0)
+			_tell_key = _ground_mesh(_sector(_def.reach, _def.reach + TELL_KEY_WIDTH, 360.0), TELL_KEY)
 	_tell_zone = MeshInstance3D.new()
 	_tell_zone.mesh = full
 	_tell_zone_mat = ShaderMaterial.new()
@@ -520,10 +540,10 @@ func _build_tell() -> void:
 	# The timing edge: the advancing front as a 3 px brighter line (an arc, or a ring), scaled out
 	# from the attacker to the boundary as the strike comes.
 	var front_arc: float = _def.arc if _def.shape == "wedge" else 360.0
-	_tell_front = _ground_mesh(sector(0.965, 1.0, front_arc), TELL_FRONT)
+	_tell_front = _ground_mesh(_sector(0.965, 1.0, front_arc), TELL_FRONT)
 	_tell_front.position.y = 0.008
 	# A short root mark at the attacker's feet, so it's plain whose shape it is (review 16).
-	_tell_root = _ground_mesh(sector(0.0, 0.08, 360.0), TELL_LINE)
+	_tell_root = _ground_mesh(_sector(0.0, 0.08, 360.0), TELL_LINE)
 	_tell_root.position.y = 0.012
 	for mi in [_tell_zone, _tell_key, _tell_line_thin, _tell_line, _tell_front, _tell_root]:
 		_tell.add_child(mi)
@@ -537,11 +557,10 @@ func _build_tell() -> void:
 	var r := 1.0
 	for k in 4:
 		var part := Node3D.new()
-		var edge := _ground_mesh(sector(r - 0.02, r + 0.075, HALO_PIECE + 1.5), HALO_EDGE)
-		var stroke := _ground_mesh(sector(r, r + 0.055, HALO_PIECE), HALO)
-		stroke.position.y = 0.005
+		var edge := _ground_mesh(_sector(r - 0.02, r + 0.075, HALO_PIECE + 1.5), HALO_EDGE, true)
 		# Drawn after its edge, so the ochre sits on top.
-		(stroke.material_override as StandardMaterial3D).render_priority = 1
+		var stroke := _ground_mesh(_sector(r, r + 0.055, HALO_PIECE), HALO, true, 1)
+		stroke.position.y = 0.005
 		part.add_child(edge)
 		part.add_child(stroke)
 		_halo.add_child(part)
@@ -589,6 +608,21 @@ static func sector(inner: float, outer: float, arc: float) -> ArrayMesh:
 	return st.commit()
 
 
+## `sector` and `_wedge_outline`, built once per shape and shared by every view.
+static func _sector(inner: float, outer: float, arc: float) -> Mesh:
+	var key := "s%s/%s/%s" % [inner, outer, arc]
+	if not _meshes.has(key):
+		_meshes[key] = sector(inner, outer, arc)
+	return _meshes[key]
+
+
+func _outline(reach: float, arc: float, w: float, side_w := -1.0) -> Mesh:
+	var key := "o%s/%s/%s/%s" % [reach, arc, w, side_w]
+	if not _meshes.has(key):
+		_meshes[key] = _wedge_outline(reach, arc, w, side_w)
+	return _meshes[key]
+
+
 ## A wedge's outline, `w` wide: its arc and its two straight sides.
 func _wedge_outline(reach: float, arc: float, w: float, side_w := -1.0) -> ArrayMesh:
 	if side_w < 0.0:
@@ -613,14 +647,22 @@ func _wedge_outline(reach: float, arc: float, w: float, side_w := -1.0) -> Array
 	return st.commit()
 
 
-func _ground_mesh(mesh: Mesh, color: Color) -> MeshInstance3D:
+## A flat mesh on the snow in `color`. A `shared` material is one every view uses (only for
+## parts whose colour never changes; the tell's lines fade, so they each get their own).
+func _ground_mesh(mesh: Mesh, color: Color, shared := false, priority := 0) -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
 	mi.mesh = mesh
-	var m := StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.cull_mode = BaseMaterial3D.CULL_DISABLED
-	m.albedo_color = color
+	var key := "%s/%d" % [color.to_html(), priority]
+	var m: StandardMaterial3D = _shared_mats.get(key) if shared else null
+	if m == null:
+		m = StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.cull_mode = BaseMaterial3D.CULL_DISABLED
+		m.albedo_color = color
+		m.render_priority = priority
+		if shared:
+			_shared_mats[key] = m
 	mi.material_override = m
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	return mi
@@ -813,7 +855,9 @@ func sync(enemy: Dictionary, delta: float) -> void:
 	# Laden, it runs off head down (the engine also slows it, Balance.CARRY_SPEED).
 	var laden: bool = not enemy.get("carry", {}).is_empty()
 	_model.rotation.x = lerp_angle(_model.rotation.x, deg_to_rad(LADEN_LEAN if laden else 0.0), 8.0 * delta)
-	if _pivot:
+	if not _screen.is_on_screen():
+		pass
+	elif _pivot:
 		_pose(fighting, lunge)
 		_pivot.rotation.y = deg_to_rad(_react_twist * _react_amount())
 	else:
@@ -824,9 +868,12 @@ func sync(enemy: Dictionary, delta: float) -> void:
 		_tail.rotation.y = deg_to_rad(16.0 * sin(_t)) if not fighting else deg_to_rad(5.0 * sin(_t))
 		_tail.rotation.x = deg_to_rad(-12.0 if fighting else 0.0)
 	var flashing := _flash > 0.0
-	_flash_mat.set_shader_parameter("strength", FLASH_STRENGTH * _flash / FLASH_TIME)
-	for mesh in _skins:
-		mesh.material_overlay = _flash_mat if flashing else null
+	if flashing:
+		_flash_mat.set_shader_parameter("strength", FLASH_STRENGTH * _flash / FLASH_TIME)
+	if flashing != _flashing:
+		_flashing = flashing
+		for mesh in _skins:
+			mesh.material_overlay = _flash_mat if flashing else null
 	_hp_bar.set_value(enemy.hp / enemy.max_hp)
 	_hp_bar.position.y = lerpf(_hp_bar.position.y, _bar_height + bar_lift, minf(1.0, 10.0 * delta))
 	var lifted := _hp_bar.position.y - _bar_height

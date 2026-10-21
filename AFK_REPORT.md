@@ -40,6 +40,37 @@ A "Needs you" list goes at the end.
   - Wake an outpost, run off past 10 m, and its defenders walk home.
 - **Your save:** the check run loaded the existing `user://save.json` and autosaved my test raid over it (wave 12 with an extra outpost). I moved that file to `save.afk-test-2026-10-21.json` rather than delete it, so the game starts a fresh winter. I'm sorry: I should have backed it up first, and from now on I do. `settings.cfg` is untouched.
 
+### F3. Raid performance pass
+- **Scene:** wave 12 kept at 24 enemies (trolls, bears, raiders, wolves, foxes; HP raised so they last), 4 guards, a blizzard, Furnace Lv 6, vsync off, on this desktop (RTX 3060 Ti). Old and new code ran the same setup.
+- **Where the raid's cost is:**
+  - Hiding all 24 enemy views changed FPS only within noise (212 → 203–218), though it cut draw calls from 637 to 401. On this GPU the frame is bound elsewhere, so the gains are on the CPU, which is what a phone runs out of first.
+  - The engine tick costs 0.55 ms at 10 Hz. `ThreatArrows` costs about 1 µs a frame.
+  - The real costs:
+    - building each enemy view (1–2.4 ms, and a wave's group of six came in one frame);
+    - the views' per-frame sync (about 1 ms at 24);
+    - a material leak: each fox's tinted copy of its materials was converted and kept by `InkLook`, whose warmth update sets four shader parameters on every kept material every frame, so that cost grew with every fox a winter spawned.
+- **Fixes (`wolf_view.gd`, `people_layer.gd`):**
+  - at most 2 enemy views built a frame;
+  - tell and halo meshes built once per shape and shared, and the halo's materials shared;
+  - fox tints made once;
+  - a broad-phase check before the n² spacing in the view nudge;
+  - the hit-flash overlay set only when it changes;
+  - no posing off screen (like `CharacterRig`).
+
+  | | Before | After |
+  |---|---|---|
+  | Enemy views' sync a frame (24 enemies) | 0.98–1.01 ms | 0.69–0.70 ms |
+  | … of which nudge and bar stacking | 0.41–0.42 ms | 0.22 ms |
+  | Building a view: fox / wolf / raider / bear / troll | 2.3–2.6 / 2.0–2.1 / 1.1 / 1.2 / 1.3–1.4 ms | 2.1–2.3 / 1.7–1.8 / 0.8 / 0.8–0.9 / 1.0 ms |
+  | Views built in one frame | a whole group (6): about 7–14 ms | at most 2: at most about 4.5 ms |
+  | Ink materials added per fox spawned | 3, kept all winter, updated every frame | 0 |
+  | FPS / draw calls | 235–238 / 477–488 | 259–275 / 593–616 (more enemies on screen, so not like for like) |
+- **Looks the same:** screenshots of the raid before and after match (same models, bars and badges). Tells and halos use the same geometry, colours and draw order. Runtime errors: none. Tests: 192 passed.
+- **Not done:**
+  - **Draw calls:** each greybox bear, troll and raider is a dozen boxes, about 10 draw calls an enemy. Merging each kind into one mesh is worth doing, but better done once you decide on real models for them.
+  - **Building a view is still about 1 ms for a wolf or fox,** most of it instancing the GLB. Pooling views would remove that, but it changes their life cycle (the death tumble), so it's worth doing only if a phone shows hitches.
+  - **A test-setup artifact, not a game bug:** `swallowtail runtime await_signal` blocks the game while it waits, which made the game look slow. Plain waits don't.
+
 ## Run 2026-10-20, 20:15 → done (animation polish)
 
 The task: Astra's review of the animations, best practices from the web, then polish. Frame strips of every clip were captured at quarter speed (`source_art/direction/anim_v1/`), and Astra reviewed them (`review.md`). Two of its lowest scores (Jan fishing and chopping, Meagan storing) were my capture's fault, not the game's: the camera followed the wrong Jan, and Meagan was still walking. Its real findings are backlog items N1–N7.

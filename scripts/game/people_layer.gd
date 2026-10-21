@@ -158,13 +158,22 @@ func _post(s: GameState, site: int, slot: int) -> Vector3:
 	return Vector3(p.x, 0, p.y)
 
 
+## At most this many enemy views are built a frame (each is 1-2 ms; a wave's group of six all at
+## once was a hitch, F3 2026-10-21). They come in at the map's edge, so a frame's wait is unseen.
+const NEW_WOLF_VIEWS_PER_FRAME := 2
+
+
 func _sync_wolves(s: GameState, delta: float) -> void:
 	var seen := {}
 	var thief := ThreatArrows.nearest_thief(s)
+	var built := 0
 	for wolf in s.wolves:
 		seen[wolf.id] = true
 		var view: WolfView = _wolves.get(wolf.id)
 		if view == null:
+			if built >= NEW_WOLF_VIEWS_PER_FRAME:
+				continue
+			built += 1
 			view = WolfView.new(wolf.kind)
 			add_child(view)
 			view.global_position = Vector3(wolf.pos.x, 0, wolf.pos.y)
@@ -221,6 +230,7 @@ func _drop_spot(s: GameState, k: int, id: int) -> Vector2:
 ## and how quickly the nudge settles.
 const WOLF_VIEW_SPACING := 0.9
 const WOLF_NUDGE_EASE := 6.0
+static var _most_spacing := -1.0
 ## Health bars that would overlap on screen step up, one bar plus an 8 px gap each (review 2):
 ## two enemies this close across (world X is screen X) and this close in depth.
 const BAR_CLEAR_X := 1.35
@@ -229,6 +239,11 @@ const BAR_STEP := 0.36
 
 
 func _nudge_wolves(s: GameState, delta: float) -> void:
+	# The widest pair's spacing: anything farther apart on either axis can't need a nudge, which
+	# skips most pairs before the per-kind spacing (F3: the n² lookups were most of this).
+	if _most_spacing < 0.0:
+		for a in Balance.ENEMIES:
+			_most_spacing = maxf(_most_spacing, Combat.spacing_of(a, a) * WOLF_VIEW_SPACING)
 	for wolf in s.wolves:
 		var view: WolfView = _wolves.get(wolf.id)
 		if view == null:
@@ -238,6 +253,8 @@ func _nudge_wolves(s: GameState, delta: float) -> void:
 			if other.id == wolf.id:
 				continue
 			var apart: Vector2 = wolf.pos - other.pos
+			if absf(apart.x) >= _most_spacing or absf(apart.y) >= _most_spacing:
+				continue
 			var d := apart.length()
 			var spacing := Combat.spacing_of(wolf.kind, other.kind) * WOLF_VIEW_SPACING
 			if d < spacing:
