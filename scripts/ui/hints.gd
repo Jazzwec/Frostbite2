@@ -7,7 +7,8 @@ extends Control
 ## During a fight they keep out of the way, and the arrow hides while a sheet is open (fight_v2
 ## review 1). A full bag shows in the top bar, not here.
 
-const ARROW_SIZE := 46.0
+## A small muted-teal marker (review 11: apart from the terracotta enemy chevrons).
+const ARROW_SIZE := 30.0
 ## Where an off-screen arrow may sit: this far in from each screen edge (left, top, right,
 ## bottom), clear of the top panel and the buttons under it.
 const EDGE_MARGINS := Vector4(60, 560, 60, 120)
@@ -159,5 +160,5 @@ func _draw_arrow() -> void:
 		Vector2(a * 0.4, -a * 2.0), Vector2(a * 0.4, -a), Vector2(a, -a)])
 	var outline := shape.duplicate()
 	outline.append(shape[0])
-	_arrow.draw_colored_polygon(shape, UiTheme.FIRELIGHT)
+	_arrow.draw_colored_polygon(shape, UiTheme.TEAL)
 	_arrow.draw_polyline(outline, UiTheme.INK, 6.0, true)

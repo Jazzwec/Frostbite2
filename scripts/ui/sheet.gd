@@ -28,6 +28,8 @@ var _upgrade: Button
 var _armory_cells := {}
 ## Whether the upgrade button is in its muted look (she's short of something).
 var _upgrade_muted := false
+## The Armory's first line: what the next level does to a wolf.
+var _armory_lead: Label
 var _job_label: Label
 var _job_row: HBoxContainer
 var _job := ""
@@ -174,16 +176,25 @@ func _open_plot() -> void:
 
 func _open_building(b: String) -> void:
 	_effect = UiTheme.label(Game.building_text(b).get("effect", ""), 34, UiTheme.INK_SOFT)
-	_body.add_child(_effect)
-	if b == "armory":
-		_body.add_child(_armory_grid())
 	_status = UiTheme.label("", 38)
-	_body.add_child(_status)
 	_cost_line = UiTheme.rich_label(34)
-	_body.add_child(_cost_line)
+	if b == "armory":
+		# The decision first (review 11): what the next level does, the numbers, what it costs and
+		# what's missing by the button; the description last.
+		_armory_lead = UiTheme.label("", 46, UiTheme.TEAL_DEEP)
+		_body.add_child(_armory_lead)
+		_body.add_child(_armory_grid())
+		_body.add_child(_cost_line)
+		_body.add_child(_status)
+	else:
+		_body.add_child(_effect)
+		_body.add_child(_status)
+		_body.add_child(_cost_line)
 	_upgrade = UiTheme.button("", _start_upgrade)
 	_upgrade_muted = false
 	_body.add_child(_upgrade)
+	if b == "armory":
+		_body.add_child(_effect)
 	for job in Balance.JOBS:
 		if Balance.JOBS[job].building == b:
 			_job = job
@@ -220,8 +231,8 @@ func _armory_grid() -> GridContainer:
 	grid.add_theme_constant_override("h_separation", 28)
 	grid.add_theme_constant_override("v_separation", 6)
 	_armory_cells = {}
-	# What the next level does to a wolf leads, big (reviews 2 and 6); the numbers follow, smaller.
-	for row in [["wolf", "Hits to beat a wolf"]] + ARMORY_ROWS:
+	# The numbers, smaller; the lead line above says what they do to a wolf (reviews 2, 6, 11).
+	for row in ARMORY_ROWS:
 		var lead: bool = row[0] == "wolf"
 		var name := UiTheme.label(row[1], 46 if lead else 33, UiTheme.INK if lead else UiTheme.INK_SOFT)
 		name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -253,18 +264,19 @@ func _refresh_armory(s: GameState) -> void:
 	var sweeps := [ceili(wolf_hp / w_now.stick_damage), ceili(wolf_hp / w_next.stick_damage)]
 	var balls := [ceili(wolf_hp / w_now.snow_damage), ceili(wolf_hp / w_next.snow_damage)]
 	var shows_wolf: bool = not top and (sweeps[1] < sweeps[0] or balls[1] < balls[0])
-	var by_sweep: bool = sweeps[1] < sweeps[0] or balls[1] >= balls[0]
-	var counts: Array = sweeps if by_sweep else balls
-	now["wolf"] = "%d" % counts[0]
-	next["wolf"] = "%d" % counts[1]
-	_armory_cells.wolf[2].text = "Sweeps to defeat a wolf" if by_sweep else "Snowballs to defeat a wolf"
+	if top:
+		_armory_lead.text = "Fully upgraded: a wolf in %d sweeps" % sweeps[0]
+	elif sweeps[1] < sweeps[0]:
+		_armory_lead.text = "Next level: a wolf in %d sweeps, not %d" % [sweeps[1], sweeps[0]]
+	elif balls[1] < balls[0]:
+		_armory_lead.text = "Next level: a wolf in %d snowballs, not %d" % [balls[1], balls[0]]
+	else:
+		_armory_lead.text = "Next level: sweeps hit %s, not %s" % [next.stick, now.stick]
 	for key in _armory_cells:
 		var cells: Array = _armory_cells[key]
 		cells[0].text = now[key]
 		cells[1].text = "MAX" if top else "→ " + next.get(key, "")
-		if key == "wolf":
-			for c in cells:
-				c.visible = shows_wolf
+
 
 
 ## Each resource the upgrade needs against what she has (bag and store), the same way every time
@@ -384,7 +396,7 @@ func _refresh() -> void:
 		var short := _shortfall(s, Economy.site_cost(s, site_index))
 		_upgrade.text = "Upgrade to Lv %d" % (site.level + 1) if short == "" else "Track Lv %d delivery" % (site.level + 1)
 		if short != "":
-			_status.text += "\nCollect %s more, then deliver to the pad." % short
+			_status.text += ("\n" if _status.text != "" else "") + "Need %s more: deliver to the pad." % short
 		if (short != "") != _upgrade_muted:
 			_upgrade_muted = short != ""
 			if _upgrade_muted:

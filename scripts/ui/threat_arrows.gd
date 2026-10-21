@@ -12,14 +12,17 @@ const SIZE := 36.0
 ## of the top panel, the buttons and the fight strip under them.
 const EDGE_MARGINS := Vector4(62, 460, 62, 200)
 ## Ochre for what's coming, terracotta for danger now (review 3), each with a cream keyline.
-## A warned wave's sides in slate (review 8: ochre is the counter window's alone).
-const COMING := Color(0.45, 0.5, 0.6)
+## Everything about enemies is a terracotta chevron (review 11), a coming wave's at half strength.
+const COMING := Color(0.66, 0.3, 0.2, 0.45)
 const THIEF := Color(0.66, 0.3, 0.2)
 ## The attackers' markers: smaller (about 24 px), 16 px in from the edge, with their distance.
-const ATTACKER_SIZE := 26.0
+const ATTACKER_SIZE := 24.0
 ## One winding up is bigger, and the wave arrows step back to half while it does (review 8).
-const ATTACKER_STRIKING_SIZE := 32.0
-const ATTACKER_COMING := Color(0.36, 0.39, 0.46)
+const ATTACKER_STRIKING_SIZE := 30.0
+## A shot about to come in from off screen: a small wedge, from 0.4 s before it's in view.
+const SHOT_SIZE := 14.0
+const SHOT_LEAD := 0.4
+const ATTACKER_COMING := Color(0.66, 0.3, 0.2)
 const ATTACKER_STRIKING := Color(0.66, 0.3, 0.2)
 const ATTACKERS_SHOWN := 2
 ## Markers closer than this on screen are one, with a count.
@@ -72,10 +75,17 @@ func _process(delta: float) -> void:
 			for res in thief.carry:
 				total += thief.carry[res]
 			_mark(thief.pos, THIEF, Fmt.num(total))
-		# A shard flying in from off screen at her (review 10): a small terracotta cue its way.
+		# A shot coming at her from off screen (reviews 10, 11): a small wedge its way from SHOT_LEAD
+		# before it's thrown until it's in view.
+		for e in s.wolves:
+			var def: Dictionary = Balance.ENEMIES[e.kind]
+			if def.shape == "shot" and e.bite_t >= def.tell - SHOT_LEAD and e.bite_t < def.tell and e.get("victim", -2) == -1:
+				_mark(e.pos, ATTACKER_STRIKING, "", SHOT_SIZE, "")
 		for shot in s.enemy_shots:
 			if shot.to.distance_to(s.meagan_pos) < 1.6:
-				_mark(shot.from, ATTACKER_STRIKING, "", ATTACKER_SIZE, "")
+				var total: float = shot.from.distance_to(shot.to) / Balance.ENEMY_SHOT_SPEED
+				var now: Vector2 = shot.from.lerp(shot.to, clampf(1.0 - shot.in / maxf(total, 0.01), 0.0, 1.0))
+				_mark(now, ATTACKER_STRIKING, "", SHOT_SIZE, "")
 		var shown := 0
 		for e in _attackers_by_distance(s):
 			if shown >= ATTACKERS_SHOWN or (not thief.is_empty() and e.id == thief.id):
@@ -138,14 +148,16 @@ func _draw() -> void:
 	for mk in _marks:
 		var a: float = mk[4]
 		var faded: bool = striking and mk[2] == COMING
-		# A chunky arrow pointing along +Y, its tip at the origin (as the hints' arrow).
+		# A chevron pointing along +Y, its tip at the origin; the thief's keeps the chunky arrow.
 		var shape := PackedVector2Array([Vector2(0, 0), Vector2(-a, -a), Vector2(-a * 0.4, -a), Vector2(-a * 0.4, -a * 1.8),
-			Vector2(a * 0.4, -a * 1.8), Vector2(a * 0.4, -a), Vector2(a, -a)])
+			Vector2(a * 0.4, -a * 1.8), Vector2(a * 0.4, -a), Vector2(a, -a)]) if mk[3] != "" else \
+			PackedVector2Array([Vector2(0, 0), Vector2(-a, -a * 1.1), Vector2(-a * 0.45, -a * 1.1), Vector2(0, -a * 0.5),
+			Vector2(a * 0.45, -a * 1.1), Vector2(a, -a * 1.1)])
 		var outline := shape.duplicate()
 		outline.append(shape[0])
 		var dir: Vector2 = mk[1]
 		draw_set_transform(mk[0], dir.angle() - PI / 2.0)
-		var alpha := 0.5 if faded else 1.0
+		var alpha: float = (0.5 if faded else 1.0) * mk[2].a
 		draw_polyline(outline, Color(KEYLINE, alpha), 12.0, true)
 		draw_colored_polygon(shape, Color(mk[2], alpha))
 		draw_polyline(outline, Color(UiTheme.INK, alpha), 5.0, true)

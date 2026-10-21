@@ -33,10 +33,11 @@ const KINDS := {
 ## is theirs.
 ## Cream, no ochre (review 8: ochre is the counter window's alone).
 const SWEEP_COLOR := Color(1.0, 0.95, 0.82, 0.95)
-const SWEEP_WIDTH := 0.1
+## A 3 px arc, over in about 100 ms (review 11).
+const SWEEP_WIDTH := 0.07
 const SWEEP_SPAN := 28.0
-const SWEEP_TIME := 0.12
-const SWEEP_FADE := 0.1
+const SWEEP_TIME := 0.08
+const SWEEP_FADE := 0.03
 
 static var instance: Fx
 
@@ -53,11 +54,15 @@ const IMPACT_HOLD := 0.07
 ## The bursts, drawn by tools/fx/make_fx_textures.py with a 2 px ink outline (review 6).
 const IMPACT_TEXTURE := preload("res://assets/textures/fx/impact.png")
 const COUNTER_TEXTURE := preload("res://assets/textures/fx/impact_counter.png")
+## A dark ochre ring round the core for the first moment (review 11), so contact snaps.
+const RIM_TEXTURE := preload("res://assets/textures/fx/impact_rim.png")
+const RIM_TIME := 0.04
 ## A troll's slam: one broken ring of snow puffing out on the ground (review 4: 70-90 px, ~200 ms).
 const SLAM_PUFF_SIZE := 2.4
 const SLAM_PUFF_TIME := 0.13
 const IMPACT_POOL := 8
 var _impacts: Array[Sprite3D] = []
+var _rims: Array[Sprite3D] = []
 var _next_impact := 0
 var _puff: MeshInstance3D
 var _pops: Array[Label3D] = []
@@ -126,7 +131,17 @@ func _impact(pos: Vector3, size: float, counter := false, from := Vector3.INF) -
 			s.visible = false
 			add_child(s)
 			_impacts.append(s)
+			var rim := Sprite3D.new()
+			rim.texture = RIM_TEXTURE
+			rim.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+			rim.no_depth_test = true
+			rim.render_priority = 31
+			rim.shaded = false
+			rim.visible = false
+			add_child(rim)
+			_rims.append(rim)
 	var mark := _impacts[_next_impact]
+	var rim := _rims[_next_impact]
 	_next_impact = (_next_impact + 1) % IMPACT_POOL
 	mark.global_position = pos
 	mark.texture = COUNTER_TEXTURE if counter else IMPACT_TEXTURE
@@ -147,6 +162,10 @@ func _impact(pos: Vector3, size: float, counter := false, from := Vector3.INF) -
 	t.tween_property(mark, "scale", Vector3.ONE * 0.4, IMPACT_TIME - IMPACT_HOLD).set_ease(Tween.EASE_IN)
 	t.parallel().tween_property(mark, "modulate:a", 0.0, IMPACT_TIME - IMPACT_HOLD)
 	t.tween_callback(mark.hide)
+	rim.global_position = pos
+	rim.pixel_size = mark.pixel_size
+	rim.visible = true
+	get_tree().create_timer(RIM_TIME).timeout.connect(rim.hide)
 
 
 ## A troll's slam on the snow at `pos`: one broken ring puffing out and fading.

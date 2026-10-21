@@ -116,7 +116,8 @@ const TELL_FRONT := Color(0.86, 0.42, 0.3, 0.95)
 ## Once locked, a cream keyline just outside the dark boundary (review 4: the lock reads as a
 ## change of state, not a shade of the warning; review 5: 3 px each).
 var _tell_key: MeshInstance3D
-const TELL_KEY := Color(0.98, 0.94, 0.86, 1.0)
+## The lock's outer edge: a second, darker terracotta line (review 11: cream is hers alone).
+const TELL_KEY := Color(0.5, 0.18, 0.11, 1.0)
 const TELL_KEY_WIDTH := 0.075
 const EDGE_PULSE := 0.18
 ## While it recovers from its strike (the counter window, Balance.RECOVERY_DAMAGE_MULT), an ochre
@@ -663,6 +664,12 @@ static func badge_disc() -> Texture2D:
 	return _badge_disc()
 
 
+## Its bar at full strength while it's after her (winding up, or her target), at 60% otherwise
+## (review 11: the strike reads before the health of the ones waiting).
+func set_engaged(on: bool) -> void:
+	_hp_bar.modulate_alpha(1.0 if on else 0.6)
+
+
 ## Meagan has picked it: its health bar's border lights up a moment (review 2: the chosen target
 ## shows where it already looks, no extra ground ring).
 func accent() -> void:
@@ -844,7 +851,7 @@ static func _bead_texture() -> Texture2D:
 				var d := Vector2(x + 0.5, y + 0.5).distance_to(c)
 				var col := Color(0, 0, 0, 0)
 				if d <= 15.0:
-					col = Color(0.55, 0.36, 0.1) if d > 11.5 else Color(1.0, 0.96, 0.86)
+					col = Color(0.36, 0.22, 0.06) if d > 10.0 else Color(0.98, 0.78, 0.36)
 					col.a = clampf(15.5 - d, 0.0, 1.0)
 				img.set_pixel(x, y, col)
 		_bead = ImageTexture.create_from_image(img)
@@ -964,7 +971,7 @@ func _pose_greybox(fighting: bool, lunge: float, moving: bool) -> void:
 				var side := -1.0 if arm == "arm_l" else 1.0
 				var sway := 0.0 if fighting else 14.0 * sin(_t + (0.0 if arm == "arm_l" else PI))
 				_parts[arm].rotation_degrees.x = -160.0 * wound - 30.0 * strike + 45.0 * slump + sway
-				_parts[arm].rotation_degrees.z = side * (34.0 * wound + 26.0 * slump)
+				_parts[arm].rotation_degrees.z = side * (40.0 * wound + 26.0 * slump)
 			_parts.body.rotation_degrees.x = -8.0 * wound + 20.0 * strike + 26.0 * slump
 			# Review 3: the slam drops it 12-16 px; review 6: a squash as it winds up, a forward drop.
 			_parts.body.position.y = 0.05 * bob - 0.32 * strike - 0.08 * slump

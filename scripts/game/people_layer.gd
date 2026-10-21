@@ -170,6 +170,7 @@ func _sync_wolves(s: GameState, delta: float) -> void:
 			view.global_position = Vector3(wolf.pos.x, 0, wolf.pos.y)
 			_wolves[wolf.id] = view
 		view.rest = _rest(s, wolf)
+		view.set_engaged(wolf.bite_t >= 0.0 or wolf.id == s.meagan_foe)
 		view.badge = not thief.is_empty() and thief.id == wolf.id
 		view.sync(wolf, delta)
 	_nudge_wolves(s, delta)

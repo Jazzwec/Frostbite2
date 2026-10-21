@@ -65,6 +65,13 @@ func set_value(fraction: float, show_when_full := false) -> void:
 	_fill.position.x = -(1.0 - fraction) * width / 2.0
 
 
+## Fades the whole bar to `alpha` (its parts keep their own colours).
+func modulate_alpha(alpha: float) -> void:
+	for mi in [_back, _fill]:
+		var m := (mi as MeshInstance3D).material_override as StandardMaterial3D
+		m.albedo_color.a = alpha if mi == _fill else 0.8 * alpha
+
+
 ## Lights the border up for a moment.
 func accent() -> void:
 	_accent = ACCENT_TIME

@@ -7,6 +7,9 @@
   towards the blow) and three short accents, terracotta (ochre for a counter), with a 2 px
   warm-ink outline round the whole shape so it reads over bodies and snow.
 
+- impact_rim.png: a dark ochre ring round the burst's core, shown for its first 40 ms so the
+  moment of contact snaps (review 11).
+
 Change a texture here and re-run rather than editing the PNGs.
 """
 import math
@@ -59,6 +62,21 @@ def make(name, rays):
     print("wrote", OUT / f"{name}.png")
 
 
+def make_rim():
+    big = SIZE * SCALE
+    img = Image.new("RGBA", (big, big), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    c = big / 2.0
+    r = big / 2.0 * 0.86 * CENTRE
+    width = 14 * SCALE  # about 2 px on the phone
+    draw.ellipse([c - r - width / 2, c - r - width / 2, c + r + width / 2, c + r + width / 2], fill=(122, 78, 26, 255))
+    draw.ellipse([c - r + width / 2, c - r + width / 2, c + r - width / 2, c + r - width / 2], fill=(0, 0, 0, 0))
+    img = img.resize((SIZE, SIZE), Image.LANCZOS)
+    img.save(OUT / "impact_rim.png")
+    print("wrote", OUT / "impact_rim.png")
+
+
 if __name__ == "__main__":
     for name, rays in RAYS.items():
         make(name, rays)
+    make_rim()
