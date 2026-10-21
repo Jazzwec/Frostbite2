@@ -409,7 +409,8 @@ func _refresh() -> void:
 		# game's upgrade flow), and it says so; it's the sheet's filled action either way (reviews
 		# 2, 3 and 12).
 		var short := _shortfall(s, Economy.site_cost(s, site_index))
-		_upgrade.text = "Upgrade to Lv %d" % (site.level + 1) if short == "" else "Track Lv %d delivery" % (site.level + 1)
+		# The task at hand (review 14): what's still to bring, or the upgrade itself.
+		_upgrade.text = "Upgrade to Lv %d" % (site.level + 1) if short == "" else "Track %s" % short
 
 	# An empty status line would leave a gap (review 13: keep the sheet compact).
 	_status.visible = _status.text != ""

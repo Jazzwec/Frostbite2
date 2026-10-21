@@ -84,15 +84,15 @@ static func make(id: String) -> Node3D:
 		# about 11 px plus a 20 px trail).
 		"shard":
 			# A solid dark head about 12 x 6 px in a 1-2 px cream edge (review 13), and its tail.
-			var edge := Shapes.cone(0.07, 0.28, Color(0.22, 0.3, 0.42))
+			var edge := Shapes.cone(0.09, 0.34, Color(0.22, 0.3, 0.42))
 			edge.rotation_degrees.x = -90.0
 			n.add_child(edge)
-			var shell := _cone_rim(0.105, 0.36, Color(0.99, 0.94, 0.84))
+			var shell := _cone_rim(0.13, 0.43, Color(0.99, 0.94, 0.84))
 			shell.rotation_degrees.x = -90.0
 			shell.position.z = 0.01
 			n.add_child(shell)
-			# A trail tapering from 5 px to nothing over about 17 px (reviews 10, 13).
-			var trail := Shapes.cone(0.058, 0.4, Color(0.66, 0.3, 0.2, 0.85), Vector3(0, 0, 0.34))
+			# A trail tapering from 6 px to nothing over about 22 px (reviews 10, 13, 14).
+			var trail := Shapes.cone(0.07, 0.5, Color(0.66, 0.3, 0.2, 0.85), Vector3(0, 0, 0.42))
 			trail.rotation_degrees.x = 90.0
 			n.add_child(trail)
 		# A snowball in her mitten, for her throw.

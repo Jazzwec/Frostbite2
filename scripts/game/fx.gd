@@ -27,6 +27,8 @@ const KINDS := {
 	# A hit's secondary flourish (fight_v2 review 1): a few dark ink flecks flung away from the
 	# blow, small enough to leave the struck one's shape readable.
 	"ink": {"color": Color(0.17, 0.14, 0.17), "amount": 4, "size": 0.08, "speed": Vector2(2.5, 4.0), "spread": 28.0, "gravity": -7.0, "life": 0.32},
+	# A hit's irregular flecks (review 14: 6-10 px, into and out of the body).
+	"flecks": {"color": Color(0.98, 0.9, 0.72), "amount": 3, "size": 0.18, "speed": Vector2(2.5, 4.5), "spread": 35.0, "gravity": -9.0, "life": 0.2},
 }
 ## Her stick's sweep on the snow (fight_v2 review 2): a pale-gold crescent at her reach that runs
 ## across exactly the arc it hits in SWEEP_TIME, then fades; no filled sector. Gold is hers; rust
@@ -48,7 +50,8 @@ var _sweeps := {}  # "reach" -> crescent MeshInstance3D
 ## Impact marks: a cream star with a rust rim where a blow lands, for IMPACT_TIME, drawn over
 ## bodies and bars: the brightest thing in a fight (fight_v2 reviews 2 and 3: about 24 px on the
 ## phone, 30 px for a kill, 150 ms).
-const IMPACT_SIZE := 0.95
+## The core about 9 px across on the phone (review 14: 8-10).
+const IMPACT_SIZE := 0.62
 ## It pops in at full size, holds IMPACT_HOLD, then shrinks away by IMPACT_TIME (review 9).
 const IMPACT_TIME := 0.15
 const IMPACT_HOLD := 0.08
@@ -126,7 +129,8 @@ func _impact(pos: Vector3, size: float, counter := false, from := Vector3.INF) -
 			var s := Sprite3D.new()
 			s.texture = IMPACT_TEXTURE
 			s.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-			s.no_depth_test = true
+			# Partly behind the struck body, so it reads as on it, not over it (review 14).
+			s.no_depth_test = false
 			s.render_priority = 30
 			s.shaded = false
 			s.visible = false

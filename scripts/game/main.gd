@@ -1039,6 +1039,10 @@ func _on_event(ev: Dictionary) -> void:
 				if ev.kind == "melee":
 					at = _on_stick(at)
 				Fx.impact(at, 1.2 if killing or counter else 1.0, counter, from)
+				# A few irregular flecks thrown into and out of the body (review 14).
+				var into := (wolf.global_position - from).normalized()
+				Fx.burst("flecks", at, into + Vector3.UP * 0.3)
+				Fx.burst("flecks", at, -into + Vector3.UP * 0.5)
 				if counter:
 					_show_counter(wolf.global_position)
 				# One secondary flourish: ink flecks flung away from the blow (fight_v2 review 1).
@@ -1177,7 +1181,8 @@ func _on_stick(contact: Vector3) -> Vector3:
 	if shaft.length() < 0.05:
 		return contact
 	var u := clampf((contact - hand).dot(shaft) / shaft.length_squared(), 0.35, 1.0)
-	return (hand + shaft * u).lerp(contact, 0.3)
+	# Mostly on the body, in line with the stick, clear of her hands (review 14).
+	return contact.lerp(hand + shaft * u, 0.25)
 
 
 ## She's hit: her red flash and her own sound; shake only for heavy blows.

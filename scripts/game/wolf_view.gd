@@ -98,7 +98,7 @@ var _recoil_size := 0.0
 var _freeze := 0.0
 ## The struck head's snap back: up over REACT_IN, settling over REACT_OUT.
 var _react := 0.0
-const REACT_IN := 0.075
+const REACT_IN := 0.04
 const REACT_OUT := 0.14
 const REACT_DEGREES := 24.0
 ## The posed wolf model (wolves and foxes), or null for a greybox body.
@@ -140,7 +140,7 @@ const HALO_WIDTH := 0.07
 ## A kind's body on the ground: half its width and half its length (review 8: the ring fits it).
 const FOOTPRINT := {"fox": Vector2(0.35, 0.75), "wolf": Vector2(0.45, 1.0), "bear": Vector2(0.8, 1.35),
 	"troll": Vector2(0.9, 0.8), "raider": Vector2(0.4, 0.4)}
-const HALO_CLEAR := 0.13
+const HALO_CLEAR := 0.18
 ## The counter arc: this many degrees on the side facing its foe (review 13: 90-120), in four
 ## pieces with small gaps.
 const HALO_ARC := 110.0
@@ -374,10 +374,10 @@ func _build_bear() -> void:
 	body.add_child(neck)
 	neck.add_child(Shapes.sphere(0.36, fur, Vector3(0, -0.1, 0.3)))
 	# A distinct, lighter muzzle (review 13).
-	var muzzle := Shapes.sphere(0.22, Color(0.64, 0.52, 0.42), Vector3(0, -0.2, 0.6))
+	var muzzle := Shapes.sphere(0.22, Color(0.74, 0.62, 0.5), Vector3(0, -0.2, 0.6))
 	muzzle.scale = Vector3(1.0, 0.8, 1.25)
 	neck.add_child(muzzle)
-	neck.add_child(Shapes.sphere(0.07, Color(0.1, 0.08, 0.08), Vector3(0, -0.16, 0.78)))
+	neck.add_child(Shapes.sphere(0.1, Color(0.08, 0.06, 0.06), Vector3(0, -0.13, 0.84)))
 	for x in [-0.22, 0.22]:
 		neck.add_child(Shapes.sphere(0.11, dark, Vector3(x, 0.22, 0.22)))
 	_parts.neck = neck
@@ -440,7 +440,7 @@ func _build_troll() -> void:
 		var fist := Shapes.sphere(0.44, dark, Vector3(0, -1.26, 0.06))
 		fist.scale = Vector3(1.3, 0.7, 1.3)
 		arm.add_child(fist)
-		arm.add_child(Shapes.sphere(0.17, dark, Vector3(-signf(x) * 0.42, -1.1, 0.16)))
+		arm.add_child(Shapes.sphere(0.23, dark, Vector3(-signf(x) * 0.52, -1.05, 0.18)))
 		_parts["arm_r" if x > 0 else "arm_l"] = arm
 	_parts.body = body
 
@@ -543,7 +543,7 @@ func _build_tell() -> void:
 	_halo_bead.no_depth_test = true
 	_halo_bead.render_priority = 18
 	_halo_bead.shaded = false
-	_halo_bead.pixel_size = 0.0058
+	_halo_bead.pixel_size = 0.0036
 	_halo_bead.visible = false
 	add_child(_halo_bead)
 	_tell_line_thin.position.y = 0.01
@@ -621,7 +621,7 @@ func _update_tell(enemy: Dictionary) -> void:
 	var on: bool = t >= 0.0 and t < strike + TELL_HOLD + TELL_FADE and enemy.has("aim")
 	_tell.visible = on
 	if _shot_line:
-		_shot_line.visible = on
+		_shot_line.visible = on and t < strike - Combat.lock_of(_def)
 	if not on:
 		return
 	var fade := clampf(t / 0.1, 0.0, 1.0) * (1.0 - clampf((t - strike - TELL_HOLD) / TELL_FADE, 0.0, 1.0))
@@ -633,7 +633,7 @@ func _update_tell(enemy: Dictionary) -> void:
 	_tell_zone_mat.set_shader_parameter("progress", front)
 	var front_r: float = clampf(front - 0.12, 0.05, 1.0) * _def.reach
 	_tell_front.scale = Vector3(front_r, 1.0, front_r)
-	_tell_front.visible = front_r < _def.reach * 0.97
+	_tell_front.visible = front_r < _def.reach * 0.97 and _def.shape == "wedge"
 	_tell_line_thin.visible = not locked
 	_tell_line.visible = locked
 	_tell_key.visible = locked
