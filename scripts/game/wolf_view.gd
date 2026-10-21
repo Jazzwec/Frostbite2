@@ -599,7 +599,7 @@ func _ground_mesh(mesh: Mesh, color: Color) -> MeshInstance3D:
 ## Shown while it winds up, fading in: the wash marks the whole zone, the fill advances from the
 ## attacker to the edge as the strike comes, and the boundary firms up when the aim locks.
 func _update_tell(enemy: Dictionary) -> void:
-	var t: float = enemy.get("bite_t", -1.0)
+	var t: float = _attack
 	var strike: float = _def.tell + (Balance.ENEMY_LUNGE if _def.shape == "wedge" else 0.0)
 	# Shown through the impact and a moment after (review 12), then cleared.
 	var on: bool = t >= 0.0 and t < strike + TELL_HOLD and enemy.has("aim")
@@ -673,6 +673,17 @@ func set_engaged(on: bool) -> void:
 	_hp_bar.modulate_alpha(1.0 if on else 0.6)
 
 
+## Its attack's time, smooth: the engine's `bite_t` moves in 0.1 s ticks, so between them the view
+## runs its own clock, kept within a tick of the engine's (it was stepping at 10 fps).
+func _attack_clock(enemy: Dictionary, delta: float) -> float:
+	var engine_t: float = enemy.get("bite_t", -1.0)
+	if engine_t < 0.0:
+		return -1.0
+	if _attack < 0.0 or absf(_attack + delta - engine_t) > Balance.TICK * 1.5:
+		return engine_t
+	return minf(_attack + delta, engine_t + Balance.TICK)
+
+
 ## Meagan has picked it: its health bar's border lights up a moment (review 2: the chosen target
 ## shows where it already looks, no extra ground ring).
 func accent() -> void:
@@ -736,7 +747,7 @@ func sync(enemy: Dictionary, delta: float) -> void:
 	if _attack < 0.0 and _t == 0.0:
 		# Each one's stride starts at its own point in the cycle, so a pack doesn't trot in unison.
 		_t = float(enemy.id) * 1.7
-	_attack = enemy.get("bite_t", -1.0)
+	_attack = _attack_clock(enemy, delta)
 	_flash = maxf(0.0, _flash - delta)
 	_recoil = maxf(0.0, _recoil - delta)
 	# Out and back: half a sine over the recoil's time.
@@ -781,7 +792,7 @@ func sync(enemy: Dictionary, delta: float) -> void:
 	_badge_stem.scale.y = 0.28
 	_update_tell(enemy)
 	_update_sack(enemy)
-	var t: float = enemy.get("bite_t", -1.0)
+	var t: float = _attack
 	var struck: float = _def.tell + (Balance.ENEMY_LUNGE if _def.shape == "wedge" else 0.0)
 	_halo.visible = t >= struck
 	_halo_bead.visible = _halo.visible

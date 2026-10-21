@@ -1248,8 +1248,11 @@ func _amounts(amounts: Dictionary, sign: String) -> String:
 	return " · ".join(parts)
 
 
-## A snowball arcs from her hand to the wolf, landing as the engine's hit does.
+## A snowball arcs from her hand to the wolf, landing as the engine's hit does: the engine lands it
+## on the first tick after release + flight, so the throw takes that long, not the bare flight.
 func _throw_snowball(wolf_id: int, flight: float) -> void:
+	var lands := ceilf((Balance.MEAGAN_RANGED_RELEASE + flight) / Balance.TICK - 0.001) * Balance.TICK
+	flight = lands - Balance.MEAGAN_RANGED_RELEASE
 	await get_tree().create_timer(Balance.MEAGAN_RANGED_RELEASE).timeout
 	var wolf := _people.wolf_view(wolf_id)
 	if wolf == null:

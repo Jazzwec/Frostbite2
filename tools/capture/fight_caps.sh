@@ -59,6 +59,19 @@ for i in 3:
 	add.call(\"wolf\", p + Vector2.RIGHT.rotated(0.4 + i * 0.5) * 2.2, 30.0)
 emit(1)"
 
+# The moment of contact (her sweep landing on a wolf) at 1/20 speed: frames 30 ms of game time
+# apart, from just before the hit to its end, so the burst, the freeze and the recoil show.
+bash "$STRIP" "$OUT" contact_closeup 6 0.6 "$PRE
+var w = add.call(\"wolf\", p + Vector2(1.9, 0.0), 30.0)
+w.damage = 0.0
+w.bite_cd = 99.0
+s.meagan_mode = \"melee\"
+s.meagan_attack_in = 0.0
+Engine.time_scale = 0.05
+emit(1)"
+swallowtail runtime eval --code 'Engine.time_scale = 1.0
+emit(1)' >/dev/null 2>&1
+
 bash "$STRIP" "$OUT" bear_swipe 6 0.3 "$PRE
 add.call(\"bear\", p + Vector2(1.5, 1.5), 30.0)
 Engine.time_scale = 0.3

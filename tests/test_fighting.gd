@@ -221,3 +221,26 @@ func test_strikers_take_her_sides() -> void:
 		check(near < 20.0, "wolf %d is at one of her sides (%.0f deg)" % [w.id, rad_to_deg(a)])
 		sides.append(signf(w.pos.x - e.state.meagan_pos.x))
 	check(sides[0] != sides[1], "one on each side")
+
+
+## Round 13: her sweep's hit lands exactly MEAGAN_MELEE_IMPACT after the attack (on a tick), when
+## the view's swing connects, not a tick early.
+func test_the_sweep_lands_when_the_stick_does() -> void:
+	var e := engine()
+	put_meagan(e, Vector2(0, 20))
+	var w := _wolf_at(e, Vector2(1.9, 20))
+	w.damage = 0.0
+	w.bite_cd = 99.0
+	e.state.meagan_mode = "melee"
+	e.state.meagan_attack_in = 0.0
+	var attacked_at := -1.0
+	var hit_at := -1.0
+	for i in 10:
+		e.skip(Balance.TICK)
+		for ev in e.drain_events():
+			if ev.type == "meagan_attack" and attacked_at < 0.0:
+				attacked_at = e.state.time
+			elif ev.type == "wolf_hit" and hit_at < 0.0:
+				hit_at = e.state.time
+	check(attacked_at >= 0.0 and hit_at >= 0.0, "she swung and hit")
+	check_near(hit_at - attacked_at, Balance.MEAGAN_MELEE_IMPACT, 0.001, "the hit lands as the stick does")

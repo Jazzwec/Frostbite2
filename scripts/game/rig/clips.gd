@@ -261,16 +261,17 @@ const CLIPS := {
 			{"t": 0.5, "arm_r": Vector3(-146, 0, 22), "arm_l": Vector3(-47, 0, -14), "lean": 3.0, "turn": 12.0},
 		],
 	},
-	# Her stick sweep: a 0.1 s wind-up, a 0.06 s sweep to the hit at 0.16 s (fight_v2 review 1), a
-	# 0.34 s recovery, done by 0.5 s so her ready stance shows between attacks (review 2: at least
-	# 200 ms). Played over her legs, so she can swing while she walks.
+	# Her stick sweep: a 0.13 s wind-up, a 0.07 s sweep to the hit at 0.2 s (on an engine tick, so
+	# the burst lands with the stick), a 0.3 s recovery, done by 0.5 s so her ready stance shows
+	# between attacks (review 2: at least 200 ms). Played over her legs, so she can swing while
+	# she walks.
 	"sweep": {
-		"length": 0.5, "loop": false, "tool": "stick", "impact": 0.32,
+		"length": 0.5, "loop": false, "tool": "stick", "impact": 0.4,
 		"keys": [
 			{"t": 0.0, "arm_r": Vector3(-45, 0, 10), "arm_l": Vector3(-35, 0, -14), "turn": 0.0, "tool": Vector3(0, 90, 0)},
-			{"t": 0.2, "arm_r": Vector3(-72, 0, -36), "arm_l": Vector3(-60, 0, -30), "turn": 32.0, "lean": -4.0, "tool": Vector3(0, 90, 0), "ease": "out"},
-			{"t": 0.32, "arm_r": Vector3(-78, 0, 24), "arm_l": Vector3(-64, 0, 18), "turn": -28.0, "lean": 8.0, "tool": Vector3(0, 90, 0), "ease": "in"},
-			{"t": 0.65, "arm_r": Vector3(-55, 0, 20), "arm_l": Vector3(-45, 0, 10), "turn": -15.0, "lean": 4.0, "tool": Vector3(0, 90, 0)},
+			{"t": 0.26, "arm_r": Vector3(-72, 0, -36), "arm_l": Vector3(-60, 0, -30), "turn": 32.0, "lean": -4.0, "tool": Vector3(0, 90, 0), "ease": "out"},
+			{"t": 0.4, "arm_r": Vector3(-78, 0, 24), "arm_l": Vector3(-64, 0, 18), "turn": -28.0, "lean": 8.0, "tool": Vector3(0, 90, 0), "ease": "in"},
+			{"t": 0.7, "arm_r": Vector3(-55, 0, 20), "arm_l": Vector3(-45, 0, 10), "turn": -15.0, "lean": 4.0, "tool": Vector3(0, 90, 0)},
 			{"t": 1.0, "arm_r": Vector3(-40, 0, 10), "arm_l": Vector3(-32, 0, -14), "turn": 0.0, "tool": Vector3(0, 90, 0)},
 		],
 	},

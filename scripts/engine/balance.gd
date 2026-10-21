@@ -123,8 +123,9 @@ const MEAGAN_MELEE_REACH := 2.5
 const MEAGAN_MELEE_DAMAGE := 10.0
 const MEAGAN_MELEE_EVERY := 0.8
 ## From the start of the sweep to its hit: a short anticipation, its direction committed at the
-## start (fight_v2 review 1: 0.12-0.18 s).
-const MEAGAN_MELEE_IMPACT := 0.16
+## start (fight_v2 review 1: 0.12-0.18 s). Exactly two ticks, so the engine's hit lands on the
+## frame the stick does (a hit due between ticks lands on the next one; 0.16 s was 40 ms late).
+const MEAGAN_MELEE_IMPACT := 0.2
 const MEAGAN_MELEE_KNOCK := 0.25
 const MEAGAN_MELEE_EXIT := 3.0
 const MEAGAN_MELEE_EXIT_TIME := 0.4

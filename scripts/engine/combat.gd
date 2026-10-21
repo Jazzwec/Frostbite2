@@ -398,8 +398,11 @@ static func _attack(s: GameState, e: Dictionary, def: Dictionary, foe: Dictionar
 				_ring_lands(s, e, def, events)
 			"shot":
 				var d: float = e.pos.distance_to(e.aim)
-				s.enemy_shots.append({"wolf": e.id, "from": e.pos, "to": e.aim, "in": d / Balance.ENEMY_SHOT_SPEED, "damage": e.damage, "reach": def.reach})
-				events.append({"type": "enemy_throw", "wolf": e.id, "from": e.pos, "to": e.aim, "flight": d / Balance.ENEMY_SHOT_SPEED})
+				# Counted down this tick too, hence the extra tick; the view flies it for as long as the
+				# engine takes to land it (the first tick at or after its flight).
+				var flight: float = d / Balance.ENEMY_SHOT_SPEED
+				s.enemy_shots.append({"wolf": e.id, "from": e.pos, "to": e.aim, "in": flight + dt, "damage": e.damage, "reach": def.reach})
+				events.append({"type": "enemy_throw", "wolf": e.id, "from": e.pos, "to": e.aim, "flight": ceilf(flight / Balance.TICK - 0.001) * Balance.TICK})
 	if e.bite_t >= strike + def.recover:
 		e.bite_t = -1.0
 		e.bite_cd = maxf(0.0, def.cooldown - def.recover)
@@ -474,7 +477,7 @@ static func _ring_lands(s: GameState, e: Dictionary, def: Dictionary, events: Ar
 static func _land_enemy_shots(s: GameState, dt: float, events: Array) -> void:
 	for shot in s.enemy_shots.duplicate():
 		shot.in -= dt
-		if shot.in > 0.0:
+		if shot.in > 0.0001:  # a hair, for the ticks' float leftovers
 			continue
 		s.enemy_shots.erase(shot)
 		var victim := -2
@@ -728,7 +731,9 @@ static func _meagan_fights(s: GameState, dt: float, events: Array) -> void:
 	var flight := 0.0 if melee else d / Balance.SNOWBALL_SPEED
 	s.shots.append({
 		"wolf": target.id, "from": s.meagan_pos, "kind": s.meagan_mode, "aim": target.pos,
-		"in": Balance.MEAGAN_MELEE_IMPACT if melee else Balance.MEAGAN_RANGED_RELEASE + flight,
+		# _land_shots counts this tick down too, so a tick more: the hit lands on the first tick at
+		# or after it's due, as the view's swing and throw expect.
+		"in": (Balance.MEAGAN_MELEE_IMPACT if melee else Balance.MEAGAN_RANGED_RELEASE + flight) + dt,
 		"damage": w.stick_damage if melee else w.snow_damage,
 		"knock": w.knock if melee else Balance.MEAGAN_RANGED_KNOCK, "reach": w.reach,
 	})
@@ -739,7 +744,7 @@ static func _meagan_fights(s: GameState, dt: float, events: Array) -> void:
 static func _land_shots(s: GameState, dt: float, events: Array) -> void:
 	for shot in s.shots.duplicate():
 		shot.in -= dt
-		if shot.in > 0.0:
+		if shot.in > 0.0001:  # a hair, for the ticks' float leftovers
 			continue
 		s.shots.erase(shot)
 		if shot.kind == "melee":
