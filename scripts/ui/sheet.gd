@@ -201,7 +201,7 @@ func _open_building(b: String) -> void:
 	if b == "armory":
 		# The description behind Details (review 12).
 		var details := UiTheme.button("Details", func() -> void: _effect.visible = not _effect.visible)
-		details.custom_minimum_size = Vector2(0, 72)
+		details.custom_minimum_size = Vector2(0, 88)
 		details.add_theme_font_size_override("font_size", 30)
 		UiTheme.style_utility(details)
 		details.size_flags_horizontal = Control.SIZE_SHRINK_END

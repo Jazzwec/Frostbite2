@@ -28,6 +28,8 @@ const KINDS := {
 	# blow, small enough to leave the struck one's shape readable.
 	"ink": {"color": Color(0.17, 0.14, 0.17), "amount": 4, "size": 0.08, "speed": Vector2(2.5, 4.0), "spread": 28.0, "gravity": -7.0, "life": 0.32},
 	# A hit's irregular flecks (review 14: 6-10 px, into and out of the body).
+	# A troll's slam throwing clods of snow out across the ground (review 15: 6-8, 4-8 px).
+	"clumps": {"color": Color(0.95, 0.97, 1.0), "amount": 8, "size": 0.2, "speed": Vector2(3.5, 6.0), "spread": 80.0, "gravity": -14.0, "life": 0.35},
 	"flecks": {"color": Color(0.98, 0.9, 0.72), "amount": 3, "size": 0.18, "speed": Vector2(2.5, 4.5), "spread": 35.0, "gravity": -9.0, "life": 0.2},
 }
 ## Her stick's sweep on the snow (fight_v2 review 2): a pale-gold crescent at her reach that runs
@@ -63,7 +65,9 @@ const RIM_TEXTURE := preload("res://assets/textures/fx/impact_rim.png")
 const RIM_TIME := 0.08
 ## A troll's slam: one broken ring of snow puffing out on the ground (review 4: 70-90 px, ~200 ms).
 const SLAM_PUFF_SIZE := 2.4
-const SLAM_PUFF_TIME := 0.13
+## Out over SLAM_PUFF_TIME, gone by SLAM_PUFF_GONE (review 15: 100-140 ms out, 220 ms gone).
+const SLAM_PUFF_TIME := 0.12
+const SLAM_PUFF_GONE := 0.22
 const IMPACT_POOL := 8
 var _impacts: Array[Sprite3D] = []
 var _rims: Array[Sprite3D] = []
@@ -97,6 +101,9 @@ static func throw(item: String, from: Vector3, to: Vector3, seconds := 0.45, hei
 	var node := Tools.make(item)
 	instance.add_child(node)
 	node.global_position = from
+	# A thrown thing casts no shadow: a moving dark mark under it competes with it (review 15).
+	for mi in node.find_children("*", "MeshInstance3D", true, false):
+		(mi as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var spin := Vector3(randf_range(-8, 8), randf_range(-4, 4), randf_range(-8, 8))
 	var arc := func(u: float) -> Vector3: return from.lerp(to, u) + Vector3.UP * height * 4.0 * u * (1.0 - u)
 	var fly := func(u: float) -> void:
@@ -202,10 +209,11 @@ func _slam_puff(pos: Vector3) -> void:
 	_puff.visible = true
 	var m := _puff.material_override as StandardMaterial3D
 	m.albedo_color = Color.WHITE
-	var t := _puff.create_tween().set_parallel()
+	burst("clumps", pos + Vector3(0, 0.2, 0))
+	var t := _puff.create_tween()
 	t.tween_property(_puff, "scale", Vector3.ONE * SLAM_PUFF_SIZE * 2.0, SLAM_PUFF_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	t.tween_property(m, "albedo_color:a", 0.0, SLAM_PUFF_TIME).set_ease(Tween.EASE_IN)
-	t.chain().tween_callback(_puff.hide)
+	t.tween_property(m, "albedo_color:a", 0.0, SLAM_PUFF_GONE - SLAM_PUFF_TIME).set_ease(Tween.EASE_IN)
+	t.tween_callback(_puff.hide)
 
 
 ## The broken ring, white: the slam puff tints it snow, the counter halo ochre.

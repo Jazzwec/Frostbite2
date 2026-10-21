@@ -66,8 +66,8 @@ const RECOIL_TIME := 0.23
 const RECOIL_OUT := 0.09
 ## Struck, it freezes this long (its own hit-stop; the game keeps running, reviews 4, 6 and 8):
 ## a plain hit, a counter.
-const HIT_FREEZE := 0.055
-const COUNTER_FREEZE := 0.085
+const HIT_FREEZE := 0.03
+const COUNTER_FREEZE := 0.05
 const RIM_FLASH := preload("res://scripts/game/ink/rim_flash.gdshader")
 ## Where each kind's health bar and sack sit, and how far back it stands from whoever it fights
 ## (so its front, not its middle, is at the engine's fight distance; view only). [proto]
@@ -127,6 +127,7 @@ const TELL_KEY_WIDTH := 0.04
 ## The full footprint stays this long past the impact (review 12: 80-120 ms).
 const TELL_HOLD := 0.1
 const TELL_FADE := 0.06
+const BOLD_LAST := 0.12
 const EDGE_PULSE := 0.18
 ## While it recovers from its strike (the counter window, Balance.RECOVERY_DAMAGE_MULT), an ochre
 ## ring of four segments lies round its whole body, a segment going out each quarter of the
@@ -374,7 +375,7 @@ func _build_bear() -> void:
 	body.add_child(neck)
 	neck.add_child(Shapes.sphere(0.36, fur, Vector3(0, -0.1, 0.3)))
 	# A distinct, lighter muzzle (review 13).
-	var muzzle := Shapes.sphere(0.22, Color(0.74, 0.62, 0.5), Vector3(0, -0.2, 0.6))
+	var muzzle := Shapes.sphere(0.27, Color(0.74, 0.62, 0.5), Vector3(0, -0.2, 0.62))
 	muzzle.scale = Vector3(1.0, 0.8, 1.25)
 	neck.add_child(muzzle)
 	neck.add_child(Shapes.sphere(0.1, Color(0.08, 0.06, 0.06), Vector3(0, -0.13, 0.84)))
@@ -384,13 +385,14 @@ func _build_bear() -> void:
 	for z in [-0.55]:
 		for x in [-0.34, 0.34]:
 			rear.add_child(Shapes.cylinder(0.18, 0.62, dark, Vector3(x, 0.31, 0.55 + z)))
-	for x in [-0.36, 0.36]:
+	# Forelegs set out from the chest, so a notch of snow shows between (review 15).
+	for x in [-0.46, 0.46]:
 		var paw := Node3D.new()
 		paw.position = Vector3(x, 0.75, 0.55)
 		body.add_child(paw)
 		paw.add_child(Shapes.cylinder(0.19, 0.75, dark, Vector3(0, -0.37, 0)))
 		# A heavy paw at its end (review 13: 10-14 px).
-		var pad := Shapes.sphere(0.27, dark, Vector3(0, -0.74, 0.08))
+		var pad := Shapes.sphere(0.27, Color(0.5, 0.38, 0.3), Vector3(0, -0.74, 0.08))
 		pad.scale = Vector3(1.0, 0.6, 1.2)
 		paw.add_child(pad)
 		_parts["paw_r" if x > 0 else "paw_l"] = paw
@@ -440,6 +442,8 @@ func _build_troll() -> void:
 		var fist := Shapes.sphere(0.44, dark, Vector3(0, -1.26, 0.06))
 		fist.scale = Vector3(1.3, 0.7, 1.3)
 		arm.add_child(fist)
+		# One broad knuckle plane across its front (review 15).
+		arm.add_child(Shapes.box(Vector3(0.78, 0.2, 0.3), dark.darkened(0.12), Vector3(0, -1.22, 0.42)))
 		arm.add_child(Shapes.sphere(0.23, dark, Vector3(-signf(x) * 0.52, -1.05, 0.18)))
 		_parts["arm_r" if x > 0 else "arm_l"] = arm
 	_parts.body = body
@@ -626,6 +630,9 @@ func _update_tell(enemy: Dictionary) -> void:
 		return
 	var fade := clampf(t / 0.1, 0.0, 1.0) * (1.0 - clampf((t - strike - TELL_HOLD) / TELL_FADE, 0.0, 1.0))
 	var locked := t >= strike - Combat.lock_of(_def)
+	# The boldest edge only for the last moment before it lands (review 15: 120 ms); from the lock
+	# until then the 2 px line firms up.
+	var landing := t >= strike - BOLD_LAST
 	_tell_zone_mat.set_shader_parameter("fade", fade)
 	# The fill advances until the lock, then holds (review 4); its front is a line (review 10).
 	var lock_at: float = strike - Combat.lock_of(_def)
@@ -634,16 +641,16 @@ func _update_tell(enemy: Dictionary) -> void:
 	var front_r: float = clampf(front - 0.12, 0.05, 1.0) * _def.reach
 	_tell_front.scale = Vector3(front_r, 1.0, front_r)
 	_tell_front.visible = front_r < _def.reach * 0.97 and _def.shape == "wedge"
-	_tell_line_thin.visible = not locked
-	_tell_line.visible = locked
-	_tell_key.visible = locked
+	_tell_line_thin.visible = not landing
+	_tell_line.visible = landing
+	_tell_key.visible = landing
 	# One stronger pulse of the edge in the last moment before it lands (review 6).
 	var last := strike - t
 	var pulse := 1.0 + 0.06 * sin(clampf(1.0 - last / EDGE_PULSE, 0.0, 1.0) * PI) if last <= EDGE_PULSE else 1.0
 	_tell_line.scale = Vector3(pulse, 1.0, pulse)
 	_tell_key.scale = _tell_line.scale
 	# Preparing: a quieter 2 px line (review 13); committed: the bold double edge.
-	(_tell_line_thin.material_override as StandardMaterial3D).albedo_color.a = 0.55 * fade
+	(_tell_line_thin.material_override as StandardMaterial3D).albedo_color.a = (0.9 if locked else 0.55) * fade
 	(_tell_line.material_override as StandardMaterial3D).albedo_color.a = fade
 	(_tell_key.material_override as StandardMaterial3D).albedo_color.a = fade
 	var from: Vector2 = enemy.get("tell_from", enemy.pos)
@@ -838,6 +845,10 @@ func sync(enemy: Dictionary, delta: float) -> void:
 			_halo_parts[k].visible = gone < (k + 1) / 4.0
 		var front := deg_to_rad(start + HALO_ARC * gone)
 		_halo_bead.position = Vector3(cos(front) * size.x, 0.08, sin(front) * size.y)
+		# A bright 7 px pulse for its first 80 ms (review 15): act now.
+		var opened: float = t - struck
+		_halo_bead.scale = Vector3.ONE * (1.4 if opened < 0.08 else 1.0)
+		_halo_bead.modulate = Color(1.4, 1.3, 1.1) if opened < 0.08 else Color.WHITE
 
 
 ## A carrier shows what it took: a sack-sized icon of the resource it carries most of.
@@ -1022,7 +1033,9 @@ func _pose_greybox(fighting: bool, lunge: float, moving: bool) -> void:
 			_parts.body.rotation_degrees.x = -8.0 * wound + 20.0 * strike + 26.0 * slump
 			# Review 3: the slam drops it 12-16 px; review 6: a squash as it winds up, a forward drop.
 			_parts.body.position.y = 0.05 * bob - 0.32 * strike - 0.08 * slump
-			_parts.body.scale = Vector3(1.0 + 0.06 * wound, 1.0 - 0.15 * wound, 1.0 + 0.06 * wound) * TROLL_SCALE
+			# Squashed as it winds up, and again, harder, the instant it lands (review 15: 5-7 px).
+			var squash: float = 0.15 * wound + 0.12 * strike * (1.0 - slump)
+			_parts.body.scale = Vector3(1.0 + 0.4 * squash, 1.0 - squash, 1.0 + 0.4 * squash) * TROLL_SCALE
 			# Its body keeps a little back from whoever it slams, so they stay in view (review 10);
 			# the ring on the ground is where it really lands.
 			_parts.body.position.z = 0.25 * strike - 0.3 * maxf(wound, strike)

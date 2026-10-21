@@ -52,6 +52,9 @@ var _stats: HBoxContainer
 var _stat_labels := {}
 ## When even the small font doesn't fit, the stats drop their words and keep icon and number.
 var _stats_compact := false
+## During a raid the resource row folds away to give the fight the screen (review 15); a tap on
+## the top panel shows it.
+var _stats_open := false
 ## Amounts on their way into the top bar (icons still flying), held back from its numbers until
 ## they land, so stolen goods won back visibly arrive before the count goes up (review 1).
 var _held := {}
@@ -150,6 +153,9 @@ func _build_top() -> void:
 	_stats.add_theme_constant_override("separation", 22)
 	_stats.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v.add_child(_stats)
+	_top.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.pressed or event is InputEventScreenTouch and event.pressed:
+			_stats_open = not _stats_open)
 	for key in ["jans", "wood", "food", "materials", "bag"]:
 		var l := UiTheme.rich_label(STATS_FONT)
 		l.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -285,7 +291,9 @@ func _process(delta: float) -> void:
 	var full := Economy.bag_total(s) >= Economy.bag_cap(s) - 0.01
 	_stat_labels.bag.text = "[color=#%s]%s[/color]" % [UiTheme.FALU.to_html(false), bag] if full else bag
 	_fit_stats()
-	var note := ""
+	var folded := s.raid_on and not _stats_open
+	_stats.visible = not folded
+	var note := "  ▾" if folded else ""
 	if Economy.is_cold(s) and not s.jans.is_empty():
 		note = "   %s Cold: half speed" % UiTheme.icon("cold", 44)
 	elif s.hungry:

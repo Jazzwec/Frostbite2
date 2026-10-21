@@ -92,7 +92,7 @@ static func make(id: String) -> Node3D:
 			shell.position.z = 0.01
 			n.add_child(shell)
 			# A trail tapering from 6 px to nothing over about 22 px (reviews 10, 13, 14).
-			var trail := Shapes.cone(0.07, 0.5, Color(0.66, 0.3, 0.2, 0.85), Vector3(0, 0, 0.42))
+			var trail := Shapes.cone(0.035, 0.5, Color(0.66, 0.3, 0.2, 0.85), Vector3(0, 0, 0.42))
 			trail.rotation_degrees.x = 90.0
 			n.add_child(trail)
 		# A snowball in her mitten, for her throw.

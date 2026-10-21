@@ -44,7 +44,7 @@ var _time := 0.0
 ## Impacts with weight (AFK N3, from Astra's animation review and the usual game-feel practice):
 ## on a blow's hit moment the clip holds still a few frames (hit-stop) and the body squashes a
 ## little and springs back, keeping its volume.
-const HIT_STOP := 0.055
+const HIT_STOP := 0.03
 const SQUASH_TIME := 0.09
 const SQUASH := 0.05
 const HEAVY_CLIPS := ["chop", "split", "scavenge", "build", "fight", "guard_attack", "sweep"]
