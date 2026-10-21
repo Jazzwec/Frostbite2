@@ -1038,7 +1038,7 @@ func _on_event(ev: Dictionary) -> void:
 				var at := wolf.contact_point(from)
 				if ev.kind == "melee":
 					at = _on_stick(at)
-				Fx.impact(at, 1.2 if killing or counter else 1.0, counter, from)
+				Fx.impact(at, 1.4 if counter else (1.2 if killing else 1.0), counter, from)
 				# A few irregular flecks thrown into and out of the body (review 14).
 				var into := (wolf.global_position - from).normalized()
 				Fx.burst("flecks", at, into + Vector3.UP * 0.3)

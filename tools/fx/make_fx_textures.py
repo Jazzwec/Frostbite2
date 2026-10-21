@@ -9,6 +9,9 @@
 
 - impact_rim.png: a dark ochre ring round the burst's core, shown for its first 40 ms so the
   moment of contact snaps (review 11).
+- impact_splash.png / impact_splash_counter.png (review 16, what the game uses now): an irregular,
+  directional cream burst with a 2 px burnt-orange edge, no round core (the round bead is the
+  counter window's), flung along +X; the counter's edge is gold.
 
 Change a texture here and re-run rather than editing the PNGs.
 """
@@ -76,7 +79,37 @@ def make_rim():
     print("wrote", OUT / "impact_rim.png")
 
 
+# The splash's outline, as (angle in degrees from +X, radius as a share of the half-size): long
+# points thrown along +X, ragged and short behind.
+SPLASH = [(0, 1.0), (16, 0.5), (30, 0.86), (46, 0.42), (64, 0.62), (90, 0.34), (125, 0.4), (160, 0.3),
+          (200, 0.34), (236, 0.42), (270, 0.36), (296, 0.6), (314, 0.44), (330, 0.92), (346, 0.48)]
+EDGES = {"impact_splash": (190, 86, 34, 255), "impact_splash_counter": (226, 166, 58, 255)}
+
+
+def make_splash(name, edge):
+    big = SIZE * SCALE
+    img = Image.new("RGBA", (big, big), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    c = big / 2.0
+    half = big / 2.0 * 0.9
+
+    def outline(grow):
+        pts = []
+        for angle, r in SPLASH:
+            a = math.radians(angle)
+            pts.append((c + math.cos(a) * (half * r + grow), c + math.sin(a) * (half * r + grow)))
+        return pts
+
+    draw.polygon(outline(2.0 * SCALE * 7), fill=edge)
+    draw.polygon(outline(0), fill=CREAM)
+    img = img.resize((SIZE, SIZE), Image.LANCZOS)
+    img.save(OUT / f"{name}.png")
+    print("wrote", OUT / f"{name}.png")
+
+
 if __name__ == "__main__":
     for name, rays in RAYS.items():
         make(name, rays)
     make_rim()
+    for name, edge in EDGES.items():
+        make_splash(name, edge)

@@ -60,10 +60,10 @@ const TELL_LINE_WIDTH := 0.075
 ## spear, 7 px for her sweep, 10 px for a heavy blow), out and back over RECOIL_TIME.
 const FLASH_TIME := 0.08
 const FLASH_STRENGTH := 0.7
-const RECOIL := {"light": 0.09, "sweep": 0.11, "heavy": 0.13}
-## Out over RECOIL_OUT, back over the rest (review 10: 80-100 ms out, 140 ms back).
-const RECOIL_TIME := 0.23
-const RECOIL_OUT := 0.09
+const RECOIL := {"light": 0.12, "sweep": 0.15, "heavy": 0.16}
+## Out over RECOIL_OUT, back over the rest (review 16: 60-80 ms out, 100-140 ms back).
+const RECOIL_TIME := 0.19
+const RECOIL_OUT := 0.07
 ## Struck, it freezes this long (its own hit-stop; the game keeps running, reviews 4, 6 and 8):
 ## a plain hit, a counter.
 const HIT_FREEZE := 0.03
@@ -98,9 +98,12 @@ var _recoil_size := 0.0
 var _freeze := 0.0
 ## The struck head's snap back: up over REACT_IN, settling over REACT_OUT.
 var _react := 0.0
-const REACT_IN := 0.04
-const REACT_OUT := 0.14
-const REACT_DEGREES := 24.0
+const REACT_IN := 0.06
+const REACT_OUT := 0.12
+## Review 16: the head dips (not snaps back) and the shoulders turn away from the blow.
+const REACT_DEGREES := -16.0
+const REACT_TWIST := 7.0
+var _react_twist := 0.0
 ## The posed wolf model (wolves and foxes), or null for a greybox body.
 var _pivot: Node3D
 var _skeleton: Skeleton3D
@@ -117,6 +120,7 @@ var _tell_zone_mat: ShaderMaterial
 var _tell_line_thin: MeshInstance3D
 var _tell_line: MeshInstance3D
 var _tell_front: MeshInstance3D
+var _tell_root: MeshInstance3D
 const TELL_FRONT := Color(0.86, 0.42, 0.3, 0.95)
 ## Once locked, a cream keyline just outside the dark boundary (review 4: the lock reads as a
 ## change of state, not a shade of the warning; review 5: 3 px each).
@@ -392,7 +396,7 @@ func _build_bear() -> void:
 		body.add_child(paw)
 		paw.add_child(Shapes.cylinder(0.19, 0.75, dark, Vector3(0, -0.37, 0)))
 		# A heavy paw at its end (review 13: 10-14 px).
-		var pad := Shapes.sphere(0.27, Color(0.5, 0.38, 0.3), Vector3(0, -0.74, 0.08))
+		var pad := Shapes.sphere(0.27, Color(0.6, 0.47, 0.37), Vector3(0, -0.74, 0.08))
 		pad.scale = Vector3(1.0, 0.6, 1.2)
 		paw.add_child(pad)
 		_parts["paw_r" if x > 0 else "paw_l"] = paw
@@ -493,7 +497,8 @@ func _build_tell() -> void:
 		"wedge":
 			full = sector(0.0, _def.reach, _def.arc)
 			thin = _wedge_outline(_def.reach, _def.arc, TELL_LINE_THIN)
-			line = _wedge_outline(_def.reach, _def.arc, TELL_LINE_WIDTH)
+			# The striking arc heavy, its sides thin (review 16).
+			line = _wedge_outline(_def.reach, _def.arc, TELL_LINE_WIDTH, TELL_LINE_THIN * 0.7)
 			var widen: float = rad_to_deg(TELL_KEY_WIDTH * 1.4 / _def.reach) * 2.0
 			_tell_key = _ground_mesh(_wedge_outline(_def.reach + TELL_KEY_WIDTH, _def.arc + widen, TELL_KEY_WIDTH * 1.6), TELL_KEY)
 		_:
@@ -517,7 +522,10 @@ func _build_tell() -> void:
 	var front_arc: float = _def.arc if _def.shape == "wedge" else 360.0
 	_tell_front = _ground_mesh(sector(0.965, 1.0, front_arc), TELL_FRONT)
 	_tell_front.position.y = 0.008
-	for mi in [_tell_zone, _tell_key, _tell_line_thin, _tell_line, _tell_front]:
+	# A short root mark at the attacker's feet, so it's plain whose shape it is (review 16).
+	_tell_root = _ground_mesh(sector(0.0, 0.08, 360.0), TELL_LINE)
+	_tell_root.position.y = 0.012
+	for mi in [_tell_zone, _tell_key, _tell_line_thin, _tell_line, _tell_front, _tell_root]:
 		_tell.add_child(mi)
 	_tell_key.position.y = 0.005
 	_halo = Node3D.new()
@@ -582,7 +590,9 @@ static func sector(inner: float, outer: float, arc: float) -> ArrayMesh:
 
 
 ## A wedge's outline, `w` wide: its arc and its two straight sides.
-func _wedge_outline(reach: float, arc: float, w: float) -> ArrayMesh:
+func _wedge_outline(reach: float, arc: float, w: float, side_w := -1.0) -> ArrayMesh:
+	if side_w < 0.0:
+		side_w = w
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var steps := maxi(10, int(arc / 8.0))
@@ -597,7 +607,7 @@ func _wedge_outline(reach: float, arc: float, w: float) -> ArrayMesh:
 	for sgn in [-1.0, 1.0]:
 		var a := deg_to_rad(sgn * arc / 2.0)
 		var d := Vector3(sin(a), 0, cos(a))
-		var side := d.cross(Vector3.UP) * w * 0.5
+		var side := d.cross(Vector3.UP) * side_w * 0.5
 		for v in [-side, d * reach - side, d * reach + side, -side, d * reach + side, side]:
 			st.add_vertex(v)
 	return st.commit()
@@ -633,7 +643,8 @@ func _update_tell(enemy: Dictionary) -> void:
 	# The boldest edge only for the last moment before it lands (review 15: 120 ms); from the lock
 	# until then the 2 px line firms up.
 	var landing := t >= strike - BOLD_LAST
-	_tell_zone_mat.set_shader_parameter("fade", fade)
+	# Unlocked, the whole preview is quieter (review 16: 25-35%).
+	_tell_zone_mat.set_shader_parameter("fade", fade * (1.0 if locked else 0.6))
 	# The fill advances until the lock, then holds (review 4); its front is a line (review 10).
 	var lock_at: float = strike - Combat.lock_of(_def)
 	var front := clampf(minf(t, lock_at) / strike, 0.0, 1.0) * 1.25
@@ -650,7 +661,8 @@ func _update_tell(enemy: Dictionary) -> void:
 	_tell_line.scale = Vector3(pulse, 1.0, pulse)
 	_tell_key.scale = _tell_line.scale
 	# Preparing: a quieter 2 px line (review 13); committed: the bold double edge.
-	(_tell_line_thin.material_override as StandardMaterial3D).albedo_color.a = (0.9 if locked else 0.55) * fade
+	(_tell_line_thin.material_override as StandardMaterial3D).albedo_color.a = (0.9 if locked else 0.3) * fade
+	(_tell_root.material_override as StandardMaterial3D).albedo_color.a = 0.9 * fade
 	(_tell_line.material_override as StandardMaterial3D).albedo_color.a = fade
 	(_tell_key.material_override as StandardMaterial3D).albedo_color.a = fade
 	var from: Vector2 = enemy.get("tell_from", enemy.pos)
@@ -732,6 +744,9 @@ func hit(from := Vector3.INF, blow := "light", counter := false) -> void:
 	_recoil_size = RECOIL[blow]
 	_freeze = COUNTER_FREEZE if counter else HIT_FREEZE
 	_react = REACT_IN + REACT_OUT
+	# Which way its shoulders turn: away from the side the blow came from.
+	var facing := _model.global_basis.z
+	_react_twist = REACT_TWIST * (1.0 if facing.cross(_recoil_dir).y >= 0.0 else -1.0)
 	var away := global_position - from if from != Vector3.INF else -_model.basis.z
 	away.y = 0.0
 	_recoil_dir = away.normalized() if away.length() > 0.01 else Vector3.BACK
@@ -800,6 +815,7 @@ func sync(enemy: Dictionary, delta: float) -> void:
 	_model.rotation.x = lerp_angle(_model.rotation.x, deg_to_rad(LADEN_LEAN if laden else 0.0), 8.0 * delta)
 	if _pivot:
 		_pose(fighting, lunge)
+		_pivot.rotation.y = deg_to_rad(_react_twist * _react_amount())
 	else:
 		_pose_greybox(fighting, lunge, moving)
 	if rest > 0.0:
@@ -1017,7 +1033,9 @@ func _pose_greybox(fighting: bool, lunge: float, moving: bool) -> void:
 			# Drawn out to the side, clear of its body (review 3: 15-20 px); at the strike it
 			# reaches out past its own front (review 9).
 			_parts.paw_r.rotation_degrees.z = 62.0 * wound
-			_parts.paw_r.position.z = 0.55 + 0.38 * strike
+			_parts.paw_r.position.z = 0.55 + 0.5 * strike
+			# A gap of snow between the drawn-back foreleg and its chest (review 16).
+			_parts.paw_r.position.x = 0.46 + 0.22 * wound
 			# Head up as it winds, right down while it recovers, snapped back when struck.
 			_parts.neck.rotation_degrees.x = -12.0 * wound + 38.0 * slump - REACT_DEGREES * _react_amount()
 			_parts.paw_l.rotation_degrees.x = -35.0 * wound + (0.0 if fighting else -18.0 * sin(_t))
@@ -1029,12 +1047,13 @@ func _pose_greybox(fighting: bool, lunge: float, moving: bool) -> void:
 				var side := -1.0 if arm == "arm_l" else 1.0
 				var sway := 0.0 if fighting else 14.0 * sin(_t + (0.0 if arm == "arm_l" else PI))
 				_parts[arm].rotation_degrees.x = -160.0 * wound - 30.0 * strike + 45.0 * slump + sway
-				_parts[arm].rotation_degrees.z = side * (40.0 * wound + 26.0 * slump)
+				_parts[arm].rotation_degrees.z = side * (40.0 * wound + 26.0 * slump + 14.0 * _landing())
 			_parts.body.rotation_degrees.x = -8.0 * wound + 20.0 * strike + 26.0 * slump
 			# Review 3: the slam drops it 12-16 px; review 6: a squash as it winds up, a forward drop.
 			_parts.body.position.y = 0.05 * bob - 0.32 * strike - 0.08 * slump
-			# Squashed as it winds up, and again, harder, the instant it lands (review 15: 5-7 px).
-			var squash: float = 0.15 * wound + 0.12 * strike * (1.0 - slump)
+			# Squashed as it winds up, and flattened hard as it lands (reviews 15, 16): 14% for 80 ms,
+			# back over 180 ms.
+			var squash: float = 0.15 * wound + 0.14 * _landing()
 			_parts.body.scale = Vector3(1.0 + 0.4 * squash, 1.0 - squash, 1.0 + 0.4 * squash) * TROLL_SCALE
 			# Its body keeps a little back from whoever it slams, so they stay in view (review 10);
 			# the ring on the ground is where it really lands.
@@ -1048,6 +1067,21 @@ func _pose_greybox(fighting: bool, lunge: float, moving: bool) -> void:
 		_:
 			_parts.body.position.y = absf(sin(_t)) * (0.05 if fighting else 0.12)
 			_parts.body.rotation_degrees.x = 10.0 * lunge
+
+
+## The landing's envelope: 1 just after the strike for LANDING_HOLD, easing to 0 over
+## LANDING_BACK.
+const LANDING_HOLD := 0.08
+const LANDING_BACK := 0.18
+
+
+func _landing() -> float:
+	var after: float = _attack - _def.tell - (Balance.ENEMY_LUNGE if _def.shape == "wedge" else 0.0)
+	if _attack < 0.0 or after < 0.0:
+		return 0.0
+	if after < LANDING_HOLD:
+		return smoothstep(0.0, 1.0, after / 0.03)
+	return 1.0 - smoothstep(0.0, 1.0, (after - LANDING_HOLD) / LANDING_BACK)
 
 
 ## How far into a heavy hitter's recovery slump it is: 0 until the strike, 1 through most of

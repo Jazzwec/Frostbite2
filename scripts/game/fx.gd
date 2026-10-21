@@ -29,7 +29,7 @@ const KINDS := {
 	"ink": {"color": Color(0.17, 0.14, 0.17), "amount": 4, "size": 0.08, "speed": Vector2(2.5, 4.0), "spread": 28.0, "gravity": -7.0, "life": 0.32},
 	# A hit's irregular flecks (review 14: 6-10 px, into and out of the body).
 	# A troll's slam throwing clods of snow out across the ground (review 15: 6-8, 4-8 px).
-	"clumps": {"color": Color(0.95, 0.97, 1.0), "amount": 8, "size": 0.2, "speed": Vector2(3.5, 6.0), "spread": 80.0, "gravity": -14.0, "life": 0.35},
+	"clumps": {"color": Color(0.86, 0.9, 0.96), "amount": 8, "size": 0.15, "speed": Vector2(3.5, 6.0), "spread": 80.0, "gravity": -14.0, "life": 0.35},
 	"flecks": {"color": Color(0.98, 0.9, 0.72), "amount": 3, "size": 0.18, "speed": Vector2(2.5, 4.5), "spread": 35.0, "gravity": -9.0, "life": 0.2},
 }
 ## Her stick's sweep on the snow (fight_v2 review 2): a pale-gold crescent at her reach that runs
@@ -52,14 +52,16 @@ var _sweeps := {}  # "reach" -> crescent MeshInstance3D
 ## Impact marks: a cream star with a rust rim where a blow lands, for IMPACT_TIME, drawn over
 ## bodies and bars: the brightest thing in a fight (fight_v2 reviews 2 and 3: about 24 px on the
 ## phone, 30 px for a kill, 150 ms).
-## The core about 9 px across on the phone (review 14: 8-10).
-const IMPACT_SIZE := 0.62
+## About 14 px across on the phone for a hit (review 16: 12-16; a counter 18-20).
+const IMPACT_SIZE := 0.34
 ## It pops in at full size, holds IMPACT_HOLD, then shrinks away by IMPACT_TIME (review 9).
-const IMPACT_TIME := 0.15
-const IMPACT_HOLD := 0.08
+const IMPACT_TIME := 0.09
+const IMPACT_HOLD := 0.06
 ## The bursts, drawn by tools/fx/make_fx_textures.py with a 2 px ink outline (review 6).
-const IMPACT_TEXTURE := preload("res://assets/textures/fx/impact.png")
-const COUNTER_TEXTURE := preload("res://assets/textures/fx/impact_counter.png")
+## Review 16: an irregular cream splash with a burnt-orange edge (gold for a counter), no round
+## core, so it can't be mistaken for the counter window's bead.
+const IMPACT_TEXTURE := preload("res://assets/textures/fx/impact_splash.png")
+const COUNTER_TEXTURE := preload("res://assets/textures/fx/impact_splash_counter.png")
 ## A dark ochre ring round the core for the first moment (review 11), so contact snaps.
 const RIM_TEXTURE := preload("res://assets/textures/fx/impact_rim.png")
 const RIM_TIME := 0.08
@@ -174,10 +176,7 @@ func _impact(pos: Vector3, size: float, counter := false, from := Vector3.INF) -
 	t.tween_property(mark, "scale", Vector3.ONE * 0.4, IMPACT_TIME - IMPACT_HOLD).set_ease(Tween.EASE_IN)
 	t.parallel().tween_property(mark, "modulate:a", 0.0, IMPACT_TIME - IMPACT_HOLD)
 	t.tween_callback(mark.hide)
-	rim.global_position = pos
-	rim.pixel_size = mark.pixel_size
-	rim.visible = true
-	get_tree().create_timer(RIM_TIME).timeout.connect(rim.hide)
+
 
 
 ## A troll's slam on the snow at `pos`: one broken ring puffing out and fading.
