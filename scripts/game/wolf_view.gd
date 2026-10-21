@@ -127,8 +127,8 @@ const HALO_WIDTH := 0.07
 ## A kind's body on the ground: half its width and half its length (review 8: the ring fits it).
 const FOOTPRINT := {"fox": Vector2(0.35, 0.75), "wolf": Vector2(0.45, 1.0), "bear": Vector2(0.8, 1.35),
 	"troll": Vector2(0.9, 0.8), "raider": Vector2(0.4, 0.4)}
-const HALO_CLEAR := 0.22
-var _halo_bead: MeshInstance3D
+const HALO_CLEAR := 0.13
+var _halo_bead: Sprite3D
 ## How far its health bar is raised to clear a neighbour's (PeopleLayer sets it; review 2), with a
 ## thin line down to its owner once it's lifted (review 3).
 var bar_lift := 0.0
@@ -351,11 +351,16 @@ func _build_bear() -> void:
 	trunk.rotation_degrees.x = 90.0
 	body.add_child(trunk)
 	body.add_child(Shapes.sphere(0.6, fur, Vector3(0, 1.22, 0.32)))
-	body.add_child(Shapes.sphere(0.36, fur, Vector3(0, 1.1, 1.0)))
-	body.add_child(Shapes.box(Vector3(0.26, 0.2, 0.3), Color(0.62, 0.5, 0.4), Vector3(0, 1.0, 1.32)))
-	body.add_child(Shapes.sphere(0.07, Color(0.1, 0.08, 0.08), Vector3(0, 1.04, 1.48)))
+	# Its head on a neck of its own, so it can drop it right down while it recovers (review 9).
+	var neck := Node3D.new()
+	neck.position = Vector3(0, 1.2, 0.7)
+	body.add_child(neck)
+	neck.add_child(Shapes.sphere(0.36, fur, Vector3(0, -0.1, 0.3)))
+	neck.add_child(Shapes.box(Vector3(0.26, 0.2, 0.3), Color(0.62, 0.5, 0.4), Vector3(0, -0.2, 0.62)))
+	neck.add_child(Shapes.sphere(0.07, Color(0.1, 0.08, 0.08), Vector3(0, -0.16, 0.78)))
 	for x in [-0.22, 0.22]:
-		body.add_child(Shapes.sphere(0.11, dark, Vector3(x, 1.42, 0.92)))
+		neck.add_child(Shapes.sphere(0.11, dark, Vector3(x, 0.22, 0.22)))
+	_parts.neck = neck
 	for z in [-0.55]:
 		for x in [-0.34, 0.34]:
 			rear.add_child(Shapes.cylinder(0.18, 0.62, dark, Vector3(x, 0.31, 0.55 + z)))
@@ -406,7 +411,10 @@ func _build_troll() -> void:
 		var limb := Shapes.cylinder(0.2, 1.3, hide, Vector3(0, -0.7, 0.02))
 		(limb.mesh as CylinderMesh).bottom_radius = 0.36
 		arm.add_child(limb)
-		arm.add_child(Shapes.sphere(0.46, dark, Vector3(0, -1.48, 0.06)))
+		var fist := Shapes.sphere(0.46, dark, Vector3(0, -1.48, 0.06))
+		# Broad, flat fists (review 9).
+		fist.scale = Vector3(1.3, 0.72, 1.25)
+		arm.add_child(fist)
 		_parts["arm_r" if x > 0 else "arm_l"] = arm
 	_parts.body = body
 
@@ -499,17 +507,15 @@ func _build_tell() -> void:
 		_halo.add_child(part)
 		_halo_parts.append(part)
 	# The bead at the edge that's emptying, cream on ink (kept round: not inside the stretched ring).
-	_halo_bead = MeshInstance3D.new()
-	var bead := SphereMesh.new()
-	bead.radius = 0.09
-	bead.height = 0.06
-	_halo_bead.mesh = bead
-	var bead_mat := StandardMaterial3D.new()
-	bead_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	bead_mat.albedo_color = Color(1.0, 0.96, 0.86)
-	bead_mat.render_priority = 2
-	_halo_bead.material_override = bead_mat
-	_halo_bead.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# Drawn over the bodies, so a crowd can't hide it (review 9): about 6 px, cream with a dark
+	# ochre rim.
+	_halo_bead = Sprite3D.new()
+	_halo_bead.texture = _bead_texture()
+	_halo_bead.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_halo_bead.no_depth_test = true
+	_halo_bead.render_priority = 18
+	_halo_bead.shaded = false
+	_halo_bead.pixel_size = 0.0045
 	_halo_bead.visible = false
 	add_child(_halo_bead)
 	_tell_line_thin.position.y = 0.01
@@ -810,6 +816,27 @@ static func _badge_disc() -> Texture2D:
 	return _disc
 
 
+## The counter ring's bead: a cream dot with a dark ochre rim, drawn once.
+static var _bead: Texture2D
+
+
+static func _bead_texture() -> Texture2D:
+	if _bead == null:
+		var size := 32
+		var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+		var c := Vector2(size, size) / 2.0
+		for y in size:
+			for x in size:
+				var d := Vector2(x + 0.5, y + 0.5).distance_to(c)
+				var col := Color(0, 0, 0, 0)
+				if d <= 15.0:
+					col = Color(0.55, 0.36, 0.1) if d > 11.5 else Color(1.0, 0.96, 0.86)
+					col.a = clampf(15.5 - d, 0.0, 1.0)
+				img.set_pixel(x, y, col)
+		_bead = ImageTexture.create_from_image(img)
+	return _bead
+
+
 ## Stretches the counter ring round its body as it faces now (screen-fixed axes, so "twelve
 ## o'clock" stays at the top), and returns its half-sizes across and deep.
 func _fit_halo() -> Vector2:
@@ -908,8 +935,12 @@ func _pose_greybox(fighting: bool, lunge: float, moving: bool) -> void:
 			_parts.rear.position.y = 0.04 * bob - 0.22 * slump
 			_parts.paw_r.rotation_degrees.x = 60.0 * wound - 85.0 * strike + (0.0 if fighting else 18.0 * sin(_t))
 			_parts.paw_r.rotation_degrees.y = -30.0 * wound + 45.0 * strike
-			# Drawn out to the side, clear of its body (review 3: 15-20 px).
+			# Drawn out to the side, clear of its body (review 3: 15-20 px); at the strike it
+			# reaches out past its own front (review 9).
 			_parts.paw_r.rotation_degrees.z = 62.0 * wound
+			_parts.paw_r.position.z = 0.55 + 0.38 * strike
+			# Head up as it winds, right down while it recovers.
+			_parts.neck.rotation_degrees.x = -12.0 * wound + 38.0 * slump
 			_parts.paw_l.rotation_degrees.x = -35.0 * wound + (0.0 if fighting else -18.0 * sin(_t))
 		"troll":
 			# The tell: both fists up over its head and spread apart, clear of its head (review 2);

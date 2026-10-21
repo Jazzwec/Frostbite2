@@ -47,7 +47,9 @@ var _sweeps := {}  # "reach" -> crescent MeshInstance3D
 ## bodies and bars: the brightest thing in a fight (fight_v2 reviews 2 and 3: about 24 px on the
 ## phone, 30 px for a kill, 150 ms).
 const IMPACT_SIZE := 0.8
-const IMPACT_TIME := 0.12
+## It pops in at full size, holds IMPACT_HOLD, then shrinks away by IMPACT_TIME (review 9).
+const IMPACT_TIME := 0.14
+const IMPACT_HOLD := 0.07
 ## The bursts, drawn by tools/fx/make_fx_textures.py with a 2 px ink outline (review 6).
 const IMPACT_TEXTURE := preload("res://assets/textures/fx/impact.png")
 const COUNTER_TEXTURE := preload("res://assets/textures/fx/impact_counter.png")
@@ -138,12 +140,13 @@ func _impact(pos: Vector3, size: float, counter := false, from := Vector3.INF) -
 	else:
 		mark.rotation.z = randf() * TAU
 	mark.modulate = Color.WHITE
-	mark.scale = Vector3.ONE * 0.6
+	mark.scale = Vector3.ONE
 	mark.visible = true
-	var t := mark.create_tween().set_parallel()
-	t.tween_property(mark, "scale", Vector3.ONE * 1.1, IMPACT_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	t.tween_property(mark, "modulate:a", 0.0, IMPACT_TIME * 0.5).set_delay(IMPACT_TIME * 0.5)
-	t.chain().tween_callback(mark.hide)
+	var t := mark.create_tween()
+	t.tween_interval(IMPACT_HOLD)
+	t.tween_property(mark, "scale", Vector3.ONE * 0.4, IMPACT_TIME - IMPACT_HOLD).set_ease(Tween.EASE_IN)
+	t.parallel().tween_property(mark, "modulate:a", 0.0, IMPACT_TIME - IMPACT_HOLD)
+	t.tween_callback(mark.hide)
 
 
 ## A troll's slam on the snow at `pos`: one broken ring puffing out and fading.

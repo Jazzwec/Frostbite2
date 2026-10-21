@@ -251,8 +251,11 @@ func _nudge_wolves(s: GameState, delta: float) -> void:
 ## lowest on screen up steps clear of the ones already placed, Meagan's bar and her head with a
 ## 6 px gap, two steps at most.
 const PITCH := deg_to_rad(52.0)
-const BAR_HALF := 0.68
-const BAR_TALL := 0.3
+const BAR_HALF := 0.63
+const BAR_TALL := 0.2
+## Her bar is wider (HpBar 1.8 m); the gap kept between bars, about 6 px (review 9: sideways too).
+const MEAGAN_BAR_HALF := 0.93
+const BAR_GAP := 0.14
 const HEAD_CLEAR := Vector2(0.55, 1.0)
 
 
@@ -261,7 +264,7 @@ func _stack_bars(s: GameState) -> void:
 		return Vector2(p.x, p.y * sin(PITCH) - height * cos(PITCH))
 	# What's fixed: her bar and her head.
 	# Her head, with 8 px to spare above it whatever her clip does (review 7).
-	var placed := [[screen.call(s.meagan_pos, 2.45), Vector2(BAR_HALF, BAR_TALL)], [screen.call(s.meagan_pos, 1.95), HEAD_CLEAR]]
+	var placed := [[screen.call(s.meagan_pos, 2.45), Vector2(MEAGAN_BAR_HALF, BAR_TALL + 0.06)], [screen.call(s.meagan_pos, 1.95), HEAD_CLEAR]]
 	var bars := []
 	for wolf in s.wolves:
 		var view: WolfView = _wolves.get(wolf.id)
@@ -274,7 +277,7 @@ func _stack_bars(s: GameState) -> void:
 		for step in 3:
 			var clash := false
 			for p in placed:
-				if absf(p[0].x - at.x) < BAR_HALF + p[1].x and absf(p[0].y - at.y) < (BAR_TALL + p[1].y) / 2.0:
+				if absf(p[0].x - at.x) < BAR_HALF + p[1].x + BAR_GAP and absf(p[0].y - at.y) < (BAR_TALL + p[1].y) / 2.0 + BAR_GAP:
 					clash = true
 					break
 			if not clash or lift == 2:

@@ -17,6 +17,9 @@ var _flag: Node3D
 var _cleared := false
 var _sleep: Label3D
 var _was_awake := false
+## The camp's stakes duck down to this while it fights, so they don't merge with its defenders.
+var _stakes: Array[Node3D] = []
+const STAKES_DUCKED := 0.4
 
 
 func setup(i: int, post: Dictionary) -> void:
@@ -39,6 +42,7 @@ func setup(i: int, post: Dictionary) -> void:
 				var a := PI + 0.25 + (PI - 0.5) * k / 8.0
 				var stake := Shapes.cylinder(0.08, 1.1 + 0.15 * (k % 2), WOOD, Vector3(cos(a) * 2.2, 0.55, sin(a) * 2.2))
 				add_child(stake)
+				_stakes.append(stake)
 			add_child(Shapes.cone(0.95, 1.4, Color(0.42, 0.36, 0.3), Vector3(-0.5, 0.7, -0.5)))
 			add_child(Shapes.cylinder(0.28, 0.12, Color(0.3, 0.22, 0.16), Vector3(0.7, 0.06, 0.5)))
 			add_child(Shapes.sphere(0.16, Color(1.0, 0.55, 0.2), Vector3(0.7, 0.2, 0.5), 2.0))
@@ -67,6 +71,14 @@ func refresh(post: Dictionary) -> void:
 	_sleep.position.y = 2.6 + 0.12 * sin(now * 2.0)
 	if post.awake and not _was_awake and not post.cleared:
 		_wake_mark()
+	if post.awake != _was_awake or (post.cleared and not _cleared):
+		var fighting: bool = post.awake and not post.cleared
+		for stake in _stakes:
+			# Grown from the ground, so it ducks into it.
+			var h: float = (stake as MeshInstance3D).mesh.height
+			var squash := STAKES_DUCKED if fighting else 1.0
+			create_tween().tween_property(stake, "scale:y", squash, 0.3)
+			create_tween().tween_property(stake, "position:y", h * squash / 2.0, 0.3)
 	_was_awake = post.awake
 	if post.cleared and not _cleared:
 		_cleared = true

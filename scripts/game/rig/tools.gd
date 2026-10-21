@@ -83,13 +83,11 @@ static func make(id: String) -> Node3D:
 		# inside, and a tapered terracotta trail behind (fight_v2 review 5: a hostile silhouette,
 		# about 11 px plus a 20 px trail).
 		"shard":
-			var edge := Shapes.cone(0.09, 0.4, Color(0.22, 0.3, 0.42))
+			# A solid dark head (review 9: about 20 x 9 px) and a 14 px trail.
+			var edge := Shapes.cone(0.1, 0.46, Color(0.22, 0.3, 0.42))
 			edge.rotation_degrees.x = -90.0
 			n.add_child(edge)
-			var ice := Shapes.cone(0.06, 0.44, Color(0.82, 0.93, 1.0), Vector3(0, 0, -0.02))
-			ice.rotation_degrees.x = -90.0
-			n.add_child(ice)
-			var trail := Shapes.cone(0.08, 0.5, Color(0.66, 0.3, 0.2, 0.75), Vector3(0, 0, 0.44))
+			var trail := Shapes.cone(0.08, 0.34, Color(0.66, 0.3, 0.2, 0.8), Vector3(0, 0, 0.38))
 			trail.rotation_degrees.x = 90.0
 			n.add_child(trail)
 		# A snowball in her mitten, for her throw.
@@ -97,13 +95,13 @@ static func make(id: String) -> Node3D:
 		# terracotta.
 		"snowball":
 			n.add_child(Shapes.sphere(0.125, Color(1.0, 0.96, 0.86), Vector3(0, -0.1, 0)))
-			n.add_child(_rim(0.15, SNOWBALL_RIM, Vector3(0, -0.1, 0)))
+			n.add_child(_rim(0.17, SNOWBALL_RIM, Vector3(0, -0.1, 0)))
 		# A snowball in flight: the same, with a short pale-blue trail behind it (along +Z; Fx.throw
 		# aims it).
 		"snowball_flying":
 			n.add_child(Shapes.sphere(0.125, Color(1.0, 0.96, 0.86)))
-			n.add_child(_rim(0.15, SNOWBALL_RIM))
-			var tail := Shapes.cone(0.1, 0.55, Color(0.78, 0.86, 0.95, 0.7), Vector3(0, 0, 0.36))
+			n.add_child(_rim(0.17, SNOWBALL_RIM))
+			var tail := Shapes.cone(0.1, 0.24, Color(0.72, 0.82, 0.94, 0.8), Vector3(0, 0, 0.24))
 			tail.rotation_degrees.x = 90.0
 			n.add_child(tail)
 		# A Jan's load on the way to a stockpile (AFK V4, 2026-10-20): big, distinct shapes held
