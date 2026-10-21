@@ -195,8 +195,15 @@ static func _enemy(s: GameState, e: Dictionary, dt: float, events: Array) -> voi
 			events.append({"type": "wolf_left", "wolf": e.id, "carry": e.carry})
 		return
 	# An outpost's defenders sleep, and once woken take a moment to get up (fight_v2 review 1).
-	if e.outpost >= 0 and (not _outpost_awake(s, e) or s.time < s.outposts[e.outpost].get("woke_at", -100.0) + Balance.OUTPOST_WAKE):
-		return
+	# Back asleep (she's gone beyond the leash, or down), one that chased her walks back to its
+	# spot rather than dozing off where it stood.
+	if e.outpost >= 0:
+		if not _outpost_awake(s, e):
+			e.bite_t = -1.0
+			e.pos = e.pos.move_toward(e.home, speed * Balance.SPEED_SCALE * dt)
+			return
+		if s.time < s.outposts[e.outpost].get("woke_at", -100.0) + Balance.OUTPOST_WAKE:
+			return
 
 	# Fight the nearest defender close by, unless it's given up on them for now.
 	# (A thrower engages from beyond where it stands to throw.)
