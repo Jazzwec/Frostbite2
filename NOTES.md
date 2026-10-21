@@ -26,6 +26,12 @@ What felt wrong while playing, and what's still open. This file is the prompt fo
 - An earlier session crashed half-way through review 1. Its partial work is in `git stash` ("crashed session…"), for reference only.
 - The rules are in the brief's **Raids and fighting** section.
 
+**AFK follow-ups (2026-10-21, BACKLOG F1–F6, details in AFK_REPORT.md):**
+- `docs/balance/fight_v2_sims.md` is the balance report for your sign-off. It finds that from wave 18 (about 32:00) even Armory 10 on schedule can't hold, because the waves keep growing ×1.2 and nothing on her side does.
+- Her stick at Armory 1 now really swings every 0.8 s (it was 0.9 s through a float bug), and guards strike every 1 s (it was 1.1 s). That's a little more feel to judge when you play.
+- Outpost defenders walk home when she leaves, instead of dozing where they stood.
+- Ink model sheets for the bear, troll, raider and fox are in `source_art/concept/ink/`, for your decision on Meshy models.
+
 **Open, for the user:**
 - Play it at full speed (DEV → Next wave, or Armory +1); the strips are slowed. Your feel judgement is what the loop now needs.
 - Sign off the `[proto]` numbers below.

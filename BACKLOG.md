@@ -264,7 +264,7 @@ Fight v2 is paused at 8.9/10 (NOTES.md top). These need no credits, no design ca
   - **What:** item 11 again for the new UI: the raid status row and fold mark, `ThreatArrows`, the Armory sheet, the down callout. Check at 1080×1920 and 1080×2400.
   - **Rules:** tap targets ≥ 120 px, text ≥ 30 px, no overlaps.
   - **Done when:** whatever needed fixing is fixed, with before and after screenshots described in the report.
-- [ ] **F6. Ink references for the new enemies (safe, ChatGPT, ≤ 4 images).**
+- [x] **F6. Ink references for the new enemies (safe, ChatGPT, ≤ 4 images).**
   - **What:** model sheets of the bear, troll, raider and fox in the ink style, with `source_art/concept/ink/wolf_v2.png` as `--ref`.
   - **Where:** `source_art/concept/ink/`, each with its `.prompt.txt`, checked by eye.
   - **Don't:** call Meshy (that's "needs you").

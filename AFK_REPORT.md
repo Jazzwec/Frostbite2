@@ -99,6 +99,41 @@ A "Needs you" list goes at the end.
 - **Screenshots:** `source_art/direction/fight_v2/f5_phone_audit/`: before and after of the furnace sheet in a raid, and the Armory sheet after. They look the same apart from the slightly taller sheet.
 - **ChatGPT review (1 call):** it caught a bug in my first version. `pad_touch` copied the button's theme style before the button was in the tree, which gave Godot's default grey, so Upgrade looked disabled. Fixed: it now reads UiTheme's own theme. The rest is style and design, so it's listed under "ChatGPT feedback" below.
 
+### F6. Ink references for the new enemies
+- **What:** `source_art/concept/ink/bear.png`, `troll.png`, `raider.png` and `fox.png`, each with its `.prompt.txt`. They were made with `chatgpt.py image --for-3d --ref wolf_v2.png`, using the wolf's prompt template and the greybox silhouettes from the fight steer. I checked each by eye:
+  - **Bear:** broad and low, with a pale muzzle and big pale paw pads, standing on four straight legs. The hump is gentler than the greybox's.
+  - **Troll:** stooped, with big dark mitten fists, an A-pose and ice clusters on its back, biggest on the left. It has two small tusks I didn't ask for.
+  - **Raider:** a hooded, pointed cowl with a scarf over the face, an ochre sash, a satchel and an ice shard at the belt, empty hands and an A-pose.
+  - **Fox:** rust-orange with a big white-tipped tail held up and dark socks. It smiles slightly.
+- **Next (yours):** decide whether these go to Meshy. That's about 30 credits each for a textured image-to-3D, plus rigging.
+
+## Closing summary (2026-10-21, 07:54 → 08:45)
+
+All six Fight v2 follow-ups (F1–F6) are done, pushed, and ticked in BACKLOG.md. Tests went from 178 to 192, all passing. No runtime errors.
+
+**Commits:** f8ccd70 (F1), 3adaf4d and 8f04bde (the two bugs F2 found), 42fe17a (F2), d0cda2c (F3), a4b7bb1 (F4), 63f1760 (F5), and F6's commit with the docs.
+
+**ChatGPT budget:** 4 images and 1 review (budget: 8 and 25).
+
+**Needs you:**
+- **The wave wall:** from wave 18 (about 32:00), enemy HP grows ×1.2 a wave past the spending cap, and nothing on her side grows after Armory 10. Every winter ends there whatever she buys (F1 report). Is that the intended end of a run, or should the late curve flatten or the Armory go further?
+- **The fight `[proto]` numbers:** sign them off with `docs/balance/fight_v2_sims.md` beside you. Her stick and the guards are now a touch faster (F2's tick fix), so feel them at full speed.
+- **Meshy models** for the bear, troll, raider and fox (F6). F3 notes that merging each greybox body into one mesh would cut about 10 draw calls an enemy; real models would do that anyway.
+- **Your `settings.cfg`:** my test runs earned the "fiveJans" and "tenJans" milestones. The permission system blocked me from editing the file, so remove those two from `[milestones] done` if you want them to show for you.
+- **Your save:** the F2 check run autosaved my test raid over your `user://save.json`. That file is now `save.afk-test-2026-10-21.json`, and the game starts a fresh winter.
+
+**ChatGPT feedback, not applied (style or design, F5's review):**
+- A visible reason above a disabled Upgrade.
+- 16–24 px between thief badges and health bars in a crowd.
+- A bigger drawn close button (104–112 px, a 36–40 px ×).
+- Armory comparison text at 34–36 px with 44–48 px rows.
+- Details drawn at 104 px.
+
+**Gotchas learned:**
+- `swallowtail runtime await_signal` blocks the running game while it waits, so use a plain wait between commands.
+- `get_theme_stylebox` on a control not yet in the tree returns Godot's default theme.
+- Python on Windows writes CRLF unless told `newline`, and opening a file for writing truncates it before a later read can fail.
+
 ## Run 2026-10-20, 20:15 → done (animation polish)
 
 The task: Astra's review of the animations, best practices from the web, then polish. Frame strips of every clip were captured at quarter speed (`source_art/direction/anim_v1/`), and Astra reviewed them (`review.md`). Two of its lowest scores (Jan fishing and chopping, Meagan storing) were my capture's fault, not the game's: the camera followed the wrong Jan, and Meagan was still walking. Its real findings are backlog items N1–N7.
