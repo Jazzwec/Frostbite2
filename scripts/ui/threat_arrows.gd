@@ -12,8 +12,9 @@ const SIZE := 36.0
 ## of the top panel, the buttons and the fight strip under them.
 const EDGE_MARGINS := Vector4(62, 460, 62, 200)
 ## Ochre for what's coming, terracotta for danger now (review 3), each with a cream keyline.
-## Everything about enemies is a terracotta chevron (review 11), a coming wave's at half strength.
-const COMING := Color(0.66, 0.3, 0.2, 0.45)
+## Everything about enemies is a terracotta chevron (review 11); a coming wave's is only outlined
+## (review 12).
+const COMING := Color(0.66, 0.3, 0.2, 0.9)
 const THIEF := Color(0.66, 0.3, 0.2)
 ## The attackers' markers: smaller (about 24 px), 16 px in from the edge, with their distance.
 const ATTACKER_SIZE := 24.0
@@ -81,6 +82,10 @@ func _process(delta: float) -> void:
 			var def: Dictionary = Balance.ENEMIES[e.kind]
 			if def.shape == "shot" and e.bite_t >= def.tell - SHOT_LEAD and e.bite_t < def.tell and e.get("victim", -2) == -1:
 				_mark(e.pos, ATTACKER_STRIKING, "", SHOT_SIZE, "")
+				# It pops in once, 120 ms, as the warning begins (review 12).
+				if not _marks.is_empty() and _marks[-1][4] == SHOT_SIZE:
+					var into: float = e.bite_t - (def.tell - SHOT_LEAD)
+					_marks[-1][7] = lerpf(1.6, 1.0, clampf(into / 0.12, 0.0, 1.0))
 		for shot in s.enemy_shots:
 			if shot.to.distance_to(s.meagan_pos) < 1.6:
 				var total: float = shot.from.distance_to(shot.to) / Balance.ENEMY_SHOT_SPEED
@@ -140,7 +145,7 @@ func _mark(ground: Vector2, color: Color, badge: String, size := SIZE, label := 
 	var half := inside.size / 2.0
 	var reach := minf(half.x / maxf(absf(dir.x), 0.001), half.y / maxf(absf(dir.y), 0.001))
 	var bob := 8.0 * absf(sin(_time * 5.0))
-	_marks.append([centre + dir * (reach - bob), dir, color, badge, size, label, 1])
+	_marks.append([centre + dir * (reach - bob), dir, color, badge, size, label, 1, 1.0])
 
 
 func _draw() -> void:
@@ -158,9 +163,17 @@ func _draw() -> void:
 		var dir: Vector2 = mk[1]
 		draw_set_transform(mk[0], dir.angle() - PI / 2.0)
 		var alpha: float = (0.5 if faded else 1.0) * mk[2].a
-		draw_polyline(outline, Color(KEYLINE, alpha), 12.0, true)
-		draw_colored_polygon(shape, Color(mk[2], alpha))
-		draw_polyline(outline, Color(UiTheme.INK, alpha), 5.0, true)
+		var pop: float = mk[7]
+		if pop != 1.0:
+			draw_set_transform(mk[0], dir.angle() - PI / 2.0, Vector2.ONE * pop)
+		if mk[2] == COMING:
+			# Still to come: an outline only.
+			draw_polyline(outline, Color(KEYLINE, alpha), 9.0, true)
+			draw_polyline(outline, Color(mk[2], alpha), 5.0, true)
+		else:
+			draw_polyline(outline, Color(KEYLINE, alpha), 8.0, true)
+			draw_colored_polygon(shape, Color(mk[2], alpha))
+			draw_polyline(outline, Color(UiTheme.INK, alpha), 3.0, true)
 		draw_set_transform(Vector2.ZERO)
 		if mk[5] != "":
 			# How far it is (and how many, if several), just behind the arrow, ink on a cream halo.

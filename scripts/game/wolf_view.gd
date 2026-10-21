@@ -60,7 +60,7 @@ const TELL_LINE_WIDTH := 0.075
 ## spear, 7 px for her sweep, 10 px for a heavy blow), out and back over RECOIL_TIME.
 const FLASH_TIME := 0.08
 const FLASH_STRENGTH := 0.7
-const RECOIL := {"light": 0.1, "sweep": 0.12, "heavy": 0.14}
+const RECOIL := {"light": 0.09, "sweep": 0.11, "heavy": 0.13}
 ## Out over RECOIL_OUT, back over the rest (review 10: 80-100 ms out, 140 ms back).
 const RECOIL_TIME := 0.23
 const RECOIL_OUT := 0.09
@@ -118,7 +118,9 @@ const TELL_FRONT := Color(0.86, 0.42, 0.3, 0.95)
 var _tell_key: MeshInstance3D
 ## The lock's outer edge: a second, darker terracotta line (review 11: cream is hers alone).
 const TELL_KEY := Color(0.5, 0.18, 0.11, 1.0)
-const TELL_KEY_WIDTH := 0.075
+const TELL_KEY_WIDTH := 0.04
+## The full footprint stays this long past the impact (review 12: 80-120 ms).
+const TELL_HOLD := 0.1
 const EDGE_PULSE := 0.18
 ## While it recovers from its strike (the counter window, Balance.RECOVERY_DAMAGE_MULT), an ochre
 ## ring of four segments lies round its whole body, a segment going out each quarter of the
@@ -599,7 +601,8 @@ func _ground_mesh(mesh: Mesh, color: Color) -> MeshInstance3D:
 func _update_tell(enemy: Dictionary) -> void:
 	var t: float = enemy.get("bite_t", -1.0)
 	var strike: float = _def.tell + (Balance.ENEMY_LUNGE if _def.shape == "wedge" else 0.0)
-	var on: bool = t >= 0.0 and t < strike and enemy.has("aim")
+	# Shown through the impact and a moment after (review 12), then cleared.
+	var on: bool = t >= 0.0 and t < strike + TELL_HOLD and enemy.has("aim")
 	_tell.visible = on
 	if _shot_line:
 		_shot_line.visible = on

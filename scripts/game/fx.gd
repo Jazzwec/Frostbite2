@@ -37,7 +37,8 @@ const SWEEP_COLOR := Color(1.0, 0.95, 0.82, 0.95)
 const SWEEP_WIDTH := 0.07
 const SWEEP_SPAN := 28.0
 const SWEEP_TIME := 0.08
-const SWEEP_FADE := 0.03
+## The arc's streak lingers this long after the swing (review 12).
+const SWEEP_FADE := 0.06
 
 static var instance: Fx
 
@@ -47,16 +48,16 @@ var _sweeps := {}  # "reach" -> crescent MeshInstance3D
 ## Impact marks: a cream star with a rust rim where a blow lands, for IMPACT_TIME, drawn over
 ## bodies and bars: the brightest thing in a fight (fight_v2 reviews 2 and 3: about 24 px on the
 ## phone, 30 px for a kill, 150 ms).
-const IMPACT_SIZE := 0.82
+const IMPACT_SIZE := 0.95
 ## It pops in at full size, holds IMPACT_HOLD, then shrinks away by IMPACT_TIME (review 9).
-const IMPACT_TIME := 0.14
-const IMPACT_HOLD := 0.07
+const IMPACT_TIME := 0.15
+const IMPACT_HOLD := 0.08
 ## The bursts, drawn by tools/fx/make_fx_textures.py with a 2 px ink outline (review 6).
 const IMPACT_TEXTURE := preload("res://assets/textures/fx/impact.png")
 const COUNTER_TEXTURE := preload("res://assets/textures/fx/impact_counter.png")
 ## A dark ochre ring round the core for the first moment (review 11), so contact snaps.
 const RIM_TEXTURE := preload("res://assets/textures/fx/impact_rim.png")
-const RIM_TIME := 0.04
+const RIM_TIME := 0.08
 ## A troll's slam: one broken ring of snow puffing out on the ground (review 4: 70-90 px, ~200 ms).
 const SLAM_PUFF_SIZE := 2.4
 const SLAM_PUFF_TIME := 0.13

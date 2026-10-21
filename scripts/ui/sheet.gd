@@ -159,8 +159,11 @@ func _start(index: int) -> void:
 	_title = UiTheme.label("", 48, UiTheme.TITLE)
 	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(_title)
-	var close_button := UiTheme.button("Close", close)
-	close_button.custom_minimum_size = Vector2(200, UiTheme.BUTTON_HEIGHT)
+	# A quiet close control (review 12: the sheet's action is the filled button, not this).
+	var close_button := UiTheme.button("×", close)
+	close_button.custom_minimum_size = Vector2(88, 88)
+	close_button.add_theme_font_size_override("font_size", 52)
+	UiTheme.style_utility(close_button)
 	header.add_child(close_button)
 
 
@@ -194,6 +197,14 @@ func _open_building(b: String) -> void:
 	_upgrade_muted = false
 	_body.add_child(_upgrade)
 	if b == "armory":
+		# The description behind Details (review 12).
+		var details := UiTheme.button("Details", func() -> void: _effect.visible = not _effect.visible)
+		details.custom_minimum_size = Vector2(0, 72)
+		details.add_theme_font_size_override("font_size", 30)
+		UiTheme.style_utility(details)
+		details.size_flags_horizontal = Control.SIZE_SHRINK_END
+		_body.add_child(details)
+		_effect.visible = false
 		_body.add_child(_effect)
 	for job in Balance.JOBS:
 		if Balance.JOBS[job].building == b:
@@ -392,17 +403,12 @@ func _refresh() -> void:
 		_status.text = _summary(s, b) + _shared_note(s, b)
 		_upgrade.visible = true
 		# Short of something, the button starts a delivery: she brings the rest to the pad (the
-		# game's upgrade flow), and it says so, in an enabled muted teal (reviews 2 and 3).
+		# game's upgrade flow), and it says so; it's the sheet's filled action either way (reviews
+		# 2, 3 and 12).
 		var short := _shortfall(s, Economy.site_cost(s, site_index))
 		_upgrade.text = "Upgrade to Lv %d" % (site.level + 1) if short == "" else "Track Lv %d delivery" % (site.level + 1)
 		if short != "":
-			_status.text += ("\n" if _status.text != "" else "") + "Need %s more: deliver to the pad." % short
-		if (short != "") != _upgrade_muted:
-			_upgrade_muted = short != ""
-			if _upgrade_muted:
-				UiTheme.style_utility(_upgrade, UiTheme.UTILITY)
-			else:
-				UiTheme.style_primary(_upgrade)
+			_status.text += ("\n" if _status.text != "" else "") + "Deliver %s more" % short
 	_cost_line.visible = _upgrade.visible
 	if _upgrade.visible:
 		_cost_line.text = _cost_text(s, Economy.site_cost(s, site_index))
