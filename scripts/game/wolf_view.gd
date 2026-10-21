@@ -96,6 +96,11 @@ var _recoil := 0.0
 var _recoil_dir := Vector3.ZERO
 var _recoil_size := 0.0
 var _freeze := 0.0
+## The struck head's snap back: up over REACT_IN, settling over REACT_OUT.
+var _react := 0.0
+const REACT_IN := 0.075
+const REACT_OUT := 0.14
+const REACT_DEGREES := 24.0
 ## The posed wolf model (wolves and foxes), or null for a greybox body.
 var _pivot: Node3D
 var _skeleton: Skeleton3D
@@ -121,6 +126,7 @@ const TELL_KEY := Color(0.5, 0.18, 0.11, 1.0)
 const TELL_KEY_WIDTH := 0.04
 ## The full footprint stays this long past the impact (review 12: 80-120 ms).
 const TELL_HOLD := 0.1
+const TELL_FADE := 0.06
 const EDGE_PULSE := 0.18
 ## While it recovers from its strike (the counter window, Balance.RECOVERY_DAMAGE_MULT), an ochre
 ## ring of four segments lies round its whole body, a segment going out each quarter of the
@@ -135,6 +141,10 @@ const HALO_WIDTH := 0.07
 const FOOTPRINT := {"fox": Vector2(0.35, 0.75), "wolf": Vector2(0.45, 1.0), "bear": Vector2(0.8, 1.35),
 	"troll": Vector2(0.9, 0.8), "raider": Vector2(0.4, 0.4)}
 const HALO_CLEAR := 0.13
+## The counter arc: this many degrees on the side facing its foe (review 13: 90-120), in four
+## pieces with small gaps.
+const HALO_ARC := 110.0
+const HALO_PIECE := 25.0
 var _halo_bead: Sprite3D
 ## How far its health bar is raised to clear a neighbour's (PeopleLayer sets it; review 2), with a
 ## thin line down to its owner once it's lifted (review 3).
@@ -363,7 +373,10 @@ func _build_bear() -> void:
 	neck.position = Vector3(0, 1.2, 0.7)
 	body.add_child(neck)
 	neck.add_child(Shapes.sphere(0.36, fur, Vector3(0, -0.1, 0.3)))
-	neck.add_child(Shapes.box(Vector3(0.26, 0.2, 0.3), Color(0.62, 0.5, 0.4), Vector3(0, -0.2, 0.62)))
+	# A distinct, lighter muzzle (review 13).
+	var muzzle := Shapes.sphere(0.22, Color(0.64, 0.52, 0.42), Vector3(0, -0.2, 0.6))
+	muzzle.scale = Vector3(1.0, 0.8, 1.25)
+	neck.add_child(muzzle)
 	neck.add_child(Shapes.sphere(0.07, Color(0.1, 0.08, 0.08), Vector3(0, -0.16, 0.78)))
 	for x in [-0.22, 0.22]:
 		neck.add_child(Shapes.sphere(0.11, dark, Vector3(x, 0.22, 0.22)))
@@ -376,6 +389,10 @@ func _build_bear() -> void:
 		paw.position = Vector3(x, 0.75, 0.55)
 		body.add_child(paw)
 		paw.add_child(Shapes.cylinder(0.19, 0.75, dark, Vector3(0, -0.37, 0)))
+		# A heavy paw at its end (review 13: 10-14 px).
+		var pad := Shapes.sphere(0.27, dark, Vector3(0, -0.74, 0.08))
+		pad.scale = Vector3(1.0, 0.6, 1.2)
+		paw.add_child(pad)
 		_parts["paw_r" if x > 0 else "paw_l"] = paw
 	_parts.rear = rear
 
@@ -415,13 +432,15 @@ func _build_troll() -> void:
 		body.add_child(arm)
 		# Oversized forearms and fists (review 1): its slam reads from its outline.
 		# One tapered limb, narrow at the shoulder, heavy at the fist.
-		var limb := Shapes.cylinder(0.2, 1.3, hide, Vector3(0, -0.7, 0.02))
-		(limb.mesh as CylinderMesh).bottom_radius = 0.36
+		# Forearms a fifth shorter than they were (review 13), tapering to the fist.
+		var limb := Shapes.cylinder(0.2, 1.08, hide, Vector3(0, -0.6, 0.02))
+		(limb.mesh as CylinderMesh).bottom_radius = 0.34
 		arm.add_child(limb)
-		var fist := Shapes.sphere(0.46, dark, Vector3(0, -1.48, 0.06))
-		# Broad, flat fists (review 9).
-		fist.scale = Vector3(1.3, 0.72, 1.25)
+		# Broad mitten fists with a thumb (reviews 9, 13).
+		var fist := Shapes.sphere(0.44, dark, Vector3(0, -1.26, 0.06))
+		fist.scale = Vector3(1.3, 0.7, 1.3)
 		arm.add_child(fist)
+		arm.add_child(Shapes.sphere(0.17, dark, Vector3(-signf(x) * 0.42, -1.1, 0.16)))
 		_parts["arm_r" if x > 0 else "arm_l"] = arm
 	_parts.body = body
 
@@ -501,16 +520,13 @@ func _build_tell() -> void:
 	_halo.position.y = 0.05
 	_halo.visible = false
 	add_child(_halo)
-	# Built round a unit circle and stretched to its body each frame (_fit_halo).
+	# Built round a unit circle and stretched to its body each frame (_fit_halo); four pieces of
+	# one arc, turned each frame to face its foe (_place_halo).
 	var r := 1.0
 	for k in 4:
-		# Segment k runs clockwise on screen from (k * 90) degrees past twelve o'clock (north).
-		# A sector is centred on local +Z; turning it by phi points it at ground angle 90 - phi.
 		var part := Node3D.new()
-		var mid := -90.0 + 90.0 * k + 45.0
-		part.rotation.y = deg_to_rad(90.0 - mid)
-		var edge := _ground_mesh(sector(r - 0.02, r + 0.075, 86.0), HALO_EDGE)
-		var stroke := _ground_mesh(sector(r, r + 0.055, 84.0), HALO)
+		var edge := _ground_mesh(sector(r - 0.02, r + 0.075, HALO_PIECE + 1.5), HALO_EDGE)
+		var stroke := _ground_mesh(sector(r, r + 0.055, HALO_PIECE), HALO)
 		stroke.position.y = 0.005
 		# Drawn after its edge, so the ochre sits on top.
 		(stroke.material_override as StandardMaterial3D).render_priority = 1
@@ -601,14 +617,14 @@ func _ground_mesh(mesh: Mesh, color: Color) -> MeshInstance3D:
 func _update_tell(enemy: Dictionary) -> void:
 	var t: float = _attack
 	var strike: float = _def.tell + (Balance.ENEMY_LUNGE if _def.shape == "wedge" else 0.0)
-	# Shown through the impact and a moment after (review 12), then cleared.
-	var on: bool = t >= 0.0 and t < strike + TELL_HOLD and enemy.has("aim")
+	# Shown through the impact and a moment after (review 12), then faded out (review 13).
+	var on: bool = t >= 0.0 and t < strike + TELL_HOLD + TELL_FADE and enemy.has("aim")
 	_tell.visible = on
 	if _shot_line:
 		_shot_line.visible = on
 	if not on:
 		return
-	var fade := clampf(t / 0.1, 0.0, 1.0)
+	var fade := clampf(t / 0.1, 0.0, 1.0) * (1.0 - clampf((t - strike - TELL_HOLD) / TELL_FADE, 0.0, 1.0))
 	var locked := t >= strike - Combat.lock_of(_def)
 	_tell_zone_mat.set_shader_parameter("fade", fade)
 	# The fill advances until the lock, then holds (review 4); its front is a line (review 10).
@@ -626,7 +642,10 @@ func _update_tell(enemy: Dictionary) -> void:
 	var pulse := 1.0 + 0.06 * sin(clampf(1.0 - last / EDGE_PULSE, 0.0, 1.0) * PI) if last <= EDGE_PULSE else 1.0
 	_tell_line.scale = Vector3(pulse, 1.0, pulse)
 	_tell_key.scale = _tell_line.scale
-	(_tell_line_thin.material_override as StandardMaterial3D).albedo_color.a = 0.85 * fade
+	# Preparing: a quieter 2 px line (review 13); committed: the bold double edge.
+	(_tell_line_thin.material_override as StandardMaterial3D).albedo_color.a = 0.55 * fade
+	(_tell_line.material_override as StandardMaterial3D).albedo_color.a = fade
+	(_tell_key.material_override as StandardMaterial3D).albedo_color.a = fade
 	var from: Vector2 = enemy.get("tell_from", enemy.pos)
 	var at := Vector3(from.x, 0.04, from.y)
 	var aim := Vector3(enemy.aim.x, 0.04, enemy.aim.y)
@@ -673,6 +692,14 @@ func set_engaged(on: bool) -> void:
 	_hp_bar.modulate_alpha(1.0 if on else 0.6)
 
 
+## How far into its snap back a struck head is: 0..1 up over REACT_IN, back to 0 over REACT_OUT.
+func _react_amount() -> float:
+	if _react <= 0.0:
+		return 0.0
+	var since := REACT_IN + REACT_OUT - _react
+	return smoothstep(0.0, 1.0, since / REACT_IN) if since < REACT_IN else 1.0 - smoothstep(0.0, 1.0, (since - REACT_IN) / REACT_OUT)
+
+
 ## Its attack's time, smooth: the engine's `bite_t` moves in 0.1 s ticks, so between them the view
 ## runs its own clock, kept within a tick of the engine's (it was stepping at 10 fps).
 func _attack_clock(enemy: Dictionary, delta: float) -> float:
@@ -697,6 +724,7 @@ func hit(from := Vector3.INF, blow := "light", counter := false) -> void:
 	_recoil = RECOIL_TIME
 	_recoil_size = RECOIL[blow]
 	_freeze = COUNTER_FREEZE if counter else HIT_FREEZE
+	_react = REACT_IN + REACT_OUT
 	var away := global_position - from if from != Vector3.INF else -_model.basis.z
 	away.y = 0.0
 	_recoil_dir = away.normalized() if away.length() > 0.01 else Vector3.BACK
@@ -750,6 +778,7 @@ func sync(enemy: Dictionary, delta: float) -> void:
 	_attack = _attack_clock(enemy, delta)
 	_flash = maxf(0.0, _flash - delta)
 	_recoil = maxf(0.0, _recoil - delta)
+	_react = maxf(0.0, _react - delta)
 	# Out and back: half a sine over the recoil's time.
 	# A quick shove out, an easier return.
 	var since := RECOIL_TIME - _recoil
@@ -799,11 +828,15 @@ func sync(enemy: Dictionary, delta: float) -> void:
 	if _halo.visible:
 		var gone: float = clampf((t - struck) / _def.recover, 0.0, 1.0)
 		var size := _fit_halo()
+		# Facing its foe (the side to hit it from), emptying clockwise from its first end.
+		var foe: Vector2 = enemy.get("foe_pos", enemy.pos + Vector2.DOWN)
+		var toward := rad_to_deg((foe - enemy.pos).angle())
+		var start := toward - HALO_ARC / 2.0
 		for k in 4:
-			# The twelve-to-three segment goes first, and is gone once the front has passed it.
+			var mid := start + HALO_ARC * (k + 0.5) / 4.0
+			_halo_parts[k].rotation.y = deg_to_rad(90.0 - mid)
 			_halo_parts[k].visible = gone < (k + 1) / 4.0
-		# The bead rides the front, clockwise from twelve o'clock.
-		var front := deg_to_rad(-90.0 + 360.0 * gone)
+		var front := deg_to_rad(start + HALO_ARC * gone)
 		_halo_bead.position = Vector3(cos(front) * size.x, 0.08, sin(front) * size.y)
 
 
@@ -939,7 +972,7 @@ func _pose(fighting: bool, lunge: float) -> void:
 	var bob := absf(sin(_t))
 	if fighting:
 		_turn_bone(_bone.back, Basis(Vector3.RIGHT, deg_to_rad(6.0 * lunge)))
-		_turn_bone(_bone.neck, Basis(Vector3.RIGHT, deg_to_rad(-10.0 + 30.0 * absf(lunge))))
+		_turn_bone(_bone.neck, Basis(Vector3.RIGHT, deg_to_rad(-10.0 + 30.0 * absf(lunge) - REACT_DEGREES * _react_amount())))
 		# Tail up and stiff (rotating about +X lifts a tail that points back).
 		_turn_bone(_bone.tail, Basis(Vector3.RIGHT, deg_to_rad(15.0)) * Basis(Vector3.UP, deg_to_rad(8.0 * sin(_t))))
 		_pivot.position = Vector3(0, 0.02 * bob - 0.06 * maxf(0.0, -lunge), 0.3 * lunge)
@@ -947,7 +980,7 @@ func _pose(fighting: bool, lunge: float) -> void:
 		_pivot.rotation_degrees.x = 8.0 * lunge if lunge >= 0.0 else ATTACK_LEAN_BACK * lunge / 0.4
 	else:
 		_turn_bone(_bone.back, Basis(Vector3.RIGHT, deg_to_rad(3.0 * sin(_t * 2.0))))
-		_turn_bone(_bone.neck, Basis(Vector3.RIGHT, deg_to_rad(4.0 * sin(_t * 2.0 + 0.6))))
+		_turn_bone(_bone.neck, Basis(Vector3.RIGHT, deg_to_rad(4.0 * sin(_t * 2.0 + 0.6) - REACT_DEGREES * _react_amount())))
 		_turn_bone(_bone.tail, Basis(Vector3.UP, deg_to_rad(TAIL_WAG * sin(_t))))
 		_pivot.position = Vector3(0, 0.03 * bob, 0)
 		_pivot.rotation_degrees.x = 0.0
@@ -974,8 +1007,8 @@ func _pose_greybox(fighting: bool, lunge: float, moving: bool) -> void:
 			# reaches out past its own front (review 9).
 			_parts.paw_r.rotation_degrees.z = 62.0 * wound
 			_parts.paw_r.position.z = 0.55 + 0.38 * strike
-			# Head up as it winds, right down while it recovers.
-			_parts.neck.rotation_degrees.x = -12.0 * wound + 38.0 * slump
+			# Head up as it winds, right down while it recovers, snapped back when struck.
+			_parts.neck.rotation_degrees.x = -12.0 * wound + 38.0 * slump - REACT_DEGREES * _react_amount()
 			_parts.paw_l.rotation_degrees.x = -35.0 * wound + (0.0 if fighting else -18.0 * sin(_t))
 		"troll":
 			# The tell: both fists up over its head and spread apart, clear of its head (review 2);

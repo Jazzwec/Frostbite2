@@ -184,7 +184,7 @@ func _open_building(b: String) -> void:
 	if b == "armory":
 		# The decision first (review 11): what the next level does, the numbers, what it costs and
 		# what's missing by the button; the description last.
-		_armory_lead = UiTheme.label("", 46, UiTheme.TEAL_DEEP)
+		_armory_lead = UiTheme.label("", 44, UiTheme.TEAL_DEEP)
 		_body.add_child(_armory_lead)
 		_body.add_child(_armory_grid())
 		_body.add_child(_cost_line)
@@ -194,6 +194,8 @@ func _open_building(b: String) -> void:
 		_body.add_child(_status)
 		_body.add_child(_cost_line)
 	_upgrade = UiTheme.button("", _start_upgrade)
+	# 54 px on the phone (review 13: 52-56).
+	_upgrade.custom_minimum_size.y = 108
 	_upgrade_muted = false
 	_body.add_child(_upgrade)
 	if b == "armory":
@@ -240,15 +242,14 @@ func _armory_grid() -> GridContainer:
 	var grid := GridContainer.new()
 	grid.columns = 3
 	grid.add_theme_constant_override("h_separation", 28)
-	grid.add_theme_constant_override("v_separation", 6)
+	grid.add_theme_constant_override("v_separation", 2)
 	_armory_cells = {}
 	# The numbers, smaller; the lead line above says what they do to a wolf (reviews 2, 6, 11).
 	for row in ARMORY_ROWS:
-		var lead: bool = row[0] == "wolf"
-		var name := UiTheme.label(row[1], 46 if lead else 33, UiTheme.INK if lead else UiTheme.INK_SOFT)
+		var name := UiTheme.label(row[1], 31, UiTheme.INK_SOFT)
 		name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var now := UiTheme.label("", 46 if lead else 33)
-		var next := UiTheme.label("", 46 if lead else 33, UiTheme.TEAL_DEEP)
+		var now := UiTheme.label("", 31)
+		var next := UiTheme.label("", 31, UiTheme.TEAL_DEEP)
 		for l in [now, next]:
 			l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 			l.custom_minimum_size.x = 150
@@ -290,19 +291,21 @@ func _refresh_armory(s: GameState) -> void:
 
 
 
-## Each resource the upgrade needs against what she has (bag and store), the same way every time
-## (fight_v2 review 3): "Wood: 299 owned / 82 needed", "Materials: 8 owned / 25 needed · need 17"
-## with only "need 17" in red. One per line.
+## What the upgrade needs, on one line (review 13): "Wood 299/82 · Materials 8/25 · need 17", each
+## as owned/needed, what's short in red.
 func _cost_text(s: GameState, need: Dictionary) -> String:
-	var lines := []
+	var parts := []
+	var short := []
 	for res in need:
 		var have: float = s.piles.get(res, 0.0) + s.bag.get(res, 0.0)
-		# Owned against needed; what's short is said once, on the line above the button (review 7).
-		var line := "%s %s: %s owned / %s needed" % [UiTheme.icon(res, 40), str(res).capitalize(), Fmt.num(have), Fmt.num(need[res])]
+		var part := "%s %s %s/%s" % [UiTheme.icon(res, 40), str(res).capitalize(), Fmt.num(have), Fmt.num(need[res])]
 		if have < need[res]:
-			line = "[color=#%s]%s[/color]" % [UiTheme.FALU.to_html(false), line]
-		lines.append(line)
-	return "\n".join(lines)
+			part = "[color=#%s]%s[/color]" % [UiTheme.FALU.to_html(false), part]
+			short.append("%s %s" % [Fmt.num(ceilf(need[res] - have)), str(res).capitalize()])
+		parts.append(part)
+	if not short.is_empty():
+		parts.append("[color=#%s]need %s[/color]" % [UiTheme.FALU.to_html(false), ", ".join(short)])
+	return "  ·  ".join(parts)
 
 
 ## What's still missing for `need`, as "17 Materials" (or "" when she has it all).
@@ -407,8 +410,9 @@ func _refresh() -> void:
 		# 2, 3 and 12).
 		var short := _shortfall(s, Economy.site_cost(s, site_index))
 		_upgrade.text = "Upgrade to Lv %d" % (site.level + 1) if short == "" else "Track Lv %d delivery" % (site.level + 1)
-		if short != "":
-			_status.text += ("\n" if _status.text != "" else "") + "Deliver %s more" % short
+
+	# An empty status line would leave a gap (review 13: keep the sheet compact).
+	_status.visible = _status.text != ""
 	_cost_line.visible = _upgrade.visible
 	if _upgrade.visible:
 		_cost_line.text = _cost_text(s, Economy.site_cost(s, site_index))

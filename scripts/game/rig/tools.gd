@@ -83,12 +83,16 @@ static func make(id: String) -> Node3D:
 		# inside, and a tapered terracotta trail behind (fight_v2 review 5: a hostile silhouette,
 		# about 11 px plus a 20 px trail).
 		"shard":
-			# A solid dark head (review 9: about 20 x 9 px) and a 14 px trail.
-			var edge := Shapes.cone(0.1, 0.46, Color(0.22, 0.3, 0.42))
+			# A solid dark head about 12 x 6 px in a 1-2 px cream edge (review 13), and its tail.
+			var edge := Shapes.cone(0.07, 0.28, Color(0.22, 0.3, 0.42))
 			edge.rotation_degrees.x = -90.0
 			n.add_child(edge)
-			# A trail tapering from 5 px to nothing over about 19 px (review 10).
-			var trail := Shapes.cone(0.058, 0.44, Color(0.66, 0.3, 0.2, 0.85), Vector3(0, 0, 0.44))
+			var shell := _cone_rim(0.105, 0.36, Color(0.99, 0.94, 0.84))
+			shell.rotation_degrees.x = -90.0
+			shell.position.z = 0.01
+			n.add_child(shell)
+			# A trail tapering from 5 px to nothing over about 17 px (reviews 10, 13).
+			var trail := Shapes.cone(0.058, 0.4, Color(0.66, 0.3, 0.2, 0.85), Vector3(0, 0, 0.34))
 			trail.rotation_degrees.x = 90.0
 			n.add_child(trail)
 		# A snowball in her mitten, for her throw.
@@ -187,5 +191,22 @@ static func _rim(radius: float, color: Color, pos := Vector3.ZERO) -> MeshInstan
 	mi.mesh = mesh
 	mi.material_override = m
 	mi.position = pos
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return mi
+
+
+## The same inside-out outline for a cone (the shard's cream edge).
+static func _cone_rim(radius: float, height: float, color: Color) -> MeshInstance3D:
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = 0.0
+	mesh.bottom_radius = radius
+	mesh.height = height
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.cull_mode = BaseMaterial3D.CULL_FRONT
+	m.albedo_color = color
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = m
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	return mi

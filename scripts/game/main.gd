@@ -1033,8 +1033,12 @@ func _on_event(ev: Dictionary) -> void:
 				if exposed and ev.kind == "melee":
 					_meagan.hit_stop(WolfView.COUNTER_FREEZE)
 				var counter: bool = ev.get("exposed", false)
-				# A 13 px core for a hit, bigger for a counter or a kill (reviews 7, 10).
-				Fx.impact(wolf.contact_point(from), 1.2 if killing or counter else 1.0, counter, from)
+				# A 13 px core for a hit, bigger for a counter or a kill (reviews 7, 10). Her stick's
+				# hit sits on the stick, where its striking part meets the body (review 13).
+				var at := wolf.contact_point(from)
+				if ev.kind == "melee":
+					at = _on_stick(at)
+				Fx.impact(at, 1.2 if killing or counter else 1.0, counter, from)
 				if counter:
 					_show_counter(wolf.global_position)
 				# One secondary flourish: ink flecks flung away from the blow (fight_v2 review 1).
@@ -1162,6 +1166,18 @@ func _hit_stop(seconds: float) -> void:
 	await get_tree().create_timer(seconds, true, false, true).timeout
 	Engine.time_scale = was
 	_stopping = false
+
+
+## The point on her stick nearest `contact` (the stick from her hand to its tip, as posed now),
+## pulled a little towards the body it hits.
+func _on_stick(contact: Vector3) -> Vector3:
+	var hand := _meagan.global_position + Vector3(0, 1.15, 0)
+	var tip := _meagan.tip_position()
+	var shaft := tip - hand
+	if shaft.length() < 0.05:
+		return contact
+	var u := clampf((contact - hand).dot(shaft) / shaft.length_squared(), 0.35, 1.0)
+	return (hand + shaft * u).lerp(contact, 0.3)
 
 
 ## She's hit: her red flash and her own sound; shake only for heavy blows.
