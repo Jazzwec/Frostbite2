@@ -188,7 +188,7 @@ static func _enemy(s: GameState, e: Dictionary, dt: float, events: Array) -> voi
 	if e.mode == "leave":
 		e.pos = e.pos.move_toward(e.home, speed * (Balance.CARRY_SPEED if not e.carry.is_empty() else 1.0) * Balance.SPEED_SCALE * dt)
 		# A thief with loot waits at the edge while she's down and a little after (review 3).
-		if not e.carry.is_empty() and (s.meagan_injured or s.time < s.meagan_up_at + Balance.CATCH_GRACE):
+		if not e.carry.is_empty() and (s.meagan_injured or s.time < s.meagan_up_at + Balance.CATCH_GRACE - 0.0001):
 			return
 		if e.pos.distance_to(e.home) < 0.5:
 			s.wolves.erase(e)
@@ -374,7 +374,7 @@ static func _attack(s: GameState, e: Dictionary, def: Dictionary, foe: Dictionar
 	e.bite_cd = maxf(0.0, e.bite_cd - dt)
 	var strike: float = def.tell + (Balance.ENEMY_LUNGE if def.shape == "wedge" else 0.0)
 	if t < 0.0:
-		if e.bite_cd > 0.0 or e.pos.distance_to(foe.pos) > def.hold + 0.4:
+		if e.bite_cd > 0.0001 or e.pos.distance_to(foe.pos) > def.hold + 0.4:  # a hair, for float leftovers
 			return
 		if not _may_wind_up(s, def, foe.id):
 			return
@@ -688,7 +688,7 @@ static func _guards_fight(s: GameState, dt: float, events: Array) -> void:
 			continue
 		if guard.pos.distance_to(target.pos) > Balance.GUARD_RANGE:
 			guard.pos = guard.pos.move_toward(target.pos, Balance.GUARD_SPEED * dt)
-		elif guard.strike_in <= 0.0:
+		elif guard.strike_in <= 0.0001:  # a hair: 1 s counted down in 0.1s leaves a little over 0
 			guard.strike_in = Balance.GUARD_STRIKE_EVERY
 			_damage(s, target, damage, guard.pos, 0.0, "guard", events)
 			events.append({"type": "guard_strike", "jan": guard.id, "wolf": target.id, "pos": target.pos})
@@ -725,7 +725,9 @@ static func _meagan_fights(s: GameState, dt: float, events: Array) -> void:
 	if d > (w.reach if melee else w.range):
 		return
 	MeaganRules.set_activity(s, "fight", target.id, target.pos)
-	if s.meagan_attack_in > 0.0:
+	# A hair, for the ticks' float leftovers: without it 0.8 s counted down in 0.1s leaves a
+	# little over 0, and her stick swung every 0.9 s.
+	if s.meagan_attack_in > 0.0001:
 		return
 	s.meagan_attack_in = w.stick_every if melee else w.snow_every
 	var flight := 0.0 if melee else d / Balance.SNOWBALL_SPEED
@@ -843,7 +845,9 @@ static func _collect_dead(s: GameState, events: Array) -> void:
 ## Knocked down, she gets up after a while with part of her HP, so a raid's thieves can still be
 ## caught (fight_v2 review 2).
 static func _get_up(s: GameState, events: Array) -> void:
-	if s.meagan_injured and s.time >= s.meagan_down_at + Balance.MEAGAN_DOWN_TIME:
+	# Less a hair, for the ticks' float leftovers: on the tick it's due, not the next (or a loaded
+	# save's, whose time differs in the last digit).
+	if s.meagan_injured and s.time >= s.meagan_down_at + Balance.MEAGAN_DOWN_TIME - 0.0001:
 		s.meagan_injured = false
 		s.meagan_up_at = s.time
 		s.meagan_hp = Balance.MEAGAN_HP * Balance.MEAGAN_GETUP_HP

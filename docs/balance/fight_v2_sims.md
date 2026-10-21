@@ -14,25 +14,27 @@ Evidence for signing off the fight `[proto]` numbers (NOTES.md, "Fight v2"). Not
 - The store is always full, so the pantry floor and starvation never come into play.
 - The Armory sheet's "a wolf in N sweeps" line counts a strength-1 wolf, as the time-to-kill tables do. From wave 13 the waves are stronger than that.
 
+**A fix since the first version (F2, 2026-10-21):** attack cooldowns lost a tick to float leftovers when counted down. Her stick at Armory 1 swung every 0.9 s instead of 0.8 s, and the guards struck every 1.1 s instead of 1 s. These tables are after the fix, so the numbers now do what `balance.gd` says.
+
 ## What it says
 
 1. **The Armory curve does its job up to wave 17.**
-   - Left at Armory 1, a defending Meagan holds waves 1–6. Wave 7 breaks through (31 lost), and waves 9–11 lose 50, 87 and 113, which is the steer's "decisive breaches by 9–11".
-   - Three minutes late, the store holds until wave 13 (10 lost). Waves 14–18 then lose 47–156 each.
-   - On schedule, nothing is lost until wave 16 (16), then 20 at wave 17.
+   - Left at Armory 1, a defending Meagan holds waves 1–8. Waves 9–11 lose 35, 101 and 114, which is the steer's "decisive breaches by 9–11".
+   - Three minutes late, nothing is lost until wave 13. Waves 14–18 then lose 23–148 each.
+   - On schedule, nothing is lost until wave 16 (16), then 24 at wave 17.
 2. **Past the spending cap, nothing answers the waves (from wave 18, about 32:00).**
    - From wave 12 a wave's budget is over 96, and its enemies get tougher instead: ×3.5 HP at wave 18 and ×5.1 at wave 20.
-   - Armory 10 is the top, so even on schedule wave 18 loses 100, wave 19 223 and wave 20 168. A wolf at wave 20 takes 4 sweeps at Armory 10, and a troll 36.
+   - Armory 10 is the top, so even on schedule wave 18 loses 88, wave 19 166 and wave 20 164. A wolf at wave 20 takes 4 sweeps at Armory 10, and a troll 36.
    - So every winter ends in raids she can't hold by about 33 minutes, whatever she buys. That may be the intended end of a run, but it's a design call (see "Needs you" in AFK_REPORT.md).
 3. **Guards fall early without upgrades.**
-   - At Armory 1, the first guard falls in wave 4 when she stands, and in wave 7 when she defends. After that both go down in almost every raid. A downed guard stays down until the raid ends, and from wave 13 the raids overlap, so some raids start with both already down.
-   - On schedule, no guard falls until wave 14 (27:41).
+   - At Armory 1, the first guard falls in wave 4 when she stands, and in wave 7 when she defends. After that one or both go down in almost every raid. A downed guard stays down until the raid ends, and from wave 13 the raids overlap, so some raids start with both already down.
+   - On schedule, no guard falls until wave 12 (25:13).
    - A bear needs 45 strikes from an Armory 1 guard and knocks one down in 3 hits, so a bear or troll wave without Meagan beside the guards always takes them out.
 4. **Meagan goes down only in the late waves.**
-   - Defending at Armory 1, she's first knocked down in wave 12. On schedule, it's wave 19.
+   - Defending at Armory 1, she's first knocked down in wave 9. On schedule, and three minutes late, it's wave 19.
    - Before that she's never down, so in this sim `MEAGAN_DOWN_TIME`, `MEAGAN_GETUP_HP` and `CATCH_GRACE` matter only once a run is already lost.
 5. **Counters are a small share of the damage.**
-   - About one in eight of her hits lands on a recovering enemy (1–25% a raid), and about a quarter of the guards' (0–60%). The guards' share is higher because they stand still while being struck.
+   - About one in eight of her hits lands on a recovering enemy (0–23% a raid), and about a quarter of the guards' (0–54%). The guards' share is higher because they stand still while being struck.
    - The 1.5× is a bonus for good timing, not something the balance depends on: the sim's Meagan never aims for it.
 6. **The two-striker cap holds:** never more than 2 melee enemies attack her at once, even with 24 on the map.
 
@@ -40,13 +42,13 @@ Evidence for signing off the fight `[proto]` numbers (NOTES.md, "Fight v2"). Not
 
 | Number (balance.gd) | Value | What it does in the sim |
 |---|---|---|
-| `ENEMIES` HP (35–45% over the steer's) | fox 14, wolf 29, raider 43, bear 135, troll 320 | The time-to-kill tables. At Armory 1 a wolf takes 3 sweeps (1.8 s) and a bear 14 (10.6 s). At Armory 10 it's 1 and 3. The HP sets where the schedule plan stops holding (wave 16–17) and where Armory 1 breaks (wave 7). |
+| `ENEMIES` HP (35–45% over the steer's) | fox 14, wolf 29, raider 43, bear 135, troll 320 | The time-to-kill tables. At Armory 1 a wolf takes 3 sweeps (1.8 s) and a bear 14 (10.6 s). At Armory 10 it's 1 and 3. The HP sets where the schedule plan stops holding (wave 16–17) and where Armory 1 breaks (wave 9). |
 | `ENEMIES` wind-ups (`tell`) and `lock` | 0.65–1.2 s; bear 0.45, troll 0.55 | They set each kind's attack cycle (the "About every" column) and so how often bites land: in the defending runs a third to all of the bites in a raid land, because the sim's Meagan doesn't step out of tells. The dodge window they make is untested by the sim. |
 | `ENEMIES` recoveries (`recover`) | 0.6–0.7 s | The window counted as "on recovery": about one in eight of her hits and a quarter of the guards'. |
 | `ENEMIES` widths, `ENEMY_GAP` | 0.56–1.26 m; 0.9 | Spacing only. They don't change any count in the sim. They limit how many fit round a defender, which the striker cap already bounds. |
 | `STEAL_FOOD_FLOOR_PER_JAN` | 3 Food per Jan | Never reached: the sim keeps the store full. It needs a sim with a real economy, or a playtest. |
-| `MEAGAN_DOWN_TIME`, `MEAGAN_GETUP_HP` | 6 s, half HP | Her downs: none before wave 12 at Armory 1, or wave 19 on schedule. After that, about one a wave. She's back in each raid it happens in. |
-| `CATCH_GRACE` | 3 s | "Caught" counts thieves killed while carrying. There are 0–2 a wave, and she's rarely down in a wave that's still being held, so the grace seldom decides one. Its real job, letting the player catch up after a knock-down, needs a playtest. |
+| `MEAGAN_DOWN_TIME`, `MEAGAN_GETUP_HP` | 6 s, half HP | Her downs: none before wave 9 at Armory 1, or wave 19 on schedule. After that, about one a wave. She's back in each raid it happens in. |
+| `CATCH_GRACE` | 3 s | "Caught" counts thieves killed while carrying. There are 0–3 a wave, and she's rarely down in a wave that's still being held, so the grace seldom decides one. Its real job, letting the player catch up after a knock-down, needs a playtest. |
 | `RECOVERY_DAMAGE_MULT` | 1.5× | As for recoveries above. With about one in eight of her hits on a recovery, it adds about 6% to her damage. The time-to-kill tables show the counter count in brackets: a wolf in 2 counters, not 3 sweeps, at Armory 1. |
 | `ENEMY_MAX_ENGAGED`, `ENEMY_WAIT_BACK` | 2 strikers; 1.8 widths | "Most attacking her at once" is never over 2. |
 | `ENEMY_WINDUP_STAGGER` | 0.3 s | It spaces her two attackers' tells, so they don't start together. It's a readability rule, and the sim doesn't count it. |
@@ -85,101 +87,101 @@ Evidence for signing off the fight `[proto]` numbers (NOTES.md, "Fight v2"). Not
 
 | Wave | At | Armory | Enemies | Most alive | Thefts | Lost | Caught | Her downs | Guards down (first) | Her hits (on recovery) | Guard hits (on recovery) | Bites landed | Most attacking her at once | Mode swaps | Over |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|---|---|---:|---:|---:|
-| 1 | 4:00 | 1 | 5 | 6 | 1 | 8 | 0 | 0 | 0 | 14 (14%) | 10 (50%) | 6 of 6 | 0 | 0 | 4:34 |
-| 2 | 6:30 | 1 | 6 | 6 | 2 | 16 | 0 | 0 | 0 | 14 (7%) | 13 (23%) | 7 of 7 | 0 | 0 | 6:59 |
-| 3 | 8:51 | 1 | 10 | 10 | 4 | 23 | 0 | 0 | 0 | 18 (11%) | 12 (42%) | 8 of 8 | 0 | 0 | 9:20 |
-| 4 | 11:04 | 1 | 8 | 8 | 2 | 10 | 0 | 0 | 1 (11:24) | 32 (0%) | 9 (11%) | 4 of 4 | 0 | 4 | 11:39 |
-| 5 | 13:08 | 1 | 8 | 8 | 2 | 28 | 0 | 0 | 1 (13:28) | 21 (14%) | 13 (38%) | 10 of 10 | 0 | 0 | 14:06 |
-| 6 | 15:05 | 1 | 5 | 6 | 0 | 0 | 0 | 0 | 1 (15:24) | 66 (3%) | 12 (42%) | 7 of 7 | 0 | 0 | 16:15 |
-| 7 | 16:56 | 1 | 13 | 13 | 9 | 81 | 0 | 0 | 2 (17:12) | 26 (4%) | 21 (33%) | 15 of 16 | 0 | 0 | 17:46 |
-| 8 | 18:39 | 1 | 13 | 13 | 5 | 70 | 0 | 0 | 2 (19:01) | 41 (10%) | 20 (20%) | 11 of 11 | 2 | 2 | 19:40 |
-| 9 | 20:16 | 1 | 17 | 17 | 11 | 111 | 0 | 1 | 2 (20:33) | 38 (11%) | 20 (15%) | 18 of 18 | 1 | 2 | 21:20 |
-| 10 | 21:47 | 1 | 19 | 19 | 14 | 157 | 0 | 0 | 2 (22:10) | 25 (12%) | 17 (12%) | 11 of 11 | 0 | 0 | 22:50 |
-| 11 | 23:13 | 1 | 37 | 24 | 27 | 247 | 0 | 1 | 2 (23:36) | 49 (20%) | 16 (31%) | 21 of 21 | 2 | 6 | 24:21 |
-| 12 | 24:34 | 1 | 38 | 24 | 23 | 232 | 0 | 0 | 2 (25:00) | 53 (9%) | 19 (16%) | 16 of 16 | 2 | 10 | 25:50 |
-| 13 | 25:50 | 1 | 39 | 24 | 30 | 265 | 1 | 1 | 2 (26:16) | 56 (14%) | 16 (19%) | 19 of 19 | 2 | 8 | — |
-| 14 | 27:05 | 1 | 39 | 24 | 37 | 344 | 0 | 1 | 0 | 34 (3%) | 0 (—) | 0 of 0 | 0 | 0 | 28:14 |
-| 15 | 28:20 | 1 | 42 | 24 | 38 | 317 | 0 | 0 | 2 (28:37) | 49 (10%) | 10 (30%) | 6 of 6 | 0 | 0 | 29:27 |
-| 16 | 29:35 | 1 | 47 | 24 | 44 | 358 | 0 | 1 | 2 (29:54) | 54 (7%) | 11 (9%) | 7 of 7 | 1 | 2 | 30:43 |
-| 17 | 30:51 | 1 | 36 | 24 | 30 | 309 | 0 | 1 | 2 (31:12) | 60 (12%) | 11 (45%) | 19 of 20 | 2 | 4 | 32:04 |
-| 18 | 32:06 | 1 | 29 | 24 | 29 | 311 | 0 | 1 | 2 (32:29) | 37 (11%) | 10 (50%) | 7 of 7 | 0 | 0 | 33:14 |
-| 19 | 33:21 | 1 | 40 | 24 | 40 | 356 | 0 | 1 | 2 (33:44) | 53 (2%) | 11 (36%) | 7 of 7 | 0 | 0 | — |
-| 20 | 34:36 | 1 | 43 | 24 | 43 | 368 | 0 | 2 | 0 | 65 (6%) | 0 (—) | 9 of 9 | 2 | 2 | — |
+| 1 | 4:00 | 1 | 5 | 6 | 1 | 8 | 0 | 0 | 0 | 13 (15%) | 11 (36%) | 6 of 6 | 0 | 0 | 4:34 |
+| 2 | 6:30 | 1 | 6 | 6 | 2 | 16 | 0 | 0 | 0 | 13 (8%) | 14 (36%) | 9 of 9 | 0 | 0 | 6:59 |
+| 3 | 8:51 | 1 | 10 | 10 | 3 | 21 | 0 | 0 | 0 | 16 (13%) | 13 (15%) | 6 of 6 | 0 | 0 | 9:20 |
+| 4 | 11:04 | 1 | 8 | 8 | 2 | 10 | 0 | 0 | 1 (11:24) | 31 (0%) | 9 (33%) | 5 of 5 | 0 | 2 | 11:38 |
+| 5 | 13:08 | 1 | 8 | 8 | 3 | 36 | 0 | 0 | 1 (13:28) | 19 (5%) | 13 (54%) | 10 of 10 | 0 | 0 | 14:06 |
+| 6 | 15:05 | 1 | 5 | 6 | 0 | 0 | 0 | 0 | 1 (15:24) | 66 (3%) | 13 (38%) | 7 of 7 | 0 | 0 | 16:15 |
+| 7 | 16:56 | 1 | 13 | 13 | 9 | 81 | 0 | 0 | 2 (17:12) | 25 (0%) | 21 (29%) | 15 of 15 | 0 | 0 | 17:46 |
+| 8 | 18:39 | 1 | 13 | 13 | 5 | 70 | 0 | 0 | 2 (19:01) | 46 (15%) | 23 (17%) | 13 of 14 | 2 | 2 | 19:45 |
+| 9 | 20:16 | 1 | 17 | 17 | 10 | 103 | 0 | 1 | 1 (20:33) | 39 (10%) | 24 (17%) | 15 of 15 | 1 | 2 | 21:20 |
+| 10 | 21:47 | 1 | 19 | 19 | 12 | 132 | 0 | 0 | 1 (22:10) | 45 (2%) | 19 (16%) | 10 of 10 | 0 | 0 | 22:56 |
+| 11 | 23:13 | 1 | 37 | 24 | 26 | 230 | 0 | 1 | 2 (23:36) | 57 (12%) | 18 (17%) | 20 of 20 | 2 | 8 | 24:22 |
+| 12 | 24:34 | 1 | 38 | 24 | 23 | 232 | 0 | 0 | 2 (25:00) | 55 (11%) | 21 (24%) | 17 of 17 | 2 | 12 | 25:50 |
+| 13 | 25:50 | 1 | 39 | 24 | 24 | 240 | 0 | 0 | 2 (26:16) | 63 (11%) | 19 (21%) | 17 of 17 | 2 | 6 | — |
+| 14 | 27:05 | 1 | 39 | 24 | 36 | 336 | 0 | 1 | 0 | 34 (3%) | 0 (—) | 0 of 0 | 0 | 0 | 28:11 |
+| 15 | 28:20 | 1 | 42 | 24 | 38 | 317 | 0 | 0 | 2 (28:37) | 50 (6%) | 11 (18%) | 6 of 6 | 0 | 0 | 29:27 |
+| 16 | 29:35 | 1 | 47 | 24 | 44 | 358 | 0 | 1 | 2 (29:54) | 55 (5%) | 11 (9%) | 7 of 7 | 1 | 2 | 30:42 |
+| 17 | 30:51 | 1 | 36 | 24 | 31 | 309 | 1 | 1 | 2 (31:12) | 64 (9%) | 12 (25%) | 19 of 19 | 2 | 4 | 32:03 |
+| 18 | 32:06 | 1 | 29 | 24 | 29 | 311 | 0 | 1 | 2 (32:29) | 37 (11%) | 11 (36%) | 7 of 7 | 0 | 0 | 33:14 |
+| 19 | 33:21 | 1 | 40 | 24 | 40 | 356 | 0 | 1 | 2 (33:44) | 52 (2%) | 12 (25%) | 7 of 7 | 0 | 0 | — |
+| 20 | 34:36 | 1 | 43 | 24 | 43 | 368 | 0 | 2 | 0 | 67 (9%) | 0 (—) | 9 of 9 | 2 | 2 | — |
 
 ## Armory: none, Meagan defending
 
 | Wave | At | Armory | Enemies | Most alive | Thefts | Lost | Caught | Her downs | Guards down (first) | Her hits (on recovery) | Guard hits (on recovery) | Bites landed | Most attacking her at once | Mode swaps | Over |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|---|---|---:|---:|---:|
-| 1 | 4:00 | 1 | 5 | 6 | 0 | 0 | 0 | 0 | 0 | 12 (17%) | 8 (50%) | 6 of 9 | 2 | 2 | 4:20 |
-| 2 | 6:30 | 1 | 6 | 6 | 1 | 0 | 1 | 0 | 0 | 15 (13%) | 10 (30%) | 7 of 7 | 0 | 2 | 6:48 |
-| 3 | 8:51 | 1 | 10 | 10 | 0 | 0 | 0 | 0 | 0 | 21 (10%) | 9 (44%) | 10 of 11 | 2 | 4 | 9:10 |
-| 4 | 11:04 | 1 | 8 | 8 | 0 | 0 | 0 | 0 | 0 | 24 (25%) | 5 (60%) | 3 of 6 | 1 | 10 | 11:31 |
-| 5 | 13:08 | 1 | 8 | 8 | 0 | 0 | 0 | 0 | 0 | 32 (16%) | 15 (20%) | 7 of 9 | 1 | 12 | 13:49 |
-| 6 | 15:05 | 1 | 5 | 6 | 0 | 0 | 0 | 0 | 0 | 43 (12%) | 4 (0%) | 6 of 6 | 1 | 8 | 15:49 |
-| 7 | 16:56 | 1 | 13 | 12 | 3 | 31 | 0 | 0 | 2 (17:14) | 38 (18%) | 23 (26%) | 20 of 21 | 2 | 6 | 17:43 |
-| 8 | 18:39 | 1 | 13 | 13 | 0 | 0 | 0 | 0 | 1 (19:05) | 60 (7%) | 22 (18%) | 10 of 13 | 1 | 12 | 19:38 |
-| 9 | 20:16 | 1 | 17 | 17 | 4 | 50 | 0 | 0 | 2 (20:36) | 40 (13%) | 21 (19%) | 15 of 16 | 1 | 10 | 21:07 |
-| 10 | 21:47 | 1 | 19 | 19 | 7 | 87 | 0 | 0 | 2 (22:16) | 59 (8%) | 19 (26%) | 21 of 21 | 2 | 12 | 23:01 |
-| 11 | 23:13 | 1 | 37 | 24 | 13 | 113 | 0 | 0 | 2 (23:37) | 79 (14%) | 19 (21%) | 12 of 21 | 2 | 22 | 24:20 |
-| 12 | 24:34 | 1 | 38 | 24 | 16 | 196 | 0 | 1 | 2 (25:02) | 78 (10%) | 20 (30%) | 22 of 26 | 2 | 5 | — |
-| 13 | 25:50 | 1 | 39 | 24 | 22 | 241 | 0 | 1 | 0 | 75 (12%) | 0 (—) | 7 of 15 | 2 | 11 | 27:05 |
-| 14 | 27:05 | 1 | 39 | 24 | 30 | 294 | 0 | 1 | 2 (27:29) | 67 (12%) | 14 (14%) | 19 of 24 | 2 | 10 | — |
-| 15 | 28:20 | 1 | 42 | 24 | 32 | 304 | 0 | 1 | 0 | 70 (1%) | 0 (—) | 4 of 12 | 2 | 8 | 29:29 |
-| 16 | 29:35 | 1 | 47 | 24 | 34 | 299 | 0 | 1 | 2 (29:56) | 90 (7%) | 12 (17%) | 17 of 35 | 2 | 12 | — |
-| 17 | 30:51 | 1 | 36 | 24 | 31 | 314 | 0 | 1 | 0 | 66 (11%) | 0 (—) | 10 of 21 | 2 | 8 | — |
-| 18 | 32:06 | 1 | 29 | 24 | 25 | 285 | 0 | 1 | 0 | 57 (7%) | 0 (—) | 2 of 6 | 2 | 8 | 33:11 |
-| 19 | 33:21 | 1 | 40 | 24 | 35 | 322 | 0 | 1 | 2 (33:44) | 78 (18%) | 10 (30%) | 14 of 28 | 2 | 9 | — |
-| 20 | 34:36 | 1 | 43 | 24 | 41 | 358 | 0 | 1 | 0 | 74 (11%) | 0 (—) | 12 of 20 | 2 | 10 | — |
+| 1 | 4:00 | 1 | 5 | 6 | 0 | 0 | 0 | 0 | 0 | 13 (8%) | 9 (44%) | 9 of 12 | 2 | 2 | 4:20 |
+| 2 | 6:30 | 1 | 6 | 6 | 0 | 0 | 0 | 0 | 0 | 16 (13%) | 8 (38%) | 4 of 4 | 0 | 2 | 6:46 |
+| 3 | 8:51 | 1 | 10 | 10 | 0 | 0 | 0 | 0 | 0 | 20 (15%) | 9 (22%) | 7 of 10 | 2 | 4 | 9:07 |
+| 4 | 11:04 | 1 | 8 | 8 | 0 | 0 | 0 | 0 | 0 | 27 (11%) | 7 (14%) | 4 of 6 | 2 | 10 | 11:37 |
+| 5 | 13:08 | 1 | 8 | 8 | 0 | 0 | 0 | 0 | 0 | 30 (10%) | 14 (29%) | 8 of 8 | 1 | 10 | 13:44 |
+| 6 | 15:05 | 1 | 5 | 6 | 0 | 0 | 0 | 0 | 0 | 43 (16%) | 4 (0%) | 6 of 6 | 1 | 6 | 15:46 |
+| 7 | 16:56 | 1 | 13 | 12 | 0 | 0 | 0 | 0 | 1 (17:15) | 44 (23%) | 21 (24%) | 14 of 14 | 2 | 12 | 17:35 |
+| 8 | 18:39 | 1 | 13 | 13 | 0 | 0 | 0 | 0 | 1 (19:05) | 54 (20%) | 19 (32%) | 9 of 13 | 1 | 16 | 19:33 |
+| 9 | 20:16 | 1 | 17 | 17 | 4 | 35 | 2 | 1 | 1 (20:35) | 65 (14%) | 21 (19%) | 19 of 21 | 2 | 6 | 21:23 |
+| 10 | 21:47 | 1 | 19 | 19 | 9 | 101 | 1 | 1 | 2 (22:16) | 60 (10%) | 21 (29%) | 22 of 25 | 2 | 6 | 23:09 |
+| 11 | 23:13 | 1 | 37 | 24 | 13 | 114 | 1 | 0 | 2 (23:38) | 81 (15%) | 20 (25%) | 15 of 24 | 2 | 14 | 24:17 |
+| 12 | 24:34 | 1 | 38 | 24 | 14 | 187 | 1 | 1 | 2 (25:02) | 88 (10%) | 21 (38%) | 20 of 30 | 2 | 13 | — |
+| 13 | 25:50 | 1 | 39 | 24 | 19 | 216 | 0 | 0 | 0 | 97 (7%) | 0 (—) | 5 of 16 | 2 | 11 | 27:01 |
+| 14 | 27:05 | 1 | 39 | 24 | 30 | 279 | 0 | 1 | 2 (27:27) | 72 (8%) | 16 (19%) | 15 of 20 | 2 | 8 | 28:14 |
+| 15 | 28:20 | 1 | 42 | 24 | 34 | 309 | 1 | 1 | 2 (28:41) | 67 (12%) | 10 (0%) | 13 of 18 | 2 | 10 | 29:32 |
+| 16 | 29:35 | 1 | 47 | 24 | 36 | 309 | 0 | 1 | 2 (29:56) | 89 (11%) | 11 (9%) | 11 of 24 | 2 | 9 | — |
+| 17 | 30:51 | 1 | 36 | 24 | 28 | 271 | 3 | 1 | 0 | 81 (9%) | 0 (—) | 8 of 18 | 2 | 7 | 32:00 |
+| 18 | 32:06 | 1 | 29 | 24 | 23 | 272 | 0 | 1 | 2 (32:30) | 83 (12%) | 12 (25%) | 12 of 25 | 2 | 13 | — |
+| 19 | 33:21 | 1 | 40 | 24 | 34 | 320 | 0 | 1 | 0 | 98 (10%) | 0 (—) | 9 of 19 | 2 | 7 | — |
+| 20 | 34:36 | 1 | 43 | 24 | 39 | 345 | 0 | 1 | 0 | 94 (12%) | 0 (—) | 8 of 24 | 2 | 8 | — |
 
 ## Armory: late, Meagan defending
 
 | Wave | At | Armory | Enemies | Most alive | Thefts | Lost | Caught | Her downs | Guards down (first) | Her hits (on recovery) | Guard hits (on recovery) | Bites landed | Most attacking her at once | Mode swaps | Over |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|---|---|---:|---:|---:|
-| 1 | 4:00 | 1 | 5 | 6 | 0 | 0 | 0 | 0 | 0 | 12 (17%) | 8 (50%) | 6 of 9 | 2 | 2 | 4:20 |
-| 2 | 6:30 | 1 | 6 | 6 | 1 | 0 | 1 | 0 | 0 | 15 (13%) | 10 (30%) | 7 of 7 | 0 | 2 | 6:48 |
-| 3 | 8:51 | 1 | 10 | 10 | 1 | 0 | 1 | 0 | 0 | 19 (11%) | 9 (44%) | 9 of 10 | 2 | 4 | 9:09 |
-| 4 | 11:04 | 2 | 8 | 8 | 0 | 0 | 0 | 0 | 0 | 20 (15%) | 4 (25%) | 1 of 2 | 1 | 4 | 11:27 |
-| 5 | 13:08 | 3 | 8 | 8 | 0 | 0 | 0 | 0 | 0 | 26 (4%) | 6 (33%) | 4 of 4 | 1 | 12 | 13:38 |
+| 1 | 4:00 | 1 | 5 | 6 | 0 | 0 | 0 | 0 | 0 | 13 (8%) | 9 (44%) | 9 of 12 | 2 | 2 | 4:20 |
+| 2 | 6:30 | 1 | 6 | 6 | 0 | 0 | 0 | 0 | 0 | 16 (13%) | 8 (38%) | 4 of 4 | 0 | 2 | 6:46 |
+| 3 | 8:51 | 1 | 10 | 10 | 0 | 0 | 0 | 0 | 0 | 20 (10%) | 7 (29%) | 4 of 8 | 2 | 4 | 9:08 |
+| 4 | 11:04 | 2 | 8 | 8 | 0 | 0 | 0 | 0 | 0 | 19 (21%) | 4 (25%) | 1 of 2 | 1 | 4 | 11:29 |
+| 5 | 13:08 | 3 | 8 | 8 | 0 | 0 | 0 | 0 | 0 | 25 (4%) | 7 (29%) | 4 of 4 | 1 | 12 | 13:38 |
 | 6 | 15:05 | 4 | 5 | 6 | 0 | 0 | 0 | 0 | 0 | 28 (11%) | 1 (0%) | 3 of 3 | 1 | 8 | 15:35 |
-| 7 | 16:56 | 4 | 13 | 12 | 0 | 0 | 0 | 0 | 0 | 31 (6%) | 14 (14%) | 3 of 4 | 1 | 6 | 17:27 |
-| 8 | 18:39 | 5 | 13 | 12 | 0 | 0 | 0 | 0 | 0 | 29 (14%) | 10 (10%) | 4 of 4 | 1 | 8 | 19:09 |
-| 9 | 20:16 | 5 | 17 | 16 | 1 | 5 | 0 | 0 | 1 (20:40) | 35 (11%) | 16 (38%) | 13 of 13 | 2 | 6 | 20:51 |
-| 10 | 21:47 | 6 | 19 | 18 | 0 | 0 | 0 | 0 | 1 (22:22) | 40 (15%) | 19 (11%) | 10 of 12 | 1 | 12 | 22:28 |
-| 11 | 23:13 | 6 | 37 | 21 | 0 | 0 | 0 | 0 | 1 (23:50) | 58 (9%) | 29 (17%) | 15 of 16 | 1 | 20 | 23:56 |
-| 12 | 24:34 | 6 | 38 | 21 | 0 | 0 | 0 | 0 | 1 (25:18) | 58 (14%) | 36 (17%) | 12 of 14 | 0 | 22 | 25:25 |
-| 13 | 25:50 | 7 | 39 | 24 | 3 | 10 | 1 | 0 | 1 (26:24) | 64 (17%) | 30 (40%) | 21 of 22 | 2 | 12 | 26:47 |
-| 14 | 27:05 | 7 | 39 | 24 | 15 | 123 | 0 | 0 | 2 (27:36) | 56 (9%) | 24 (29%) | 18 of 20 | 1 | 14 | 28:01 |
-| 15 | 28:20 | 8 | 42 | 24 | 7 | 47 | 0 | 0 | 2 (28:53) | 71 (11%) | 33 (21%) | 28 of 28 | 1 | 14 | 29:15 |
-| 16 | 29:35 | 8 | 47 | 24 | 17 | 97 | 2 | 0 | 2 (30:09) | 90 (8%) | 30 (23%) | 19 of 25 | 2 | 20 | 30:38 |
-| 17 | 30:51 | 9 | 36 | 24 | 13 | 92 | 0 | 0 | 2 (31:22) | 95 (7%) | 24 (17%) | 19 of 21 | 2 | 12 | 31:48 |
-| 18 | 32:06 | 9 | 29 | 24 | 15 | 156 | 0 | 0 | 2 (32:39) | 64 (13%) | 27 (30%) | 18 of 21 | 1 | 14 | — |
-| 19 | 33:21 | 10 | 40 | 24 | 18 | 208 | 0 | 1 | 0 | 71 (0%) | 0 (—) | 2 of 2 | 2 | 16 | 34:22 |
-| 20 | 34:36 | 10 | 43 | 24 | 16 | 168 | 0 | 1 | 2 (35:05) | 111 (11%) | 25 (32%) | 22 of 27 | 2 | 12 | — |
+| 7 | 16:56 | 4 | 13 | 12 | 0 | 0 | 0 | 0 | 0 | 31 (6%) | 14 (14%) | 3 of 4 | 1 | 8 | 17:26 |
+| 8 | 18:39 | 5 | 13 | 12 | 0 | 0 | 0 | 0 | 0 | 29 (17%) | 9 (22%) | 4 of 4 | 1 | 8 | 19:08 |
+| 9 | 20:16 | 5 | 17 | 16 | 0 | 0 | 0 | 0 | 1 (20:39) | 36 (19%) | 14 (43%) | 12 of 12 | 1 | 6 | 20:48 |
+| 10 | 21:47 | 6 | 19 | 18 | 0 | 0 | 0 | 0 | 0 | 39 (18%) | 20 (20%) | 10 of 11 | 1 | 8 | 22:25 |
+| 11 | 23:13 | 6 | 37 | 21 | 0 | 0 | 0 | 0 | 1 (23:50) | 56 (9%) | 29 (17%) | 13 of 14 | 1 | 26 | 23:55 |
+| 12 | 24:34 | 6 | 38 | 22 | 1 | 0 | 1 | 0 | 0 | 56 (18%) | 39 (26%) | 16 of 18 | 1 | 22 | 25:24 |
+| 13 | 25:50 | 7 | 39 | 24 | 0 | 0 | 0 | 0 | 1 (26:27) | 66 (9%) | 37 (24%) | 18 of 20 | 1 | 14 | 26:41 |
+| 14 | 27:05 | 7 | 39 | 24 | 16 | 115 | 2 | 0 | 2 (27:40) | 56 (7%) | 32 (19%) | 20 of 23 | 1 | 14 | 28:00 |
+| 15 | 28:20 | 8 | 42 | 24 | 5 | 23 | 1 | 0 | 1 (28:56) | 71 (8%) | 45 (29%) | 25 of 26 | 1 | 22 | 29:17 |
+| 16 | 29:35 | 8 | 47 | 24 | 10 | 86 | 1 | 0 | 1 (30:11) | 81 (11%) | 42 (21%) | 23 of 27 | 2 | 20 | 30:29 |
+| 17 | 30:51 | 9 | 36 | 24 | 6 | 60 | 0 | 0 | 2 (31:19) | 100 (9%) | 22 (23%) | 15 of 19 | 1 | 10 | 31:50 |
+| 18 | 32:06 | 9 | 29 | 24 | 14 | 148 | 0 | 0 | 2 (32:39) | 67 (12%) | 29 (21%) | 18 of 21 | 1 | 14 | — |
+| 19 | 33:21 | 10 | 40 | 24 | 17 | 192 | 1 | 1 | 0 | 72 (0%) | 0 (—) | 3 of 3 | 2 | 14 | 34:24 |
+| 20 | 34:36 | 10 | 43 | 24 | 16 | 164 | 0 | 1 | 2 (35:05) | 112 (9%) | 26 (27%) | 22 of 28 | 2 | 12 | — |
 
 ## Armory: schedule, Meagan defending
 
 | Wave | At | Armory | Enemies | Most alive | Thefts | Lost | Caught | Her downs | Guards down (first) | Her hits (on recovery) | Guard hits (on recovery) | Bites landed | Most attacking her at once | Mode swaps | Over |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|---|---|---:|---:|---:|
-| 1 | 4:00 | 1 | 5 | 6 | 0 | 0 | 0 | 0 | 0 | 12 (17%) | 8 (50%) | 6 of 9 | 2 | 2 | 4:20 |
-| 2 | 6:30 | 2 | 6 | 6 | 0 | 0 | 0 | 0 | 0 | 14 (14%) | 7 (43%) | 3 of 3 | 0 | 2 | 6:45 |
-| 3 | 8:51 | 2 | 10 | 10 | 0 | 0 | 0 | 0 | 0 | 17 (18%) | 5 (40%) | 3 of 6 | 2 | 4 | 9:05 |
-| 4 | 11:04 | 3 | 8 | 8 | 0 | 0 | 0 | 0 | 0 | 18 (17%) | 2 (50%) | 1 of 2 | 1 | 4 | 11:26 |
+| 1 | 4:00 | 1 | 5 | 6 | 0 | 0 | 0 | 0 | 0 | 13 (8%) | 9 (44%) | 9 of 12 | 2 | 2 | 4:20 |
+| 2 | 6:30 | 2 | 6 | 6 | 0 | 0 | 0 | 0 | 0 | 14 (14%) | 7 (29%) | 3 of 3 | 0 | 2 | 6:45 |
+| 3 | 8:51 | 2 | 10 | 10 | 0 | 0 | 0 | 0 | 0 | 17 (18%) | 5 (20%) | 4 of 6 | 2 | 4 | 9:05 |
+| 4 | 11:04 | 3 | 8 | 8 | 0 | 0 | 0 | 0 | 0 | 17 (18%) | 3 (33%) | 1 of 2 | 1 | 4 | 11:26 |
 | 5 | 13:08 | 4 | 8 | 8 | 0 | 0 | 0 | 0 | 0 | 23 (13%) | 3 (0%) | 3 of 3 | 1 | 8 | 13:33 |
-| 6 | 15:05 | 5 | 5 | 6 | 0 | 0 | 0 | 0 | 0 | 26 (8%) | 1 (0%) | 2 of 2 | 1 | 8 | 15:33 |
-| 7 | 16:56 | 5 | 13 | 12 | 0 | 0 | 0 | 0 | 0 | 27 (11%) | 16 (13%) | 5 of 7 | 1 | 8 | 17:27 |
-| 8 | 18:39 | 6 | 13 | 12 | 0 | 0 | 0 | 0 | 0 | 25 (20%) | 9 (44%) | 6 of 6 | 1 | 8 | 19:06 |
-| 9 | 20:16 | 6 | 17 | 16 | 0 | 0 | 0 | 0 | 0 | 34 (18%) | 15 (20%) | 9 of 9 | 1 | 8 | 20:46 |
-| 10 | 21:47 | 6 | 19 | 18 | 0 | 0 | 0 | 0 | 0 | 35 (14%) | 22 (5%) | 5 of 7 | 1 | 8 | 22:25 |
-| 11 | 23:13 | 7 | 37 | 22 | 0 | 0 | 0 | 0 | 0 | 49 (8%) | 29 (21%) | 11 of 14 | 1 | 18 | 23:56 |
-| 12 | 24:34 | 7 | 38 | 22 | 0 | 0 | 0 | 0 | 0 | 53 (11%) | 32 (19%) | 13 of 15 | 0 | 20 | 25:25 |
-| 13 | 25:50 | 8 | 39 | 23 | 1 | 0 | 1 | 0 | 0 | 59 (15%) | 30 (37%) | 17 of 18 | 1 | 16 | 26:36 |
-| 14 | 27:05 | 8 | 39 | 24 | 0 | 0 | 0 | 0 | 1 (27:41) | 62 (10%) | 36 (36%) | 21 of 23 | 1 | 20 | 27:52 |
-| 15 | 28:20 | 9 | 42 | 24 | 0 | 0 | 0 | 0 | 1 (29:05) | 71 (13%) | 36 (28%) | 20 of 20 | 1 | 22 | 29:09 |
-| 16 | 29:35 | 9 | 47 | 22 | 3 | 16 | 1 | 0 | 0 | 77 (9%) | 37 (19%) | 17 of 18 | 2 | 26 | 30:24 |
-| 17 | 30:51 | 10 | 36 | 24 | 4 | 20 | 0 | 0 | 1 (31:25) | 86 (9%) | 32 (28%) | 18 of 21 | 1 | 12 | 31:44 |
-| 18 | 32:06 | 10 | 29 | 24 | 7 | 100 | 0 | 0 | 1 (32:44) | 73 (11%) | 36 (31%) | 21 of 21 | 1 | 22 | — |
-| 19 | 33:21 | 10 | 40 | 24 | 19 | 223 | 0 | 1 | 1 (33:44) | 75 (1%) | 3 (0%) | 4 of 5 | 1 | 14 | 34:26 |
-| 20 | 34:36 | 10 | 43 | 24 | 16 | 168 | 0 | 1 | 2 (35:05) | 111 (11%) | 25 (32%) | 22 of 27 | 2 | 12 | — |
+| 6 | 15:05 | 5 | 5 | 6 | 0 | 0 | 0 | 0 | 0 | 26 (8%) | 0 (—) | 2 of 2 | 1 | 10 | 15:31 |
+| 7 | 16:56 | 5 | 13 | 12 | 0 | 0 | 0 | 0 | 0 | 25 (12%) | 17 (29%) | 7 of 7 | 0 | 6 | 17:23 |
+| 8 | 18:39 | 6 | 13 | 12 | 0 | 0 | 0 | 0 | 0 | 26 (23%) | 10 (10%) | 5 of 5 | 1 | 8 | 19:06 |
+| 9 | 20:16 | 6 | 17 | 16 | 0 | 0 | 0 | 0 | 0 | 33 (9%) | 18 (11%) | 8 of 9 | 1 | 6 | 20:46 |
+| 10 | 21:47 | 6 | 19 | 18 | 0 | 0 | 0 | 0 | 0 | 36 (17%) | 22 (14%) | 11 of 11 | 1 | 8 | 22:25 |
+| 11 | 23:13 | 7 | 37 | 21 | 1 | 0 | 1 | 0 | 0 | 52 (6%) | 31 (19%) | 12 of 13 | 1 | 20 | 23:55 |
+| 12 | 24:34 | 7 | 38 | 22 | 0 | 0 | 0 | 0 | 1 (25:13) | 53 (4%) | 37 (19%) | 12 of 14 | 1 | 24 | 25:22 |
+| 13 | 25:50 | 8 | 39 | 23 | 1 | 0 | 1 | 0 | 0 | 59 (10%) | 36 (22%) | 14 of 14 | 1 | 16 | 26:36 |
+| 14 | 27:05 | 8 | 39 | 24 | 1 | 0 | 1 | 0 | 1 (27:37) | 65 (8%) | 33 (21%) | 15 of 17 | 1 | 18 | 27:54 |
+| 15 | 28:20 | 9 | 42 | 24 | 0 | 0 | 0 | 0 | 1 (28:56) | 70 (9%) | 34 (24%) | 18 of 18 | 1 | 18 | 29:08 |
+| 16 | 29:35 | 9 | 47 | 21 | 2 | 16 | 0 | 0 | 0 | 77 (10%) | 37 (19%) | 15 of 18 | 2 | 20 | 30:24 |
+| 17 | 30:51 | 10 | 36 | 24 | 3 | 24 | 0 | 0 | 1 (31:23) | 81 (7%) | 39 (28%) | 21 of 24 | 2 | 14 | 31:42 |
+| 18 | 32:06 | 10 | 29 | 24 | 12 | 88 | 1 | 0 | 1 (32:41) | 80 (13%) | 35 (20%) | 19 of 22 | 1 | 22 | 33:11 |
+| 19 | 33:21 | 10 | 40 | 24 | 21 | 166 | 2 | 1 | 2 (33:51) | 87 (6%) | 23 (17%) | 21 of 22 | 2 | 12 | 34:27 |
+| 20 | 34:36 | 10 | 43 | 24 | 16 | 164 | 0 | 1 | 2 (35:05) | 112 (9%) | 26 (27%) | 22 of 28 | 2 | 12 | — |
 
 ## Time to kill (strength 1)
 
