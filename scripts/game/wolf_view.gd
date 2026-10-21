@@ -114,17 +114,22 @@ const TELL_KEY := Color(0.98, 0.94, 0.86, 1.0)
 const TELL_KEY_WIDTH := 0.075
 const EDGE_PULSE := 0.18
 ## While it recovers from its strike (the counter window, Balance.RECOVERY_DAMAGE_MULT), an ochre
-## ring of four segments lies just outside its feet, a segment going out each quarter of the
-## window (reviews 5 and 6). Ochre is for recovery only.
+## ring of four segments lies round its whole body, a segment going out each quarter of the
+## window, clockwise from twelve o'clock (reviews 5-7): 3 px strokes on a 1 px dark under-edge,
+## so it survives snow and clutter. Ochre is for recovery only.
 var _halo: Node3D
-var _halo_parts: Array[MeshInstance3D] = []
-const HALO := Color(0.86, 0.62, 0.22, 0.95)
-const HALO_WIDTH := 0.12
+var _halo_parts: Array[Node3D] = []
+const HALO := Color(0.86, 0.62, 0.22, 1.0)
+const HALO_EDGE := Color(0.2, 0.15, 0.1, 0.9)
+const HALO_WIDTH := 0.07
+## How far round its middle a kind's body reaches on the ground (its length, for the long ones).
+const FOOTPRINT := {"fox": 0.75, "wolf": 1.0, "bear": 1.45, "troll": 1.15, "raider": 0.45}
 ## How far its health bar is raised to clear a neighbour's (PeopleLayer sets it; review 2), with a
 ## thin line down to its owner once it's lifted (review 3).
 var bar_lift := 0.0
 var _bar_height := 0.0
 var _bar_link: MeshInstance3D
+var _bar_dot: MeshInstance3D
 var _shot_line: MeshInstance3D
 var _sack: Sprite3D
 var _sack_disc: Sprite3D
@@ -178,7 +183,7 @@ func _init(enemy_kind := "wolf") -> void:
 	_hp_bar.position = Vector3(0, look.bar, 0)
 	_bar_link = MeshInstance3D.new()
 	var link := BoxMesh.new()
-	link.size = Vector3(0.045, 1.0, 0.045)
+	link.size = Vector3(0.024, 1.0, 0.024)
 	_bar_link.mesh = link
 	var link_mat := StandardMaterial3D.new()
 	link_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -190,6 +195,16 @@ func _init(enemy_kind := "wolf") -> void:
 	_bar_link.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_bar_link.visible = false
 	add_child(_bar_link)
+	# The stem ends in a small dot right over its owner (review 7).
+	_bar_dot = MeshInstance3D.new()
+	var dot := SphereMesh.new()
+	dot.radius = 0.04
+	dot.height = 0.08
+	_bar_dot.mesh = dot
+	_bar_dot.material_override = link_mat
+	_bar_dot.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_bar_dot.visible = false
+	add_child(_bar_dot)
 	add_child(_hp_bar)
 	_sack_disc = Sprite3D.new()
 	_sack_disc.texture = _badge_disc()
@@ -461,10 +476,20 @@ func _build_tell() -> void:
 	_halo.position.y = 0.05
 	_halo.visible = false
 	add_child(_halo)
-	var r: float = _def.width * 0.5 + 0.22
+	var r: float = FOOTPRINT[kind] + 0.2
 	for k in 4:
-		var part := _ground_mesh(sector(r, r + HALO_WIDTH, 62.0), HALO)
-		part.rotation.y = deg_to_rad(90.0 * k + 45.0)
+		# Segment k runs clockwise on screen from (k * 90) degrees past twelve o'clock (north).
+		# A sector is centred on local +Z; turning it by phi points it at ground angle 90 - phi.
+		var part := Node3D.new()
+		var mid := -90.0 + 90.0 * k + 45.0
+		part.rotation.y = deg_to_rad(90.0 - mid)
+		var edge := _ground_mesh(sector(r - 0.025, r + HALO_WIDTH + 0.025, 68.0), HALO_EDGE)
+		var stroke := _ground_mesh(sector(r, r + HALO_WIDTH, 64.0), HALO)
+		stroke.position.y = 0.005
+		# Drawn after its edge, so the ochre sits on top.
+		(stroke.material_override as StandardMaterial3D).render_priority = 1
+		part.add_child(edge)
+		part.add_child(stroke)
 		_halo.add_child(part)
 		_halo_parts.append(part)
 	_tell_line_thin.position.y = 0.01
@@ -688,9 +713,11 @@ func sync(enemy: Dictionary, delta: float) -> void:
 	_hp_bar.position.y = lerpf(_hp_bar.position.y, _bar_height + bar_lift, minf(1.0, 10.0 * delta))
 	var lifted := _hp_bar.position.y - _bar_height
 	_bar_link.visible = _hp_bar.visible and lifted > 0.2
+	_bar_dot.visible = _bar_link.visible
 	if _bar_link.visible:
 		_bar_link.position.y = _bar_height - 0.1 + lifted / 2.0
 		_bar_link.scale.y = lifted
+		_bar_dot.position.y = _bar_height - 0.1
 	# The thief's badge hangs just above its bar on a short stem, a sack beside the amount.
 	_sack_disc.position = Vector3(0.0, _hp_bar.position.y + 0.55, 0)
 	_badge_amount.position = _sack_disc.position + Vector3(0.2, 0, 0)
@@ -705,7 +732,8 @@ func sync(enemy: Dictionary, delta: float) -> void:
 	if _halo.visible:
 		var left: float = clampf(1.0 - (t - struck) / _def.recover, 0.0, 1.0)
 		for k in 4:
-			_halo_parts[k].visible = left > k / 4.0
+			# The twelve-to-three segment goes first.
+			_halo_parts[k].visible = left > 1.0 - (k + 1) / 4.0
 
 
 ## A carrier shows what it took: a sack-sized icon of the resource it carries most of.

@@ -1,17 +1,26 @@
 class_name ThreatArrows
 extends Control
-## Arrows at the screen edge for threats off screen (fight_v2 review 1), so the middle of the
-## phone stays free for the fight: while a wave is announced, one rust arrow towards each side it
-## will come from; during a raid, one gold arrow with a sack towards the nearest enemy running off
-## with stolen goods (only that one). Nothing while a sheet is open. Nothing here takes touches.
+## Arrows at the screen edge for threats off screen (fight_v2 reviews 1-7), so the middle of the
+## phone stays free for the fight: while a wave is announced, one ochre arrow towards each side
+## it will come from; during a raid, a small marker with its distance for each of the two nearest
+## attackers off screen (terracotta while one winds up, muted ink while it's coming), and one
+## arrow with a sack and the amount towards the nearest enemy running off with stolen goods.
+## Nothing while a sheet is open. Nothing here takes touches.
 
 const SIZE := 36.0
 ## Where an arrow may sit: this far in from each screen edge (left, top, right, bottom), clear
 ## of the top panel, the buttons and the fight strip under them.
-const EDGE_MARGINS := Vector4(74, 460, 74, 184)
+const EDGE_MARGINS := Vector4(62, 460, 62, 200)
 ## Ochre for what's coming, terracotta for danger now (review 3), each with a cream keyline.
 const COMING := Color(0.79, 0.59, 0.25)
 const THIEF := Color(0.66, 0.3, 0.2)
+## The attackers' markers: smaller (about 24 px), 16 px in from the edge, with their distance.
+const ATTACKER_SIZE := 26.0
+const ATTACKER_COMING := Color(0.36, 0.39, 0.46)
+const ATTACKER_STRIKING := Color(0.66, 0.3, 0.2)
+const ATTACKERS_SHOWN := 2
+## Markers closer than this on screen are one, with a count.
+const MERGE := 120.0
 const KEYLINE := Color(0.98, 0.94, 0.86)
 const ICON_SIZE := 64.0
 
@@ -19,7 +28,7 @@ const ICON_SIZE := 64.0
 var sheet: Control
 
 var _camera: Camera3D
-var _marks := []  # [screen position, direction, colour, badge amount or ""]
+var _marks := []  # [screen position, direction, colour, badge amount or "", size, label]
 var _disc: Texture2D
 var _bag: Texture2D
 var _font: Font
@@ -53,6 +62,24 @@ func _process(delta: float) -> void:
 			for res in thief.carry:
 				total += thief.carry[res]
 			_mark(thief.pos, THIEF, Fmt.num(total))
+		var shown := 0
+		for e in _attackers_by_distance(s):
+			if shown >= ATTACKERS_SHOWN or (not thief.is_empty() and e.id == thief.id):
+				continue
+			var before := _marks.size()
+			_mark(e.pos, ATTACKER_STRIKING if e.bite_t >= 0.0 else ATTACKER_COMING, "", ATTACKER_SIZE,
+					"%dm" % roundi(e.pos.distance_to(s.meagan_pos)))
+			if _marks.size() > before:
+				# Two the same way share one marker: the nearer, with how many.
+				var merged := false
+				for k in before:
+					if _marks[k][4] == ATTACKER_SIZE and _marks[k][0].distance_to(_marks[before][0]) < MERGE:
+						_marks[k][6] += 1
+						merged = true
+				if merged:
+					_marks.remove_at(before)
+				else:
+					shown += 1
 	queue_redraw()
 
 
@@ -67,8 +94,15 @@ static func nearest_thief(s: GameState) -> Dictionary:
 	return best
 
 
+## The raid's enemies still after the town (not the leaving or the dead), nearest Meagan first.
+static func _attackers_by_distance(s: GameState) -> Array:
+	var out := s.wolves.filter(func(e): return e.outpost < 0 and e.hp > 0.0 and e.mode != "leave")
+	out.sort_custom(func(a, b): return a.pos.distance_to(s.meagan_pos) < b.pos.distance_to(s.meagan_pos))
+	return out
+
+
 ## An arrow at the edge towards `ground`, if it's off screen (on screen, its own badge says it).
-func _mark(ground: Vector2, color: Color, badge: String) -> void:
+func _mark(ground: Vector2, color: Color, badge: String, size := SIZE, label := "") -> void:
 	var at := _camera.unproject_position(Vector3(ground.x, 1.0, ground.y))
 	var screen := get_viewport_rect().size
 	var m := EDGE_MARGINS
@@ -80,23 +114,30 @@ func _mark(ground: Vector2, color: Color, badge: String) -> void:
 	var half := inside.size / 2.0
 	var reach := minf(half.x / maxf(absf(dir.x), 0.001), half.y / maxf(absf(dir.y), 0.001))
 	var bob := 8.0 * absf(sin(_time * 5.0))
-	_marks.append([centre + dir * (reach - bob), dir, color, badge])
+	_marks.append([centre + dir * (reach - bob), dir, color, badge, size, label, 1])
 
 
 func _draw() -> void:
-	var a := SIZE
-	# A chunky arrow pointing along +Y, its tip at the origin (as the hints' arrow).
-	var shape := PackedVector2Array([Vector2(0, 0), Vector2(-a, -a), Vector2(-a * 0.4, -a), Vector2(-a * 0.4, -a * 1.8),
-		Vector2(a * 0.4, -a * 1.8), Vector2(a * 0.4, -a), Vector2(a, -a)])
-	var outline := shape.duplicate()
-	outline.append(shape[0])
 	for mk in _marks:
+		var a: float = mk[4]
+		# A chunky arrow pointing along +Y, its tip at the origin (as the hints' arrow).
+		var shape := PackedVector2Array([Vector2(0, 0), Vector2(-a, -a), Vector2(-a * 0.4, -a), Vector2(-a * 0.4, -a * 1.8),
+			Vector2(a * 0.4, -a * 1.8), Vector2(a * 0.4, -a), Vector2(a, -a)])
+		var outline := shape.duplicate()
+		outline.append(shape[0])
 		var dir: Vector2 = mk[1]
 		draw_set_transform(mk[0], dir.angle() - PI / 2.0)
 		draw_polyline(outline, KEYLINE, 12.0, true)
 		draw_colored_polygon(shape, mk[2])
 		draw_polyline(outline, UiTheme.INK, 5.0, true)
 		draw_set_transform(Vector2.ZERO)
+		if mk[5] != "":
+			# How far it is (and how many, if several), just behind the arrow, ink on a cream halo.
+			var text: String = mk[5] if mk[6] < 2 else "%s ×%d" % [mk[5], mk[6]]
+			var at: Vector2 = mk[0] - dir * a * 3.4
+			var label_size := _font.get_string_size(text, HORIZONTAL_ALIGNMENT_CENTER, -1, 26)
+			draw_string_outline(_font, at + Vector2(-label_size.x / 2.0, 9.0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, 8, KEYLINE)
+			draw_string(_font, at + Vector2(-label_size.x / 2.0, 9.0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, UiTheme.INK)
 		if mk[3] != "":
 			# The thief's badge rides on its arrow: the ochre disc and what it carries.
 			# The thief's capsule rides on its arrow, the same as over its head: a sack and the amount.

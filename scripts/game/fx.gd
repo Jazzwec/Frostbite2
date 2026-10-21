@@ -104,8 +104,8 @@ static func throw(item: String, from: Vector3, to: Vector3, seconds := 0.45, hei
 	t.tween_callback(land)
 
 
-## A blow's impact mark at `pos`, `size` times the usual size, its rays flung away from `from`
-## (review 5: a few unequal rays pointing away from the contact); a counter's rays are ochre.
+## A blow's impact mark at `pos`, `size` times the usual size, its rays sprayed back towards
+## `from` (reviews 5 and 7); a counter's rays are ochre.
 static func impact(pos: Vector3, size := 1.0, counter := false, from := Vector3.INF) -> void:
 	if instance:
 		instance._impact(pos, size, counter, from)
@@ -128,11 +128,12 @@ func _impact(pos: Vector3, size: float, counter := false, from := Vector3.INF) -
 	mark.global_position = pos
 	mark.texture = COUNTER_TEXTURE if counter else IMPACT_TEXTURE
 	mark.pixel_size = IMPACT_SIZE * size / 256.0
-	# Turn its rays (drawn along +X) away from the blow, on screen.
+	# Its rays (drawn along +X) spray back out of the body towards the blow, so the longest reach
+	# past the struck one's outline (review 7).
 	var camera := get_viewport().get_camera_3d()
 	if camera and from != Vector3.INF:
-		var away := camera.unproject_position(pos) - camera.unproject_position(from)
-		mark.rotation.z = -away.angle() if away.length() > 0.5 else 0.0
+		var out := camera.unproject_position(from) - camera.unproject_position(pos)
+		mark.rotation.z = -out.angle() if out.length() > 0.5 else 0.0
 	else:
 		mark.rotation.z = randf() * TAU
 	mark.modulate = Color.WHITE

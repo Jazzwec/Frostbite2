@@ -18,6 +18,7 @@ var width := WIDTH
 var height := HEIGHT
 var _fill: MeshInstance3D
 var _back: MeshInstance3D
+var _key: MeshInstance3D
 var _accent := 0.0
 
 
@@ -28,6 +29,11 @@ func _init(fill_color := WOLF_RED, bar_width := WIDTH, bar_height := HEIGHT) -> 
 	back.mesh.size = Vector2(width + 0.06, height + 0.06)
 	add_child(back)
 	_back = back
+	# The dark keyline outside the cream border while accented (review 7).
+	_key = _quad(Color(0.1, 0.1, 0.1, 0.9), -1)
+	_key.mesh.size = Vector2(width + 0.11, height + 0.11)
+	_key.visible = false
+	add_child(_key)
 	_fill = _quad(fill_color, 1)
 	add_child(_fill)
 	visible = false
@@ -63,7 +69,7 @@ func set_value(fraction: float, show_when_full := false) -> void:
 func accent() -> void:
 	_accent = ACCENT_TIME
 	(_back.material_override as StandardMaterial3D).albedo_color = ACCENT
-	_back.scale = Vector3(1.0 + 0.04 / width, 1.0 + 0.04 / height, 1.0)
+	_key.visible = true
 	visible = true
 
 
@@ -73,7 +79,7 @@ func _process(delta: float) -> void:
 	_accent -= delta
 	if _accent <= 0.0:
 		(_back.material_override as StandardMaterial3D).albedo_color = Color(0.1, 0.1, 0.1, 0.8)
-		_back.scale = Vector3.ONE
+		_key.visible = false
 
 
 ## The fill's left-aligned scale and offset, for tests.

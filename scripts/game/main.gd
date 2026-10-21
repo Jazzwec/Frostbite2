@@ -1029,7 +1029,8 @@ func _on_event(ev: Dictionary) -> void:
 				var killing: bool = Game.engine.state.wolves.all(func(w): return w.id != ev.wolf or w.hp <= 0.0)
 				wolf.hit(from, "heavy" if killing else ("sweep" if ev.kind == "melee" else "light"))
 				var counter: bool = ev.get("exposed", false)
-				Fx.impact(wolf.contact_point(from), 1.28 if killing else 1.0, counter, from)
+				# About 25 px for a hit, 32 px for a counter or a kill (review 7).
+				Fx.impact(wolf.contact_point(from), 1.0 if killing or counter else 0.8, counter, from)
 				if counter:
 					_show_counter(wolf.global_position)
 				# One secondary flourish: ink flecks flung away from the blow (fight_v2 review 1).

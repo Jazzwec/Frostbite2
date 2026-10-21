@@ -253,14 +253,15 @@ func _nudge_wolves(s: GameState, delta: float) -> void:
 const PITCH := deg_to_rad(52.0)
 const BAR_HALF := 0.68
 const BAR_TALL := 0.3
-const HEAD_CLEAR := Vector2(0.5, 0.75)
+const HEAD_CLEAR := Vector2(0.55, 1.0)
 
 
 func _stack_bars(s: GameState) -> void:
 	var screen := func(p: Vector2, height: float) -> Vector2:
 		return Vector2(p.x, p.y * sin(PITCH) - height * cos(PITCH))
 	# What's fixed: her bar and her head.
-	var placed := [[screen.call(s.meagan_pos, 2.45), Vector2(BAR_HALF, BAR_TALL)], [screen.call(s.meagan_pos, 1.85), HEAD_CLEAR]]
+	# Her head, with 8 px to spare above it whatever her clip does (review 7).
+	var placed := [[screen.call(s.meagan_pos, 2.45), Vector2(BAR_HALF, BAR_TALL)], [screen.call(s.meagan_pos, 1.95), HEAD_CLEAR]]
 	var bars := []
 	for wolf in s.wolves:
 		var view: WolfView = _wolves.get(wolf.id)

@@ -223,10 +223,10 @@ func _armory_grid() -> GridContainer:
 	# What the next level does to a wolf leads, big (reviews 2 and 6); the numbers follow, smaller.
 	for row in [["wolf", "Hits to beat a wolf"]] + ARMORY_ROWS:
 		var lead: bool = row[0] == "wolf"
-		var name := UiTheme.label(row[1], 44 if lead else 34, UiTheme.INK if lead else UiTheme.INK_SOFT)
+		var name := UiTheme.label(row[1], 46 if lead else 33, UiTheme.INK if lead else UiTheme.INK_SOFT)
 		name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var now := UiTheme.label("", 46 if lead else 36)
-		var next := UiTheme.label("", 46 if lead else 36, UiTheme.TEAL_DEEP)
+		var now := UiTheme.label("", 46 if lead else 33)
+		var next := UiTheme.label("", 46 if lead else 33, UiTheme.TEAL_DEEP)
 		for l in [now, next]:
 			l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 			l.custom_minimum_size.x = 150
@@ -257,7 +257,7 @@ func _refresh_armory(s: GameState) -> void:
 	var counts: Array = sweeps if by_sweep else balls
 	now["wolf"] = "%d" % counts[0]
 	next["wolf"] = "%d" % counts[1]
-	_armory_cells.wolf[2].text = "Wolves: sweeps" if by_sweep else "Wolves: snowballs"
+	_armory_cells.wolf[2].text = "Sweeps to defeat a wolf" if by_sweep else "Snowballs to defeat a wolf"
 	for key in _armory_cells:
 		var cells: Array = _armory_cells[key]
 		cells[0].text = now[key]
@@ -274,9 +274,10 @@ func _cost_text(s: GameState, need: Dictionary) -> String:
 	var lines := []
 	for res in need:
 		var have: float = s.piles.get(res, 0.0) + s.bag.get(res, 0.0)
+		# Owned against needed; what's short is said once, on the line above the button (review 7).
 		var line := "%s %s: %s owned / %s needed" % [UiTheme.icon(res, 40), str(res).capitalize(), Fmt.num(have), Fmt.num(need[res])]
 		if have < need[res]:
-			line += "  ·  [color=#%s]need %s[/color]" % [UiTheme.FALU.to_html(false), Fmt.num(ceilf(need[res] - have))]
+			line = "[color=#%s]%s[/color]" % [UiTheme.FALU.to_html(false), line]
 		lines.append(line)
 	return "\n".join(lines)
 
@@ -381,9 +382,9 @@ func _refresh() -> void:
 		# Short of something, the button starts a delivery: she brings the rest to the pad (the
 		# game's upgrade flow), and it says so, in an enabled muted teal (reviews 2 and 3).
 		var short := _shortfall(s, Economy.site_cost(s, site_index))
-		_upgrade.text = "Upgrade to Lv %d" % (site.level + 1) if short == "" else "Start Lv %d delivery" % (site.level + 1)
+		_upgrade.text = "Upgrade to Lv %d" % (site.level + 1) if short == "" else "Track Lv %d delivery" % (site.level + 1)
 		if short != "":
-			_status.text += "\n%s more needed: deliver it to the pad." % short
+			_status.text += "\nCollect %s more, then deliver to the pad." % short
 		if (short != "") != _upgrade_muted:
 			_upgrade_muted = short != ""
 			if _upgrade_muted:
